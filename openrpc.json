@@ -37,6 +37,11 @@
 				"type": "string",
 				"pattern": "^0x[0-9a-f]{40}$"
 			},
+			"byte": {
+				"title": "byte",
+				"type": "string",
+				"pattern": "^0x([a-fA-F0-9]?){1,2}$"
+			},
 			"hex": {
 				"title": "hex string",
 				"type": "string",
@@ -47,44 +52,116 @@
 				"type": "string",
 				"pattern": "^0x[0-9a-f]{64}$"
 			},
+			"AccessListEntry": {
+				"title": "accessListEntry",
+				"type": "object",
+				"properties": {
+					"address": {
+						"$ref": "#/components/schemas/address"
+					},
+					"storageKeys": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/hash32"
+						}
+					}
+				}
+			},
+			"AccessList": {
+				"title": "accessList",
+				"type": "object",
+				"items": {
+					"$ref": "#/components/schemas/AccessListEntry"
+				}
+			},
 			"Transaction": {
 				"type": "object",
 				"title": "Transaction object",
-				"required": ["nonce", "gas", "value", "input", "v", "r", "s"],
-				"properties": {
-					"nonce": {
-						"title": "nonce",
-						"$ref": "#/components/schemas/hex"
+				"allOf": [
+					{
+						"required": ["nonce", "gas", "value", "input", "v", "r", "s"],
+						"properties": {
+							"type": {
+								"title": "type",
+								"$ref": "#/components/schemas/byte"
+							},
+							"nonce": {
+								"title": "nonce",
+								"$ref": "#/components/schemas/hex"
+							},
+							"to": {
+								"title": "to address",
+								"$ref": "#/components/schemas/address"
+							},
+							"gas": {
+								"title": "gas limit",
+								"$ref": "#/components/schemas/hex"
+							},
+							"value": {
+								"title": "value",
+								"$ref": "#/components/schemas/hex"
+							},
+							"input": {
+								"title": "input data",
+								"$ref": "#/components/schemas/hex"
+							},
+							"accessList": {
+								"title": "accessList",
+								"description": "EIP-2930 access list",
+								"$ref": "#/components/schemas/AccessList"
+							},
+							"v": {
+								"title": "v",
+								"$ref": "#/components/schemas/hex"
+							},
+							"r": {
+								"title": "r",
+								"$ref": "#/components/schemas/hex"
+							},
+							"s": {
+								"title": "s",
+								"$ref": "#/components/schemas/hex"
+							}
+						}
 					},
-					"to": {
-						"title": "to address",
-						"$ref": "#/components/schemas/address"
-					},
-					"gas": {
-						"title": "gas limit",
-						"$ref": "#/components/schemas/hex"
-					},
-					"value": {
-						"title": "value",
-						"$ref": "#/components/schemas/hex"
-					},
-					"input": {
-						"title": "input data",
-						"$ref": "#/components/schemas/hex"
-					},
-					"v": {
-						"title": "v",
-						"$ref": "#/components/schemas/hex"
-					},
-					"r": {
-						"title": "r",
-						"$ref": "#/components/schemas/hex"
-					},
-					"s": {
-						"title": "s",
-						"$ref": "#/components/schemas/hex"
+					{
+						"oneOf": [
+							{
+								"title": "EIP-1559 fee market parameters",
+								"type": "object",
+								"description": "EIP-1559 dynamic fee transactions have two fee parameters.",
+								"required": [
+									"maxFeePerGas",
+									"maxPriorityFeePerGas"
+								],
+								"properties": {
+									"maxPriorityFeePerGas": {
+										"title": "max priority fee per gas",
+										"description": "Maximum fee per gas the sender is willing to pay to miners in wei",
+										"$ref": "#/components/schemas/hex"
+									},
+									"maxFeePerGas": {
+										"title": "max fee per gas",
+										"description": "The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei",
+										"$ref": "#/components/schemas/hex"
+									}
+								}
+							},
+							{
+								"title": "Legacy fee market parameters",
+								"type": "object",
+								"description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
+								"properties": {
+									"gasPrice": {
+										"title": "gas price",
+										"description": "The gas price willing to be paid by the sender in wei",
+										"$ref": "#/components/schemas/hex"
+									}
+								}
+							}
+						]
 					}
-				}
+				]
 			},
 			"TransactionInfo": {
 				"type": "object",
