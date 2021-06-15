@@ -151,6 +151,7 @@
 								"title": "Legacy fee market parameters",
 								"type": "object",
 								"description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
+								"required": ["gasPrice"],
 								"properties": {
 									"gasPrice": {
 										"title": "gas price",
