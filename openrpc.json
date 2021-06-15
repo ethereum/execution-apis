@@ -1,12 +1,124 @@
 {
-	"openrpc": "1.2.6",
+	"openrpc": "1.2.4",
 	"info": {
 		"title": "Ethereum JSON-RPC Specification",
 		"description": "A specification of the standard interface for Ethreum clients.",
 		"license": {
-			"name": "CC0 1.0",
+			"name": "CC0-1.0",
 			"url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
 		},
 		"version": "0.0.0"
+	},
+	"methods": [
+		{
+			"name": "eth_getTransactionByHash",
+			"summary": "Returns the information about a transaction requested by transaction hash.",
+			"params": [
+				{
+					"name": "Transaction hash",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/hash32"
+					}
+				}
+			],
+			"result": {
+				"name": "Transaction Info",
+				"schema": {
+					"$ref": "#/components/schemas/TransactionInfo"
+				}
+			}
+		}
+	],
+	"components": {
+		"schemas": {
+			"address": {
+				"title": "hex encoded address",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]{40}$"
+			},
+			"hex": {
+				"title": "hex string",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]+$"
+			},
+			"hash32": {
+				"title": "32 byte hex value",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]{64}$"
+			},
+			"Transaction": {
+				"type": "object",
+				"title": "Transaction object",
+				"required": ["nonce", "gas", "value", "input", "v", "r", "s"],
+				"properties": {
+					"nonce": {
+						"title": "nonce",
+						"$ref": "#/components/schemas/hex"
+					},
+					"to": {
+						"title": "to address",
+						"$ref": "#/components/schemas/address"
+					},
+					"gas": {
+						"title": "gas limit",
+						"$ref": "#/components/schemas/hex"
+					},
+					"value": {
+						"title": "value",
+						"$ref": "#/components/schemas/hex"
+					},
+					"input": {
+						"title": "input data",
+						"$ref": "#/components/schemas/hex"
+					},
+					"v": {
+						"title": "v",
+						"$ref": "#/components/schemas/hex"
+					},
+					"r": {
+						"title": "r",
+						"$ref": "#/components/schemas/hex"
+					},
+					"s": {
+						"title": "s",
+						"$ref": "#/components/schemas/hex"
+					}
+				}
+			},
+			"TransactionInfo": {
+				"type": "object",
+				"title": "Transaction information",
+					"allOf": [
+						{
+							"title": "Contextual information",
+							"required": ["blockHash", "blockNumber", "from", "hash", "transactionIndex"],
+							"properties": {
+								"blockHash": {
+									"title": "block hash",
+									"$ref": "#/components/schemas/hash32"
+								},
+								"blockNumber": {
+									"title": "block number",
+									"$ref": "#/components/schemas/hex"
+								},
+								"from": {
+									"title": "from address",
+									"$ref": "#/components/schemas/address"
+								},
+								"hash": {
+									"title": "transaction hash",
+									"$ref": "#/components/schemas/hash32"
+								},
+								"transactionIndex": {
+									"title": "transaction index",
+									"$ref": "#/components/schemas/hex"
+								}
+							}
+						},
+						{ "$ref": "#/components/schemas/Transaction"}
+					]
+			}
+		}
 	}
 }
