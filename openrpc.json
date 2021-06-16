@@ -102,10 +102,7 @@
 			"result": {
 				"name": "Block number",
 				"schema": {
-					"title": "Block number",
-					"schema": {
-						"$ref": "#/components/schemas/uint"
-					}
+					"$ref": "#/components/schemas/uint"
 				}
 			}
 		},
@@ -131,10 +128,7 @@
 			"result": {
 				"name": "Block number",
 				"schema": {
-					"title": "Block number",
-					"schema": {
-						"$ref": "#/components/schemas/uint"
-					}
+					"$ref": "#/components/schemas/uint"
 				}
 			}
 		},
@@ -167,10 +161,7 @@
 			"result": {
 				"name": "Value",
 				"schema": {
-					"title": "Value",
-					"schema": {
-						"$ref": "#/components/schemas/bytes"
-					}
+					"$ref": "#/components/schemas/bytes"
 				}
 			}
 		},
@@ -293,6 +284,191 @@
 			}
 		},
 		{
+			"name": "eth_getCode",
+			"summary": "Returns code at a given address.",
+			"params": [
+				{
+					"name": "Address",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/address"
+					}
+				},
+				{
+					"name": "Block",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/BlockNumberOrTag"
+					}
+				}
+			],
+			"result": {
+				"name": "Bytecode",
+				"schema": {
+					"$ref": "#/components/schemas/bytes"
+				}
+			}
+		},
+		{
+			"name": "eth_sign",
+			"summary": "Returns an EIP-191 signature over the provided data.",
+			"params": [
+				{
+					"name": "Address",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/address"
+					}
+				},
+				{
+					"name": "Message",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/bytes"
+					}
+				}
+			],
+			"result": {
+				"name": "Signature",
+				"schema": {
+					"$ref": "#/components/schemas/bytes65"
+				}
+			}
+		},
+		{
+			"name": "eth_signTransaction",
+			"summary": "Returns an RLP encoded transaction signed by the specified account.",
+			"params": [
+				{
+					"name": "Transaction",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/TransactionWithSender"
+					}
+				}
+			],
+			"result": {
+				"name": "Encoded transaction",
+				"schema": {
+					"$ref": "#/components/schemas/bytes"
+				}
+			}
+		},
+		{
+			"name": "eth_sendTransaction",
+			"summary": "Signs and submits a transaction.",
+			"params": [
+				{
+					"name": "Transaction",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/TransactionWithSender"
+					}
+				}
+			],
+			"result": {
+				"name": "Transaction hash",
+				"schema": {
+					"$ref": "#/components/schemas/hash32"
+				}
+			}
+		},
+		{
+			"name": "eth_sendRawTransaction",
+			"summary": "Submits a raw transaction.",
+			"params": [
+				{
+					"name": "Transaction",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/bytes"
+					}
+				}
+			],
+			"result": {
+				"name": "Transaction hash",
+				"schema": {
+					"$ref": "#/components/schemas/hash32"
+				}
+			}
+		},
+		{
+			"name": "eth_call",
+			"summary": "Executes a new message call immediately without creating a transaction on the block chain.",
+			"params": [
+				{
+					"name": "Transaction",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/TransactionWithSender"
+					}
+				}
+			],
+			"result": {
+				"name": "Return data",
+				"schema": {
+					"$ref": "#/components/schemas/bytes"
+				}
+			}
+		},
+		{
+			"name": "eth_estimateGas",
+			"summary": "Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.",
+			"params": [
+				{
+					"name": "Transaction",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/TransactionWithSender"
+					}
+				}
+			],
+			"result": {
+				"name": "Gas used",
+				"schema": {
+					"$ref": "#/components/schemas/uint"
+				}
+			}
+		},
+		{
+			"name": "eth_getBlockByHash",
+			"summary": "Returns information about a block by hash.",
+			"params": [
+				{
+					"name": "Block hash",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/hash32"
+					}
+				}
+			],
+			"result": {
+				"name": "Block information",
+				"schema": {
+					"$ref": "#/components/schemas/Block"
+				}
+			}
+		},
+		{
+			"name": "eth_getBlockByNumber",
+			"summary": "Returns information about a block by number.",
+			"params": [
+				{
+					"name": "Block number",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			],
+			"result": {
+				"name": "Block information",
+				"schema": {
+					"$ref": "#/components/schemas/Block"
+				}
+			}
+		},
+		{
 			"name": "eth_getTransactionByHash",
 			"summary": "Returns the information about a transaction requested by transaction hash.",
 			"params": [
@@ -312,8 +488,8 @@
 			}
 		},
 		{
-			"name": "eth_getBlockByHash",
-			"summary": "Returns the information about a block requested by block hash.",
+			"name": "eth_getTransactionByBlockHashAndIndex",
+			"summary": "Returns information about a transaction by block hash and transaction index position.",
 			"params": [
 				{
 					"name": "Block hash",
@@ -321,15 +497,49 @@
 					"schema": {
 						"$ref": "#/components/schemas/hash32"
 					}
+				},
+				{
+					"name": "Transaction index",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
 				}
 			],
 			"result": {
-				"name": "Block information",
+				"name": "Transaction information",
 				"schema": {
-					"$ref": "#/components/schemas/Block"
+					"$ref": "#/components/schemas/TransactionInfo"
+				}
+			}
+		},
+		{
+			"name": "eth_getTransactionByBlockNumberAndIndex",
+			"summary": "Returns information about a transaction by block number and transaction index position.",
+			"params": [
+				{
+					"name": "Block number",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/number"
+					}
+				},
+				{
+					"name": "Transaction index",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			],
+			"result": {
+				"name": "Transaction information",
+				"schema": {
+					"$ref": "#/components/schemas/TransactionInfo"
 				}
 			}
 		}
+		
 	],
 	"components": {
 		"schemas": {
@@ -350,6 +560,11 @@
 			},
 			"bytes256": {
 				"title": "256 hex encoded bytes",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]{512}$"
+			},
+			"bytes65": {
+				"title": "65 hex encoded bytes",
 				"type": "string",
 				"pattern": "^0x[0-9a-f]{512}$"
 			},
@@ -545,12 +760,52 @@
 					"$ref": "#/components/schemas/AccessListEntry"
 				}
 			},
+			"SignedTransaction": {
+				"title": "Signed transaction object",
+				"type": "object",
+				"allOf": [
+					{ "$ref": "#/components/schemas/Transaction" },
+					{
+						"required": ["v", "r", "s"],
+						"properties": {
+							"v": {
+								"title": "v",
+								"$ref": "#/components/schemas/uint"
+							},
+							"r": {
+								"title": "r",
+								"$ref": "#/components/schemas/uint"
+							},
+							"s": {
+								"title": "s",
+								"$ref": "#/components/schemas/uint"
+							}
+						}
+					}
+				]
+			},
+			"TransactionWithSender": {
+				"title": "Transaction object with sender",
+				"type": "object",
+				"allOf": [
+					{
+						"required": ["from"],
+						"properties": {
+							"from": {
+								"title": "from",
+								"$ref": "#/components/schemas/address"
+							}
+						}
+					},
+					{ "$ref": "#/components/schemas/Transaction" }	
+				]
+			},
 			"Transaction": {
 				"type": "object",
 				"title": "Transaction object",
 				"allOf": [
 					{
-						"required": ["nonce", "gas", "value", "input", "v", "r", "s"],
+						"required": ["nonce", "gas", "value", "input"],
 						"properties": {
 							"type": {
 								"title": "type",
@@ -580,18 +835,6 @@
 								"title": "accessList",
 								"description": "EIP-2930 access list",
 								"$ref": "#/components/schemas/AccessList"
-							},
-							"v": {
-								"title": "v",
-								"$ref": "#/components/schemas/uint"
-							},
-							"r": {
-								"title": "r",
-								"$ref": "#/components/schemas/uint"
-							},
-							"s": {
-								"title": "s",
-								"$ref": "#/components/schemas/uint"
 							}
 						}
 					},
@@ -665,7 +908,7 @@
 								}
 							}
 						},
-						{ "$ref": "#/components/schemas/Transaction"}
+						{ "$ref": "#/components/schemas/SignedTransaction"}
 					]
 			}
 		}
