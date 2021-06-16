@@ -38,12 +38,22 @@
 				"pattern": "^0x[0-9a-f]{40}$"
 			},
 			"byte": {
-				"title": "byte",
+				"title": "hex encoded byte",
 				"type": "string",
 				"pattern": "^0x([a-fA-F0-9]?){1,2}$"
 			},
-			"hex": {
-				"title": "hex string",
+			"bytes": {
+				"title": "hex encoded bytes",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]+$"
+			},
+			"bytes256": {
+				"title": "256 hex encoded bytes",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]{512}$"
+			},
+			"uint": {
+				"title": "hex encoded unsigned integer",
 				"type": "string",
 				"pattern": "^0x[0-9a-f]+$"
 			},
@@ -52,8 +62,95 @@
 				"type": "string",
 				"pattern": "^0x[0-9a-f]{64}$"
 			},
+			"Header": {
+				"title": "Header object",
+				"type": "object",
+				"required": [
+					"parentHash",
+					"sha3Uncles",
+					"miner",
+					"stateRoot",
+					"transactionsRoot",
+					"receiptRoot",
+					"bloom",
+					"totalDifficulty",
+					"number",
+					"gasLimit",
+					"gasUsed",
+					"timestamp",
+					"extraData",
+					"mixHash",
+					"nonce"
+				],
+				"properties": {
+					"parentHash": {
+						"title": "Parent block hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"sha3Uncles": {
+						"title": "Ommers hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"miner": {
+						"title": "Coinbase",
+						"$ref": "#/components/schemas/address"
+					},
+					"stateRoot": {
+						"title": "State root",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"transactionsRoot": {
+						"title": "Transactions root",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"receiptRoot": {
+						"title": "Receipts root",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"bloom": {
+						"title": "Bloom filter",
+						"$ref": "#/components/schemas/bytes256"
+					},
+					"totalDifficulty": {
+						"title": "Difficulty",
+						"$ref": "#/components/schemas/bytes"
+					},
+					"number": {
+						"title": "Number",
+						"$ref": "#/components/schemas/uint"
+					},
+					"gasLimit": {
+						"title": "Gas limit",
+						"$ref": "#/components/schemas/uint"
+					},
+					"gasUsed": {
+						"title": "Gas used",
+						"$ref": "#/components/schemas/uint"
+					},
+					"timestamp": {
+						"title": "Timestamp",
+						"$ref": "#/components/schemas/uint"
+					},
+					"extraData": {
+						"title": "Extra data",
+						"$ref": "#/components/schemas/bytes"
+					},
+					"mixHash": {
+						"title": "Mix hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"nonce": {
+						"title": "nonce",
+						"$ref": "#/components/schemas/bytes"
+					},
+					"baseFeePerGas": {
+						"title": "Base fee per gas",
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			},
 			"AccessListEntry": {
-				"title": "accessListEntry",
+				"title": "Access list entry",
 				"type": "object",
 				"properties": {
 					"address": {
@@ -68,7 +165,7 @@
 				}
 			},
 			"AccessList": {
-				"title": "accessList",
+				"title": "Access list",
 				"type": "object",
 				"items": {
 					"$ref": "#/components/schemas/AccessListEntry"
@@ -87,7 +184,7 @@
 							},
 							"nonce": {
 								"title": "nonce",
-								"$ref": "#/components/schemas/hex"
+								"$ref": "#/components/schemas/uint"
 							},
 							"to": {
 								"title": "to address",
@@ -95,15 +192,15 @@
 							},
 							"gas": {
 								"title": "gas limit",
-								"$ref": "#/components/schemas/hex"
+								"$ref": "#/components/schemas/uint"
 							},
 							"value": {
 								"title": "value",
-								"$ref": "#/components/schemas/hex"
+								"$ref": "#/components/schemas/uint"
 							},
 							"input": {
 								"title": "input data",
-								"$ref": "#/components/schemas/hex"
+								"$ref": "#/components/schemas/bytes"
 							},
 							"accessList": {
 								"title": "accessList",
@@ -112,15 +209,15 @@
 							},
 							"v": {
 								"title": "v",
-								"$ref": "#/components/schemas/hex"
+								"$ref": "#/components/schemas/uint"
 							},
 							"r": {
 								"title": "r",
-								"$ref": "#/components/schemas/hex"
+								"$ref": "#/components/schemas/uint"
 							},
 							"s": {
 								"title": "s",
-								"$ref": "#/components/schemas/hex"
+								"$ref": "#/components/schemas/uint"
 							}
 						}
 					},
@@ -138,12 +235,12 @@
 									"maxPriorityFeePerGas": {
 										"title": "max priority fee per gas",
 										"description": "Maximum fee per gas the sender is willing to pay to miners in wei",
-										"$ref": "#/components/schemas/hex"
+										"$ref": "#/components/schemas/uint"
 									},
 									"maxFeePerGas": {
 										"title": "max fee per gas",
 										"description": "The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei",
-										"$ref": "#/components/schemas/hex"
+										"$ref": "#/components/schemas/uint"
 									}
 								}
 							},
@@ -156,7 +253,7 @@
 									"gasPrice": {
 										"title": "gas price",
 										"description": "The gas price willing to be paid by the sender in wei",
-										"$ref": "#/components/schemas/hex"
+										"$ref": "#/components/schemas/uint"
 									}
 								}
 							}
@@ -178,7 +275,7 @@
 								},
 								"blockNumber": {
 									"title": "block number",
-									"$ref": "#/components/schemas/hex"
+									"$ref": "#/components/schemas/uint"
 								},
 								"from": {
 									"title": "from address",
@@ -190,7 +287,7 @@
 								},
 								"transactionIndex": {
 									"title": "transaction index",
-									"$ref": "#/components/schemas/hex"
+									"$ref": "#/components/schemas/uint"
 								}
 							}
 						},
