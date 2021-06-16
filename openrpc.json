@@ -538,6 +538,202 @@
 					"$ref": "#/components/schemas/TransactionInfo"
 				}
 			}
+		},
+		{
+			"name": "eth_newFilter",
+			"summary": "Creates a filter object, based on filter options, to notify when the state changes (logs).",
+			"params": [
+				{
+					"name": "Filter",
+					"schema": {
+						"$ref": "#/components/schemas/Filter"
+					}
+				}
+			],
+			"result": {
+				"name": "Filter Identifier",
+				"schema": {
+					"$ref": "#/components/schemas/uint"
+				}
+			}
+		},
+		{
+			"name": "eth_newBlockFilter",
+			"summary": "Creates a filter in the node, to notify when a new block arrives.",
+			"params": [],
+			"result": {
+				"name": "Filter Identifier",
+				"schema": {
+					"$ref": "#/components/schemas/uint"
+				}
+			}
+		},
+		{
+			"name": "eth_newPendingTransactionFilter",
+			"summary": "Creates a filter in the node, to notify when new pending transactions arrive.",
+			"params": [],
+			"result": {
+				"name": "Filter Identifier",
+				"schema": {
+					"$ref": "#/components/schemas/uint"
+				}
+			}
+		},
+		{
+			"name": "eth_uninstallFilter",
+			"summary": "Uninstalls a filter with given id.",
+			"params": [
+				{
+					"name": "Filter Identifier",
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			],
+			"result": {
+				"name": "Success",
+				"schema": {
+					"type": "boolean"
+				}
+			}
+		},
+		{
+			"name": "eth_getFilterChanges",
+			"summary": "Polling method for a filter, which returns an array of logs which occurred since last poll.",
+			"params": [
+				{
+					"name": "Filter Identifier",
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			],
+			"result": {
+				"name": "Log objects",
+				"schema": {
+					"$ref": "#/components/schemas/FilterResults"
+				}
+			}
+		},
+		{
+			"name": "eth_getFilterLogs",
+			"summary": "Returns an array of all logs matching filter with given id.",
+			"params": [
+				{
+					"name": "Filter Identifier",
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			],
+			"result": {
+				"name": "Log objects",
+				"schema": {
+					"$ref": "#/components/schemas/FilterResults"
+				}
+			}
+		},
+		{
+			"name": "eth_getLogs",
+			"summary": "Returns an array of all logs matching filter with given id.",
+			"params": [
+				{
+					"name": "Filter",
+					"schema": {
+						"$ref": "#/components/schemas/Filter"
+					}
+				}
+			],
+			"result": {
+				"name": "Log objects",
+				"schema": {
+					"$ref": "#/components/schemas/FilterResults"
+				}
+			}
+		},
+		{
+			"name": "eth_getWork",
+			"summary": "Returns the hash of the current block, the seedHash, and the boundary condition to be met (“target”).",
+			"params": [],
+			"result": {
+				"name": "Current work",
+				"schema": {
+					"type": "array",
+					"items": [
+						{
+							"title": "PoW hash",
+							"$ref": "#/components/schemas/bytes32"
+						},
+						{
+							"title": "seed hash",
+							"$ref": "#/components/schemas/bytes32"
+						},
+						{
+							"title": "difficulty",
+							"$ref": "#/components/schemas/bytes32"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "eth_submitWork",
+			"summary": "Used for submitting a proof-of-work solution.",
+			"params": [
+				{
+					"name": "PoW hash",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/bytes32"
+					}
+				},
+				{
+					"name": "seed hash",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/bytes32"
+					}
+				},
+				{
+					"name": "difficulty",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/bytes32"
+					}
+				}
+			],
+			"result": {
+				"name": "Success",
+				"schema": {
+					"type": "boolean"
+				}
+			}
+		},
+		{
+			"name": "eth_submitHashrate",
+			"summary": "Used for submitting mining hashrate.",
+			"params": [
+				{
+					"name": "Hashrate",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/bytes32"
+					}
+				},
+				{
+					"name": "ID",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/bytes32"
+					}
+				}
+			],
+			"result": {
+				"name": "Success",
+				"schema": {
+					"type": "boolean"
+				}
+			}
 		}
 	],
 	"components": {
@@ -546,6 +742,11 @@
 				"title": "hex encoded address",
 				"type": "string",
 				"pattern": "^0x[0-9a-f]{40}$"
+			},
+			"addresses": {
+				"title": "hex encoded address",
+				"type": "array",
+				"items": { "$ref": "#/components/schemas/address" }
 			},
 			"byte": {
 				"title": "hex encoded byte",
@@ -556,6 +757,11 @@
 				"title": "hex encoded bytes",
 				"type": "string",
 				"pattern": "^0x[0-9a-f]+$"
+			},
+			"bytes32": {
+				"title": "32 hex encoded bytes",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]{64}$"
 			},
 			"bytes256": {
 				"title": "256 hex encoded bytes",
@@ -625,6 +831,32 @@
 						"title": "Not syncing",
 						"description": "Should always return false if not syncing.",
 						"type": "boolean"
+					}
+				]
+			},
+			"FilterResults": {
+				"title": "Filter results",
+				"oneOf": [
+					{
+						"title": "new block hashes",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/hash32"
+						}
+					},
+					{
+						"title": "new transaction hashes",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/hash32"
+						}
+					},
+					{
+						"title": "new logs",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Log"
+						}
 					}
 				]
 			},
@@ -880,35 +1112,119 @@
 			"TransactionInfo": {
 				"type": "object",
 				"title": "Transaction information",
-					"allOf": [
-						{
-							"title": "Contextual information",
-							"required": ["blockHash", "blockNumber", "from", "hash", "transactionIndex"],
-							"properties": {
-								"blockHash": {
-									"title": "block hash",
-									"$ref": "#/components/schemas/hash32"
-								},
-								"blockNumber": {
-									"title": "block number",
-									"$ref": "#/components/schemas/uint"
-								},
-								"from": {
-									"title": "from address",
-									"$ref": "#/components/schemas/address"
-								},
-								"hash": {
-									"title": "transaction hash",
-									"$ref": "#/components/schemas/hash32"
-								},
-								"transactionIndex": {
-									"title": "transaction index",
-									"$ref": "#/components/schemas/uint"
-								}
+				"allOf": [
+					{
+						"title": "Contextual information",
+						"required": ["blockHash", "blockNumber", "from", "hash", "transactionIndex"],
+						"properties": {
+							"blockHash": {
+								"title": "block hash",
+								"$ref": "#/components/schemas/hash32"
+							},
+							"blockNumber": {
+								"title": "block number",
+								"$ref": "#/components/schemas/uint"
+							},
+							"from": {
+								"title": "from address",
+								"$ref": "#/components/schemas/address"
+							},
+							"hash": {
+								"title": "transaction hash",
+								"$ref": "#/components/schemas/hash32"
+							},
+							"transactionIndex": {
+								"title": "transaction index",
+								"$ref": "#/components/schemas/uint"
 							}
-						},
-						{ "$ref": "#/components/schemas/SignedTransaction"}
-					]
+						}
+					},
+					{ "$ref": "#/components/schemas/SignedTransaction"}
+				]
+			},
+			"Filter": {
+				"title": "filter",
+				"type": "object",
+				"properties": {
+					"fromBlock": {
+						"title": "from block",
+						"$ref": "#/components/schemas/uint"
+					},
+					"toBlock": {
+						"title": "to block",
+						"$ref": "#/components/schemas/uint"
+					},
+					"address": {
+						"title": "Address(es)",
+						"oneOf": [
+							{
+								"title": "Address",
+								"$ref": "#/components/schemas/address"
+							},
+							{	
+								"title": "Addresses",
+								"$ref": "#/components/schemas/addresses"
+							}
+						]
+					},
+					"topics": {
+						"title": "Topics",
+						"$ref": "#/components/schemas/Topics"
+					}
+				}
+			},
+			"Topic": {
+				"title": "Topic",
+				"$ref": "#/components/schemas/uint256"
+			},
+			"Topics": {
+				"title": "Topics",
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/Topic"
+				}
+			},
+			"Log": {
+				"title": "log",
+				"type": "object",
+				"properties": {
+					"removed": {
+						"title": "removed",
+						"type": "boolean"
+					},
+					"logIndex": {
+						"title": "log index",
+						"$ref": "#/components/schemas/uint"
+					},
+					"transactionIndex": {
+						"title": "transaction index",
+						"$ref": "#/components/schemas/uint"
+					},
+					"transactionHash": {
+						"title": "transaction hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"blockHash": {
+						"title": "block hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"blockNumber": {
+						"title": "block number",
+						"$ref": "#/components/schemas/uint"
+					},
+					"address": {
+						"title": "address",
+						"$ref": "#/components/schemas/address"
+					},
+					"data": {
+						"title": "data",
+						"$ref": "#/components/schemas/bytes"
+					},
+					"topics": {
+						"title": "topics",
+						"$ref": "#/components/schemas/Topics"
+					}
+				}
 			}
 		}
 	}
