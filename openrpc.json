@@ -23,9 +23,28 @@
 				}
 			],
 			"result": {
-				"name": "Transaction Info",
+				"name": "Transaction information",
 				"schema": {
 					"$ref": "#/components/schemas/TransactionInfo"
+				}
+			}
+		},
+		{
+			"name": "eth_getBlockByHash",
+			"summary": "Returns the information about a block requested by block hash.",
+			"params": [
+				{
+					"name": "Block hash",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/hash32"
+					}
+				}
+			],
+			"result": {
+				"name": "Block information",
+				"schema": {
+					"$ref": "#/components/schemas/Block"
 				}
 			}
 		}
@@ -148,6 +167,28 @@
 						"$ref": "#/components/schemas/uint"
 					}
 				}
+			},
+			"Block": {
+				"title": "Block object",
+				"type": "object",
+				"required": ["transactions", "uncles"],
+				"allOf": [
+					{ "$ref": "#/components/schemas/Header" },
+					{ 
+						"title": "transactions",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/hash32"
+						}
+					},
+					{
+						"title": "uncles",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/hash32"
+						}
+					}
+				]
 			},
 			"AccessListEntry": {
 				"title": "Access list entry",
