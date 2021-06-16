@@ -11,6 +11,105 @@
 	},
 	"methods": [
 		{
+			"name": "eth_protocolVersion",
+			"summary": "Returns the current ethereum protocol version.",
+			"params": [],
+			"result": {
+				"name": "Protocol version",
+				"schema": {
+					"title": "version",
+					"type": "string"
+				}
+			}
+		},
+		{
+			"name": "eth_syncing",
+			"summary": "Returns an object with data about the sync status or false.",
+			"params": [],
+			"result": {
+				"name": "Syncing status",
+				"schema": {
+					"$ref": "#/components/schemas/SyncingStatus"
+				}
+			}
+		},
+		{
+			"name": "eth_coinbase",
+			"summary": "Returns the client coinbase address.",
+			"params": [],
+			"result": {
+				"name": "Coinbase address",
+				"schema": {
+					"$ref": "#/components/schemas/address"
+				}
+			}
+		},
+		{
+			"name": "eth_mining",
+			"summary": "Returns whether the client is actively mining new blocks.",
+			"params": [],
+			"result": {
+				"name": "Mining status",
+				"schema": {
+					"title": "miningStatus",
+					"type": "boolean"
+				}
+			}
+		},
+		{
+			"name": "eth_hashrate",
+			"summary": "Returns the number of hashes per second that the node is mining with.",
+			"params": [],
+			"result": {
+				"name": "Mining status",
+				"schema": {
+					"title": "Hashrate",
+					"$ref": "#/components/schemas/uint"
+				}
+			}
+		},
+		{
+			"name": "eth_gasPrice",
+			"summary": "Returns the current price per gas in wei.",
+			"params": [],
+			"result": {
+				"name": "Gas price",
+				"schema": {
+					"title": "Gas price",
+					"$ref": "#/components/schemas/uint"
+				}
+			}
+		},
+		{
+			"name": "eth_accounts",
+			"summary": "Returns a list of addresses owned by client.",
+			"params": [],
+			"result": {
+				"name": "Accounts",
+				"schema": {
+					"title": "Accounts",
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/address"
+					}
+				}
+			}
+		},
+		{
+			"name": "eth_blockNumber",
+			"summary": "Returns the number of most recent block.",
+			"params": [],
+			"result": {
+				"name": "Block number",
+				"schema": {
+					"title": "Block number",
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		},
+		{
 			"name": "eth_getTransactionByHash",
 			"summary": "Returns the information about a transaction requested by transaction hash.",
 			"params": [
@@ -80,6 +179,34 @@
 				"title": "32 byte hex value",
 				"type": "string",
 				"pattern": "^0x[0-9a-f]{64}$"
+			},
+			"SyncingStatus": {
+				"title": "Syncing status",
+				"oneOf": [
+					{
+						"title": "Syncing progress",
+						"type": "object",
+						"properties": {
+							"startingBlock": {
+								"title": "Starting block",
+								"$ref": "#/components/schemas/uint"
+							},
+							"currentBlock": {
+								"title": "Current block",
+								"$ref": "#/components/schemas/uint"
+							},
+							"highestBlock": {
+								"title": "Highest block",
+								"$ref": "#/components/schemas/uint"
+							}
+						}
+					},
+					{
+						"title": "Not syncing",
+						"description": "Should always return false if not syncing.",
+						"type": "boolean"
+					}
+				]
 			},
 			"Header": {
 				"title": "Header object",
