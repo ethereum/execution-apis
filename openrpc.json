@@ -110,6 +110,189 @@
 			}
 		},
 		{
+			"name": "eth_getBalance",
+			"summary": "Returns the balance of the account of given address.",
+			"params": [
+				{
+					"name": "Address",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/address"
+					}
+				},
+				{
+					"name": "Block",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/BlockNumberOrTag"
+					}
+				}
+			],
+			"result": {
+				"name": "Block number",
+				"schema": {
+					"title": "Block number",
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		},
+		{
+			"name": "eth_getStorage",
+			"summary": "Returns the value from a storage position at a given address.",
+			"params": [
+				{
+					"name": "Address",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/address"
+					}
+				},
+				{
+					"name": "Storage slot",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/uint256"
+					}
+				},
+				{
+					"name": "Block",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/BlockNumberOrTag"
+					}
+				}
+			],
+			"result": {
+				"name": "Value",
+				"schema": {
+					"title": "Value",
+					"schema": {
+						"$ref": "#/components/schemas/bytes"
+					}
+				}
+			}
+		},
+		{
+			"name": "eth_getTransactionCount",
+			"summary": "Returns the number of transactions sent from an address.",
+			"params": [
+				{
+					"name": "Address",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/address"
+					}
+				},
+				{
+					"name": "Block",
+					"required": true,
+					"schema": {
+						"$ref": "#/components/schemas/BlockNumberOrTag"
+					}
+				}
+			],
+			"result": {
+				"name": "Transaction count",
+				"schema": {
+					"title": "Transaction count",
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		},
+		{
+			"name": "eth_getBlockTransactionCountByHash",
+			"summary": "Returns the number of transactions in a block from a block matching the given block hash.",
+			"params": [
+				{
+					"name": "Block hash",
+					"schema": {
+						"$ref": "#/components/schemas/hash32"
+					}
+				}
+			],
+			"result": {
+				"name": "Transaction count",
+				"schema": {
+					"title": "Transaction count",
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		},
+		{
+			"name": "eth_getBlockTransactionCountByNumber",
+			"summary": "Returns the number of transactions in a block matching the given block number.",
+			"params": [
+				{
+					"name": "Block number",
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			],
+			"result": {
+				"name": "Transaction count",
+				"schema": {
+					"title": "Transaction count",
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		},
+		{
+			"name": "eth_getUncleCountByBlockHash",
+			"summary": "Returns the number of uncles in a block from a block matching the given block hash.",
+			"params": [
+				{
+					"name": "Block hash",
+					"schema": {
+						"$ref": "#/components/schemas/hash32"
+					}
+				}
+			],
+			"result": {
+				"name": "Uncle count",
+				"schema": {
+					"title": "Uncle count",
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		},
+		{
+			"name": "eth_getUncleCountByBlockNumber",
+			"summary": "Returns the number of transactions in a block matching the given block number.",
+			"params": [
+				{
+					"name": "Block number",
+					"schema": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			],
+			"result": {
+				"name": "Uncle count",
+				"schema": {
+					"title": "Uncle count",
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		},
+		{
 			"name": "eth_getTransactionByHash",
 			"summary": "Returns the information about a transaction requested by transaction hash.",
 			"params": [
@@ -175,10 +358,33 @@
 				"type": "string",
 				"pattern": "^0x[0-9a-f]+$"
 			},
+			"uint256": {
+				"title": "hex encoded unsigned integer",
+				"type": "string",
+				"pattern": "^0x[0-9a-f]{64}$"
+			},
 			"hash32": {
 				"title": "32 byte hex value",
 				"type": "string",
 				"pattern": "^0x[0-9a-f]{64}$"
+			},
+			"BlockTag": {
+				"title": "Block tag",
+				"type": "string",
+				"enum": ["earliest", "latest", "pending"]
+			},
+			"BlockNumberOrTag": {
+				"title": "Block number or tag",
+				"oneOf": [
+					{
+						"title": "Block number",
+						"$ref": "#/components/schemas/uint"
+					},
+					{
+						"title": "Block tag",
+						"$ref": "#/components/schemas/BlockTag"
+					}
+				]
 			},
 			"SyncingStatus": {
 				"title": "Syncing status",
