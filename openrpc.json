@@ -521,7 +521,7 @@
 					"name": "Block number",
 					"required": true,
 					"schema": {
-						"$ref": "#/components/schemas/number"
+						"$ref": "#/components/schemas/uint"
 					}
 				},
 				{
@@ -539,7 +539,6 @@
 				}
 			}
 		}
-		
 	],
 	"components": {
 		"schemas": {
