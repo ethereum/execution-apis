@@ -540,6 +540,24 @@
 			}
 		},
 		{
+			"name": "eth_getTransactionReceipt",
+			"summary": "Returns the receipt of a transaction by transaction hash.",
+			"params": [
+				{
+					"name": "Transaction hash",
+					"schema": {
+						"$ref": "#/components/schemas/hash32"
+					}
+				}
+			],
+			"result": {
+				"name": "Receipt Information",
+				"schema": {
+					"$ref": "#/components/schemas/ReceiptInfo"
+				}
+			}
+		},
+		{
 			"name": "eth_newFilter",
 			"summary": "Creates a filter object, based on filter options, to notify when the state changes (logs).",
 			"params": [
@@ -1223,6 +1241,61 @@
 					"topics": {
 						"title": "topics",
 						"$ref": "#/components/schemas/Topics"
+					}
+				}
+			},
+			"ReceiptInfo": {
+				"type": "object",
+				"title": "Receipt info",
+				"required": [
+					"transactionHash", "transactionIndex", "value", "input"],
+				"properties": {
+					"transactionHash": {
+						"title": "transaction hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"transactionIndex": {
+						"title": "transaction index",
+						"$ref": "#/components/schemas/uint"
+					},
+					"blockHash": {
+						"title": "block hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"blockNumber": {
+						"title": "block number",
+						"$ref": "#/components/schemas/uint"
+					},
+					"from": {
+						"title": "from",
+						"$ref": "#/components/schemas/address"
+					},
+					"to": {
+						"title": "to",
+						"$ref": "#/components/schemas/address"
+					},
+					"cumulativeGasUsed": {
+						"title": "accessList",
+						"$ref": "#/components/schemas/uint"
+					},
+					"gasUsed": {
+						"title": "gasUsed",
+						"$ref": "#/components/schemas/uint"
+					},
+					"contractAddress": {
+						"title": "contract address",
+						"$ref": "#/components/schemas/address"
+					},
+					"logs": {
+						"title": "logs",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Log"
+						}
+					},
+					"logsBloom": {
+						"title": "logs bloom",
+						"$ref": "#/components/schemas/bytes256"
 					}
 				}
 			}
