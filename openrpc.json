@@ -154,7 +154,7 @@
 					"name": "Block",
 					"required": true,
 					"schema": {
-						"$ref": "#/components/schemas/BlockNumberOrTag"
+						"$ref": "#/components/schemas/lockNumberOrTag"
 					}
 				}
 			],
