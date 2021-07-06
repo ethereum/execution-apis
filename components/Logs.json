@@ -1,0 +1,89 @@
+{
+  "Logs": {
+    "name": "logs",
+    "summary": "array of log objects",
+    "schema": {
+      "$ref": "./Logs.json#/logObjects"
+    }
+  },
+  "Log": {
+    "name": "log",
+    "summary": "a single log object",
+    "schema": {
+      "$ref": "./Logs.json#/logObject"
+    }
+  },
+  "Bloom": {
+    "name": "logs bloom",
+    "schema": {
+      "$ref": "./Logs.json#/bloom"
+    }
+  },
+  "BloomOrNull": {
+    "name": "logs bloom or null",
+    "schema": {
+      "$ref": "./Logs.json#/bloomOrNull"
+    }
+  },
+  "bloom": {
+    "title": "bloom filter",
+    "summary": "The Bloom filter composed from index-able information (logger address and log topics)contained  in  each  log  entry  from  the  receipt  ofeach transaction in the transactions list. It reduces a log entry into a single 256-byte hash",
+    "$ref": "./Data.json#/bytes256"
+  },
+  "bloomOrNull": {
+    "title": "bloom filter or null",
+    "summary": "logs bloom filter or null if pending",
+    "oneOf": [{ "$ref": "./Logs.json#/bloom" }, { "$ref": "./Null.json#/null" }]
+  },
+  "logObjects": {
+    "title": "log objects",
+    "type": "array",
+    "items": [
+      {
+        "$ref": "./Logs.json#/logObject"
+      }
+    ]
+  },
+  "logObject": {
+    "title": "log object",
+    "type": "object",
+    "properties": {
+      "removed": {
+        "title": "removed",
+        "type": "boolean"
+      },
+      "logIndex": {
+        "title": "log index",
+        "$ref": "./Quantity.json#/integer"
+      },
+      "transactionIndex": {
+        "title": "transaction index",
+        "$ref": "./Quantity.json#/integer"
+      },
+      "transactionHash": {
+        "title": "transaction hash",
+        "$ref": "./Data.json#/hash32"
+      },
+      "blockHash": {
+        "title": "block hash",
+        "$ref": "./Data.json#/hash32"
+      },
+      "blockNumber": {
+        "title": "block number",
+        "$ref": "./Quantity.json#/integer"
+      },
+      "address": {
+        "title": "address",
+        "$ref": "./Address.json#/address"
+      },
+      "data": {
+        "title": "data",
+        "$ref": "./Data.json#/bytes"
+      },
+      "topics": {
+        "title": "topics",
+        "$ref": "./Topic.json#/topics"
+      }
+    }
+  }
+}

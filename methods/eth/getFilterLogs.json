@@ -1,0 +1,16 @@
+{
+  "name": "eth_getFilterLogs",
+  "summary": "Returns a list of all logs based on filter ID",
+  "params": [
+    {
+      "name": "filterId",
+      "required": true,
+      "$ref": "../../components/Filter.json#/Identifier"
+    }
+  ],
+  "result": {
+    "name": "logs",
+    "description": "The return value of eth_getFilterLogs when retrieving logs from eth_newBlockFilter and eth_newPendingTransactionFilter filters will be an array of hashes, not an array of Log objects.",
+    "$ref": "../../components/Logs.json#/Logs"
+  }
+}

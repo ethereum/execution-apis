@@ -1,0 +1,15 @@
+{
+  "name": "eth_getCode",
+  "summary": "Returns code at a given address.",
+  "params": [
+    {
+      "$ref": "../../components/Address.json#/Address"
+    },
+    {
+      "$ref": "../../components/Block.json#/NumberOrTag"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Data.json#/Bytecode"
+  }
+}

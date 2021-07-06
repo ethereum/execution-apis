@@ -1,0 +1,8 @@
+{
+  "name": "eth_newBlockFilter",
+  "summary": "Creates a filter to listen for new blocks that can be used with eth_getFilterChanges",
+  "params": [],
+  "result": {
+    "$ref": "../../components/Filter.json#/Identifier"
+  }
+}

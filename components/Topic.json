@@ -1,0 +1,26 @@
+{
+  "Topic": {
+    "schema": {
+      "$ref": "./Topic.json#/topic"
+    }
+  },
+  "topic": {
+    "title": "topic",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "Topics": {
+    "name": "topics",
+    "summary": "list of order-dependent topics",
+    "description": "**Note:** Topics are order-dependent. A transaction with a log with topics `[A, B]` will be matched by the following topic filters:\n- `[]` - 'anything'\n- `[A]` - 'A in first position (and anything after)'\n- `[null, B]` - 'anything in first position AND B in second position (and anything after)'\n- `[A, B]` - 'A in first position AND B in second position (and anything after)'\n- `[[A, B], [A, B]]` - '(A OR B) in first position AND (A OR B) in second position (and anything after)'",
+    "schema": {
+      "$ref": "./Topic.json#/topics"
+    }
+  },
+  "topics": {
+    "title": "topics",
+    "type": "array",
+    "items": {
+      "$ref": "./Topic.json#/topic"
+    }
+  }
+}

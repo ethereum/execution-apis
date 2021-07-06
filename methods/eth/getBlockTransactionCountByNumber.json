@@ -1,0 +1,12 @@
+{
+  "name": "eth_getBlockTransactionCountByNumber",
+  "summary": "Returns the number of transactions in a block matching specified by the block number.",
+  "params": [
+    {
+      "$ref": "../../components/Block.json#/Number"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Block.json#/BlockTransactionCount"
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "Number": {
+    "name": "block number",
+    "summary": "The number of blocks in the best chain of the trie",
+    "schema": {
+      "$ref": "./Block.json#/number"
+    }
+  },
+  "Latest": {
+    "name": "latest block number",
+    "summary": "the most recent block seen by this client",
+    "$ref": "./Quantity.json#/Integer"
+  },
+  "BlockTransactionCount": {
+    "name": "block transaction count",
+    "summary": "The number of transactions on a given block",
+    "schema": {
+      "$ref": "./Quantity.json#/arrayOfUint256"
+    }
+  },
+  "OrNull": {
+    "name": "block object or null",
+    "schema": {
+      "$ref": "./Block.json#/blockObjectOrNull"
+    }
+  },
+  "NumberOrNull": {
+    "name": "block number or null",
+    "description": "The block number. Note: if the block number is the pending block this will be Null",
+    "schema": {
+      "$ref": "./Block.json#/numberOrNull"
+    }
+  },
+  "NumberOrTag": {
+    "name": "Block number or tag",
+    "schema": {
+      "$ref": "./Block.json#/numberOrTag"
+    }
+  },
+  "HashOrNull": {
+    "name": "block hash or null",
+    "description": "The block hash. Note: if the block number is the pending block this will be Null",
+    "schema": {
+      "$ref": "./Block.json#/hashOrNull"
+    }
+  },
+  "Hash": {
+    "name": "block hash",
+    "schema": {
+      "$ref": "./Block.json#/hash"
+    }
+  },
+  "hash": {
+    "title": "block hash",
+    "$ref": "./Data.json#/hash32"
+  },
+  "Tag": {
+    "name": "block tag",
+    "summary": "string descriptor for common queried block",
+    "schema": {
+      "$ref": "./Block.json#/tag"
+    }
+  },
+  "blockObject": {
+    "title": "block object",
+    "type": "object",
+    "required": [
+      "transactions",
+      "uncles"
+    ],
+    "allOf": [
+      {
+        "$ref": "./Header.json#/headerObject"
+      },
+      {
+        "$ref": "./Block.json#/transactionHash"
+      },
+      {
+        "$ref": "./Block.json#/uncle/uncles"
+      }
+    ]
+  },
+  "BlockObject": {
+    "name": "block object",
+    "schema": {
+      "$ref": "./Block.json#/blockObject"
+    }
+  },
+  "transactionHash": {
+    "title": "block transaction hashes",
+    "$ref": "./Data.json#/arrayOfHash32"
+  },
+  "numberOrTagOrHash": {
+    "title": "block number or tag or hsh",
+    "oneOf": [
+      {
+        "$ref": "./Block.json#/number"
+      },
+      {
+        "$ref": "./Block.json#/tag"
+      },
+      {
+        "$ref": "./Block.json#/hash"
+      }
+    ]
+  },
+  "hashOrNull": {
+    "title": "block hash or null if pending",
+    "oneOf": [
+      {
+        "$ref": "./Block.json#/hash"
+      },
+      {
+        "$ref": "./Null.json#/null"
+      }
+    ]
+  },
+  "numberOrTag": {
+    "title": "block number or block tag",
+    "oneOf": [
+      {
+        "$ref": "./Block.json#/number"
+      },
+      {
+        "$ref": "./Block.json#/tag"
+      }
+    ]
+  },
+  "numberOrNull": {
+    "title": "block number or null",
+    "oneOf": [
+      {
+        "$ref": "./Block.json#/number"
+      },
+      {
+        "$ref": "./Null.json#/null"
+      }
+    ]
+  },
+  "blockObjectOrNull": {
+    "title": "block object or null",
+    "oneOf": [
+      {
+        "$ref": "./Block.json#/blockObject"
+      },
+      {
+        "$ref": "./Null.json#/null"
+      }
+    ]
+  },
+  "NumberOrTagOrHash": {
+    "name": "block number or identifier or hash",
+    "summary": "The desired block number, its hash, or a block tag",
+    "schema": {
+      "$ref": "./Block.json#/numberOrTagOrHash"
+    }
+  },
+  "size": {
+    "name": "block size",
+    "summary": "size of this block in bytes",
+    "$ref": "./Data.json#/bytes"
+  },
+  "UncleCount": {
+    "name": "uncle count",
+    "schema": {
+      "$ref": "./Block.json#/uncle/count"
+    }
+  },
+  "uncle": {
+    "count": {
+      "title": "uncle count",
+      "summary": "number of uncles in the specified block",
+      "$ref": "./Quantity.json#/integer"
+    },
+    "uncles": {
+      "title": "uncles",
+      "$ref": "./Data.json#/arrayOfHash32"
+    }
+  },
+  "number": {
+    "title": "block number",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "tag": {
+    "title": "block tag",
+    "type": "string",
+    "enum": [
+      "earliest",
+      "latest",
+      "pending"
+    ]
+  }
+}

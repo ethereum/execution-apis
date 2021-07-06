@@ -1,0 +1,65 @@
+{
+  "Bytes": {
+    "schema": {
+      "$ref": "./Data.json#/bytes"
+    }
+  },
+  "Bytecode": {
+    "name": "Bytecode",
+    "schema": {
+      "$ref": "./Data.json#/bytes"
+    }
+  },
+  "Hash": {
+    "name": "32 byte hash",
+    "schema": {
+      "$ref": "./Data.json#/hash32"
+    }
+  },
+  "arrayOfHash32": {
+    "type": "array",
+    "items": {
+      "$ref": "./Data.json#/hash32"
+    }
+  },
+  "Index": {
+    "name": "data index",
+    "schema": {
+      "$ref": "./Data.json#/index"
+    }
+  },
+  "index": {
+    "title": "data index",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "byte": {
+    "title": "hex encoded byte",
+    "type": "string",
+    "pattern": "^0x([a-fA-F0-9]?){1,2}$"
+  },
+  "bytes": {
+    "title": "hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]+$"
+  },
+  "bytes32": {
+    "title": "32 hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{64}$"
+  },
+  "bytes65": {
+    "title": "65 hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{512}$"
+  },
+  "bytes256": {
+    "title": "256 hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{512}$"
+  },
+  "hash32": {
+    "title": "32 byte hex string",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{64}$"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "eth_sendRawTransaction",
+  "summary": "Sends an already-signed transaction to the network",
+  "params": [
+    {
+      "$ref": "../../components/Transaction.json#/SignedTransactionData"
+    }
+  ],
+  "result": {
+    "name": "transactionHash",
+    "$ref": "../../components/Transaction.json#/Hash"
+  }
+}

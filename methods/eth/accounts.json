@@ -1,0 +1,11 @@
+{
+  "name": "eth_accounts",
+  "summary": "Returns a list of addresses owned by this client",
+  "params": [],
+  "result": {
+    "name": "array of addresses",
+    "schema": {
+      "$ref": "../../components/Address.json#/addresses"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "eth_getStorageAt",
+  "description": "Returns the value from a storage position at an address",
+  "params": [
+    {
+      "name": "dataAddress",
+      "summary": "address of stored data",
+      "$ref": "../../components/Address.json#/Address"
+    },
+    {
+      "name": "dataIndex",
+      "summary": "index into stored data",
+      "$ref": "../../components/Data.json#/Index"
+    },
+    {
+      "$ref": "../../components/Block.json#/NumberOrTagOrHash"
+    }
+  ],
+  "result": {
+    "name": "data stored",
+    "summary": "data stored at the given address and data index",
+    "$ref": "../../components/Data.json#/Bytes"
+  }
+}

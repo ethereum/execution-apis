@@ -1,6 +1,6 @@
 # Ethereum JSON-RPC Specification
 
-[View the spec](https://playground.open-rpc.org/?uiSchema%5BappBar%5D%5Bui:splitView%5D=false&schemaUrl=https://raw.githubusercontent.com/lightclient/eth1.0-apis/main/openrpc.json&uiSchema%5BappBar%5D%5Bui:input%5D=false)
+[View the spec](https://playground.open-rpc.org/?uiSchema[appBar][ui:splitView]=false&schemaUrl=https://github.com/alita-moore/eth1.0-apis/blob/main/build/openrpc.json&uiSchema[appBar][ui:input]=false)
 
 The Ethereum JSON-RPC is a collection of methods that all clients implement.
 This interface allows downstream tooling and infrastructure to treat different

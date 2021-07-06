@@ -1,0 +1,39 @@
+{
+  "AccessList": {
+    "name": "access list",
+    "description": "EIP-2930 access list",
+    "schema": {
+      "$ref": "./AccessList.json#/entries"
+    }
+  },
+  "entries": {
+    "title": "array of Access List Entries",
+    "type": "array",
+    "items": {
+      "$ref": "./AccessList.json#/entry"
+    }
+  },
+  "entry": {
+    "name": "access list entry",
+    "type": "object",
+    "properties": {
+      "address": {
+        "$ref": "./AccessList.json#/address"
+      },
+      "storageKeys": {
+        "$ref": "./AccessList.json#/storageKeys"
+      }
+    }
+  },
+  "address": {
+    "title": "access address",
+    "$ref": "./Address.json#/address"
+  },
+  "storageKeys": {
+    "title": "storage keys",
+    "type": "array",
+    "items": {
+      "$ref": "./Data.json#/hash32"
+    }
+  }
+}

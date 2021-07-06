@@ -1,0 +1,11 @@
+{
+  "name": "eth_getTransactionByBlockNumberAndIndex",
+  "summary": "Returns information about a transaction specified by block number and transaction index",
+  "params": [
+    { "$ref": "../../components/Block.json#/NumberOrTag" },
+    { "$ref": "../../components/Transaction.json#/Index" }
+  ],
+  "result": {
+    "$ref": "../../components/Transaction.json#/HashOrNull"
+  }
+}

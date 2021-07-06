@@ -1,0 +1,18 @@
+{
+  "name": "json-rpc",
+  "version": "1.0.0",
+  "description": "ethereum foundation json rpc specification",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node ./build.js && prettier --write build/openrpc.json",
+    "watch": "watch -p '**/!(__openrpc__)*.json' -c 'npm run build && npx prettier --write build/__openrpc__.json'"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@apidevtools/json-schema-ref-parser": "^9.0.7",
+    "@open-rpc/generator": "^1.18.12",
+    "watch-cli": "^0.2.3"
+  }
+}

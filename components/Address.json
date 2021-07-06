@@ -1,0 +1,53 @@
+{
+  "Address": {
+    "name": "address",
+    "schema": {
+      "$ref": "./Address.json#/address"
+    }
+  },
+  "Addresses": {
+    "name": "addresses",
+    "schema": {"$ref": "./Address.json#/addresses"}
+  },
+  "orNull": {
+    "name": "address or null",
+    "schema": {
+      "$ref": "./Address.json#/addressOrNull"
+    }
+  },
+  "Miner": {
+    "name": "coinbase",
+    "summary": "address that received this block's mining rewards",
+    "schema": {
+      "$ref": "./Address.json#/miner"
+    }
+  },
+  "miner": {
+    "title": "coinbase",
+    "summary": "address that received this block's mining rewards",
+    "$ref": "./Address.json#/address"
+  },
+  "addressOrNull": {
+    "title": "address or null",
+    "oneOf": [
+      {
+        "$ref": "./Address.json#/address"
+      },
+      {
+        "$ref": "./Null.json#/null"
+      }
+    ]
+  },
+  "addresses": {
+    "title": "addresses",
+    "type": "array",
+    "items": {
+      "$ref": "./Address.json#/address"
+    }
+  },
+  "address": {
+    "title": "address",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{40}$"
+  }
+}

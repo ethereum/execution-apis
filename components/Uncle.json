@@ -1,0 +1,100 @@
+{
+  "UncleObject": {
+    "schema": "./Uncle.json#/uncleObject"
+  },
+  "uncleObject": {
+    "title": "uncle object",
+    "type": "object",
+    "properties": {
+      "extraData": {
+        "title": "extraData",
+        "$ref": "./Header.json#/extraData"
+      },
+      "hash": {
+        "title": "hash",
+        "$ref": "./Block.json#/hashOrNull"
+      },
+      "logsBloom": {
+        "title": "logsBloom",
+        "$ref": "./Logs.json#/bloomOrNull"
+      },
+      "miner": {
+        "title": "miner",
+        "$ref": "./Address.json#/miner"
+      },
+      "nonce": {
+        "title": "nonce",
+        "$ref": "./POW.json#/nonceOrNull"
+      },
+      "parentHash": {
+        "title": "parentHash",
+        "$ref": "./Header.json#/parentHash"
+      },
+      "receiptsRoot": {
+        "title": "receiptsRoot",
+        "$ref": "./Header.json#/receiptsRoot"
+      },
+      "sha3Uncles": {
+        "$ref": "./Uncle.json#/sha3Uncles"
+      },
+      "stateRoot": {
+        "title": "stateRoot",
+        "$ref": "./Header.json#/stateRoot"
+      },
+      "size": {
+        "title": "size",
+        "$ref": "./Block.json#/size"
+      },
+      "timestamp": {
+        "title": "timestamp",
+        "$ref": "./Header.json#/timestamp"
+      },
+      "totalDifficulty": {
+        "title": "totalDifficulty",
+        "$ref": "./POW.json#/totalDifficulty"
+      },
+      "Uncles": {
+        "$ref": "./Uncle.json#/uncles"
+      }
+    }
+  },
+  "sha3Uncles": {
+    "title": "ommersHash",
+    "summary": "SHA3 (Keccak-256) of the uncles data in this block",
+    "$ref": "./Data.json#/hash32"
+  },
+  "uncles": {
+    "name": "uncles",
+    "summary": "list of uncle hashes",
+    "$ref": "./Transaction.json#/uncles"
+  },
+  "UncleObjectOrNull": {
+    "name": "uncle or null",
+    "schema": {
+      "$ref": "./Uncle.json#/uncleObjectOrNull"
+    }
+  },
+  "uncleObjectOrNull": {
+    "title": "uncle or null",
+    "summary": "null if no block or uncle is found, otherwise an uncle object",
+      "oneOf": [
+        {
+          "$ref": "./Uncle.json#/uncleObject"
+        },
+        {
+          "$ref": "./Null.json#/null"
+        }
+      ]
+  },
+  "Index": {
+    "name": "uncle index",
+    "schema": {
+      "$ref": "./Uncle.json#/index"
+    }
+  },
+  "index": {
+    "title": "uncle index",
+    "summary": "index of uncle",
+    "$ref": "./Quantity.json#/integer"
+  }
+}

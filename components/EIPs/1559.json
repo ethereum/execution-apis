@@ -1,0 +1,49 @@
+{
+  "parameters": {
+    "name": "EIP-1559 fee market parameters",
+    "type": "object",
+    "description": "EIP-1559 dynamic fee transactions have two fee parameters.",
+    "required": ["maxFeePerGas", "maxPriorityFeePerGas"],
+    "properties": {
+      "maxPriorityFeePerGas": {
+        "$ref": "./1559.json#/properties/maxPriorityFeePerGas"
+      },
+      "maxFeePerGas": {
+        "$ref": "./1559.json#/properties/maxFeePerGas"
+      }
+    }
+  },
+  "legacyParameters": {
+    "name": "Legacy fee market parameters",
+    "type": "object",
+    "description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
+    "required": ["gasPrice"],
+    "properties": {
+      "gasPrice": {
+        "$ref": "./1559.json#/properties/legacyGasPrice"
+      }
+    }
+  },
+  "properties": {
+    "maxPriorityFeePerGas": {
+      "title": "max priority fee per gas",
+      "description": "Maximum fee per gas the sender is willing to pay to miners in wei",
+      "$ref": "../Quantity.json#/integer"
+    },
+    "maxFeePerGas": {
+      "title": "max fee per gas",
+      "description": "The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei",
+      "$ref": "../Quantity.json#/integer"
+    },
+    "baseFeePerGas": {
+      "title": "Base fee per gas",
+      "summary": "base fee per gas, which is a function of gas used and gas target of the parent block. The base fee per gas is burned.",
+      "$ref": "../Quantity.json#/integer"
+    },
+    "legacyGasPrice": {
+      "title": "gas price",
+      "description": "The gas price willing to be paid by the sender in wei",
+      "$ref": "../Quantity.json#/integer"
+    }
+  }
+}

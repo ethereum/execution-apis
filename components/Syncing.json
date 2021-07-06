@@ -1,0 +1,61 @@
+{
+  "Status": {
+    "name": "syncing status",
+    "schema": {
+      "oneOf": [
+        {
+          "$ref": "./Syncing.json#/progressObject"
+        },
+        {
+          "$ref": "./Syncing.json#/notSyncing"
+        }
+      ]
+    }
+  },
+  "progressObject": {
+    "title": "syncing progress",
+    "type": "object",
+    "properties": {
+      "startingBlock": {
+        "$ref": "./Syncing.json#/startingBlock"
+      },
+      "currentBlock": {
+        "$ref": "./Syncing.json#/currentBlock"
+      },
+      "highestBlock": {
+        "$ref": "./Syncing.json#/highestBlock"
+      }
+    }
+  },
+  "startingBlock": {
+    "title": "starting block",
+    "summary": "block number at which syncing started",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "currentBlock": {
+    "title": "current block",
+    "summary": "number of the most-recent block synced",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "highestBlock": {
+    "title": "highest block",
+    "summary": "number of latest block on the network",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "notSyncing": {
+    "title": "not syncing",
+    "description": "Should always return false if not syncing.",
+    "type": "boolean"
+  },
+  "FalseOrProgressObject": {
+    "name": "false or progres object",
+    "schema": {
+      "$ref": "./Syncing.json#/falseOrProgressObject"
+    }
+  },
+  "falseOrProgressObject": {
+    "title": "false or syncing progress object",
+    "summary": "false if this client is not syncing with the network, otherwise a syncing progres object",
+    "oneOf": [{ "$ref": "./Syncing.json#/notSyncing" }, { "$ref": "./Syncing.json#/progressObject" }]
+  }
+}

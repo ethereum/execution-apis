@@ -1,0 +1,120 @@
+{
+  "FilterObject": {
+    "name": "filter object",
+    "schema": {
+      "$ref": "./Filter.json#/filterObject"
+    }
+  },
+  "Results": {
+    "name": "filter results",
+    "schema": {
+      "$ref": "./Filter.json#/results"
+    }
+  },
+  "Identifier": {
+    "name": "filter id",
+    "schema": {
+      "$ref": "./Filter.json#/identifier"
+    }
+  },
+  "DestroyFilterID": {
+    "name": "filter id to destroy",
+    "schema": {
+      "$ref": "./Filter.json#/destroyFilterID"
+    }
+  },
+  "IsFilterDestroyed": {
+    "name": "is filter destroyed",
+    "schema": {
+      "$ref": "#/isFilterDestroyed"
+    }
+  },
+  "identifier": {
+    "name": "Filter Identifier",
+    "summary": "ID of the filter",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "destroyFilterID": {
+    "title": "filter id to destroy",
+    "summary": "ID of the filter to destroy",
+    "$ref": "#/identifier"
+  },
+  "isFilterDestroyed": {
+    "title": "is filter destroyed",
+    "summary": "true if the filter is found and successfully destroyed or false if it is not",
+    "type": "boolean"
+  },
+  "results": {
+    "title": "filter results",
+    "oneOf": [
+      {
+        "$ref": "./Filter.json#/blockHashes"
+      },
+      {
+        "$ref": "./Filter.json#/transactionHashes"
+      },
+      {
+        "$ref": "./Filter.json#/newLogs"
+      }
+    ]
+  },
+  "blockHashes": {
+    "name": "new block hashes",
+    "type": "array",
+    "items": {
+      "$ref": "./Data.json#/hash32"
+    }
+  },
+  "transactionHashes": {
+    "name": "new transaction hashes",
+    "type": "array",
+    "items": {
+      "$ref": "./Data.json#/hash32"
+    }
+  },
+  "newLogs": {
+    "name": "new filter logs",
+    "$ref": "./Logs.json#/logObjects"
+  },
+  "filterObject": {
+    "title": "filter object",
+    "type": "object",
+    "properties": {
+      "fromBlock": {
+        "$ref": "./Filter.json#/fromBlock"
+      },
+      "toBlock": {
+        "$ref": "./Filter.json#/toBlock"
+      },
+      "address": {
+        "$ref": "./Filter.json#/address"
+      },
+      "topics": {
+        "$ref": "./Filter.json#/topics"
+      }
+    }
+  },
+  "fromBlock": {
+    "name": "from block",
+    "$ref": "./Block.json#/numberOrTag"
+  },
+  "toBlock": {
+    "name": "to block",
+    "$ref": "./Block.json#/numberOrTag"
+  },
+  "address": {
+    "title": "Address(es)",
+    "summary": "contract address or a list of addresses from which logs should originate",
+    "oneOf": [
+      {
+        "$ref": "./Address.json#/address"
+      },
+      {
+        "$ref": "./Address.json#/addresses"
+      }
+    ]
+  },
+  "topics": {
+    "$ref": "./Topic.json#/topics"
+  }
+}

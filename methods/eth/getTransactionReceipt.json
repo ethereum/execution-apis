@@ -1,0 +1,9 @@
+{
+  "name": "eth_getTransactionReceipt",
+  "summary": "Returns the receipt of a transaction specified by hash. Transaction receipts are unavailable for pending transactions.",
+  "params": [{ "$ref": "../../components/Transaction.json#/Hash" }],
+  "result": {
+    "name": "transaction receipt or null",
+    "$ref": "../../components/Transaction.json#/HashOrNull"
+  }
+}

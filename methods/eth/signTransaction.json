@@ -1,0 +1,15 @@
+{
+  "name": "eth_signTransaction",
+  "summary": "Signs a transaction that can be submitted to the network at a later time using with eth_sendRawTransaction",
+  "params": [
+    {
+      "name": "transaction to be signed",
+      "required": true,
+      "$ref": "../../components/Transaction.json#/TransactionRequestObject"
+    }
+  ],
+  "result": {
+    "summary": "signature hash of the transaction object",
+    "$ref": "../../components/Data.json#/Hash"
+  }
+}

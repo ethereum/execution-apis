@@ -1,0 +1,20 @@
+{
+  "name": "eth_submitWork",
+  "summary": "Submit a proof-of-work solution",
+  "params": [
+    {
+      "$ref": "../../components/Mining.json#/POWSolution/NonceFound"
+    },
+    {
+      "required": true,
+      "$ref": "../../components/Mining.json#/POWSolution/HeaderPOWHash"
+    },
+    {
+      "required": true,
+      "$ref": "../../components/Mining.json#/POWSolution/MixHash"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Mining.json#/POWSolution/IsSolutionValid"
+  }
+}

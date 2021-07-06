@@ -1,0 +1,12 @@
+{
+  "name": "net_peerCount",
+  "summary": "Returns the number of peers currently connected to this client",
+  "params": [],
+  "result": {
+    "name": "connected peers",
+    "summary": "number of connected peers",
+    "schema": {
+      "$ref": "../../components/Quantity.json#/integer"
+    }
+  }
+}

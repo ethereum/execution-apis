@@ -1,0 +1,13 @@
+{
+  "name": "eth_uninstallFilter",
+  "summary": "Destroys a filter based on filter ID;  This should only be called if a filter and its notifications are no longer needed. This will also be called automatically on a filter if its notifications are not retrieved using eth_getFilterChanges for a period of time.",
+  "params": [
+    {
+      "required": true,
+      "$ref": "../../components/Filter.json#/DestroyFilterID"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Filter.json#/IsFilterDestroyed"
+  }
+}

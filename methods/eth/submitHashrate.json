@@ -1,0 +1,17 @@
+{
+  "name": "eth_submitHashrate",
+  "summary": "Submit a mining hashrate",
+  "params": [
+    {
+      "required": true,
+      "$ref": "../../components/Mining.json#/Hashrate"
+    },
+    {
+      "required": true,
+      "$ref": "../../components/Mining.json#/RandomID"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Status.json#/Status"
+  }
+}

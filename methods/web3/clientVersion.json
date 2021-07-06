@@ -1,0 +1,11 @@
+{
+  "name": "web3_clientVersion",
+  "summary": "Returns the version of the current client",
+  "params": [],
+  "result": {
+    "name": "client version",
+    "schema": {
+      "type": "string"
+    }
+  }
+}

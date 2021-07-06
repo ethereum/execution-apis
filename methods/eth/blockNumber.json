@@ -1,0 +1,8 @@
+{
+  "name": "eth_blockNumber",
+  "summary": "Returns the number of the most recent block seen by this client",
+  "params": [],
+  "result": {
+    "$ref": "../../components/Block.json#/Number"
+  }
+}

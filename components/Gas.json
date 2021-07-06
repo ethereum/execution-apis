@@ -1,0 +1,40 @@
+{
+  "Limit": {
+    "schema": {
+      "$ref": "./Gas.json#/limit"
+    }
+  },
+  "limit": {
+    "name": "gas limit",
+    "summary": "A scalar value equal to the current limit of gas expenditure per block",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "Used": {
+    "schema": {
+      "$ref": "./Gas.json#/used"
+    }
+  },
+  "Price": {
+    "schema": {
+      "$ref": "./Gas.json#/price"
+    }
+  },
+  "price": {
+    "title": "gas price",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "used": {
+    "title": "gas used",
+    "summary": "A scalar value equal to the total gas usedin transactions in this block",
+    "$ref": "./Quantity.json#/integer"
+  },
+  "baseFeePerGas": {
+    "$ref": "./EIPs/1559.json#/properties/baseFeePerGas"
+  },
+  "maxFeePerGas": {
+    "$ref": "./EIPs/1559.json#/properties/maxFeePerGas"
+  },
+  "maxPriorityFeePerGas": {
+    "$ref": "./EIPs/1559.json#/properties/maxPriorityFeePerGas"
+  }
+}

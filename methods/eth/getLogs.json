@@ -1,0 +1,12 @@
+{
+  "name": "eth_getLogs",
+  "summary": "Returns a list of all logs based on a filter object",
+  "params": [
+    {
+      "$ref": "../../components/Filter.json#/FilterObject"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Logs.json#/Logs"
+  }
+}

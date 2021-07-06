@@ -1,0 +1,15 @@
+{
+  "name": "eth_getBalance",
+  "summary": "Returns the balance of the account of given address.",
+  "params": [
+    {
+      "$ref": "../../components/Address.json#/Address"
+    },
+    {
+      "$ref": "../../components/Block.json#/NumberOrTag"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Block.json#/Number"
+  }
+}

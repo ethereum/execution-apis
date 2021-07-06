@@ -1,0 +1,8 @@
+{
+  "name": "eth_getUncleCountByBlockNumber",
+  "summary": "Returns the number of uncles in a block specified by block number",
+  "params": [{ "$ref": "../../components/Block.json#/NumberOrTag" }],
+  "result": {
+    "$ref": "../../components/Block.json#/UncleCount"
+  }
+}

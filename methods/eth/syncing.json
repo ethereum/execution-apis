@@ -1,0 +1,8 @@
+{
+  "name": "eth_syncing",
+  "summary": "Returns information about the status of this client's network synchronization",
+  "params": [],
+  "result": {
+    "$ref": "../../components/Syncing.json#/FalseOrProgressObject"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "eth_getTransactionCount",
+  "summary": "Returns the number of transactions sent from an address",
+  "params": [
+    {
+      "name": "transactionAddress",
+      "summary": "address to query for sent transactions",
+      "required": true,
+      "$ref": "../../components/Address.json#/Address"
+    },
+    {
+      "required": true,
+      "$ref": "../../components/Block.json#/NumberOrTagOrHash"
+    }
+  ],
+  "result": { "$ref": "../../components/Transaction.json#/Count" }
+}

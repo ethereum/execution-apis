@@ -1,0 +1,15 @@
+{
+  "name": "eth_call",
+  "summary": "Executes a new message call immediately without creating a transaction on the block chain.",
+  "params": [
+    {
+      "name": "Transaction",
+      "required": true,
+      "$ref": "../../components/Transaction.json#/WithSender"
+    }
+  ],
+  "result": {
+    "name": "Return data",
+    "$ref": "../../components/Data.json#/Bytes"
+  }
+}

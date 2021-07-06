@@ -1,0 +1,22 @@
+{
+  "name": "eth_sign",
+  "summary": "Calculates an Ethereum-specific signature in the form of keccak256('\\x19Ethereum Signed Message:\n' + len(message) + message))",
+  "params": [
+    {
+      "required": true,
+      "summary": "address to use for signing",
+      "$ref": "../../components/Address.json#/Address"
+    },
+    {
+      "required": true,
+      "name": "data",
+      "summary": "data to sign",
+      "$ref": "../../components/Data.json#/Bytes"
+    }
+  ],
+  "result": {
+    "name": "hash",
+    "summary": "signature hash of the provided data",
+    "$ref": "../../components/Data.json#/Hash"
+  }
+}

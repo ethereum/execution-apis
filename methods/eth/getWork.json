@@ -1,0 +1,22 @@
+{
+  "name": "eth_getWork",
+  "summary": "Returns a list containing relevant information for proof-of-work",
+  "params": [],
+  "result": {
+    "name": "work",
+    "schema": {
+      "type": "array",
+      "items": [
+        {
+          "$ref": "../../components/POW.json#/hash"
+        },
+        {
+          "$ref": "../../components/POW.json#/seedHash"
+        },
+        {
+          "$ref": "../../components/POW.json#/boundaryCondition"
+        }
+      ]
+    }
+  }
+}

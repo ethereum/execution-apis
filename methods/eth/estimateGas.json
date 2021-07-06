@@ -1,0 +1,15 @@
+{
+  "name": "eth_estimateGas",
+  "summary": "Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.",
+  "params": [
+    {
+      "name": "Transaction",
+      "required": true,
+      "$ref": "../../components/Transaction.json#/WithSender"
+    }
+  ],
+  "result": {
+    "name": "Gas used",
+    "$ref": "../../components/Gas.json#/Used"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "Null": {
+    "schema": { "$ref": "./Null.json#/null" }
+  },
+  "null": {
+    "title": "null",
+    "type": "null",
+    "description": "null, undefined, None"
+  },
+  "ZeroHash": {
+    "name": "zero hash",
+    "schema": "./Null.json#/zeroHash"
+  },
+  "zeroHash": {
+    "title": "zero hash",
+    "type": "string",
+    "pattern": "^0x$"
+  }
+}

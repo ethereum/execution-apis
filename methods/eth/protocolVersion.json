@@ -1,0 +1,8 @@
+{
+  "name": "eth_protocolVersion",
+  "summary": "Returns the current Ethereum protocol version",
+  "params": [],
+  "result": {
+    "$ref": "../../components/ProtocolVersion.json#/ProtocolVersion"
+  }
+}

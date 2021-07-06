@@ -1,0 +1,15 @@
+{
+  "name": "eth_getBlockByNumber",
+  "summary": "Returns information about a block by number.",
+  "params": [
+    {
+      "$ref": "../../components/Block.json#/Number"
+    }
+  ],
+  "result": {
+    "name": "Block information",
+    "schema": {
+      "$ref": "../../components/Block.json#/BlockObject"
+    }
+  }
+}

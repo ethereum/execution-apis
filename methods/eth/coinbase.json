@@ -1,0 +1,9 @@
+{
+  "name": "eth_coinbase",
+  "summary": "Returns the coinbase address for this client",
+  "params": [],
+  "result": {
+    "name": "Coinbase address",
+    "$ref": "../../components/Address.json#/Address"
+  }
+}

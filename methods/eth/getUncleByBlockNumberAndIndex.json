@@ -1,0 +1,11 @@
+{
+  "name": "eth_getUncleByBlockNumberAndIndex",
+  "summary": "Returns information about an uncle specified by block number and uncle index position",
+  "params": [
+    { "$ref": "../../components/Block.json#/NumberOrTag" },
+    { "$ref": "../../components/Quantity.json#/Integer" }
+  ],
+  "result": {
+    "$ref": "../../components/Uncle.json#/UncleObjectOrNull"
+  }
+}

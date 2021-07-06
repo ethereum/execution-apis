@@ -1,0 +1,8 @@
+{
+  "name": "eth_getTransactionByHash",
+  "summary": "Returns information about a transaction specified by hash",
+  "params": [{ "$ref": "../../components/Transaction.json#/Hash" }],
+  "result": {
+    "$ref": "../../components/Transaction.json#/HashOrNull"
+  }
+}

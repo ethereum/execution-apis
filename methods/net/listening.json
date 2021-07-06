@@ -1,0 +1,12 @@
+{
+  "name": "net_listening",
+  "summary": "Determines if this client is listening for new network connections",
+  "params": [],
+  "result": {
+    "name": "is listening",
+    "summary": "true if listening is active or false if listening is not active",
+    "schema": {
+      "type": "boolean"
+    }
+  }
+}

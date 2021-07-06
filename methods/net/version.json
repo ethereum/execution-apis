@@ -1,0 +1,13 @@
+{
+  "name": "net_version",
+  "summary": "Returns the chain ID associated with the current network",
+  "params": [],
+  "result": {
+    "name": "chain id",
+    "summary": "chain ID associated with the current network",
+    "description": "Common chain IDs:  '1' - Ethereum mainnet  '3' - Ropsten testnet  '4' - Rinkeby testnet  '42' - Kovan testnet  Note: See EIP-155 for a [complete list](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids) of possible chain IDs.",
+    "schema": {
+      "type": "string"
+    }
+  }
+}

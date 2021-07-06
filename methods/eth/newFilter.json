@@ -1,0 +1,12 @@
+{
+  "name": "eth_newFilter",
+  "summary": "Creates a filter to listen for specific state changes that can then be used with eth_getFilterChanges",
+  "params": [
+    {
+      "$ref": "../../components/Filter.json#/FilterObject"
+    }
+  ],
+  "result": {
+    "$ref": "../../components/Filter.json#/Identifier"
+  }
+}

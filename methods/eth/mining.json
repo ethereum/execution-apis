@@ -1,0 +1,8 @@
+{
+  "name": "eth_mining",
+  "summary": "Determines if this client is mining new blocks",
+  "params": [],
+  "result": {
+    "$ref": "../../components/Mining.json#/IsMining"
+  }
+}

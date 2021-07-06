@@ -1,0 +1,13 @@
+{
+  "name": "eth_getBlockByHash",
+  "summary": "Returns information about a block by hash.",
+  "params": [
+    {
+      "$ref": "../../components/Block.json#/Hash"
+    }
+  ],
+  "result": {
+    "name": "Block information",
+    "$ref": "../../components/Block.json#/BlockObject"
+  }
+}

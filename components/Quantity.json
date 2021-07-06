@@ -1,0 +1,28 @@
+{
+  "Integer": {
+    "name": "integer",
+    "schema": {
+      "$ref": "./Quantity.json#/integer"
+    } 
+  },
+  "integer": {
+    "$ref": "./Quantity.json#/uint256"
+  },
+  "arrayOfUint256": {
+      "title": "array of hex encoded unsigned integers",
+      "type": "array",
+      "items": [
+        {"$ref": "./Quantity.json#/uint256"}
+      ]
+  },
+  "uint": {
+    "title": "hex encoded unsigned integer",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]+$"
+  },
+  "uint256": {
+    "title": "hex encoded unsigned integer",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{64}$"
+  }
+}

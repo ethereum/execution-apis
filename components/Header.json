@@ -1,0 +1,123 @@
+{
+  "HeaderObject": {
+    "name": "header object",
+    "schema": {
+      "$ref": "./Header.json#/headerObject"
+    }
+  },
+  "headerObject": {
+    "title": "header object",
+    "type": "object",
+    "required": [
+      "parentHash",
+      "sha3Uncles",
+      "miner",
+      "stateRoot",
+      "transactionsRoot",
+      "receiptsRoot",
+      "bloom",
+      "totalDifficulty",
+      "number",
+      "gasLimit",
+      "gasUsed",
+      "timestamp",
+      "extraData",
+      "mixHash",
+      "nonce"
+    ],
+    "properties": {
+      "parentHash": {
+        "$ref": "./Header.json#/parentHash"
+      },
+      "sha3Uncles": {
+        "title": "sha3uncles",
+        "$ref": "./Uncle.json#/sha3Uncles"
+      },
+      "stateRoot": {
+        "$ref": "./Header.json#/stateRoot"
+      },
+      "receiptsRoot": {
+        "$ref": "./Header.json#/receiptsRoot"
+      },
+      "miner": {
+        "title": "miner",
+        "$ref": "./Address.json#/miner"
+      },
+      "transactionsRoot": {
+        "title": "transaction root",
+        "$ref": "./Transaction.json#/root"
+      },
+      "bloom": {
+        "title": "header log bloom",
+        "$ref": "./Logs.json#/bloom"
+      },
+      "totalDifficulty": {
+        "title": "header total difficulty",
+        "$ref": "./POW.json#/totalDifficulty"
+      },
+      "gasLimit": {
+        "title": "block gas limit",
+        "$ref": "./Gas.json#/limit"
+      },
+      "gasUsed": {
+        "title": "total gas used",
+        "$ref": "./Gas.json#/used"
+      },
+      "timestamp": {
+        "title": "block timestamp",
+        "$ref": "./Header.json#/timestamp"
+      },
+      "mixHash": {
+        "title": "block mix hash",
+        "$ref": "./POW.json#/mixHash"
+      },
+      "nonce": {
+        "title": "block nonce",
+        "$ref": "./POW.json#/nonce"
+      },
+      "baseFeePerGas": {
+        "title": "base fee per gas",
+        "$ref": "./Gas.json#/baseFeePerGas"
+      },
+      "number": {
+        "title": "block number",
+        "$ref": "./Block.json#/number"
+      },
+      "powHash": {
+        "title": "proof of work hash",
+        "$ref": "./POW.json#/hash"
+      },
+      "seedHash": {
+        "title": "seed hash",
+        "$ref": "./POW.json#/seedHash"
+      },
+      "extraData": {
+        "$ref": "./Header.json#/extraData"
+      }
+    }
+  },
+  "parentHash": {
+    "title": "parent block hash",
+    "$ref": "./Data.json#/hash32"
+  },
+  "receiptsRoot": {
+    "name": "receipt root",
+    "summary": "The Keccak 256-bit hash of the root node of the trie structure populated with the receipts of each transaction in the transactions list portion of the block",
+    "$ref": "./Data.json#/hash32"
+  },
+  "stateRoot": {
+    "name": "block state root",
+    "summary": "The  Keccak  256-bit  hash  of  the  root node of the state trie, after all transactions are executed and finalizations applied",
+    "$ref": "./Data.json#/hash32"
+  },
+  "extraData": {
+    "name": "extra data",
+    "summary": "'extra data' field of this block; must be at most 32 bytes",
+    "$ref": "./Data.json#/bytes32"
+  },
+  "timestamp": {
+    "title": "timestamp",
+    "summary": "A scalar value equal to the reasonableoutput of Unix’s time() at this block’s inception",
+    "$ref": "./Quantity.json#/integer"
+  }
+}

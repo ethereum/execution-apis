@@ -1,0 +1,20 @@
+{
+  "name": "web3_sha3",
+  "summary": "Hashes data using the Keccak-256 algorithm",
+  "params": [
+    {
+      "name": "data to be hashed",
+      "required": true,
+      "schema": {
+        "$ref": "../../components/Data.json#/bytes"
+      }
+    }
+  ],
+  "result": {
+    "name": "hashed data",
+    "summary": "Keccak-256 hash of the given data",
+    "schema": {
+      "$ref": "../../components/Data.json#/hash32"
+    }
+  }
+}
