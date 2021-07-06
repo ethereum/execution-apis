@@ -1,6 +1,6 @@
 {
   "Address": {
-    "name": "address",
+    "name": "hex encoded address",
     "schema": {
       "$ref": "./Address.json#/address"
     }
