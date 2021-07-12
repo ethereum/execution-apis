@@ -9,7 +9,7 @@
     "watch": "watch -p '**/!(__openrpc__)*.json' -c 'npm run build && npx prettier --write build/__openrpc__.json'"
   },
   "author": "",
-  "license": "ISC",
+  "license": "CC0",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.7",
     "@open-rpc/generator": "^1.18.12",
