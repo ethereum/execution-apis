@@ -8,6 +8,9 @@
   ],
   "result": {
     "name": "transactionHash",
-    "$ref": "../../components/Transaction.json#/Hash"
+    "name": "block hash",
+    "schema": {
+      "$ref": "../../components/Block.json#/hash"
+    }
   }
 }

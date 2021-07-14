@@ -3,13 +3,20 @@
   "summary": "Returns information about a block by number.",
   "params": [
     {
-      "$ref": "../../components/Block.json#/Number"
+      "name": "block number",
+      "summary": "The number of blocks in the best chain of the trie",
+      "schema": {
+        "$ref": "../../components/Block.json#/number"
+      }
     }
   ],
   "result": {
     "name": "Block information",
     "schema": {
-      "$ref": "../../components/Block.json#/BlockObject"
+      "name": "block object",
+      "schema": {
+        "$ref": "../../components/Block.json#/blockObject"
+      }
     }
   }
 }

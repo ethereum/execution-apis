@@ -1,9 +1,20 @@
 {
   "name": "eth_getTransactionReceipt",
   "summary": "Returns the receipt of a transaction specified by hash. Transaction receipts are unavailable for pending transactions.",
-  "params": [{ "$ref": "../../components/Transaction.json#/Hash" }],
+  "params": [
+    {
+      "name": "block hash",
+      "schema": {
+        "$ref": "../../components/Block.json#/hash"
+      }
+    }
+  ],
   "result": {
     "name": "transaction receipt or null",
-    "$ref": "../../components/Transaction.json#/HashOrNull"
+    "name": "block hash or null",
+    "description": "The block hash. Note: if the block number is the pending block this will be Null",
+    "schema": {
+      "$ref": "../../components/Block.json#/hashOrNull"
+    }
   }
 }

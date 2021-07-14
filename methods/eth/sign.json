@@ -20,6 +20,9 @@
   "result": {
     "name": "hash",
     "summary": "signature hash of the provided data",
-    "$ref": "../../components/Data.json#/Hash"
+    "name": "block hash",
+    "schema": {
+      "$ref": "../../components/Block.json#/hash"
+    }
   }
 }

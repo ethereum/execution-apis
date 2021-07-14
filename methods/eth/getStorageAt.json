@@ -15,7 +15,11 @@
       "$ref": "../../components/Data.json#/Index"
     },
     {
-      "$ref": "../../components/Block.json#/NumberOrTagOrHash"
+      "name": "block number",
+      "summary": "The number of blocks in the best chain of the trie",
+      "schema": {
+        "$ref": "../../components/Block.json#/number"
+      }
     }
   ],
   "result": {

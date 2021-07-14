@@ -3,10 +3,18 @@
   "summary": "Returns the number of transactions in a block matching specified by the block number.",
   "params": [
     {
-      "$ref": "../../components/Block.json#/Number"
+      "name": "block number",
+      "summary": "The number of blocks in the best chain of the trie",
+      "schema": {
+        "$ref": "../../components/Block.json#/number"
+      }
     }
   ],
   "result": {
-    "$ref": "../../components/Block.json#/BlockTransactionCount"
+    "name": "block transaction count",
+    "summary": "The number of transactions on a given block",
+    "schema": {
+      "$ref": "../../components/Quantity.json#/arrayOfUint256"
+    }
   }
 }

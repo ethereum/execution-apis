@@ -1,8 +1,20 @@
 {
   "name": "eth_getUncleCountByBlockNumber",
   "summary": "Returns the number of uncles in a block specified by block number",
-  "params": [{ "$ref": "../../components/Block.json#/NumberOrTag" }],
+
+  "params": [
+    {
+      "name": "block number",
+      "summary": "The number of blocks in the best chain of the trie",
+      "schema": {
+        "$ref": "../../components/Block.json#/number"
+      }
+    }
+  ],
   "result": {
-    "$ref": "../../components/Block.json#/UncleCount"
+    "name": "uncle count",
+    "schema": {
+      "$ref": "../../components/Block.json#/uncle/count"
+    }
   }
 }

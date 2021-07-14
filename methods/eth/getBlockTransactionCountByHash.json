@@ -3,8 +3,17 @@
   "summary": "Returns the number of transactions in a block specified by block hash",
   "params": [
     {
-      "$ref": "../../components/Block.json#/Hash"
+      "name": "block hash",
+      "schema": {
+        "$ref": "../../components/Block.json#/hash"
+      }
     }
   ],
-  "result": { "$ref": "../../components/Block.json#/BlockTransactionCount" }
+  "result": {
+    "name": "block transaction count",
+    "summary": "The number of transactions on a given block",
+    "schema": {
+      "$ref": "../../components/Quantity.json#/arrayOfUint256"
+    }
+  }
 }

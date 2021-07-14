@@ -9,10 +9,18 @@
       }
     },
     {
-      "$ref": "../../components/Block.json#/NumberOrTag"
+      "name": "block number",
+      "summary": "The number of blocks in the best chain of the trie",
+      "schema": {
+        "$ref": "../../components/Block.json#/number"
+      }
     }
   ],
   "result": {
-    "$ref": "../../components/Block.json#/Number"
+    "name": "block number",
+    "summary": "The number of blocks in the best chain of the trie",
+    "schema": {
+      "$ref": "../../components/Block.json#/number"
+    }
   }
 }

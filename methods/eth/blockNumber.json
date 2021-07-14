@@ -3,6 +3,10 @@
   "summary": "Returns the number of the most recent block seen by this client",
   "params": [],
   "result": {
-    "$ref": "../../components/Block.json#/Number"
+    "name": "block number",
+    "summary": "The number of blocks in the best chain of the trie",
+    "schema": {
+      "$ref": "../../components/Block.json#/number"
+    }
   }
 }

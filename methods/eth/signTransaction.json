@@ -10,6 +10,9 @@
   ],
   "result": {
     "summary": "signature hash of the transaction object",
-    "$ref": "../../components/Data.json#/Hash"
+    "name": "block hash",
+    "schema": {
+      "$ref": "../../components/Block.json#/hash"
+    }
   }
 }

@@ -1,8 +1,19 @@
 {
   "name": "eth_getTransactionByHash",
   "summary": "Returns information about a transaction specified by hash",
-  "params": [{ "$ref": "../../components/Transaction.json#/Hash" }],
+  "params": [
+    {
+      "name": "block hash",
+      "schema": {
+        "$ref": "../../components/Block.json#/hash"
+      }
+    }
+  ],
   "result": {
-    "$ref": "../../components/Transaction.json#/HashOrNull"
+    "name": "block hash or null",
+    "description": "The block hash. Note: if the block number is the pending block this will be Null",
+    "schema": {
+      "$ref": "../../components/Block.json#/hashOrNull"
+    }
   }
 }

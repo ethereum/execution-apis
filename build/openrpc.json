@@ -363,21 +363,12 @@
           }
         },
         {
-          "name": "Block number or tag",
+          "name": "block number",
+          "summary": "The number of blocks in the best chain of the trie",
           "schema": {
-            "title": "block number or block tag",
-            "oneOf": [
-              {
-                "title": "block number",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              },
-              {
-                "title": "block tag",
-                "type": "string",
-                "enum": ["earliest", "latest", "pending"]
-              }
-            ]
+            "title": "block number",
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{64}$"
           }
         }
       ],
@@ -405,7 +396,7 @@
         }
       ],
       "result": {
-        "name": "Block information",
+        "name": "block object",
         "schema": {
           "title": "block object",
           "type": "object",
@@ -817,21 +808,12 @@
           }
         },
         {
-          "name": "Block number or tag",
+          "name": "block number",
+          "summary": "The number of blocks in the best chain of the trie",
           "schema": {
-            "title": "block number or block tag",
-            "oneOf": [
-              {
-                "title": "block number",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              },
-              {
-                "title": "block tag",
-                "type": "string",
-                "enum": ["earliest", "latest", "pending"]
-              }
-            ]
+            "title": "block number",
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{64}$"
           }
         }
       ],
@@ -1180,27 +1162,12 @@
           }
         },
         {
-          "name": "block number or identifier or hash",
-          "summary": "The desired block number, its hash, or a block tag",
+          "name": "block number",
+          "summary": "The number of blocks in the best chain of the trie",
           "schema": {
-            "title": "block number or tag or hsh",
-            "oneOf": [
-              {
-                "title": "block number",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              },
-              {
-                "title": "block tag",
-                "type": "string",
-                "enum": ["earliest", "latest", "pending"]
-              },
-              {
-                "title": "block hash",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              }
-            ]
+            "title": "block number",
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{64}$"
           }
         }
       ],
@@ -1238,13 +1205,13 @@
         }
       ],
       "result": {
-        "name": "hash or null",
+        "name": "block hash or null",
+        "description": "The block hash. Note: if the block number is the pending block this will be Null",
         "schema": {
-          "title": "hash or null",
+          "title": "block hash or null if pending",
           "oneOf": [
             {
-              "title": "transactionHash",
-              "summary": "hash of a transaction",
+              "title": "block hash",
               "type": "string",
               "pattern": "^0x[0-9a-f]{64}$"
             },
@@ -1262,21 +1229,12 @@
       "summary": "Returns information about a transaction specified by block number and transaction index",
       "params": [
         {
-          "name": "Block number or tag",
+          "name": "block number",
+          "summary": "The number of blocks in the best chain of the trie",
           "schema": {
-            "title": "block number or block tag",
-            "oneOf": [
-              {
-                "title": "block number",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              },
-              {
-                "title": "block tag",
-                "type": "string",
-                "enum": ["earliest", "latest", "pending"]
-              }
-            ]
+            "title": "block number",
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{64}$"
           }
         },
         {
@@ -1291,13 +1249,13 @@
         }
       ],
       "result": {
-        "name": "hash or null",
+        "name": "block hash or null",
+        "description": "The block hash. Note: if the block number is the pending block this will be Null",
         "schema": {
-          "title": "hash or null",
+          "title": "block hash or null if pending",
           "oneOf": [
             {
-              "title": "transactionHash",
-              "summary": "hash of a transaction",
+              "title": "block hash",
               "type": "string",
               "pattern": "^0x[0-9a-f]{64}$"
             },
@@ -1315,23 +1273,22 @@
       "summary": "Returns information about a transaction specified by hash",
       "params": [
         {
-          "name": "transaction hash",
+          "name": "block hash",
           "schema": {
-            "title": "transactionHash",
-            "summary": "hash of a transaction",
+            "title": "block hash",
             "type": "string",
             "pattern": "^0x[0-9a-f]{64}$"
           }
         }
       ],
       "result": {
-        "name": "hash or null",
+        "name": "block hash or null",
+        "description": "The block hash. Note: if the block number is the pending block this will be Null",
         "schema": {
-          "title": "hash or null",
+          "title": "block hash or null if pending",
           "oneOf": [
             {
-              "title": "transactionHash",
-              "summary": "hash of a transaction",
+              "title": "block hash",
               "type": "string",
               "pattern": "^0x[0-9a-f]{64}$"
             },
@@ -1359,29 +1316,14 @@
           }
         },
         {
-          "name": "block number or identifier or hash",
-          "summary": "The desired block number, its hash, or a block tag",
+          "required": true,
+          "name": "block number",
+          "summary": "The number of blocks in the best chain of the trie",
           "schema": {
-            "title": "block number or tag or hsh",
-            "oneOf": [
-              {
-                "title": "block number",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              },
-              {
-                "title": "block tag",
-                "type": "string",
-                "enum": ["earliest", "latest", "pending"]
-              },
-              {
-                "title": "block hash",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              }
-            ]
-          },
-          "required": true
+            "title": "block number",
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{64}$"
+          }
         }
       ],
       "result": {
@@ -1399,23 +1341,22 @@
       "summary": "Returns the receipt of a transaction specified by hash. Transaction receipts are unavailable for pending transactions.",
       "params": [
         {
-          "name": "transaction hash",
+          "name": "block hash",
           "schema": {
-            "title": "transactionHash",
-            "summary": "hash of a transaction",
+            "title": "block hash",
             "type": "string",
             "pattern": "^0x[0-9a-f]{64}$"
           }
         }
       ],
       "result": {
-        "name": "hash or null",
+        "name": "block hash or null",
+        "description": "The block hash. Note: if the block number is the pending block this will be Null",
         "schema": {
-          "title": "hash or null",
+          "title": "block hash or null if pending",
           "oneOf": [
             {
-              "title": "transactionHash",
-              "summary": "hash of a transaction",
+              "title": "block hash",
               "type": "string",
               "pattern": "^0x[0-9a-f]{64}$"
             },
@@ -1468,7 +1409,7 @@
                   "pattern": "^0x[0-9a-f]{64}$"
                 },
                 "hash": {
-                  "title": "hash",
+                  "title": "block hash or null if pending",
                   "oneOf": [
                     {
                       "title": "block hash",
@@ -1698,21 +1639,12 @@
       "summary": "Returns information about an uncle specified by block number and uncle index position",
       "params": [
         {
-          "name": "Block number or tag",
+          "name": "block number",
+          "summary": "The number of blocks in the best chain of the trie",
           "schema": {
-            "title": "block number or block tag",
-            "oneOf": [
-              {
-                "title": "block number",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              },
-              {
-                "title": "block tag",
-                "type": "string",
-                "enum": ["earliest", "latest", "pending"]
-              }
-            ]
+            "title": "block number",
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{64}$"
           }
         },
         {
@@ -1742,7 +1674,7 @@
                   "pattern": "^0x[0-9a-f]{64}$"
                 },
                 "hash": {
-                  "title": "hash",
+                  "title": "block hash or null if pending",
                   "oneOf": [
                     {
                       "title": "block hash",
@@ -1995,21 +1927,12 @@
       "summary": "Returns the number of uncles in a block specified by block number",
       "params": [
         {
-          "name": "Block number or tag",
+          "name": "block number",
+          "summary": "The number of blocks in the best chain of the trie",
           "schema": {
-            "title": "block number or block tag",
-            "oneOf": [
-              {
-                "title": "block number",
-                "type": "string",
-                "pattern": "^0x[0-9a-f]{64}$"
-              },
-              {
-                "title": "block tag",
-                "type": "string",
-                "enum": ["earliest", "latest", "pending"]
-              }
-            ]
+            "title": "block number",
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{64}$"
           }
         }
       ],
@@ -2220,10 +2143,9 @@
         }
       ],
       "result": {
-        "name": "transaction hash",
+        "name": "block hash",
         "schema": {
-          "title": "transactionHash",
-          "summary": "hash of a transaction",
+          "title": "block hash",
           "type": "string",
           "pattern": "^0x[0-9a-f]{64}$"
         }
@@ -2326,10 +2248,10 @@
         }
       ],
       "result": {
-        "name": "hash",
+        "name": "block hash",
         "summary": "signature hash of the provided data",
         "schema": {
-          "title": "32 byte hex string",
+          "title": "block hash",
           "type": "string",
           "pattern": "^0x[0-9a-f]{64}$"
         }
@@ -2391,9 +2313,9 @@
       ],
       "result": {
         "summary": "signature hash of the transaction object",
-        "name": "32 byte hash",
+        "name": "block hash",
         "schema": {
-          "title": "32 byte hex string",
+          "title": "block hash",
           "type": "string",
           "pattern": "^0x[0-9a-f]{64}$"
         }

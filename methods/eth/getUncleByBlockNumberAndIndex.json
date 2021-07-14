@@ -2,7 +2,13 @@
   "name": "eth_getUncleByBlockNumberAndIndex",
   "summary": "Returns information about an uncle specified by block number and uncle index position",
   "params": [
-    { "$ref": "../../components/Block.json#/NumberOrTag" },
+    {
+      "name": "block number",
+      "summary": "The number of blocks in the best chain of the trie",
+      "schema": {
+        "$ref": "../../components/Block.json#/number"
+      }
+    },
     { "$ref": "../../components/Quantity.json#/Integer" }
   ],
   "result": {
