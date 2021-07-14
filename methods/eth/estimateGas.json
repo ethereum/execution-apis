@@ -5,7 +5,9 @@
     {
       "name": "Transaction",
       "required": true,
-      "$ref": "../../components/Transaction.json#/WithSender"
+      "schema": {
+        "$ref": "../../components/Transaction.json#/withSender"
+      }
     }
   ],
   "result": {

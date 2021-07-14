@@ -9,7 +9,10 @@
       }
     },
     {
-      "$ref": "../../components/Transaction.json#/Index"
+      "name": "transaction index",
+      "schema": {
+        "$ref": "../../components/Transaction.json#/index"
+      }
     }
   ],
   "result": {

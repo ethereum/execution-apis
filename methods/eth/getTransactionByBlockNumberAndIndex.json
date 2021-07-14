@@ -9,7 +9,12 @@
         "$ref": "../../components/Block.json#/number"
       }
     },
-    { "$ref": "../../components/Transaction.json#/Index" }
+    {
+      "name": "transaction index",
+      "schema": {
+        "$ref": "../../components/Transaction.json#/index"
+      }
+    }
   ],
   "result": {
     "name": "block hash or null",

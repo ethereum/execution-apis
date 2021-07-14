@@ -1,10 +1,4 @@
 {
-  "TransactionObject": {
-    "name": "transaction object",
-    "schema": {
-      "$ref": "./Transaction.json#/transactionObject"
-    }
-  },
   "transactionObject": {
     "title": "transaction object",
     "type": "object",
@@ -49,12 +43,6 @@
         ]
       }
     ]
-  },
-  "TransactionRequestObject": {
-    "name": "transaciton request object",
-    "schema": {
-      "$ref": "./Transaction.json#/transactionRequestObject"
-    }
   },
   "transactionRequestObject": {
     "title": "transaction request object",
@@ -142,11 +130,6 @@
     "title": "s",
     "$ref": "./Quantity.json#/integer"
   },
-  "WithSender": {
-    "schema": {
-      "$ref": "./Transaction.json#/withSender"
-    }
-  },
   "withSender": {
     "title": "Transaction object with sender",
     "type": "object",
@@ -207,18 +190,6 @@
       }
     ]
   },
-  "Index": {
-    "name": "transaction index",
-    "schema": {
-      "$ref": "./Transaction.json#/index"
-    }
-  },
-  "Hash": {
-    "name": "transaction hash",
-    "schema": {
-      "$ref": "./Transaction.json#/hash"
-    }
-  },
   "index": {
     "name": "transactionIndex",
     "description": "index of a transaction in the specified block",
@@ -228,18 +199,6 @@
     "title": "transactionHash",
     "summary": "hash of a transaction",
     "$ref": "./Data.json#/hash32"
-  },
-  "HashOrNull": {
-    "name": "hash or null",
-    "schema": {
-      "$ref": "./Transaction.json#/hashOrNull"
-    }
-  },
-  "HashOrZeroHash": {
-    "name": "hash or zero hash",
-    "schema": {
-      "$ref": "./Transaction.json#/hashOrZeroHash"
-    }
   },
   "hashOrZeroHash": {
     "title": "hash or zero hash",
@@ -263,11 +222,6 @@
       }
     ]
   },
-  "From": {
-    "schema": {
-      "$ref": "./Transaction.json#/from"
-    }
-  },
   "from": {
     "title": "from",
     "description": "The transaction sender's address",
@@ -288,22 +242,10 @@
     "summary": "the encoding of the [nonce, gasPrice, gasLimit, to, value, data] (in order) of a transaction object",
     "$ref": "./Data.json#/bytes"
   },
-  "SignedTransactionData": {
-    "name": "signed transaction data",
-    "schema": {
-      "$ref": "./Transaction.json#/signedTransactionData"
-    }
-  },
   "signedTransactionData": {
     "title": "signed transaction data",
     "summary": "the encoding of the [...rawTransactionData, v, r, s] (in order) of the transaction object",
     "$ref": "./Data.json#/bytes"
-  },
-  "Count": {
-    "name": "transaction count",
-    "schema": {
-      "$ref": "./Transaction.json#/count"
-    }
   },
   "count": {
     "title": "transaction count",

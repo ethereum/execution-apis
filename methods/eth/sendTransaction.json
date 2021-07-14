@@ -4,11 +4,17 @@
   "params": [
     {
       "required": true,
-      "$ref": "../../components/Transaction.json#/TransactionRequestObject"
+      "name": "transaciton request object",
+      "schema": {
+        "$ref": "../../components/Transaction.json#/transactionRequestObject"
+      }
     }
   ],
   "result": {
     "summary": "transaction hash, or the zero hash if the transaction is not yet available",
-    "$ref": "../../components/Transaction.json#/HashOrZeroHash"
+    "name": "hash or zero hash",
+    "schema": {
+      "$ref": "../../components/Transaction.json#/hashOrZeroHash"
+    }
   }
 }

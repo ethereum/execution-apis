@@ -3,7 +3,10 @@
   "summary": "Sends an already-signed transaction to the network",
   "params": [
     {
-      "$ref": "../../components/Transaction.json#/SignedTransactionData"
+      "name": "signed transaction data",
+      "schema": {
+        "$ref": "../../components/Transaction.json#/signedTransactionData"
+      }
     }
   ],
   "result": {

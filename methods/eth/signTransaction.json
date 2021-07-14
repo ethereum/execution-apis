@@ -5,7 +5,10 @@
     {
       "name": "transaction to be signed",
       "required": true,
-      "$ref": "../../components/Transaction.json#/TransactionRequestObject"
+      "name": "transaciton request object",
+      "schema": {
+        "$ref": "../../components/Transaction.json#/transactionRequestObject"
+      }
     }
   ],
   "result": {

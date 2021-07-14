@@ -2262,7 +2262,7 @@
       "summary": "Signs a transaction that can be submitted to the network at a later time using with eth_sendRawTransaction",
       "params": [
         {
-          "name": "transaction to be signed",
+          "name": "transaciton request object",
           "required": true,
           "schema": {
             "title": "transaction request object",
