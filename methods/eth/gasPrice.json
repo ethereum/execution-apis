@@ -4,6 +4,8 @@
   "params": [],
   "result": {
     "name": "Gas price",
-    "$ref": "../../components/Gas.json#/Price"
+    "schema": {
+      "$ref": "../../components/Gas.json#/price"
+    }
   }
 }
