@@ -4,11 +4,17 @@
   "params": [
     {
       "required": true,
-      "$ref": "../../components/Mining.json#/Hashrate"
+      "name": "hashrate",
+      "summary": "number of hashes-per-second this node is mining at",
+      "$ref": "../../components/Quantity.json#/Integer"
     },
     {
       "required": true,
-      "$ref": "../../components/Mining.json#/RandomID"
+      "name": "random id",
+      "summary": "random ID identifying this node",
+      "schema": {
+        "$ref": "../../components/Data.json#/bytes"
+      }
     }
   ],
   "result": {

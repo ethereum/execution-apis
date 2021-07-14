@@ -3,6 +3,10 @@
   "summary": "Determines if this client is mining new blocks",
   "params": [],
   "result": {
-    "$ref": "../../components/Mining.json#/IsMining"
+    "name": "is mining",
+    "summary": "true if this client is mining or false if it is not mining",
+    "schema": {
+      "type": "boolean"
+    }
   }
 }

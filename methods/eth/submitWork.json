@@ -3,18 +3,31 @@
   "summary": "Submit a proof-of-work solution",
   "params": [
     {
-      "$ref": "../../components/Mining.json#/POWSolution/NonceFound"
+      "name": "proof of work nonce found",
+      "schema": {
+        "$ref": "../../components/POW.json#/nonce"
+      }
     },
     {
       "required": true,
-      "$ref": "../../components/Mining.json#/POWSolution/HeaderPOWHash"
+      "name": "block proof of work hash",
+      "schema": {
+        "$ref": "../../components/POW.json#/hash"
+      }
     },
     {
       "required": true,
-      "$ref": "../../components/Mining.json#/POWSolution/MixHash"
+      "name": "proof of work mix hash",
+      "schema": {
+        "$ref": "../../components/POW.json#/mixHash"
+      }
     }
   ],
   "result": {
-    "$ref": "../../components/Mining.json#/POWSolution/IsSolutionValid"
+    "name": "is solution valid",
+    "summary": "true if the solution is valid, false otherwise",
+    "schema": {
+      "type": "boolean"
+    }
   }
 }
