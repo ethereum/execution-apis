@@ -1,5 +1,6 @@
-const RefParser = require("@apidevtools/json-schema-ref-parser");
-const fs = require("fs");
+import RefParser from "@apidevtools/json-schema-ref-parser"
+import fs from "fs"
+import * as openrpc from "../openrpc.json"
 
 const _parse = async (_schema) => {
   try {
@@ -7,10 +8,11 @@ const _parse = async (_schema) => {
     if (!fs.existsSync("./build")) {
       fs.mkdirSync("./build");
     }
-    fs.writeFileSync("./build/openrpc.json", JSON.stringify(schema));
+
+    fs.writeFileSync("./build/openrpc.json", JSON.stringify(schema.default));
   } catch (err) {
     console.error(err);
   }
 };
 
-_parse(require("./openrpc.json"));
+_parse(openrpc);

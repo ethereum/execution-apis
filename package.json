@@ -15,7 +15,7 @@
   "scripts": {
     "lint": "node scripts/validate.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node ./build.js && prettier --write build/openrpc.json",
+    "build": "node  --experimental-json-modules ./scripts/build.js && prettier --write build/openrpc.json",
     "watch": "watch -p '**/!(__openrpc__)*.json' -c 'npm run build && npx prettier --write build/__openrpc__.json'"
   },
   "author": "Ethereum",

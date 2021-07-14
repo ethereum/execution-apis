@@ -4,7 +4,7 @@ import {
 	validateOpenRPCDocument
 } from "@open-rpc/schema-utils-js";
 
-let rawdata = fs.readFileSync("openrpc.json");
+let rawdata = fs.readFileSync("build/openrpc.json");
 let openrpc = JSON.parse(rawdata);
 
 const error = validateOpenRPCDocument(openrpc);
