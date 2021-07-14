@@ -1,18 +1,29 @@
 {
-  "name": "json-rpc",
+  "name": "eth1.0-apis",
   "version": "1.0.0",
-  "description": "ethereum foundation json rpc specification",
+  "description": "Collection of JSON-RPC APIs provided by Ethereum 1.0 clients",
   "main": "index.js",
+  "type": "module",
+  "homepage": "https://github.com/ethereum/eth1.0-apis#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/eth1.0-apis.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ethereum/eth1.0-apis/issues"
+  },
   "scripts": {
+    "lint": "node scripts/validate.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node ./build.js && prettier --write build/openrpc.json",
     "watch": "watch -p '**/!(__openrpc__)*.json' -c 'npm run build && npx prettier --write build/__openrpc__.json'"
   },
-  "author": "",
-  "license": "CC0",
+  "author": "Ethereum",
+  "license": "CC0-1.0",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.7",
     "@open-rpc/generator": "^1.18.12",
+    "@open-rpc/schema-utils-js": "^1.15.0",
     "watch-cli": "^0.2.3"
   }
 }
