@@ -3,10 +3,16 @@
   "summary": "Creates a filter to listen for specific state changes that can then be used with eth_getFilterChanges",
   "params": [
     {
-      "$ref": "../../components/Filter.json#/FilterObject"
+      "name": "filter object",
+      "schema": {
+        "$ref": "../../components/Filter.json#/filterObject"
+      }
     }
   ],
   "result": {
-    "$ref": "../../components/Filter.json#/Identifier"
+    "name": "filter id",
+    "schema": {
+      "$ref": "../../components/Filter.json#/identifier"
+    }
   }
 }

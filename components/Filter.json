@@ -1,34 +1,4 @@
 {
-  "FilterObject": {
-    "name": "filter object",
-    "schema": {
-      "$ref": "./Filter.json#/filterObject"
-    }
-  },
-  "Results": {
-    "name": "filter results",
-    "schema": {
-      "$ref": "./Filter.json#/results"
-    }
-  },
-  "Identifier": {
-    "name": "filter id",
-    "schema": {
-      "$ref": "./Filter.json#/identifier"
-    }
-  },
-  "DestroyFilterID": {
-    "name": "filter id to destroy",
-    "schema": {
-      "$ref": "./Filter.json#/destroyFilterID"
-    }
-  },
-  "IsFilterDestroyed": {
-    "name": "is filter destroyed",
-    "schema": {
-      "$ref": "#/isFilterDestroyed"
-    }
-  },
   "identifier": {
     "title": "Filter Identifier",
     "summary": "ID of the filter",

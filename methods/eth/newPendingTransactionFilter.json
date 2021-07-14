@@ -3,6 +3,9 @@
   "summary": "Creates a filter to listen for new pending transactions that can be used with eth_getFilterChanges",
   "params": [],
   "result": {
-    "$ref": "../../components/Filter.json#/Identifier"
+    "name": "filter id",
+    "schema": {
+      "$ref": "../../components/Filter.json#/identifier"
+    }
   }
 }

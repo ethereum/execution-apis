@@ -5,7 +5,10 @@
     {
       "name": "filterId",
       "required": true,
-      "$ref": "../../components/Filter.json#/Identifier"
+      "name": "filter id",
+      "schema": {
+        "$ref": "../../components/Filter.json#/identifier"
+      }
     }
   ],
   "result": {

@@ -930,13 +930,13 @@
       "params": [
         {
           "name": "filter id",
+          "required": true,
           "schema": {
             "title": "Filter Identifier",
             "summary": "ID of the filter",
             "type": "string",
             "pattern": "^0x[0-9a-f]{64}$"
-          },
-          "required": true
+          }
         }
       ],
       "result": {

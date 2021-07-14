@@ -4,10 +4,16 @@
   "params": [
     {
       "required": true,
-      "$ref": "../../components/Filter.json#/DestroyFilterID"
+      "name": "filter id to destroy",
+      "schema": {
+        "$ref": "../../components/Filter.json#/destroyFilterID"
+      }
     }
   ],
   "result": {
-    "$ref": "../../components/Filter.json#/IsFilterDestroyed"
+    "name": "is filter destroyed",
+    "schema": {
+      "$ref": "../../components/Filter.json#/isFilterDestroyed"
+    }
   }
 }

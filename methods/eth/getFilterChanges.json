@@ -1,8 +1,18 @@
 {
   "name": "eth_getFilterChanges",
   "summary": "Returns a list of all logs based on filter ID since the last log retrieval",
-  "params": [{ "$ref": "../../components/Filter.json#/Identifier" }],
+  "params": [
+    {
+      "name": "filter id",
+      "schema": {
+        "$ref": "../../components/Filter.json#/identifier"
+      }
+    }
+  ],
   "result": {
-    "$ref": "../../components/Filter.json#/Results"
+    "name": "filter results",
+    "schema": {
+      "$ref": "../../components/Filter.json#/results"
+    }
   }
 }

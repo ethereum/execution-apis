@@ -3,7 +3,10 @@
   "summary": "Returns a list of all logs based on a filter object",
   "params": [
     {
-      "$ref": "../../components/Filter.json#/FilterObject"
+      "name": "filter object",
+      "schema": {
+        "$ref": "../../components/Filter.json#/filterObject"
+      }
     }
   ],
   "result": {
