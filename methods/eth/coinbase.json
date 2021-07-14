@@ -4,6 +4,8 @@
   "params": [],
   "result": {
     "name": "Coinbase address",
-    "$ref": "../../components/Address.json#/Address"
+    "schema": {
+      "$ref": "../../components/address.json#/address"
+    }
   }
 }

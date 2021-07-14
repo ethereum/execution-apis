@@ -6,7 +6,9 @@
       "name": "transactionAddress",
       "summary": "address to query for sent transactions",
       "required": true,
-      "$ref": "../../components/Address.json#/Address"
+      "schema": {
+        "$ref": "../../components/address.json#/address"
+      }
     },
     {
       "required": true,

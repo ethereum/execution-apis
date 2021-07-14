@@ -5,7 +5,9 @@
     {
       "name": "dataAddress",
       "summary": "address of stored data",
-      "$ref": "../../components/Address.json#/Address"
+      "schema": {
+        "$ref": "../../components/address.json#/address"
+      }
     },
     {
       "name": "dataIndex",

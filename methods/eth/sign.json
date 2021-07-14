@@ -5,7 +5,10 @@
     {
       "required": true,
       "summary": "address to use for signing",
-      "$ref": "../../components/Address.json#/Address"
+      "name": "hex encoded address",
+      "schema": {
+        "$ref": "../../components/address.json#/address"
+      }
     },
     {
       "required": true,

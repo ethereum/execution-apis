@@ -3,7 +3,10 @@
   "summary": "Returns the balance of the account of given address.",
   "params": [
     {
-      "$ref": "../../components/Address.json#/Address"
+      "name": "hex encoded address",
+      "schema": {
+        "$ref": "../../components/address.json#/address"
+      }
     },
     {
       "$ref": "../../components/Block.json#/NumberOrTag"
