@@ -1983,12 +1983,12 @@
       "params": [],
       "result": {
         "name": "integer",
+        "summary": "number of hashes-per-second this node is mining at",
         "schema": {
           "title": "hex encoded unsigned integer",
           "type": "string",
           "pattern": "^0x[0-9a-f]{64}$"
-        },
-        "summary": "number of hashes-per-second this node is mining at"
+        }
       }
     },
     {
@@ -2326,14 +2326,14 @@
       "summary": "Submit a mining hashrate",
       "params": [
         {
-          "name": "integer",
+          "required": true,
+          "name": "hashrate",
+          "summary": "number of hashes-per-second this node is mining at",
           "schema": {
             "title": "hex encoded unsigned integer",
             "type": "string",
             "pattern": "^0x[0-9a-f]{64}$"
-          },
-          "required": true,
-          "summary": "number of hashes-per-second this node is mining at"
+          }
         },
         {
           "required": true,

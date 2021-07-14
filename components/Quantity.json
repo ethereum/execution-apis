@@ -1,10 +1,4 @@
 {
-  "Integer": {
-    "name": "integer",
-    "schema": {
-      "$ref": "./Quantity.json#/integer"
-    }
-  },
   "integer": {
     "$ref": "./Quantity.json#/uint256"
   },

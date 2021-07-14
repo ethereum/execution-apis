@@ -6,7 +6,9 @@
       "required": true,
       "name": "hashrate",
       "summary": "number of hashes-per-second this node is mining at",
-      "$ref": "../../components/Quantity.json#/Integer"
+      "schema": {
+        "$ref": "../../components/Quantity.json#/integer"
+      }
     },
     {
       "required": true,
@@ -18,6 +20,11 @@
     }
   ],
   "result": {
-    "$ref": "../../components/Status.json#/Status"
+    "name": "status",
+    "summary": "true if the operation was successful, false if it was not",
+    "schema": {
+      "title": "success",
+      "type": "boolean"
+    }
   }
 }

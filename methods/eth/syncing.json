@@ -3,6 +3,9 @@
   "summary": "Returns information about the status of this client's network synchronization",
   "params": [],
   "result": {
-    "$ref": "../../components/Syncing.json#/FalseOrProgressObject"
+    "name": "false or progres object",
+    "schema": {
+      "$ref": "../../components/Syncing.json#/falseOrProgressObject"
+    }
   }
 }

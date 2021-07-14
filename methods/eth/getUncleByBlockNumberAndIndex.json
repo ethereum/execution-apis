@@ -9,7 +9,12 @@
         "$ref": "../../components/Block.json#/number"
       }
     },
-    { "$ref": "../../components/Quantity.json#/Integer" }
+    {
+      "name": "integer",
+      "schema": {
+        "$ref": "../../components/Quantity.json#/integer"
+      }
+    }
   ],
   "result": {
     "$ref": "../../components/Uncle.json#/UncleObjectOrNull"

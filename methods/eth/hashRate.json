@@ -5,6 +5,9 @@
   "result": {
     "name": "hashrate",
     "summary": "number of hashes-per-second this node is mining at",
-    "$ref": "../../components/Quantity.json#/Integer"
+    "name": "integer",
+    "schema": {
+      "$ref": "../../components/Quantity.json#/integer"
+    }
   }
 }

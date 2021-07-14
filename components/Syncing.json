@@ -1,17 +1,4 @@
 {
-  "Status": {
-    "name": "syncing status",
-    "schema": {
-      "oneOf": [
-        {
-          "$ref": "./Syncing.json#/progressObject"
-        },
-        {
-          "$ref": "./Syncing.json#/notSyncing"
-        }
-      ]
-    }
-  },
   "progressObject": {
     "title": "syncing progress",
     "type": "object",
@@ -46,12 +33,6 @@
     "title": "not syncing",
     "description": "Should always return false if not syncing.",
     "type": "boolean"
-  },
-  "FalseOrProgressObject": {
-    "name": "false or progres object",
-    "schema": {
-      "$ref": "./Syncing.json#/falseOrProgressObject"
-    }
   },
   "falseOrProgressObject": {
     "title": "false or syncing progress object",
