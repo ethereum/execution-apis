@@ -90,11 +90,6 @@
     "title": "input",
     "$ref": "./Quantity.json#/integer"
   },
-  "SignedTransaction": {
-    "schema": {
-      "$ref": "./Transaction.json#/signedTransaction"
-    }
-  },
   "signedTransaction": {
     "title": "Signed transaction object",
     "type": "object",
@@ -147,49 +142,6 @@
       }
     ]
   },
-  "Info": {
-    "schema": {
-      "$ref": "./Transaction.json#/info"
-    }
-  },
-  "info": {
-    "type": "object",
-    "title": "transaction information",
-    "allOf": [
-      {
-        "name": "Contextual information",
-        "required": [
-          "blockHash",
-          "blockNumber",
-          "from",
-          "hash",
-          "transactionIndex"
-        ],
-        "properties": {
-          "blockHash": {
-            "title": "blockHash",
-            "$ref": "./Block.json#/hash"
-          },
-          "blockNumber": {
-            "title": "blockNumber",
-            "$ref": "./Block.json#/number"
-          },
-          "from": {
-            "$ref": "./Transaction.json#/from"
-          },
-          "hash": {
-            "$ref": "./Transaction.json#/hash"
-          },
-          "transactionIndex": {
-            "$ref": "./Transaction.json#/index"
-          }
-        }
-      },
-      {
-        "$ref": "./Transaction.json#/signedTransaction"
-      }
-    ]
-  },
   "index": {
     "name": "transactionIndex",
     "description": "index of a transaction in the specified block",
@@ -211,17 +163,6 @@
       }
     ]
   },
-  "hashOrNull": {
-    "title": "hash or null",
-    "oneOf": [
-      {
-        "$ref": "./Transaction.json#/hash"
-      },
-      {
-        "$ref": "./Null.json#/null"
-      }
-    ]
-  },
   "from": {
     "title": "from",
     "description": "The transaction sender's address",
@@ -236,11 +177,6 @@
     "title": "transaction root",
     "summary": "The Keccak 256-bit hash of the root node of the trie structure populated with each transaction in the transactions list portion of the block",
     "$ref": "./Data.json#/hash32"
-  },
-  "rawTransactionData": {
-    "title": "raw transaction data",
-    "summary": "the encoding of the [nonce, gasPrice, gasLimit, to, value, data] (in order) of a transaction object",
-    "$ref": "./Data.json#/bytes"
   },
   "signedTransactionData": {
     "title": "signed transaction data",
