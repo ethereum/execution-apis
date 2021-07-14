@@ -7,7 +7,7 @@
   },
   "Addresses": {
     "name": "addresses",
-    "schema": {"$ref": "./Address.json#/addresses"}
+    "schema": { "$ref": "./Address.json#/addresses" }
   },
   "orNull": {
     "name": "address or null",

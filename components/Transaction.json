@@ -234,7 +234,7 @@
     "schema": {
       "$ref": "./Transaction.json#/hashOrNull"
     }
-  },  
+  },
   "HashOrZeroHash": {
     "name": "hash or zero hash",
     "schema": {

@@ -64,10 +64,7 @@
   "blockObject": {
     "title": "block object",
     "type": "object",
-    "required": [
-      "transactions",
-      "uncles"
-    ],
+    "required": ["transactions", "uncles"],
     "allOf": [
       {
         "$ref": "./Header.json#/headerObject"
@@ -184,10 +181,6 @@
   "tag": {
     "title": "block tag",
     "type": "string",
-    "enum": [
-      "earliest",
-      "latest",
-      "pending"
-    ]
+    "enum": ["earliest", "latest", "pending"]
   }
 }

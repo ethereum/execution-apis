@@ -14,7 +14,7 @@
     }
   },
   "entry": {
-    "name": "access list entry",
+    "title": "access list entry",
     "type": "object",
     "properties": {
       "address": {

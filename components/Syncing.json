@@ -56,6 +56,9 @@
   "falseOrProgressObject": {
     "title": "false or syncing progress object",
     "summary": "false if this client is not syncing with the network, otherwise a syncing progres object",
-    "oneOf": [{ "$ref": "./Syncing.json#/notSyncing" }, { "$ref": "./Syncing.json#/progressObject" }]
+    "oneOf": [
+      { "$ref": "./Syncing.json#/notSyncing" },
+      { "$ref": "./Syncing.json#/progressObject" }
+    ]
   }
 }

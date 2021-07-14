@@ -3,17 +3,15 @@
     "name": "integer",
     "schema": {
       "$ref": "./Quantity.json#/integer"
-    } 
+    }
   },
   "integer": {
     "$ref": "./Quantity.json#/uint256"
   },
   "arrayOfUint256": {
-      "title": "array of hex encoded unsigned integers",
-      "type": "array",
-      "items": [
-        {"$ref": "./Quantity.json#/uint256"}
-      ]
+    "title": "array of hex encoded unsigned integers",
+    "type": "array",
+    "items": [{ "$ref": "./Quantity.json#/uint256" }]
   },
   "uint": {
     "title": "hex encoded unsigned integer",

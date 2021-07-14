@@ -77,14 +77,14 @@
   "uncleObjectOrNull": {
     "title": "uncle or null",
     "summary": "null if no block or uncle is found, otherwise an uncle object",
-      "oneOf": [
-        {
-          "$ref": "./Uncle.json#/uncleObject"
-        },
-        {
-          "$ref": "./Null.json#/null"
-        }
-      ]
+    "oneOf": [
+      {
+        "$ref": "./Uncle.json#/uncleObject"
+      },
+      {
+        "$ref": "./Null.json#/null"
+      }
+    ]
   },
   "Index": {
     "name": "uncle index",

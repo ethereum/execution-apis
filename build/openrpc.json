@@ -53,9 +53,7 @@
             "type": "object",
             "allOf": [
               {
-                "required": [
-                  "from"
-                ],
+                "required": ["from"],
                 "properties": {
                   "from": {
                     "title": "from",
@@ -70,12 +68,7 @@
                 "type": "object",
                 "allOf": [
                   {
-                    "required": [
-                      "nonce",
-                      "gas",
-                      "value",
-                      "input"
-                    ],
+                    "required": ["nonce", "gas", "value", "input"],
                     "properties": {
                       "type": {
                         "title": "type",
@@ -142,10 +135,7 @@
                         "name": "EIP-1559 fee market parameters",
                         "type": "object",
                         "description": "EIP-1559 dynamic fee transactions have two fee parameters.",
-                        "required": [
-                          "maxFeePerGas",
-                          "maxPriorityFeePerGas"
-                        ],
+                        "required": ["maxFeePerGas", "maxPriorityFeePerGas"],
                         "properties": {
                           "maxPriorityFeePerGas": {
                             "title": "max priority fee per gas",
@@ -165,9 +155,7 @@
                         "name": "Legacy fee market parameters",
                         "type": "object",
                         "description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
-                        "required": [
-                          "gasPrice"
-                        ],
+                        "required": ["gasPrice"],
                         "properties": {
                           "gasPrice": {
                             "title": "gas price",
@@ -219,9 +207,7 @@
             "type": "object",
             "allOf": [
               {
-                "required": [
-                  "from"
-                ],
+                "required": ["from"],
                 "properties": {
                   "from": {
                     "title": "from",
@@ -236,12 +222,7 @@
                 "type": "object",
                 "allOf": [
                   {
-                    "required": [
-                      "nonce",
-                      "gas",
-                      "value",
-                      "input"
-                    ],
+                    "required": ["nonce", "gas", "value", "input"],
                     "properties": {
                       "type": {
                         "title": "type",
@@ -308,10 +289,7 @@
                         "name": "EIP-1559 fee market parameters",
                         "type": "object",
                         "description": "EIP-1559 dynamic fee transactions have two fee parameters.",
-                        "required": [
-                          "maxFeePerGas",
-                          "maxPriorityFeePerGas"
-                        ],
+                        "required": ["maxFeePerGas", "maxPriorityFeePerGas"],
                         "properties": {
                           "maxPriorityFeePerGas": {
                             "title": "max priority fee per gas",
@@ -331,9 +309,7 @@
                         "name": "Legacy fee market parameters",
                         "type": "object",
                         "description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
-                        "required": [
-                          "gasPrice"
-                        ],
+                        "required": ["gasPrice"],
                         "properties": {
                           "gasPrice": {
                             "title": "gas price",
@@ -399,11 +375,7 @@
               {
                 "title": "block tag",
                 "type": "string",
-                "enum": [
-                  "earliest",
-                  "latest",
-                  "pending"
-                ]
+                "enum": ["earliest", "latest", "pending"]
               }
             ]
           }
@@ -437,10 +409,7 @@
         "schema": {
           "title": "block object",
           "type": "object",
-          "required": [
-            "transactions",
-            "uncles"
-          ],
+          "required": ["transactions", "uncles"],
           "allOf": [
             {
               "title": "header object",
@@ -618,10 +587,7 @@
           "schema": {
             "title": "block object",
             "type": "object",
-            "required": [
-              "transactions",
-              "uncles"
-            ],
+            "required": ["transactions", "uncles"],
             "allOf": [
               {
                 "title": "header object",
@@ -863,11 +829,7 @@
               {
                 "title": "block tag",
                 "type": "string",
-                "enum": [
-                  "earliest",
-                  "latest",
-                  "pending"
-                ]
+                "enum": ["earliest", "latest", "pending"]
               }
             ]
           }
@@ -1089,11 +1051,7 @@
                   {
                     "title": "block tag",
                     "type": "string",
-                    "enum": [
-                      "earliest",
-                      "latest",
-                      "pending"
-                    ]
+                    "enum": ["earliest", "latest", "pending"]
                   }
                 ]
               },
@@ -1109,11 +1067,7 @@
                   {
                     "title": "block tag",
                     "type": "string",
-                    "enum": [
-                      "earliest",
-                      "latest",
-                      "pending"
-                    ]
+                    "enum": ["earliest", "latest", "pending"]
                   }
                 ]
               },
@@ -1251,11 +1205,7 @@
               {
                 "title": "block tag",
                 "type": "string",
-                "enum": [
-                  "earliest",
-                  "latest",
-                  "pending"
-                ]
+                "enum": ["earliest", "latest", "pending"]
               },
               {
                 "title": "block hash",
@@ -1336,11 +1286,7 @@
               {
                 "title": "block tag",
                 "type": "string",
-                "enum": [
-                  "earliest",
-                  "latest",
-                  "pending"
-                ]
+                "enum": ["earliest", "latest", "pending"]
               }
             ]
           }
@@ -1438,11 +1384,7 @@
               {
                 "title": "block tag",
                 "type": "string",
-                "enum": [
-                  "earliest",
-                  "latest",
-                  "pending"
-                ]
+                "enum": ["earliest", "latest", "pending"]
               },
               {
                 "title": "block hash",
@@ -1646,12 +1588,7 @@
                       "type": "object",
                       "allOf": [
                         {
-                          "required": [
-                            "nonce",
-                            "gas",
-                            "value",
-                            "input"
-                          ],
+                          "required": ["nonce", "gas", "value", "input"],
                           "properties": {
                             "type": {
                               "title": "type",
@@ -1741,9 +1678,7 @@
                               "name": "Legacy fee market parameters",
                               "type": "object",
                               "description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
-                              "required": [
-                                "gasPrice"
-                              ],
+                              "required": ["gasPrice"],
                               "properties": {
                                 "gasPrice": {
                                   "title": "gas price",
@@ -1787,11 +1722,7 @@
               {
                 "title": "block tag",
                 "type": "string",
-                "enum": [
-                  "earliest",
-                  "latest",
-                  "pending"
-                ]
+                "enum": ["earliest", "latest", "pending"]
               }
             ]
           }
@@ -1931,12 +1862,7 @@
                       "type": "object",
                       "allOf": [
                         {
-                          "required": [
-                            "nonce",
-                            "gas",
-                            "value",
-                            "input"
-                          ],
+                          "required": ["nonce", "gas", "value", "input"],
                           "properties": {
                             "type": {
                               "title": "type",
@@ -2026,9 +1952,7 @@
                               "name": "Legacy fee market parameters",
                               "type": "object",
                               "description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
-                              "required": [
-                                "gasPrice"
-                              ],
+                              "required": ["gasPrice"],
                               "properties": {
                                 "gasPrice": {
                                   "title": "gas price",
@@ -2095,11 +2019,7 @@
               {
                 "title": "block tag",
                 "type": "string",
-                "enum": [
-                  "earliest",
-                  "latest",
-                  "pending"
-                ]
+                "enum": ["earliest", "latest", "pending"]
               }
             ]
           }
@@ -2209,11 +2129,7 @@
                   {
                     "title": "block tag",
                     "type": "string",
-                    "enum": [
-                      "earliest",
-                      "latest",
-                      "pending"
-                    ]
+                    "enum": ["earliest", "latest", "pending"]
                   }
                 ]
               },
@@ -2229,11 +2145,7 @@
                   {
                     "title": "block tag",
                     "type": "string",
-                    "enum": [
-                      "earliest",
-                      "latest",
-                      "pending"
-                    ]
+                    "enum": ["earliest", "latest", "pending"]
                   }
                 ]
               },

@@ -1,6 +1,6 @@
 {
   "parameters": {
-    "name": "EIP-1559 fee market parameters",
+    "title": "EIP-1559 fee market parameters",
     "type": "object",
     "description": "EIP-1559 dynamic fee transactions have two fee parameters.",
     "required": ["maxFeePerGas", "maxPriorityFeePerGas"],
@@ -14,7 +14,7 @@
     }
   },
   "legacyParameters": {
-    "name": "Legacy fee market parameters",
+    "title": "Legacy fee market parameters",
     "type": "object",
     "description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
     "required": ["gasPrice"],
