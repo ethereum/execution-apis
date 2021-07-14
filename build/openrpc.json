@@ -929,7 +929,7 @@
       "summary": "Returns a list of all logs based on filter ID",
       "params": [
         {
-          "name": "filter id",
+          "name": "filterId",
           "required": true,
           "schema": {
             "title": "Filter Identifier",

@@ -10,6 +10,10 @@
     }
   ],
   "result": {
-    "$ref": "../../components/Logs.json#/Logs"
+    "name": "logs",
+    "summary": "array of log objects",
+    "schema": {
+      "$ref": "../../components/Logs.json#/logObjects"
+    }
   }
 }

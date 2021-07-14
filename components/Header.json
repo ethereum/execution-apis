@@ -1,10 +1,4 @@
 {
-  "HeaderObject": {
-    "name": "header object",
-    "schema": {
-      "$ref": "./Header.json#/headerObject"
-    }
-  },
   "headerObject": {
     "title": "header object",
     "type": "object",

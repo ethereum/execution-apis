@@ -5,7 +5,6 @@
     {
       "name": "filterId",
       "required": true,
-      "name": "filter id",
       "schema": {
         "$ref": "../../components/Filter.json#/identifier"
       }
@@ -14,6 +13,9 @@
   "result": {
     "name": "logs",
     "description": "The return value of eth_getFilterLogs when retrieving logs from eth_newBlockFilter and eth_newPendingTransactionFilter filters will be an array of hashes, not an array of Log objects.",
-    "$ref": "../../components/Logs.json#/Logs"
+    "summary": "array of log objects",
+    "schema": {
+      "$ref": "../../components/Logs.json#/logObjects"
+    }
   }
 }
