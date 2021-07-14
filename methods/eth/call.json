@@ -10,6 +10,8 @@
   ],
   "result": {
     "name": "Return data",
-    "$ref": "../../components/Data.json#/Bytes"
+    "schema": {
+      "$ref": "../../components/Data.json#/bytes"
+    }
   }
 }

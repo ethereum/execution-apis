@@ -12,7 +12,9 @@
     {
       "name": "dataIndex",
       "summary": "index into stored data",
-      "$ref": "../../components/Data.json#/Index"
+      "schema": {
+        "$ref": "../../components/Data.json#/index"
+      }
     },
     {
       "name": "block number",
@@ -25,6 +27,8 @@
   "result": {
     "name": "data stored",
     "summary": "data stored at the given address and data index",
-    "$ref": "../../components/Data.json#/Bytes"
+    "schema": {
+      "$ref": "../../components/Data.json#/bytes"
+    }
   }
 }

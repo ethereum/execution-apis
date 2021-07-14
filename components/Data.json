@@ -1,31 +1,8 @@
 {
-  "Bytes": {
-    "schema": {
-      "$ref": "./Data.json#/bytes"
-    }
-  },
-  "Bytecode": {
-    "name": "Bytecode",
-    "schema": {
-      "$ref": "./Data.json#/bytes"
-    }
-  },
-  "Hash": {
-    "name": "32 byte hash",
-    "schema": {
-      "$ref": "./Data.json#/hash32"
-    }
-  },
   "arrayOfHash32": {
     "type": "array",
     "items": {
       "$ref": "./Data.json#/hash32"
-    }
-  },
-  "Index": {
-    "name": "data index",
-    "schema": {
-      "$ref": "./Data.json#/index"
     }
   },
   "index": {

@@ -17,6 +17,9 @@
     }
   ],
   "result": {
-    "$ref": "../../components/Data.json#/Bytecode"
+    "name": "Bytecode",
+    "schema": {
+      "$ref": "../../components/Data.json#/bytes"
+    }
   }
 }
