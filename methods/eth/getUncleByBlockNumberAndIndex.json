@@ -17,6 +17,9 @@
     }
   ],
   "result": {
-    "$ref": "../../components/Uncle.json#/UncleObjectOrNull"
+    "name": "uncle or null",
+    "schema": {
+      "$ref": "../../components/Uncle.json#/uncleObjectOrNull"
+    }
   }
 }

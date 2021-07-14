@@ -1,7 +1,4 @@
 {
-  "UncleObject": {
-    "schema": "./Uncle.json#/uncleObject"
-  },
   "uncleObject": {
     "title": "uncle object",
     "type": "object",
@@ -68,12 +65,6 @@
     "summary": "list of uncle hashes",
     "$ref": "./Transaction.json#/uncles"
   },
-  "UncleObjectOrNull": {
-    "name": "uncle or null",
-    "schema": {
-      "$ref": "./Uncle.json#/uncleObjectOrNull"
-    }
-  },
   "uncleObjectOrNull": {
     "title": "uncle or null",
     "summary": "null if no block or uncle is found, otherwise an uncle object",
@@ -85,12 +76,6 @@
         "$ref": "./Null.json#/null"
       }
     ]
-  },
-  "Index": {
-    "name": "uncle index",
-    "schema": {
-      "$ref": "./Uncle.json#/index"
-    }
   },
   "index": {
     "title": "uncle index",

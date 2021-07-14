@@ -8,9 +8,17 @@
         "$ref": "../../components/Block.json#/hash"
       }
     },
-    { "$ref": "../../components/Uncle.json#/Index" }
+    {
+      "name": "uncle index",
+      "schema": {
+        "$ref": "../../components/Uncle.json#/index"
+      }
+    }
   ],
   "result": {
-    "$ref": "../../components/Uncle.json#/UncleObjectOrNull"
+    "name": "uncle or null",
+    "schema": {
+      "$ref": "../../components/Uncle.json#/uncleObjectOrNull"
+    }
   }
 }
