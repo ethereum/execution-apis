@@ -3,6 +3,9 @@
   "summary": "Returns the current Ethereum protocol version",
   "params": [],
   "result": {
-    "$ref": "../../components/ProtocolVersion.json#/ProtocolVersion"
+    "name": "protocol version",
+    "schema": {
+      "$ref": "../../components/ProtocolVersion.json#/protocolVersion"
+    }
   }
 }

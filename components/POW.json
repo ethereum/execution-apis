@@ -15,21 +15,6 @@
       }
     ]
   },
-  "Hash": {
-    "schema": {
-      "$ref": "./POW.json#/hash"
-    }
-  },
-  "SeedHash": {
-    "schema": {
-      "$ref": "./POW.json#/seedHash"
-    }
-  },
-  "BoundaryCondition": {
-    "schema": {
-      "$ref": "./POW.json#/boundaryCondition"
-    }
-  },
   "hash": {
     "title": "proof of work hash",
     "summary": "The proof of work hash of the specified block; this can be found via the Nonce and MixHash",
@@ -44,11 +29,6 @@
     "title": "total difficulty",
     "summary": "total difficulty of the best chain until this block",
     "$ref": "./Data.json#/bytes"
-  },
-  "difficulty": {
-    "title": "block difficulty",
-    "summary": "A scalar value corresponding to the difficulty level of this block. This can be calculated from the previous block’s difficulty level and the timestamp",
-    "$ref": "./Quantity.json#/integer"
   },
   "boundaryCondition": {
     "title": "boundary condition",

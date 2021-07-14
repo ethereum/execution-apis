@@ -1,10 +1,4 @@
 {
-  "ProtocolVersion": {
-    "name": "protocol version",
-    "schema": {
-      "$ref": "./ProtocolVersion.json#/protocolVersion"
-    }
-  },
   "protocolVersion": {
     "title": "protocol version",
     "summary": "current Ethereum protocol version",
