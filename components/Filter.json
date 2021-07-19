@@ -1,17 +1,17 @@
 {
   "identifier": {
     "title": "Filter Identifier",
-    "summary": "ID of the filter",
+    "description": "ID of the filter",
     "$ref": "./Quantity.json#/integer"
   },
   "destroyFilterID": {
     "title": "filter id to destroy",
-    "summary": "ID of the filter to destroy",
+    "description": "ID of the filter to destroy",
     "$ref": "#/identifier"
   },
   "isFilterDestroyed": {
     "title": "is filter destroyed",
-    "summary": "true if the filter is found and successfully destroyed or false if it is not",
+    "description": "true if the filter is found and successfully destroyed or false if it is not",
     "type": "boolean"
   },
   "results": {
@@ -65,16 +65,16 @@
     }
   },
   "fromBlock": {
-    "name": "from block",
+    "title": "from block",
     "$ref": "./Block.json#/numberOrTag"
   },
   "toBlock": {
-    "name": "to block",
+    "title": "to block",
     "$ref": "./Block.json#/numberOrTag"
   },
   "address": {
     "title": "Address(es)",
-    "summary": "contract address or a list of addresses from which logs should originate",
+    "description": "contract address or a list of addresses from which logs should originate",
     "oneOf": [
       {
         "$ref": "./Address.json#/address"

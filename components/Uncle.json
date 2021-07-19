@@ -57,17 +57,17 @@
   },
   "sha3Uncles": {
     "title": "ommersHash",
-    "summary": "SHA3 (Keccak-256) of the uncles data in this block",
+    "description": "SHA3 (Keccak-256) of the uncles data in this block",
     "$ref": "./Data.json#/hash32"
   },
   "uncles": {
-    "name": "uncles",
-    "summary": "list of uncle hashes",
+    "title": "uncles",
+    "description": "list of uncle hashes",
     "$ref": "./Transaction.json#/uncles"
   },
   "uncleObjectOrNull": {
     "title": "uncle or null",
-    "summary": "null if no block or uncle is found, otherwise an uncle object",
+    "description": "null if no block or uncle is found, otherwise an uncle object",
     "oneOf": [
       {
         "$ref": "./Uncle.json#/uncleObject"
@@ -79,7 +79,7 @@
   },
   "index": {
     "title": "uncle index",
-    "summary": "index of uncle",
+    "description": "index of uncle",
     "$ref": "./Quantity.json#/integer"
   }
 }

@@ -95,23 +95,23 @@
     "$ref": "./Data.json#/hash32"
   },
   "receiptsRoot": {
-    "name": "receipt root",
-    "summary": "The Keccak 256-bit hash of the root node of the trie structure populated with the receipts of each transaction in the transactions list portion of the block",
+    "title": "receipt root",
+    "description": "The Keccak 256-bit hash of the root node of the trie structure populated with the receipts of each transaction in the transactions list portion of the block",
     "$ref": "./Data.json#/hash32"
   },
   "stateRoot": {
-    "name": "block state root",
-    "summary": "The  Keccak  256-bit  hash  of  the  root node of the state trie, after all transactions are executed and finalizations applied",
+    "title": "block state root",
+    "description": "The  Keccak  256-bit  hash  of  the  root node of the state trie, after all transactions are executed and finalizations applied",
     "$ref": "./Data.json#/hash32"
   },
   "extraData": {
-    "name": "extra data",
-    "summary": "'extra data' field of this block; must be at most 32 bytes",
+    "title": "extra data",
+    "description": "'extra data' field of this block; must be at most 32 bytes",
     "$ref": "./Data.json#/bytes32"
   },
   "timestamp": {
     "title": "timestamp",
-    "summary": "A scalar value equal to the reasonableoutput of Unix’s time() at this block’s inception",
+    "description": "A scalar value equal to the reasonableoutput of Unix’s time() at this block’s inception",
     "$ref": "./Quantity.json#/integer"
   }
 }

@@ -46,14 +46,14 @@
     ]
   },
   "size": {
-    "name": "block size",
-    "summary": "size of this block in bytes",
+    "title": "block size",
+    "description": "size of this block in bytes",
     "$ref": "./Data.json#/bytes"
   },
   "uncle": {
     "count": {
       "title": "uncle count",
-      "summary": "number of uncles in the specified block",
+      "description": "number of uncles in the specified block",
       "$ref": "./Quantity.json#/integer"
     },
     "uncles": {

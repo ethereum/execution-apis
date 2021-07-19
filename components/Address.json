@@ -1,7 +1,7 @@
 {
   "miner": {
     "title": "coinbase",
-    "summary": "address that received this block's mining rewards",
+    "description": "address that received this block's mining rewards",
     "$ref": "./Address.json#/address"
   },
   "addresses": {

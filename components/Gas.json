@@ -1,7 +1,7 @@
 {
   "limit": {
-    "name": "gas limit",
-    "summary": "A scalar value equal to the current limit of gas expenditure per block",
+    "title": "gas limit",
+    "description": "A scalar value equal to the current limit of gas expenditure per block",
     "$ref": "./Quantity.json#/integer"
   },
   "price": {
@@ -10,7 +10,7 @@
   },
   "used": {
     "title": "gas used",
-    "summary": "A scalar value equal to the total gas usedin transactions in this block",
+    "description": "A scalar value equal to the total gas usedin transactions in this block",
     "$ref": "./Quantity.json#/integer"
   },
   "baseFeePerGas": {

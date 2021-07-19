@@ -37,7 +37,7 @@
     },
     "baseFeePerGas": {
       "title": "Base fee per gas",
-      "summary": "base fee per gas, which is a function of gas used and gas target of the parent block. The base fee per gas is burned.",
+      "description": "base fee per gas, which is a function of gas used and gas target of the parent block. The base fee per gas is burned.",
       "$ref": "../Quantity.json#/integer"
     },
     "legacyGasPrice": {

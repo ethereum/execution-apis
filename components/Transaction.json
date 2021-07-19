@@ -143,13 +143,13 @@
     ]
   },
   "index": {
-    "name": "transactionIndex",
+    "title": "transactionIndex",
     "description": "index of a transaction in the specified block",
     "$ref": "./Quantity.json#/integer"
   },
   "hash": {
     "title": "transactionHash",
-    "summary": "hash of a transaction",
+    "description": "hash of a transaction",
     "$ref": "./Data.json#/hash32"
   },
   "hashOrZeroHash": {
@@ -175,17 +175,17 @@
   },
   "root": {
     "title": "transaction root",
-    "summary": "The Keccak 256-bit hash of the root node of the trie structure populated with each transaction in the transactions list portion of the block",
+    "description": "The Keccak 256-bit hash of the root node of the trie structure populated with each transaction in the transactions list portion of the block",
     "$ref": "./Data.json#/hash32"
   },
   "signedTransactionData": {
     "title": "signed transaction data",
-    "summary": "the encoding of the [...rawTransactionData, v, r, s] (in order) of the transaction object",
+    "description": "the encoding of the [...rawTransactionData, v, r, s] (in order) of the transaction object",
     "$ref": "./Data.json#/bytes"
   },
   "count": {
     "title": "transaction count",
-    "summary": "number of transactions sent from the specified address",
+    "description": "number of transactions sent from the specified address",
     "$ref": "./Quantity.json#/integer"
   }
 }

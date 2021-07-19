@@ -1,7 +1,7 @@
 {
   "nonce": {
     "title": "proof of work nonce",
-    "summary": "A 32-byte value which, combined with the mix-hash, proves that a sufficient amount of computation has been carried out on this block",
+    "description": "A 32-byte value which, combined with the mix-hash, proves that a sufficient amount of computation has been carried out on this block",
     "$ref": "./Data.json#/hash32"
   },
   "nonceOrNull": {
@@ -17,27 +17,27 @@
   },
   "hash": {
     "title": "proof of work hash",
-    "summary": "The proof of work hash of the specified block; this can be found via the Nonce and MixHash",
+    "description": "The proof of work hash of the specified block; this can be found via the Nonce and MixHash",
     "$ref": "./Data.json#/bytes32"
   },
   "mixHash": {
     "title": "mix hash",
-    "summary": "A 32-byte hash which, combined with the nonce, proves that a sufficient amount of computation has been carried out on this block",
+    "description": "A 32-byte hash which, combined with the nonce, proves that a sufficient amount of computation has been carried out on this block",
     "$ref": "./Data.json#/hash32"
   },
   "totalDifficulty": {
     "title": "total difficulty",
-    "summary": "total difficulty of the best chain until this block",
+    "description": "total difficulty of the best chain until this block",
     "$ref": "./Data.json#/bytes"
   },
   "boundaryCondition": {
     "title": "boundary condition",
-    "summary": "boundary condition ('target'), 2^256 / difficulty",
+    "description": "boundary condition ('target'), 2^256 / difficulty",
     "$ref": "./Data.json#/bytes32"
   },
   "seedHash": {
     "title": "seed hash",
-    "summary": "The Keccak-256 hash of the previous epoch's seed hash, if it's the first block then it's the Keccak-256 hash of a series of 32bytes of zeros",
+    "description": "The Keccak-256 hash of the previous epoch's seed hash, if it's the first block then it's the Keccak-256 hash of a series of 32bytes of zeros",
     "$ref": "./Data.json#/bytes32"
   }
 }

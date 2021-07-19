@@ -16,17 +16,17 @@
   },
   "startingBlock": {
     "title": "starting block",
-    "summary": "block number at which syncing started",
+    "description": "block number at which syncing started",
     "$ref": "./Quantity.json#/integer"
   },
   "currentBlock": {
     "title": "current block",
-    "summary": "number of the most-recent block synced",
+    "description": "number of the most-recent block synced",
     "$ref": "./Quantity.json#/integer"
   },
   "highestBlock": {
     "title": "highest block",
-    "summary": "number of latest block on the network",
+    "description": "number of latest block on the network",
     "$ref": "./Quantity.json#/integer"
   },
   "notSyncing": {
@@ -36,7 +36,7 @@
   },
   "falseOrProgressObject": {
     "title": "false or syncing progress object",
-    "summary": "false if this client is not syncing with the network, otherwise a syncing progres object",
+    "description": "false if this client is not syncing with the network, otherwise a syncing progres object",
     "oneOf": [
       { "$ref": "./Syncing.json#/notSyncing" },
       { "$ref": "./Syncing.json#/progressObject" }
