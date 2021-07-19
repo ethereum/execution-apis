@@ -10,7 +10,7 @@
   },
   "used": {
     "title": "gas used",
-    "description": "A scalar value equal to the total gas usedin transactions in this block",
+    "description": "A scalar value equal to the total gas used in transactions in this block",
     "$ref": "./Quantity.json#/integer"
   },
   "baseFeePerGas": {
