@@ -126,7 +126,7 @@
 				}
 			],
 			"result": {
-				"name": "Block number",
+				"name": "Balance",
 				"schema": {
 					"$ref": "#/components/schemas/uint"
 				}
