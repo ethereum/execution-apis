@@ -1088,7 +1088,7 @@
 						}
 					},
 					{
-						"oneOf": [
+						"anyOf": [
 							{
 								"title": "EIP-1559 fee market parameters",
 								"type": "object",
