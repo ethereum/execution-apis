@@ -126,7 +126,7 @@
 				}
 			],
 			"result": {
-				"name": "Block number",
+				"name": "Balance",
 				"schema": {
 					"$ref": "#/components/schemas/uint"
 				}
@@ -971,7 +971,7 @@
 				"required": ["transactions", "uncles"],
 				"allOf": [
 					{ "$ref": "#/components/schemas/Header" },
-					{ 
+					{
 						"title": "transactions",
 						"type": "array",
 						"items": {
@@ -1046,7 +1046,7 @@
 							}
 						}
 					},
-					{ "$ref": "#/components/schemas/Transaction" }	
+					{ "$ref": "#/components/schemas/Transaction" }
 				]
 			},
 			"Transaction": {
@@ -1179,7 +1179,7 @@
 								"title": "Address",
 								"$ref": "#/components/schemas/address"
 							},
-							{	
+							{
 								"title": "Addresses",
 								"$ref": "#/components/schemas/addresses"
 							}
