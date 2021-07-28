@@ -1,0 +1,129 @@
+{
+	"Header": {
+		"title": "Header object",
+		"type": "object",
+		"required": [
+			"parentHash",
+			"sha3Uncles",
+			"miner",
+			"stateRoot",
+			"transactionsRoot",
+			"receiptRoot",
+			"bloom",
+			"totalDifficulty",
+			"number",
+			"gasLimit",
+			"gasUsed",
+			"timestamp",
+			"extraData",
+			"mixHash",
+			"nonce"
+		],
+		"properties": {
+			"parentHash": {
+				"title": "Parent block hash",
+				"$ref": "#/components/schemas/hash32"
+			},
+			"sha3Uncles": {
+				"title": "Ommers hash",
+				"$ref": "#/components/schemas/hash32"
+			},
+			"miner": {
+				"title": "Coinbase",
+				"$ref": "#/components/schemas/address"
+			},
+			"stateRoot": {
+				"title": "State root",
+				"$ref": "#/components/schemas/hash32"
+			},
+			"transactionsRoot": {
+				"title": "Transactions root",
+				"$ref": "#/components/schemas/hash32"
+			},
+			"receiptRoot": {
+				"title": "Receipts root",
+				"$ref": "#/components/schemas/hash32"
+			},
+			"bloom": {
+				"title": "Bloom filter",
+				"$ref": "#/components/schemas/bytes256"
+			},
+			"totalDifficulty": {
+				"title": "Difficulty",
+				"$ref": "#/components/schemas/bytes"
+			},
+			"number": {
+				"title": "Number",
+				"$ref": "#/components/schemas/uint"
+			},
+			"gasLimit": {
+				"title": "Gas limit",
+				"$ref": "#/components/schemas/uint"
+			},
+			"gasUsed": {
+				"title": "Gas used",
+				"$ref": "#/components/schemas/uint"
+			},
+			"timestamp": {
+				"title": "Timestamp",
+				"$ref": "#/components/schemas/uint"
+			},
+			"extraData": {
+				"title": "Extra data",
+				"$ref": "#/components/schemas/bytes"
+			},
+			"mixHash": {
+				"title": "Mix hash",
+				"$ref": "#/components/schemas/hash32"
+			},
+			"nonce": {
+				"title": "nonce",
+				"$ref": "#/components/schemas/bytes"
+			},
+			"baseFeePerGas": {
+				"title": "Base fee per gas",
+				"$ref": "#/components/schemas/uint"
+			}
+		}
+	},
+	"Block": {
+		"title": "Block object",
+		"type": "object",
+		"required": ["transactions", "uncles"],
+		"allOf": [
+			{ "$ref": "#/components/schemas/Header" },
+			{
+				"title": "transactions",
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/hash32"
+				}
+			},
+			{
+				"title": "uncles",
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/hash32"
+				}
+			}
+		]
+	},
+	"BlockTag": {
+		"title": "Block tag",
+		"type": "string",
+		"enum": ["earliest", "latest", "pending"]
+	},
+	"BlockNumberOrTag": {
+		"title": "Block number or tag",
+		"oneOf": [
+			{
+				"title": "Block number",
+				"$ref": "#/components/schemas/uint"
+			},
+			{
+				"title": "Block tag",
+				"$ref": "#/components/schemas/BlockTag"
+			}
+		]
+	}
+}

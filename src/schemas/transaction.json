@@ -1,0 +1,175 @@
+{
+	"AccessListEntry": {
+		"title": "Access list entry",
+		"type": "object",
+		"properties": {
+			"address": {
+				"$ref": "#/components/schemas/address"
+			},
+			"storageKeys": {
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/hash32"
+				}
+			}
+		}
+	},
+	"AccessList": {
+		"title": "Access list",
+		"type": "object",
+		"items": {
+			"$ref": "#/components/schemas/AccessListEntry"
+		}
+	},
+	"SignedTransaction": {
+		"title": "Signed transaction object",
+		"type": "object",
+		"allOf": [
+			{ "$ref": "#/components/schemas/Transaction" },
+			{
+				"required": ["v", "r", "s"],
+				"properties": {
+					"v": {
+						"title": "v",
+						"$ref": "#/components/schemas/uint"
+					},
+					"r": {
+						"title": "r",
+						"$ref": "#/components/schemas/uint"
+					},
+					"s": {
+						"title": "s",
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			}
+		]
+	},
+	"TransactionWithSender": {
+		"title": "Transaction object with sender",
+		"type": "object",
+		"allOf": [
+			{
+				"required": ["from"],
+				"properties": {
+					"from": {
+						"title": "from",
+						"$ref": "#/components/schemas/address"
+					}
+				}
+			},
+			{ "$ref": "#/components/schemas/Transaction" }
+		]
+	},
+	"Transaction": {
+		"type": "object",
+		"title": "Transaction object",
+		"allOf": [
+			{
+				"required": ["nonce", "gas", "value", "input"],
+				"properties": {
+					"type": {
+						"title": "type",
+						"$ref": "#/components/schemas/byte"
+					},
+					"nonce": {
+						"title": "nonce",
+						"$ref": "#/components/schemas/uint"
+					},
+					"to": {
+						"title": "to address",
+						"$ref": "#/components/schemas/address"
+					},
+					"gas": {
+						"title": "gas limit",
+						"$ref": "#/components/schemas/uint"
+					},
+					"value": {
+						"title": "value",
+						"$ref": "#/components/schemas/uint"
+					},
+					"input": {
+						"title": "input data",
+						"$ref": "#/components/schemas/bytes"
+					},
+					"accessList": {
+						"title": "accessList",
+						"description": "EIP-2930 access list",
+						"$ref": "#/components/schemas/AccessList"
+					}
+				}
+			},
+			{
+				"oneOf": [
+					{
+						"title": "EIP-1559 fee market parameters",
+						"type": "object",
+						"description": "EIP-1559 dynamic fee transactions have two fee parameters.",
+						"required": [
+							"maxFeePerGas",
+							"maxPriorityFeePerGas"
+						],
+						"properties": {
+							"maxPriorityFeePerGas": {
+								"title": "max priority fee per gas",
+								"description": "Maximum fee per gas the sender is willing to pay to miners in wei",
+								"$ref": "#/components/schemas/uint"
+							},
+							"maxFeePerGas": {
+								"title": "max fee per gas",
+								"description": "The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei",
+								"$ref": "#/components/schemas/uint"
+							}
+						}
+					},
+					{
+						"title": "Legacy fee market parameters",
+						"type": "object",
+						"description": "Legacy transactions and EIP-2930 access list transaction include this parameter.",
+						"required": ["gasPrice"],
+						"properties": {
+							"gasPrice": {
+								"title": "gas price",
+								"description": "The gas price willing to be paid by the sender in wei",
+								"$ref": "#/components/schemas/uint"
+							}
+						}
+					}
+				]
+			}
+		]
+	},
+	"TransactionInfo": {
+		"type": "object",
+		"title": "Transaction information",
+		"allOf": [
+			{
+				"title": "Contextual information",
+				"required": ["blockHash", "blockNumber", "from", "hash", "transactionIndex"],
+				"properties": {
+					"blockHash": {
+						"title": "block hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"blockNumber": {
+						"title": "block number",
+						"$ref": "#/components/schemas/uint"
+					},
+					"from": {
+						"title": "from address",
+						"$ref": "#/components/schemas/address"
+					},
+					"hash": {
+						"title": "transaction hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					"transactionIndex": {
+						"title": "transaction index",
+						"$ref": "#/components/schemas/uint"
+					}
+				}
+			},
+			{ "$ref": "#/components/schemas/SignedTransaction"}
+		]
+	}
+}
