@@ -1,4 +1,4 @@
-name: Build specification
+name: Deploy specification
 
 on:
   push:
@@ -17,6 +17,10 @@ jobs:
         with:
           node-version: '15'
       - run: npm run build
+      - name: setup git config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
       - name: Deploy to branch
         run: |
           git add -f openrpc.json
