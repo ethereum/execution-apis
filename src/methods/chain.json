@@ -1,0 +1,14 @@
+[
+	{
+		"name": "eth_gasPrice",
+		"summary": "Returns the current price per gas in wei.",
+		"params": [],
+		"result": {
+			"name": "Gas price",
+			"schema": {
+				"title": "Gas price",
+				"$ref": "#/components/schemas/uint"
+			}
+		}
+	}
+]

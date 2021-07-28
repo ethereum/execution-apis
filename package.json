@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "build": "node scripts/build.js",
     "lint": "node scripts/validate.js"
   },
   "repository": {
