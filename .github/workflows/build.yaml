@@ -23,6 +23,7 @@ jobs:
           git config user.email "<>"
       - name: Deploy to branch
         run: |
+          git checkout -b assembled-spec
           git add -f openrpc.json
           git commit -m "assemble openrpc.json"
-          git push origin assembled-spec
+          git push -u origin assembled-spec
