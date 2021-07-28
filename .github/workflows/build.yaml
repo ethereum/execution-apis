@@ -17,7 +17,8 @@ jobs:
         with:
           node-version: '15'
       - run: npm run build
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Assemble openrpc.json
-          branch: assembled-spec
+      - name: Deploy to branch
+        run: |
+          git add -f openrpc.json
+          git commit -m "assemble openrpc.json"
+          git push origin assembled-spec
