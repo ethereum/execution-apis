@@ -93,28 +93,39 @@
 		"allOf": [
 			{ "$ref": "#/components/schemas/Header" },
 			{
-				"oneOf": [
-					{
-						"title": "transactions",
+				"title": "Transactions",
+				"type": "object",
+				"properties": {
+					"transactions": {
+						"oneOf": [
+							{
+								"title": "transactions",
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/hash32"
+								}
+							},
+							{
+								"title": "transactions",
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/SignedTransaction"
+								}
+							}
+						]
+					}
+				}
+			},
+			{
+				"type": "object",
+				"properties": {
+					"uncles": {
+						"title": "uncles",
 						"type": "array",
 						"items": {
 							"$ref": "#/components/schemas/hash32"
 						}
-					},
-					{
-						"title": "transactions",
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/SignedTransaction"
-						}
 					}
-				]
-			},
-			{
-				"title": "uncles",
-				"type": "array",
-				"items": {
-					"$ref": "#/components/schemas/hash32"
 				}
 			}
 		]
