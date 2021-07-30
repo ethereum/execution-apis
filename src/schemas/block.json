@@ -98,14 +98,14 @@
 			"transactions": {
 				"oneOf": [
 					{
-						"title": "transactions",
+						"title": "Transaction hashes",
 						"type": "array",
 						"items": {
 							"$ref": "#/components/schemas/hash32"
 						}
 					},
 					{
-						"title": "transactions",
+						"title": "Full transactions",
 						"type": "array",
 						"items": {
 							"$ref": "#/components/schemas/SignedTransaction"
