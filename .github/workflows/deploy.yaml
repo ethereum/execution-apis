@@ -1,9 +1,9 @@
-name: Build specification
+name: Deploy specification
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build-and-deploy:
@@ -17,7 +17,13 @@ jobs:
         with:
           node-version: '15'
       - run: npm run build
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Assemble openrpc.json
-          branch: assembled-spec
+      - name: setup git config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - name: Deploy to branch
+        run: |
+          git checkout -b assembled-spec
+          git add -f openrpc.json
+          git commit -m "assemble openrpc.json"
+          git push -fu origin assembled-spec
