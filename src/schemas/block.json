@@ -1,6 +1,6 @@
 {
-	"Header": {
-		"title": "Header object",
+	"Block": {
+		"title": "Block object",
 		"type": "object",
 		"required": [
 			"parentHash",
@@ -17,7 +17,10 @@
 			"timestamp",
 			"extraData",
 			"mixHash",
-			"nonce"
+			"nonce",
+			"size",
+			"transactions",
+			"uncles"
 		],
 		"properties": {
 			"parentHash": {
@@ -40,15 +43,15 @@
 				"title": "Transactions root",
 				"$ref": "#/components/schemas/hash32"
 			},
-			"receiptRoot": {
+			"receiptsRoot": {
 				"title": "Receipts root",
 				"$ref": "#/components/schemas/hash32"
 			},
-			"bloom": {
+			"logsBloom": {
 				"title": "Bloom filter",
 				"$ref": "#/components/schemas/bytes256"
 			},
-			"totalDifficulty": {
+			"difficulty": {
 				"title": "Difficulty",
 				"$ref": "#/components/schemas/bytes"
 			},
@@ -77,36 +80,47 @@
 				"$ref": "#/components/schemas/hash32"
 			},
 			"nonce": {
-				"title": "nonce",
+				"title": "Nonce",
 				"$ref": "#/components/schemas/bytes"
+			},
+			"totalDifficulty": {
+				"title": "Total difficult",
+				"$ref": "#/components/schemas/uint"
 			},
 			"baseFeePerGas": {
 				"title": "Base fee per gas",
 				"$ref": "#/components/schemas/uint"
+			},
+			"size": {
+				"title": "Block size",
+				"$ref": "#/components/schemas/uint"
+			},
+			"transactions": {
+				"oneOf": [
+					{
+						"title": "Transaction hashes",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/hash32"
+						}
+					},
+					{
+						"title": "Full transactions",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/SignedTransaction"
+						}
+					}
+				]
+			},
+			"uncles": {
+				"title": "Uncles",
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/hash32"
+				}
 			}
 		}
-	},
-	"Block": {
-		"title": "Block object",
-		"type": "object",
-		"required": ["transactions", "uncles"],
-		"allOf": [
-			{ "$ref": "#/components/schemas/Header" },
-			{
-				"title": "transactions",
-				"type": "array",
-				"items": {
-					"$ref": "#/components/schemas/hash32"
-				}
-			},
-			{
-				"title": "uncles",
-				"type": "array",
-				"items": {
-					"$ref": "#/components/schemas/hash32"
-				}
-			}
-		]
 	},
 	"BlockTag": {
 		"title": "Block tag",

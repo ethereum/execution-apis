@@ -9,6 +9,14 @@
 				"schema": {
 					"$ref": "#/components/schemas/hash32"
 				}
+			},
+			{
+				"name": "Full transactions",
+				"required": true,
+				"schema": {
+					"title": "fullTx",
+					"type": "boolean"
+				}
 			}
 		],
 		"result": {
@@ -27,6 +35,14 @@
 				"required": true,
 				"schema": {
 					"$ref": "#/components/schemas/uint"
+				}
+			},
+			{
+				"name": "Full transactions",
+				"required": true,
+				"schema": {
+					"title": "fullTx",
+					"type": "boolean"
 				}
 			}
 		],
