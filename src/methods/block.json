@@ -9,6 +9,11 @@
 				"schema": {
 					"$ref": "#/components/schemas/hash32"
 				}
+			},
+			{
+				"name": "Full transactions",
+				"required": true,
+				"type": "boolean"
 			}
 		],
 		"result": {
@@ -28,6 +33,11 @@
 				"schema": {
 					"$ref": "#/components/schemas/uint"
 				}
+			},
+			{
+				"name": "Full transactions",
+				"required": true,
+				"type": "boolean"
 			}
 		],
 		"result": {
