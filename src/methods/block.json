@@ -13,7 +13,10 @@
 			{
 				"name": "Full transactions",
 				"required": true,
-				"type": "boolean"
+				"schema": {
+					"title": "fullTx",
+					"type": "boolean"
+				}
 			}
 		],
 		"result": {
@@ -37,7 +40,10 @@
 			{
 				"name": "Full transactions",
 				"required": true,
-				"type": "boolean"
+				"schema": {
+					"title": "fullTx",
+					"type": "boolean"
+				}
 			}
 		],
 		"result": {

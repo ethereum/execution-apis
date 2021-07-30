@@ -1,6 +1,6 @@
 import fs from "fs";
 
-console.log("Loading files...");
+console.log("Loading files...\n");
 
 let methods = [];
 let methodsBase = "src/methods/";

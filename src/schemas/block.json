@@ -93,11 +93,22 @@
 		"allOf": [
 			{ "$ref": "#/components/schemas/Header" },
 			{
-				"title": "transactions",
-				"type": "array",
-				"items": {
-					"$ref": "#/components/schemas/hash32"
-				}
+				"oneOf": [
+					{
+						"title": "transactions",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/hash32"
+						}
+					},
+					{
+						"title": "transactions",
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/SignedTransaction"
+						}
+					}
+				]
 			},
 			{
 				"title": "uncles",
