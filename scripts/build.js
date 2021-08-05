@@ -28,6 +28,18 @@ schemaFiles.forEach(file => {
 	};
 });
 
+let plchdr = [];
+let plchdrBase = "src/plchdr"
+let plchdrFiles = fs.readdirSync(plchdrBase);
+plchdrFiles.forEach(file => {
+	console.log(file);
+	let raw = fs.readFileSync(plchdrBase + file);
+	console.log(raw);
+	let idk = raw.toString();
+	console.log(idk);
+	plchdr = [ ..plchdr, ...idk];
+});
+
 const spec = {
 	openrpc: "1.2.4",
 	info: {
@@ -41,7 +53,8 @@ const spec = {
 	},
 	methods: methods,
 	components: {
-		schemas: schemas
+		schemas: schemas,
+		description: plchdr
 	}
 }
 
