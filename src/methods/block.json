@@ -2,6 +2,7 @@
 	{
 		"name": "eth_getBlockByHash",
 		"summary": "Returns information about a block by hash.",
+		"description": "The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”, “SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL” in this document are to be interpreted as described in [RFC-2119](https://www.ietf.org/rfc/rfc2119.txt)\n\nSpeciation | Description\n---|---\n1| eth_getBlockByHash MUST return the block object assosiated with the given hash|\n1.1| eth_getBlockByHash MUST retun null if no block is assosiated with the given hash|\n2| eth_getBlockByHash MUST return all transaction data within the given block when the second parameter is true|\n2.1| eth_getBlockByHash MUST only return all transaction hashes within the given block when the second parameter is false|\n### Copyright\nCopyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/)",
 		"params": [
 			{
 				"name": "Block hash",
