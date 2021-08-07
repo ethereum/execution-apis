@@ -296,7 +296,7 @@
 					}
 				}
 			},
-			{ "$ref": "#/components/schemas/SignedTransaction"}
+			{ "$ref": "#/components/schemas/TransactionSigned"}
 		]
 	}
 }
