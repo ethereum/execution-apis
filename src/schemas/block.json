@@ -108,7 +108,7 @@
 						"title": "Full transactions",
 						"type": "array",
 						"items": {
-							"$ref": "#/components/schemas/SignedTransaction"
+							"$ref": "#/components/schemas/TransactionSigned"
 						}
 					}
 				]
