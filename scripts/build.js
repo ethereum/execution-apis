@@ -35,7 +35,6 @@ descriptionFiles.forEach(file => {
 	const methodName = file.split(".")[0]
 	console.log(methodName);
 	let stringyDescription = raw.toString();
-	// stringyDescription === the description we want for some method
 	methods.forEach((method, i) => {
 		if (method.name === methodName) {
 			
