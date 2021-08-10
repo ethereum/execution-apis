@@ -11,8 +11,8 @@ methodFiles.forEach(file => {
 	let parsed = JSON.parse(raw);
 	methods = [
 		...methods,
-		...parsed,
-	];
+	  ...parsed
+	]
 });
 
 let schemas = {};
@@ -28,17 +28,24 @@ schemaFiles.forEach(file => {
 	};
 });
 
-let plchdr = [];
-let plchdrBase = "src/plchdr"
-let plchdrFiles = fs.readdirSync(plchdrBase);
-plchdrFiles.forEach(file => {
-	console.log(file);
-	let raw = fs.readFileSync(plchdrBase + file);
-	console.log(raw);
-	let idk = raw.toString();
-	console.log(idk);
-	plchdr = [ ..plchdr, ...idk];
+let descriptionBase = "src/description/"
+let descriptionFiles = fs.readdirSync(descriptionBase);
+descriptionFiles.forEach(file => {
+	let raw = fs.readFileSync(descriptionBase + file);
+	const methodName = file.split(".")[0]
+	console.log(methodName);
+	let stringyDescription = raw.toString();
+	// stringyDescription === the description we want for some method
+	methods.forEach((method, i) => {
+		if (method.name === methodName) {
+			
+			methods[i].description = stringyDescription;
+		}
+	})
 });
+
+
+console.log(methods[1])
 
 const spec = {
 	openrpc: "1.2.4",
@@ -53,8 +60,7 @@ const spec = {
 	},
 	methods: methods,
 	components: {
-		schemas: schemas,
-		description: plchdr
+		schemas: schemas
 	}
 }
 
