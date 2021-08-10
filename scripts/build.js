@@ -33,7 +33,6 @@ let descriptionFiles = fs.readdirSync(descriptionBase);
 descriptionFiles.forEach(file => {
 	let raw = fs.readFileSync(descriptionBase + file);
 	const methodName = file.split(".")[0]
-	console.log(methodName);
 	let stringyDescription = raw.toString();
 	methods.forEach((method, i) => {
 		if (method.name === methodName) {
@@ -44,7 +43,6 @@ descriptionFiles.forEach(file => {
 });
 
 
-console.log(methods[1])
 
 const spec = {
 	openrpc: "1.2.4",
