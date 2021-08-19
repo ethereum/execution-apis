@@ -8,7 +8,7 @@ let methodFiles = fs.readdirSync(methodsBase);
 for (const file of methodFiles) {
   let raw = fs.readFileSync(methodsBase + file);
   let parsed = JSON.parse(raw);
-  methods.push(parsed);
+  methods.concat(parsed);
 }
 
 console.log("Loading schemas...\n");
@@ -16,14 +16,14 @@ console.log("Loading schemas...\n");
 let schemas = {};
 let schemasBase = "src/schemas/";
 let schemaFiles = fs.readdirSync(schemasBase);
-for (const file of schemaFiles) {
+for(const file of schemaFiles) {
   let raw = fs.readFileSync(schemasBase + file);
   let parsed = JSON.parse(raw);
   schemas = {
     ...schemas,
     ...parsed,
   };
-}
+};
 
 console.log("Loading descriptions...\n");
 
@@ -31,16 +31,14 @@ let descriptionBase = "src/description/";
 let descriptionFiles = fs.readdirSync(descriptionBase);
 for (const file of descriptionFiles) {
   const raw = fs.readFileSync(descriptionBase + file);
-  // captures the file name before the file type
+	// captures the file name before the file type
   const methodName = file.split(".")[0];
   const stringyDescription = raw.toString();
-  methods = methods.map((methodGroup) => {
-    return methodGroup.map((method) => {
-      if (method.name.toLowerCase() === methodName.toLowerCase()) {
-        method.description = stringyDescription;
-      }
-      return method;
-    });
+  methods = methods.map((method) => {
+    if (method.name.toLowerCase() === methodName.toLowerCase()) {
+      method.description = stringyDescription;
+    }
+		return method
   });
 }
 
