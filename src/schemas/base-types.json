@@ -1,52 +1,52 @@
 {
-	"address": {
-		"title": "hex encoded address",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]{40}$"
-	},
-	"addresses": {
-		"title": "hex encoded address",
-		"type": "array",
-		"items": { "$ref": "#/components/schemas/address" }
-	},
-	"byte": {
-		"title": "hex encoded byte",
-		"type": "string",
-		"pattern": "^0x([a-fA-F0-9]?){1,2}$"
-	},
-	"bytes": {
-		"title": "hex encoded bytes",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]+$"
-	},
-	"bytes32": {
-		"title": "32 hex encoded bytes",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]{64}$"
-	},
-	"bytes256": {
-		"title": "256 hex encoded bytes",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]{512}$"
-	},
-	"bytes65": {
-		"title": "65 hex encoded bytes",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]{512}$"
-	},
-	"uint": {
-		"title": "hex encoded unsigned integer",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]+$"
-	},
-	"uint256": {
-		"title": "hex encoded unsigned integer",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]{64}$"
-	},
-	"hash32": {
-		"title": "32 byte hex value",
-		"type": "string",
-		"pattern": "^0x[0-9a-f]{64}$"
-	}
+  "address": {
+    "title": "hex encoded address",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{40}$"
+  },
+  "addresses": {
+    "title": "hex encoded address",
+    "type": "array",
+    "items": { "$ref": "#/components/schemas/address" }
+  },
+  "byte": {
+    "title": "hex encoded byte",
+    "type": "string",
+    "pattern": "^0x([a-fA-F0-9]?){1,2}$"
+  },
+  "bytes": {
+    "title": "hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]+$"
+  },
+  "bytes32": {
+    "title": "32 hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{64}$"
+  },
+  "bytes256": {
+    "title": "256 hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{512}$"
+  },
+  "bytes65": {
+    "title": "65 hex encoded bytes",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{512}$"
+  },
+  "uint": {
+    "title": "hex encoded unsigned integer",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]+$"
+  },
+  "uint256": {
+    "title": "hex encoded unsigned integer",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{64}$"
+  },
+  "hash32": {
+    "title": "32 byte hex value",
+    "type": "string",
+    "pattern": "^0x[0-9a-f]{64}$"
+  }
 }

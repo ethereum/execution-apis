@@ -1,99 +1,98 @@
 {
-	"Log": {
-		"title": "log",
-		"type": "object",
-		"properties": {
-			"removed": {
-				"title": "removed",
-				"type": "boolean"
-			},
-			"logIndex": {
-				"title": "log index",
-				"$ref": "#/components/schemas/uint"
-			},
-			"transactionIndex": {
-				"title": "transaction index",
-				"$ref": "#/components/schemas/uint"
-			},
-			"transactionHash": {
-				"title": "transaction hash",
-				"$ref": "#/components/schemas/hash32"
-			},
-			"blockHash": {
-				"title": "block hash",
-				"$ref": "#/components/schemas/hash32"
-			},
-			"blockNumber": {
-				"title": "block number",
-				"$ref": "#/components/schemas/uint"
-			},
-			"address": {
-				"title": "address",
-				"$ref": "#/components/schemas/address"
-			},
-			"data": {
-				"title": "data",
-				"$ref": "#/components/schemas/bytes"
-			},
-			"topics": {
-				"title": "topics",
-				"$ref": "#/components/schemas/Topics"
-			}
-		}
-	},
-	"ReceiptInfo": {
-		"type": "object",
-		"title": "Receipt info",
-		"required": [
-			"transactionHash", "transactionIndex", "value", "input"],
-		"properties": {
-			"transactionHash": {
-				"title": "transaction hash",
-				"$ref": "#/components/schemas/hash32"
-			},
-			"transactionIndex": {
-				"title": "transaction index",
-				"$ref": "#/components/schemas/uint"
-			},
-			"blockHash": {
-				"title": "block hash",
-				"$ref": "#/components/schemas/hash32"
-			},
-			"blockNumber": {
-				"title": "block number",
-				"$ref": "#/components/schemas/uint"
-			},
-			"from": {
-				"title": "from",
-				"$ref": "#/components/schemas/address"
-			},
-			"to": {
-				"title": "to",
-				"$ref": "#/components/schemas/address"
-			},
-			"cumulativeGasUsed": {
-				"title": "accessList",
-				"$ref": "#/components/schemas/uint"
-			},
-			"gasUsed": {
-				"title": "gasUsed",
-				"$ref": "#/components/schemas/uint"
-			},
-			"contractAddress": {
-				"title": "contract address",
-				"$ref": "#/components/schemas/address"
-			},
-			"logs": {
-				"title": "logs",
-				"type": "array",
-				"items": {
-					"$ref": "#/components/schemas/Log"
-				}
-			},
-			"logsBloom": {
-				"title": "logs bloom",
-				"$ref": "#/components/schemas/bytes256"
-			}
-		}
-	}
+  "Log": {
+    "title": "log",
+    "type": "object",
+    "properties": {
+      "removed": {
+        "title": "removed",
+        "type": "boolean"
+      },
+      "logIndex": {
+        "title": "log index",
+        "$ref": "#/components/schemas/uint"
+      },
+      "transactionIndex": {
+        "title": "transaction index",
+        "$ref": "#/components/schemas/uint"
+      },
+      "transactionHash": {
+        "title": "transaction hash",
+        "$ref": "#/components/schemas/hash32"
+      },
+      "blockHash": {
+        "title": "block hash",
+        "$ref": "#/components/schemas/hash32"
+      },
+      "blockNumber": {
+        "title": "block number",
+        "$ref": "#/components/schemas/uint"
+      },
+      "address": {
+        "title": "address",
+        "$ref": "#/components/schemas/address"
+      },
+      "data": {
+        "title": "data",
+        "$ref": "#/components/schemas/bytes"
+      },
+      "topics": {
+        "title": "topics",
+        "$ref": "#/components/schemas/Topics"
+      }
+    }
+  },
+  "ReceiptInfo": {
+    "type": "object",
+    "title": "Receipt info",
+    "required": ["transactionHash", "transactionIndex", "value", "input"],
+    "properties": {
+      "transactionHash": {
+        "title": "transaction hash",
+        "$ref": "#/components/schemas/hash32"
+      },
+      "transactionIndex": {
+        "title": "transaction index",
+        "$ref": "#/components/schemas/uint"
+      },
+      "blockHash": {
+        "title": "block hash",
+        "$ref": "#/components/schemas/hash32"
+      },
+      "blockNumber": {
+        "title": "block number",
+        "$ref": "#/components/schemas/uint"
+      },
+      "from": {
+        "title": "from",
+        "$ref": "#/components/schemas/address"
+      },
+      "to": {
+        "title": "to",
+        "$ref": "#/components/schemas/address"
+      },
+      "cumulativeGasUsed": {
+        "title": "accessList",
+        "$ref": "#/components/schemas/uint"
+      },
+      "gasUsed": {
+        "title": "gasUsed",
+        "$ref": "#/components/schemas/uint"
+      },
+      "contractAddress": {
+        "title": "contract address",
+        "$ref": "#/components/schemas/address"
+      },
+      "logs": {
+        "title": "logs",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Log"
+        }
+      },
+      "logsBloom": {
+        "title": "logs bloom",
+        "$ref": "#/components/schemas/bytes256"
+      }
+    }
+  }
 }
