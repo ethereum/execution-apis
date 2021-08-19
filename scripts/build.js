@@ -1,42 +1,46 @@
 import fs from "fs";
 
-console.log("Loading files...\n");
+console.log("Loading methods...\n");
 
 let methods = [];
 let methodsBase = "src/methods/";
 let methodFiles = fs.readdirSync(methodsBase);
-methodFiles.forEach((file) => {
-  console.log(file);
+for (const file of methodFiles) {
   let raw = fs.readFileSync(methodsBase + file);
   let parsed = JSON.parse(raw);
-  methods = [...methods, ...parsed];
-});
+  methods.push(parsed);
+}
+
+console.log("Loading schemas...\n");
 
 let schemas = {};
 let schemasBase = "src/schemas/";
 let schemaFiles = fs.readdirSync(schemasBase);
-schemaFiles.forEach((file) => {
-  console.log(file);
+for(const file of schemaFiles) {
   let raw = fs.readFileSync(schemasBase + file);
   let parsed = JSON.parse(raw);
   schemas = {
     ...schemas,
     ...parsed,
   };
-});
+};
+
+console.log("Loading descriptions...\n");
 
 let descriptionBase = "src/description/";
 let descriptionFiles = fs.readdirSync(descriptionBase);
-descriptionFiles.forEach((file) => {
-  let raw = fs.readFileSync(descriptionBase + file);
+for (file of descriptionFiles) {
+  const raw = fs.readFileSync(descriptionBase + file);
+	// captures the file name before the file type
   const methodName = file.split(".")[0];
-  let stringyDescription = raw.toString();
-  methods.forEach((method, i) => {
-    if (method.name === methodName) {
-      methods[i].description = stringyDescription;
+  const stringyDescription = raw.toString();
+  methods = methods.map((method, i) => {
+    if (method.name.toLowerCase() === methodName.toLowerCase()) {
+      method.description = stringyDescription;
     }
+		return method
   });
-});
+}
 
 const spec = {
   openrpc: "1.2.4",
