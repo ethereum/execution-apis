@@ -29,7 +29,7 @@ console.log("Loading descriptions...\n");
 
 let descriptionBase = "src/description/";
 let descriptionFiles = fs.readdirSync(descriptionBase);
-for (file of descriptionFiles) {
+for (const file of descriptionFiles) {
   const raw = fs.readFileSync(descriptionBase + file);
 	// captures the file name before the file type
   const methodName = file.split(".")[0];
