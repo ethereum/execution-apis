@@ -1,1 +1,1 @@
-* If the client has a benificary address it **MUST** return it, otherwise it **MUST** throw an exception.
+* The client **MUST** return the first account it has the private key for, otherwise it **MUST** throw an exception.
