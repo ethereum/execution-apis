@@ -10,6 +10,6 @@
 
 * **MUST** consider gas to equal 0 if the `gas` parameter is equal to `null` 
 
-* If any fee or `value` is a non-zero value your account balance **MUST** be checked to ensure account has enough funds
+ * If any non-zero fee or `value` is provided the `from` account balance **MUST** be checked to ensure account has enough funds
 
 * **MUST** accept an optional input parameter `data` to interact with contract methods
