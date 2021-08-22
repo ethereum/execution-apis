@@ -6,10 +6,8 @@
 
 * If `max_fee_per_gas` or `max_priority_fee_per_gas` is set the other must be set manually, otherwise they both **MUST** be set to the `gasPrice` or 0 when `gasPrice` is null
 
-* **MUST** accept `gas` that is greater than or equal to the minimum price for the current transaction call and less than `2^64 - 1` or `0xffffffffffffffff` 
+* **MUST** accept `gas` that is greater than or equal to the minimum price for the current transaction call
 
 * **MUST** consider gas to equal 0 if the `gas` parameter is equal to `null` 
 
  * If any non-zero fee or `value` is provided the `from` account balance **MUST** be checked to ensure account has enough funds
-
-* **MUST** accept an optional input parameter `data` to interact with contract methods
