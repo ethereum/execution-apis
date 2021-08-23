@@ -4,7 +4,7 @@
  
 * If the `to` is null or not defined on-chain and there is no `data` parameter it **MUST** return an empty hex string
 
-* If `max_fee_per_gas` or `max_priority_fee_per_gas` is set the other must be set manually, otherwise they both **MUST** be set to the `gasPrice` or 0 when `gasPrice` is null
+* If the `gasPrice` parameter is used it **MUST** interpret it as the `maxFeePerGas` and `maxPriorityFeePerGas` both equal to the value of the `gasPrice` parameter or 0 when `gasPrice` is null
 
 * **MUST** consider gas to equal 0 if the `gas` parameter is equal to `null` 
 
