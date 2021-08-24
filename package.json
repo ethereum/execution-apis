@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ethereum/eth1.0-apis#readme",
   "dependencies": {
-    "@open-rpc/schema-utils-js": "^1.15.0"
+    "@open-rpc/schema-utils-js": "^1.15.0",
+    "json-schema-merge-allof": "^0.8.1"
   }
 }
