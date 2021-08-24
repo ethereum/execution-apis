@@ -1,4 +1,6 @@
 import fs from "fs";
+import merger from "json-schema-merge-allof";
+import { dereferenceDocument } from "@open-rpc/schema-utils-js";
 
 console.log("Loading files...\n");
 
@@ -28,7 +30,7 @@ schemaFiles.forEach(file => {
   };
 });
 
-const spec = {
+let spec = await dereferenceDocument({
   openrpc: "1.2.4",
   info: {
     title: "Ethereum JSON-RPC Specification",
@@ -43,6 +45,29 @@ const spec = {
   components: {
     schemas: schemas
   }
+})
+spec.components = {};
+
+function recursiveMerge(schema) {
+  schema = merger(schema);
+
+  if("items" in schema && "oneOf" in schema.items) {
+      schema.items.oneOf = recursiveMerge(schema.items.oneOf);
+  }
+  if("oneOf" in schema) {
+    for(var k=0; k < schema.oneOf.length; k++) {
+      schema.oneOf[k] = recursiveMerge(schema.oneOf[k]);
+    }
+  }
+  return schema;
+}
+
+// Merge instances of `allOf` in methods.
+for (var i=0; i < spec.methods.length; i++) {
+  for (var j=0; j < spec.methods[i].params.length; j++) {
+    spec.methods[i].params[j].schema = recursiveMerge(spec.methods[i].params[j].schema);
+  }
+  spec.methods[i].result.schema = recursiveMerge(spec.methods[i].result.schema);
 }
 
 let data = JSON.stringify(spec, null, '\t');
