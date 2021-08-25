@@ -16,7 +16,7 @@
 	},
 	"AccessList": {
 		"title": "Access list",
-		"type": "object",
+		"type": "array",
 		"items": {
 			"$ref": "#/components/schemas/AccessListEntry"
 		}
