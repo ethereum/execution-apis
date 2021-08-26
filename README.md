@@ -4,7 +4,7 @@
 
 The Ethereum JSON-RPC is a collection of methods that all clients implement.
 This interface allows downstream tooling and infrastructure to treat different
-Ethereum clients as swappable modules.
+Ethereum clients as modules that can be swapped at will.
 
 ## Contributing
 
