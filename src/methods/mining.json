@@ -33,7 +33,7 @@
 				"type": "array",
 				"items": [
 					{
-						"title": "PoW hash",
+						"title": "Proof-of-work hash",
 						"$ref": "#/components/schemas/bytes32"
 					},
 					{
@@ -53,7 +53,7 @@
 		"summary": "Used for submitting a proof-of-work solution.",
 		"params": [
 			{
-				"name": "PoW hash",
+				"name": "Proof-of-work hash",
 				"required": true,
 				"schema": {
 					"$ref": "#/components/schemas/bytes32"

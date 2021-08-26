@@ -11,10 +11,10 @@
 				}
 			},
 			{
-				"name": "Full transactions",
+				"name": "Hydrated transactions",
 				"required": true,
 				"schema": {
-					"title": "fullTx",
+					"title": "hydrated",
 					"type": "boolean"
 				}
 			}
@@ -38,10 +38,10 @@
 				}
 			},
 			{
-				"name": "Full transactions",
+				"name": "Hydrated transactions",
 				"required": true,
 				"schema": {
-					"title": "fullTx",
+					"title": "hydrated",
 					"type": "boolean"
 				}
 			}

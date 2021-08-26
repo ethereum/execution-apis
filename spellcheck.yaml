@@ -1,0 +1,33 @@
+matrix:
+  - name: markdown
+    sources:
+      - '**/*.md|!node_modules/**'
+    aspell:
+      lang: en
+      d: en_US
+      ignore-case: true
+    dictionary:
+      wordlists:
+        - wordlist.txt
+      encoding: utf-8
+    pipeline:
+    - pyspelling.filters.markdown:
+    - pyspelling.filters.html:
+        comments: false
+        ignores:
+        - code
+        - pre
+  - name: json schemas
+    sources:
+      - 'src/**/*.json'
+    aspell:
+      lang: en
+      d: en_US
+      run-together: true
+      run-together-min: 2
+      run-together-limit: 256
+    dictionary:
+      wordlists:
+        - wordlist.txt
+      encoding: utf-8
+    pipeline: null

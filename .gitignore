@@ -1,2 +1,5 @@
 node_modules/
 openrpc.json
+data.json
+schema.json
+*.dic

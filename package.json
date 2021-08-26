@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.js",
-    "lint": "node scripts/validate.js"
+    "lint": "node scripts/build.js && node scripts/validate.js"
   },
   "repository": {
     "type": "git",
