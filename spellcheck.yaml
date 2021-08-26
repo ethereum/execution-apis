@@ -1,0 +1,15 @@
+matrix:
+- name: json
+  sources:
+  - 'src/**/*.json'
+  aspell:
+    lang: en
+    d: en_US
+    run-together: true
+    run-together-min: 2
+    run-together-limit: 256
+  dictionary:
+    wordlists:
+      - wordlist.txt
+    encoding: utf-8
+  pipeline: null

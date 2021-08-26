@@ -1,2 +1,3 @@
 node_modules/
 openrpc.json
+*.dic
