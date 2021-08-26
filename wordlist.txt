@@ -5,10 +5,12 @@ enum
 eth
 ethereum
 json
+npm
 ommers
 openrpc
 params
 pre
+pyspelling
 rlp
 rpc
 schemas
@@ -16,5 +18,7 @@ secp
 sha
 uint
 url
+validator
 wei
+yaml
 yParity
