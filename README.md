@@ -27,8 +27,8 @@ OpenRPC specification and the JSON schema specification to get started.
 
 ### Testing
 
-There are three main tools for testing contributions. The main two that run as
-GitHub actions are an [OpenRPC validator][validator] and a
+There are currently three tools for testing contributions. The main two that
+run as GitHub actions are an [OpenRPC validator][validator] and a
 [spellchecker][spellchecker]:
 
 ```console
@@ -41,7 +41,7 @@ $ pyspelling -c spellcheck.yaml
 Spelling check passed :)
 ```
 
-The other tool can validate a live JSON-RPC provider hosted at
+The third tool can validate a live JSON-RPC provider hosted at
 `http://localhost:8545` against the specification:
 
 ```console
