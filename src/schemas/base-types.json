@@ -2,7 +2,7 @@
 	"address": {
 		"title": "hex encoded address",
 		"type": "string",
-		"pattern": "^0x[0-9a-f]{40}$"
+		"pattern": "^0x[0-9,a-f,A-F]{40}$"
 	},
 	"addresses": {
 		"title": "hex encoded address",
@@ -12,7 +12,7 @@
 	"byte": {
 		"title": "hex encoded byte",
 		"type": "string",
-		"pattern": "^0x([a-f,A-F,0-9]?){1,2}$"
+		"pattern": "^0x([0-9,a-f,A-F]?){1,2}$"
 	},
 	"bytes": {
 		"title": "hex encoded bytes",
