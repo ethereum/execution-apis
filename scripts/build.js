@@ -5,7 +5,7 @@ import { dereferenceDocument } from "@open-rpc/schema-utils-js";
 console.log("Loading files...\n");
 
 let methods = [];
-let methodsBase = "src/methods/";
+let methodsBase = "src/eth/";
 let methodFiles = fs.readdirSync(methodsBase);
 methodFiles.forEach(file => {
   console.log(file);
