@@ -24,12 +24,12 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `receiptRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
 - `random`: `DATA`, 32 Bytes
-- `blockNumber`: `QUANTITY`
-- `gasLimit`: `QUANTITY`
-- `gasUsed`: `QUANTITY`
-- `timestamp`: `QUANTITY`
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
 - `extraData`: `DATA`
-- `baseFeePerGas`: `QUANTITY`
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
@@ -40,12 +40,12 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 #### Parameters
 1. `Object` - The payload attributes:
 - `parentHash`: `DATA`, 32 Bytes - hash of the parent block
-- `timestamp`: `QUANTITY` - value for the `timestamp` field of the new payload
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
 - `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
 
 #### Returns
-1. `payloadId`: `QUANTITY` - identifier of the payload building process
+1. `payloadId`: `QUANTITY`, 64 Bits - identifier of the payload building process
 
 #### Specification
 
@@ -60,7 +60,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 ### engine_getPayload
 
 #### Parameters
-1. `payloadId`: `QUANTITY` - Identifier of the payload building process
+1. `payloadId`: `QUANTITY`, 64 Bits - Identifier of the payload building process
 
 #### Returns
 `Object|Error` - Either instance of [`ExecutionPayload`](#ExecutionPayload) or an error
