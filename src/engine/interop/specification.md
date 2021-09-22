@@ -87,7 +87,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 #### Specification
 
-1. Client software **MUST** validate the payload according to the execution environment rule set defined in the [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and respond with the validation result.
+1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set definted in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and respond with the validation result.
 
 2. Client software **MUST** defer persisting a valid payload until the corresponding [**`engine_consensusValidated`**](#engine_consensusValidated) message deems the payload valid with respect to the proof-of-stake consensus rules.
 
