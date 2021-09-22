@@ -15,6 +15,8 @@ Client software **MUST** expose Engine API at a port independent from JSON-RPC A
 
 ## Structures
 
+*Note:* Fields having `QUANTITY` type are serialized in big-endian.
+
 ### ExecutionPayload
 
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/merge/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
