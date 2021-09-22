@@ -17,9 +17,9 @@ Client software **MUST** expose Engine API at a port independent from JSON-RPC A
 
 The list of error codes introduced by this specification can be found below.
 
-| Code | Possible Return message | Decription |
+| Code | Possible Return message | Description |
 | - | - | - |
-| 4 | Missing resource | Should be used when one of the call paramters references a missing resource and the call can't be processed, e.g. some action over unknown block is requested |
+| 4 | Missing resource | Should be used when one of the call parameters references a missing resource and the call can't be processed, e.g. some action over unknown block is requested |
 
 ## Structures
 
@@ -103,7 +103,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 #### Specification
 
-1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set definted in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and respond with the validation result.
+1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and respond with the validation result.
 
 2. Client software **MUST** defer persisting a valid payload until the corresponding [**`engine_consensusValidated`**](#engine_consensusValidated) message deems the payload valid with respect to the proof-of-stake consensus rules.
 
@@ -111,7 +111,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 4. The call **MUST** be responded with `SYNCING` status while the sync process is in progress and thus the execution cannot yet be validated.
 
-5. In the case when the parent block is unknown, client sofware **MUST** pull the block from the network and take one of the following actions depending on the parent block properties:
+5. In the case when the parent block is unknown, client software **MUST** pull the block from the network and take one of the following actions depending on the parent block properties:
   - If the parent block is a PoW block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition then all missing dependencies of the payload **MUST** be pulled from the network and validated accordingly. The call **MUST** be responded according to the validity of the payload and the chain of its ancestors.
   - If the parent block is a PoS block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition then the call **MUST** be responded with `SYNCING` status and sync process **SHOULD** be initiated as it is specified in the [merge-sync.md](https://github.com/fjl/p2p-drafts/blob/master/merge-sync/merge-sync.md) document.
 

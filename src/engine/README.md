@@ -7,4 +7,4 @@ This interface allows the communication between consensus and execution layers o
 
 Documentation of the subset of the Engine API methods for the Merge Interop:
 - [Specification](./interop/specification.md)
-- Schema *TBD*
+- Schema *in progress*

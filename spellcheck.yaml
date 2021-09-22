@@ -6,6 +6,9 @@ matrix:
       lang: en
       d: en_US
       ignore-case: true
+      run-together: true
+      run-together-min: 2
+      run-together-limit: 256
     dictionary:
       wordlists:
         - wordlist.txt
