@@ -13,6 +13,14 @@ This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API. The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 
+## Error codes
+
+The list of error codes introduced by this specification can be found below.
+
+| Code | Possible Return message | Decription |
+| - | - | - |
+| 4 | Missing resource | Should be used when one of the call paramters references a missing resource and the call can't be processed, e.g. some action over unknown block is requested |
+
 ## Structures
 
 *Note:* Fields having `QUANTITY` type are serialized in big-endian.
@@ -47,7 +55,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
 
 #### Returns
-1. `payloadId`: `QUANTITY`, 64 Bits - identifier of the payload building process
+1. `payloadId`: `QUANTITY`, 64 Bits - identifier of the payload building process or an error
 
 #### Specification
 
@@ -58,6 +66,10 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 3. Client software **SHOULD** stop the updating process either by finishing to serve the [**`engine_getPayload`**](#engine_getPayload) call with the same `payloadId` value or when [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
 
 4. Client software **MUST** set the payload field values according to the set of parameters passed in the call to this method with exception for the `feeRecipient`. The `coinbase` field value **MAY** stem from what is specified by the `feeRecipient` parameter.
+
+5. Client software **SHOULD** respond with `2: Action not allowed` error if the sync process is in progress.
+
+6. Client software **MUST** respond with `4: Missing resource` error if the parent block is unknown.
 
 ### engine_getPayload
 
@@ -71,7 +83,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 1. Given the `payloadId` client software **MUST** respond with the most recent version of the payload that is available in the corresponding building process at the time of receiving the call.
 
-2. The call **MUST** be responded with error code `2` (`Action not allowed`) if a building process identified by the `payloadId` doesn't exist.
+2. The call **MUST** be responded with `4: Missing resource` error if the building process identified by the `payloadId` doesn't exist.
 
 3. Client software **MAY** stop the corresponding building process after serving this call.
 
@@ -109,13 +121,15 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `status`: `String: VALID|INVALID` - result of the payload validation with respect to the proof-of-stake consensus rules
 
 #### Returns
-none
+none or an error
 
 #### Specification
 
 1. The call of this method with `VALID` status maps on the `POS_CONSENSUS_VALIDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
 
 2. If the status in this call is `INVALID` the payload **MUST** be discarded disregarding its validity with respect to the execution environment rules.
+
+3. Client software **MUST** respond with `4: Missing resource` error if the payload identified by the hash is unknown.
 
 ### engine_forkchoiceUpdated
 
