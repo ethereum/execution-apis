@@ -112,8 +112,8 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 4. The call **MUST** be responded with `SYNCING` status while the sync process is in progress and thus the execution cannot yet be validated.
 
 5. In the case when the parent block is unknown, client software **MUST** pull the block from the network and take one of the following actions depending on the parent block properties:
-  - If the parent block is a PoW block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition then all missing dependencies of the payload **MUST** be pulled from the network and validated accordingly. The call **MUST** be responded according to the validity of the payload and the chain of its ancestors.
-  - If the parent block is a PoS block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition then the call **MUST** be responded with `SYNCING` status and sync process **SHOULD** be initiated as it is specified in the [merge-sync.md](https://github.com/fjl/p2p-drafts/blob/master/merge-sync/merge-sync.md) document.
+  - If the parent block is a PoW block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition, then all missing dependencies of the payload **MUST** be pulled from the network and validated accordingly. The call **MUST** be responded according to the validity of the payload and the chain of its ancestors.
+  - If the parent block is a PoS block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition, then the call **MUST** be responded with `SYNCING` status and sync process **SHOULD** be initiated as it is specified in the [merge-sync.md](https://github.com/fjl/p2p-drafts/blob/master/merge-sync/merge-sync.md) document.
 
 ### engine_consensusValidated
 
@@ -123,7 +123,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `status`: `String: VALID|INVALID` - result of the payload validation with respect to the proof-of-stake consensus rules
 
 #### Returns
-none or an error
+None or an error
 
 #### Specification
 
@@ -141,7 +141,7 @@ none or an error
 - `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
 
 #### Returns
-none
+None
 
 #### Specification
 
