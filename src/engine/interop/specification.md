@@ -23,9 +23,9 @@ The list of error codes introduced by this specification can be found below.
 
 ## Structures
 
-Encoding values of `DATA` and `QUANTITY` types **MUST** follow [HEX value encoding](https://eth.wiki/json-rpc/API#hex-value-encoding) section of Ethereum JSON-RPC API.
+Fields having `DATA` and `QUANTITY` types **MUST** be encoded according to the [HEX value encoding](https://eth.wiki/json-rpc/API#hex-value-encoding) section of Ethereum JSON-RPC API.
 
-*Note:* Big-endian byte order **MUST** be used to encode values of `QUANTITY` type.
+*Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
 
 ### ExecutionPayload
 
