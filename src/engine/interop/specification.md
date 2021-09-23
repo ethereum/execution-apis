@@ -19,7 +19,8 @@ The list of error codes introduced by this specification can be found below.
 
 | Code | Possible Return message | Description |
 | - | - | - |
-| 4 | Missing resource | Should be used when one of the call parameters references a missing resource and the call can't be processed, e.g. some action over unknown block is requested |
+| 4 | Unknown block | Should be used when a call refers to the unknown block |
+| 5 | Unavailable payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to the payload building process that is unavailable |
 
 ## Structures
 
@@ -40,7 +41,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `gasLimit`: `QUANTITY`, 64 Bits
 - `gasUsed`: `QUANTITY`, 64 Bits
 - `timestamp`: `QUANTITY`, 64 Bits
-- `extraData`: `DATA`
+- `extraData`: `DATA`, 0 to 32 Bytes
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
@@ -71,7 +72,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 5. Client software **SHOULD** respond with `2: Action not allowed` error if the sync process is in progress.
 
-6. Client software **MUST** respond with `4: Missing resource` error if the parent block is unknown.
+6. Client software **SHOULD** respond with `4: Unknown block` error if the parent block is unknown.
 
 ### engine_getPayload
 
@@ -85,7 +86,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 1. Given the `payloadId` client software **MUST** respond with the most recent version of the payload that is available in the corresponding building process at the time of receiving the call.
 
-2. The call **MUST** be responded with `4: Missing resource` error if the building process identified by the `payloadId` doesn't exist.
+2. The call **MUST** be responded with `5: Unavailable payload` error if the building process identified by the `payloadId` doesn't exist.
 
 3. Client software **MAY** stop the corresponding building process after serving this call.
 
@@ -131,7 +132,7 @@ None or an error
 
 2. If the status in this call is `INVALID` the payload **MUST** be discarded disregarding its validity with respect to the execution environment rules.
 
-3. Client software **MUST** respond with `4: Missing resource` error if the payload identified by the hash is unknown.
+3. Client software **MUST** respond with `4: Unknown block` error if the payload identified by the `blockHash` is unknown.
 
 ### engine_forkchoiceUpdated
 
@@ -141,8 +142,10 @@ None or an error
 - `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
 
 #### Returns
-None
+None or an error
 
 #### Specification
 
-This method call maps on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
+1. This method call maps on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
+
+2. Client software **MUST** respond with `4: Unknown block` error if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown.
