@@ -19,8 +19,8 @@ The list of error codes introduced by this specification can be found below.
 
 | Code | Possible Return message | Description |
 | - | - | - |
-| 4 | Unknown block | Should be used when a call refers to the unknown block |
-| 5 | Unavailable payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to the payload building process that is unavailable |
+| 4 | Unknown header | Should be used when a call refers to the unknown unknown header |
+| 5 | Unknown payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to a payload building process that is unavailable |
 
 ## Structures
 
@@ -58,7 +58,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
 
 #### Returns
-1. `payloadId`: `QUANTITY`, 64 Bits - identifier of the payload building process or an error
+1. `payloadId`: `QUANTITY`, 64 Bits - Identifier of the payload building process
 
 #### Specification
 
@@ -68,7 +68,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 3. Client software **SHOULD** stop the updating process either by finishing to serve the [**`engine_getPayload`**](#engine_getPayload) call with the same `payloadId` value or when [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
 
-4. Client software **MUST** set the payload field values according to the set of parameters passed in the call to this method with exception for the `feeRecipient`. The `coinbase` field value **MAY** stem from what is specified by the `feeRecipient` parameter.
+4. Client software **MUST** set the payload field values according to the set of parameters passed in the call to this method with exception for the `feeRecipient`. The `coinbase` field value **MAY** deviate from what is specified by the `feeRecipient` parameter.
 
 5. Client software **SHOULD** respond with `2: Action not allowed` error if the sync process is in progress.
 
