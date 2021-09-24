@@ -19,7 +19,7 @@ The list of error codes introduced by this specification can be found below.
 
 | Code | Possible Return message | Description |
 | - | - | - |
-| 4 | Unknown header | Should be used when a call refers to the unknown unknown header |
+| 4 | Unknown header | Should be used when a call refers to the unknown header |
 | 5 | Unknown payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to a payload building process that is unavailable |
 
 ## Structures
@@ -58,7 +58,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
 
 #### Returns
-1. `payloadId`: `QUANTITY`, 64 Bits - Identifier of the payload building process
+1. `payloadId|Error`: `QUANTITY`, 64 Bits - Identifier of the payload building process
 
 #### Specification
 
