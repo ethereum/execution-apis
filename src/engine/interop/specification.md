@@ -19,7 +19,7 @@ The list of error codes introduced by this specification can be found below.
 
 | Code | Possible Return message | Description |
 | - | - | - |
-| 4 | Unknown header | Should be used when a call refers to the unknown header |
+| 4 | Unknown header | Should be used when a call refers to an unknown header |
 | 5 | Unknown payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to a payload building process that is unavailable |
 
 ## Structures
@@ -72,7 +72,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 5. Client software **SHOULD** respond with `2: Action not allowed` error if the sync process is in progress.
 
-6. Client software **SHOULD** respond with `4: Unknown block` error if the parent block is unknown.
+6. Client software **SHOULD** respond with `4: Unknown header` error if the parent block is unknown.
 
 ### engine_getPayload
 
@@ -86,7 +86,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 1. Given the `payloadId` client software **MUST** respond with the most recent version of the payload that is available in the corresponding building process at the time of receiving the call.
 
-2. The call **MUST** be responded with `5: Unavailable payload` error if the building process identified by the `payloadId` doesn't exist.
+2. The call **MUST** be responded with `5: Unknown payload` error if the building process identified by the `payloadId` doesn't exist.
 
 3. Client software **MAY** stop the corresponding building process after serving this call.
 
@@ -132,7 +132,7 @@ None or an error
 
 2. If the status in this call is `INVALID` the payload **MUST** be discarded disregarding its validity with respect to the execution environment rules.
 
-3. Client software **MUST** respond with `4: Unknown block` error if the payload identified by the `blockHash` is unknown.
+3. Client software **MUST** respond with `4: Unknown header` error if the payload identified by the `blockHash` is unknown.
 
 ### engine_forkchoiceUpdated
 
