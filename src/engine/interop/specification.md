@@ -58,7 +58,8 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
 
 #### Returns
-1. `payloadId|Error`: `QUANTITY`, 64 Bits - Identifier of the payload building process
+`Object|Error` - Either instance of response object or an error. Response object:
+1. `payloadId`: `QUANTITY`, 64 Bits - Identifier of the payload building process
 
 #### Specification
 
