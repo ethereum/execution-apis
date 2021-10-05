@@ -4,6 +4,41 @@ This document specifies a subset of the Engine API methods that are required to 
 
 *Note*: Sync API design is yet a draft and considered optional for the interop.
 
+## Table of contents
+
+<!-- TOC -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Underlying protocol](#underlying-protocol)
+- [Error codes](#error-codes)
+- [Structures](#structures)
+  - [ExecutionPayload](#executionpayload)
+- [Core](#core)
+  - [engine_preparePayload](#engine_preparepayload)
+    - [Parameters](#parameters)
+    - [Returns](#returns)
+    - [Specification](#specification)
+  - [engine_getPayload](#engine_getpayload)
+    - [Parameters](#parameters-1)
+    - [Returns](#returns-1)
+    - [Specification](#specification-1)
+  - [engine_executePayload](#engine_executepayload)
+    - [Parameters](#parameters-2)
+    - [Returns](#returns-2)
+    - [Specification](#specification-2)
+  - [engine_consensusValidated](#engine_consensusvalidated)
+    - [Parameters](#parameters-3)
+    - [Returns](#returns-3)
+    - [Specification](#specification-3)
+  - [engine_forkchoiceUpdated](#engine_forkchoiceupdated)
+    - [Parameters](#parameters-4)
+    - [Returns](#returns-4)
+    - [Specification](#specification-4)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- /TOC -->
+
 ## Underlying protocol
 
 This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc/API) and inherits the following properties of this standard:
