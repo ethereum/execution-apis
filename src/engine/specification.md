@@ -1,10 +1,6 @@
-# Engine API. Interop edition
+# Engine API
 
-***WARNING***: This document will soon be deprecated in favor of the [mainnet target](../specification.md).
-
-This document specifies a subset of the Engine API methods that are required to be implemented for the Merge interop.
-
-*Note*: Sync API design is yet a draft and considered optional for the interop.
+This document specifies the Engine API methods that the Consensus Layer uses to interact with the Execution Layer.
 
 ## Underlying protocol
 
