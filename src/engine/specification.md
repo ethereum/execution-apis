@@ -105,33 +105,13 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and respond with the validation result.
 
-2. Client software **MUST** defer persisting a valid payload until the corresponding [**`engine_consensusValidated`**](#engine_consensusValidated) message deems the payload valid with respect to the proof-of-stake consensus rules.
+2. Client software **MUST** discard the payload if it's deemed invalid.
 
-3. Client software **MUST** discard the payload if it's deemed invalid.
+3. The call **MUST** be responded with `SYNCING` status while the sync process is in progress and thus the execution cannot yet be validated.
 
-4. The call **MUST** be responded with `SYNCING` status while the sync process is in progress and thus the execution cannot yet be validated.
-
-5. In the case when the parent block is unknown, client software **MUST** pull the block from the network and take one of the following actions depending on the parent block properties:
+4. In the case when the parent block is unknown, client software **MUST** pull the block from the network and take one of the following actions depending on the parent block properties:
   - If the parent block is a PoW block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition, then all missing dependencies of the payload **MUST** be pulled from the network and validated accordingly. The call **MUST** be responded according to the validity of the payload and the chain of its ancestors.
   - If the parent block is a PoS block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition, then the call **MAY** be responded with `SYNCING` status and sync process **SHOULD** be initiated accordingly.
-
-### engine_consensusValidated
-
-#### Parameters
-1. `Object` - Payload validity status with respect to the consensus rules:
-- `blockHash`: `DATA`, 32 Bytes - block hash value of the payload
-- `status`: `String: VALID|INVALID` - result of the payload validation with respect to the proof-of-stake consensus rules
-
-#### Returns
-None or an error
-
-#### Specification
-
-1. The call of this method with `VALID` status maps on the `POS_CONSENSUS_VALIDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
-
-2. If the status in this call is `INVALID` the payload **MUST** be discarded disregarding its validity with respect to the execution environment rules.
-
-3. Client software **MUST** respond with `4: Unknown header` error if the payload identified by the `blockHash` is unknown.
 
 ### engine_forkchoiceUpdated
 
