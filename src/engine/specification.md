@@ -95,7 +95,7 @@ This structure contains the attributes (in addition to the other parameters cont
 
 1. This method call maps on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
 
-2. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown.
+2. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `headBlockHash` or the `finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
 3. Client software **MUST** begin a payload build process building on top of `headBlockHash` if `payloadAttributes` is not `None` and the client is not `SYNCING`. The build process is specified as:
   * The payload build process **MUST** be identifid via `payloadId` where `payloadId` is defined as the first `8` bytes of the `sha256` hash of concatenation of `headBlockHash`, `payloadAttributes.timestamp`, `payloadAttributes.random`, and `payloadAttributes.feeRecipient` where `payloadAttributes.timestamp` is encoded as big-endian and padded fully to 8 bytes -- i.e. `sha256(headBlockHash + timestamp + random + feeRecipient)[0:8]`.
