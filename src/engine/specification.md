@@ -100,20 +100,20 @@ This structure contains the attributes required to initiate a payload build proc
 
 #### Response
 
-* result: `enum`, `"VALID" | "INVALID" | "SYNCING"`
+* result: `object`
+    - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
+    - `validAncestorHash`: `DATA|null`, 32 bytes
 * error: code and message set in case an exception happens during showing a message.
 
 #### Specification
 
-1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and respond with the validation result.
+1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and return the validation result.
+    * If validation succeeds, return `{status: VALID, validAncestorHash: payload.blockHash}`
+    * If validation fails, return `{status: INVALID, validAncestorHash: ancestorHash}` where `ancestorHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the ancestor of the payload in the valid block tree with the highest `blockNumber`.
 
 2. Client software **MUST** discard the payload if it's deemed invalid.
 
-3. The call **MUST** return `SYNCING` status while the sync process is in progress and thus the execution cannot yet be validated.
-
-4. In the case when the parent block is unknown, client software **MUST** pull the block from the network and take one of the following actions depending on the parent block properties:
-  - If the parent block is a PoW block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition, then all missing dependencies of the payload **MUST** be pulled from the network and validated accordingly. The call **MUST** be responded according to the validity of the payload and the chain of its ancestors.
-  - If the parent block is a PoS block as per [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) definition, then the call **MAY** be responded with `SYNCING` status and sync process **SHOULD** be initiated accordingly.
+3. Client software **MUST** return `{status: SYNCING, validAncestorHash: null}` if the client software does not have the requisite data available locally to validate the payload in less than `SLOTS_PER_SECOND / 30` (0.4s in the Mainnet configuration) or if the sync process is already in progress. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
 ### engine_forkchoiceUpdated
 
@@ -136,7 +136,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 2. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `headBlockHash` or the `finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
-3. Client software **MUST** begin a payload build process building on top of `headBlockHash` if `payloadAttributes` is not `None` and the client is not `SYNCING`. The build process is specified as:
+3. Client software **MUST** begin a payload build process building on top of `headBlockHash` if `payloadAttributes` is not `null` and the client is not `SYNCING`. The build process is specified as:
   * The payload build process **MUST** be identifid via `payloadId` where `payloadId` is defined as the first `8` bytes of the `sha256` hash of concatenation of `headBlockHash`, `payloadAttributes.timestamp`, `payloadAttributes.random`, and `payloadAttributes.feeRecipient` where `payloadAttributes.timestamp` is encoded as big-endian and padded fully to 8 bytes -- i.e. `sha256(headBlockHash + timestamp + random + feeRecipient)[0:8]`.
   * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The prepared `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
   * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
