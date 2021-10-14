@@ -17,8 +17,7 @@ The list of error codes introduced by this specification can be found below.
 
 | Code | Possible Return message | Description |
 | - | - | - |
-| 4 | Unknown header | Should be used when a call refers to an unknown header |
-| 5 | Unknown payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to a payload building process that is unavailable |
+| 5 | Unknown payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to a payload build process that is unavailable |
 
 ## Structures
 
@@ -44,50 +43,14 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
-## Core
+### PayloadAttributes
 
-### engine_preparePayload
-
-#### Parameters
-1. `Object` - The payload attributes:
-- `parentHash`: `DATA`, 32 Bytes - hash of the parent block
+This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
 - `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
 
-#### Returns
-`Object|Error` - Either instance of response object or an error. Response object:
-1. `payloadId`: `QUANTITY`, 64 Bits - Identifier of the payload building process
-
-#### Specification
-
-1. Given provided field value set client software **SHOULD** build the initial version of the payload which has an empty transaction set.
-
-2. Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy would be to keep the transaction set up-to-date with the state of local mempool.
-
-3. Client software **SHOULD** stop the updating process either by finishing to serve the [**`engine_getPayload`**](#engine_getPayload) call with the same `payloadId` value or when [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
-
-4. Client software **MUST** set the payload field values according to the set of parameters passed in the call to this method with exception for the `feeRecipient`. The `coinbase` field value **MAY** deviate from what is specified by the `feeRecipient` parameter.
-
-5. Client software **SHOULD** respond with `2: Action not allowed` error if the sync process is in progress.
-
-6. Client software **SHOULD** respond with `4: Unknown header` error if the parent block is unknown.
-
-### engine_getPayload
-
-#### Parameters
-1. `payloadId`: `QUANTITY`, 64 Bits - Identifier of the payload building process
-
-#### Returns
-`Object|Error` - Either instance of [`ExecutionPayload`](#ExecutionPayload) or an error
-
-#### Specification
-
-1. Given the `payloadId` client software **MUST** respond with the most recent version of the payload that is available in the corresponding building process at the time of receiving the call.
-
-2. The call **MUST** be responded with `5: Unknown payload` error if the building process identified by the `payloadId` doesn't exist.
-
-3. Client software **MAY** stop the corresponding building process after serving this call.
+## Core
 
 ### engine_executePayload
 
@@ -119,12 +82,42 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 1. `Object` - The state of the fork choice:
 - `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
 - `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
+- `payloadAttributes`: `Object|None` - instance of [`PayloadAttributes`](#PayloadAttributes) or `None`
 
 #### Returns
-None or an error
+
+`Object|Error` - Either instance of response object or an error. Response object:
+1. `status`: `String` - The result of updating the fork choice
+  - `SUCCESS` - The fork choice is successfully updated, and if requested, the payload build process has successfully started
+  - `SYNCING` - Sync process is in progress
 
 #### Specification
 
 1. This method call maps on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
 
-2. Client software **MUST** respond with `4: Unknown block` error if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown.
+2. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `headBlockHash` or the `finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
+
+3. Client software **MUST** begin a payload build process building on top of `headBlockHash` if `payloadAttributes` is not `None` and the client is not `SYNCING`. The build process is specified as:
+  * The payload build process **MUST** be identifid via `payloadId` where `payloadId` is defined as the first `8` bytes of the `sha256` hash of concatenation of `headBlockHash`, `payloadAttributes.timestamp`, `payloadAttributes.random`, and `payloadAttributes.feeRecipient` where `payloadAttributes.timestamp` is encoded as big-endian and padded fully to 8 bytes -- i.e. `sha256(headBlockHash + timestamp + random + feeRecipient)[0:8]`.
+  * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The prepared `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
+  * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
+  * Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
+  * Client software **SHOULD** stop the updating process when either a call to [**`engine_getPayload`**](#engine_getPayload) with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
+
+4. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
+
+### engine_getPayload
+
+#### Parameters
+1. `payloadId`: `DATA`, 8 bytes - Identifier of the payload build process
+
+#### Returns
+`Object|Error` - Either instance of [`ExecutionPayload`](#ExecutionPayload) or an error
+
+#### Specification
+
+1. Given the `payloadId` client software **MUST** return the most recent version of the payload that is available in the corresponding build process at the time of receiving the call.
+
+2. The call **MUST** return `5: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+
+3. Client software **MAY** stop the corresponding build process after serving this call.
