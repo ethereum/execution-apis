@@ -45,7 +45,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 ### PayloadAttributes
 
-This structure contains the attributes (in addition to the other parameters contained in `engine_forkchoiceUpdated`) required to initiate a payload build process. The fields are encoded as follows:
+This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
 - `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
