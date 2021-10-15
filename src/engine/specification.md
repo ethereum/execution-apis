@@ -11,13 +11,41 @@ This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API. The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 
-## Error codes
+## Error
 
 The list of error codes introduced by this specification can be found below.
 
-| Code | Possible Return message | Description |
+| Code | Message | Meaning |
 | - | - | - |
-| 5 | Unknown payload | Should be used when the `payloadId` parameter of `engine_getPayload` call refers to a payload build process that is unavailable |
+| -32700 | Parse error | Invalid JSON was received by the server. |
+| -32600 | Invalid Request | The JSON sent is not a valid Request object. |
+| -32601 | Method not found | The method does not exist / is not available. |
+| -32602 | Invalid params | Invalid method parameter(s). | 
+| -32603 | Internal error | Internal JSON-RPC error. |
+| -32000 | Server error | Generic client error while processing request. |
+| -32001 | Unknown payload | Payload does not exist / is not available. |
+
+Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
+
+For example:
+
+```console
+$ curl https://localhost:8550 \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","method":"engine_getPayload","params": ["0x1"],"id":1}'
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32000,
+    "message": "Server error",
+    "data": {
+        "err": "Database corrupted"
+    }
+  }
+}
+```
 
 ## Structures
 
@@ -54,15 +82,15 @@ This structure contains the attributes required to initiate a payload build proc
 
 ### engine_executePayload
 
-#### Parameters
-1. `Object` - Instance of [`ExecutionPayload`](#ExecutionPayload)
+#### Request
 
-#### Returns
-`Object` - Response object:
-1. `status`: `String` - the result of the payload execution:
-  - `VALID` - given payload is valid
-  - `INVALID` - given payload is invalid
-  - `SYNCING` - sync process is in progress
+* method: `engine_executePayload`
+* params: [`ExecutionPayload`](#ExecutionPayload)
+
+#### Response
+
+* result: `enum`, `"VALID" | "INVALID" | "SYNCING"`
+* error: code and message set in case an exception happens during showing a message.
 
 #### Specification
 
@@ -78,18 +106,18 @@ This structure contains the attributes required to initiate a payload build proc
 
 ### engine_forkchoiceUpdated
 
-#### Parameters
-1. `Object` - The state of the fork choice:
-- `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
-- `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
-- `payloadAttributes`: `Object|None` - instance of [`PayloadAttributes`](#PayloadAttributes) or `None`
+#### Request
 
-#### Returns
+* method: "engine_forkchoiceUpdated"
+* params: 
+  1. `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
+  2. `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
+  3. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributes`](#PayloadAttributes) or `null`
 
-`Object|Error` - Either instance of response object or an error. Response object:
-1. `status`: `String` - The result of updating the fork choice
-  - `SUCCESS` - The fork choice is successfully updated, and if requested, the payload build process has successfully started
-  - `SYNCING` - Sync process is in progress
+#### Response
+
+* result: `enum`, `"SUCESS" | "SYNCING"`
+* error: code and message set in case an exception happens while updating the forkchoice or preparing the payload.
 
 #### Specification
 
@@ -108,11 +136,16 @@ This structure contains the attributes required to initiate a payload build proc
 
 ### engine_getPayload
 
-#### Parameters
-1. `payloadId`: `DATA`, 8 bytes - Identifier of the payload build process
+#### Request
 
-#### Returns
-`Object|Error` - Either instance of [`ExecutionPayload`](#ExecutionPayload) or an error
+* method: `engine_getPayload`
+* params:
+  1. `payloadId`: `DATA`, 8 bytes - Identifier of the payload build process
+
+#### Response
+
+* result: [`ExecutionPayload`](#ExecutionPayload)
+* error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
 
