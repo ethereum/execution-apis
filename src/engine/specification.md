@@ -11,7 +11,7 @@ This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API. The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 
-## Error
+## Errors
 
 The list of error codes introduced by this specification can be found below.
 
