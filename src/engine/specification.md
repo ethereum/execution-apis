@@ -117,7 +117,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 #### Response
 
-* result: `enum`, `"SUCESS" | "SYNCING"`
+* result: `enum`, `"SUCCESS" | "SYNCING"`
 * error: code and message set in case an exception happens while updating the forkchoice or preparing the payload.
 
 #### Specification
