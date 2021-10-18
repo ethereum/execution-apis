@@ -11,6 +11,16 @@ This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API. The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 
+## Load-balancing and advanced configurations
+
+The Engine API supports a 1:many Consensus Layer to Execution Layer configuration.
+Intuitively this is because the Consensus Layer drives the Execution Layer and thus can drive many of them independently.
+
+On the other hand, generic many:1 Consensus Layer to Execution Layer configurations are not supported out-of-the-box.
+The Execution Layer, by default, only supports one chain head at a time and thus has undefined behavior when multiple Consensus Layers simultaneously control the head.
+The Engine API does work properly, if in such a many:1 configuration, only one Consensus Layer instantiation is able to *write* to the Execution Layer's chain head and initiate the payload build process (i.e. call `engine_forkchoiceUpdated` ),
+while other Consensus Layers can only safely insert payloads (i.e. `engine_executePayload`) and read from the Execution Layer.
+
 ## Error codes
 
 The list of error codes introduced by this specification can be found below.
