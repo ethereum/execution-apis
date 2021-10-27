@@ -102,18 +102,18 @@ This structure contains the attributes required to initiate a payload build proc
 
 * result: `object`
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
-    - `validAncestorHash`: `DATA|null`, 32 bytes
+    - `latestValidHash`: `DATA|null`, 32 bytes
 * error: code and message set in case an exception happens during showing a message.
 
 #### Specification
 
 1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and return the validation result.
-    * If validation succeeds, return `{status: VALID, validAncestorHash: payload.blockHash}`
-    * If validation fails, return `{status: INVALID, validAncestorHash: ancestorHash}` where `ancestorHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the ancestor of the payload in the valid block tree with the highest `blockNumber`.
+    * If validation succeeds, return `{status: VALID, lastestValidHash: payload.blockHash}`
+    * If validation fails, return `{status: INVALID, lastestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the ancestor of the payload in the valid block tree with the highest `blockNumber`.
 
 2. Client software **MUST** discard the payload if it's deemed invalid.
 
-3. Client software **MUST** return `{status: SYNCING, validAncestorHash: null}` if the client software does not have the requisite data available locally to validate the payload in less than `SLOTS_PER_SECOND / 30` (0.4s in the Mainnet configuration) or if the sync process is already in progress. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
+3. Client software **MUST** return `{status: SYNCING, lastestValidHash: null}` if the client software does not have the requisite data available locally to validate the payload in less than `SLOTS_PER_SECOND / 30` (0.4s in the Mainnet configuration) or if the sync process is already in progress. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
 ### engine_forkchoiceUpdated
 
