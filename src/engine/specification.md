@@ -109,7 +109,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and return the validation result.
     * If validation succeeds, return `{status: VALID, lastestValidHash: payload.blockHash}`
-    * If validation fails, return `{status: INVALID, lastestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the ancestor of the payload in the valid block tree with the highest `blockNumber`.
+    * If validation fails, return `{status: INVALID, lastestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`.
 
 2. Client software **MUST** discard the payload if it's deemed invalid.
 
