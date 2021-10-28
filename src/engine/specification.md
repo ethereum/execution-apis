@@ -162,6 +162,6 @@ This structure contains the attributes required to initiate a payload build proc
 
 1. Given the `payloadId` client software **MUST** return the most recent version of the payload that is available in the corresponding build process at the time of receiving the call.
 
-2. The call **MUST** return `5: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
