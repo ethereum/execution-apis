@@ -102,7 +102,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 * result: `object`
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
-    - `latestValidHash`: `DATA|null`, 32 bytes
+    - `latestValidHash`: `DATA|null`, 32 bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 * error: code and message set in case an exception happens during showing a message.
 
 #### Specification
