@@ -145,6 +145,8 @@ This structure contains the attributes required to initiate a payload build proc
 
 4. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
 
+5. In the event of multiple calls to this method in an asynchronous context, client software **MUST** ultimately resolve the chain-head and/or payload build process to the `engine_forkchoiceUpdated` call with the highest JSON-RPC request ID.
+
 ### engine_getPayload
 
 #### Request
