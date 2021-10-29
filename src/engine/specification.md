@@ -13,10 +13,10 @@ Client software **MUST** expose Engine API at a port independent from JSON-RPC A
 
 ## Message ordering
 
-Calling software *MUST* utilize JSON-RPC request IDs that are strictly
+Consensus Layer client software **MUST** utilize JSON-RPC request IDs that are strictly
 increasing.
 
-Responding software *MUST* execute calls strictly in the order of request IDs
+Execution Layer client software **MUST** execute calls strictly in the order of request IDs
 to avoid degenerate race conditions.
 
 ## Load-balancing and advanced configurations
