@@ -11,6 +11,14 @@ This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API. The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 
+## Message ordering
+
+Consensus Layer client software **MUST** utilize JSON-RPC request IDs that are strictly
+increasing.
+
+Execution Layer client software **MUST** execute calls strictly in the order of request IDs
+to avoid degenerate race conditions.
+
 ## Load-balancing and advanced configurations
 
 The Engine API supports a one-to-many Consensus Layer to Execution Layer configuration.
