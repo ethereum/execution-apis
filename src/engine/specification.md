@@ -113,7 +113,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 2. Client software **MUST** discard the payload if it's deemed invalid.
 
-3. Client software **MUST** return `{status: SYNCING, lastestValidHash: null}` if the client software does not have the requisite data available locally to validate the payload and cannot retrieve this required data in less than `SLOTS_PER_SECOND / 30` (0.4s in the Mainnet configuration) or if the sync process is already in progress. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
+3. Client software **MUST** return `{status: SYNCING, lastestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
 ### engine_forkchoiceUpdated
 
