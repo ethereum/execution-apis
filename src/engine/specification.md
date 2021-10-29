@@ -11,6 +11,14 @@ This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API. The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 
+## Message ordering
+
+Calling software *MUST* utilize JSON-RPC request IDs that are strictly
+increasing.
+
+Responding software *MUST* execute calls strictly in the order of request IDs
+to avoid degenerate race conditions.
+
 ## Load-balancing and advanced configurations
 
 The Engine API supports a one-to-many Consensus Layer to Execution Layer configuration.
@@ -144,8 +152,6 @@ This structure contains the attributes required to initiate a payload build proc
   * Client software **SHOULD** stop the updating process when either a call to [**`engine_getPayload`**](#engine_getPayload) with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
 
 4. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
-
-5. In the event of multiple calls to this method in an asynchronous context, client software **MUST** ultimately resolve the chain-head and/or payload build process to the `engine_forkchoiceUpdated` call with the highest JSON-RPC request ID.
 
 ### engine_getPayload
 
