@@ -142,6 +142,7 @@ This structure contains the attributes required to initiate a payload build proc
 * method: "engine_forkchoiceUpdatedV1"
 * params: 
   1. `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
+  2. `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
   2. `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
   3. `payloadAttributesV1`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 
@@ -152,7 +153,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 #### Specification
 
-1. This method call maps on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
+1. The values `(headBlockHash, finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
 
 2. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `headBlockHash` or the `finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
