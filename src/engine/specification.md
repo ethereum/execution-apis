@@ -11,6 +11,18 @@ This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API. The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 
+## Versioning
+
+The versioning of the Engine API is defined as follows:
+* The version of each method and structure is independent from versions of other methods and structures.
+* The `VX`, where the `X` is the number of the version, is suffixed to the name of each method and structure.
+* The version of a method or a structure **MUST** be incremented by one if any of the following is changed:
+  * a set of method parameters
+  * a method response value
+  * a method behavior
+  * a set of structure fields
+* The specification **MAY** reference a method or a structure without the version suffix e.g. `engine_executePayload`. These statements should be read as related to all versions of the referenced method or structure.
+
 ## Message ordering
 
 Consensus Layer client software **MUST** utilize JSON-RPC request IDs that are strictly
@@ -51,7 +63,7 @@ For example:
 $ curl https://localhost:8550 \
     -X POST \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"engine_getPayload","params": ["0x1"],"id":1}'
+    -d '{"jsonrpc":"2.0","method":"engine_getPayloadV1","params": ["0x1"],"id":1}'
 {
   "jsonrpc": "2.0",
   "id": 1,
@@ -71,7 +83,7 @@ Fields having `DATA` and `QUANTITY` types **MUST** be encoded according to the [
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
 
-### ExecutionPayload
+### ExecutionPayloadV1
 
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/merge/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
 - `parentHash`: `DATA`, 32 Bytes
@@ -89,7 +101,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
-### PayloadAttributes
+### PayloadAttributesV1
 
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
@@ -98,13 +110,13 @@ This structure contains the attributes required to initiate a payload build proc
 
 ## Core
 
-### engine_executePayload
+### engine_executePayloadV1
 
 #### Request
 
-* method: `engine_executePayload`
+* method: `engine_executePayloadV1`
 * params: 
-  1. [`ExecutionPayload`](#ExecutionPayload)
+  1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
 
 #### Response
 
@@ -123,15 +135,15 @@ This structure contains the attributes required to initiate a payload build proc
 
 3. Client software **MUST** return `{status: SYNCING, lastestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
-### engine_forkchoiceUpdated
+### engine_forkchoiceUpdatedV1
 
 #### Request
 
-* method: "engine_forkchoiceUpdated"
+* method: "engine_forkchoiceUpdatedV1"
 * params: 
   1. `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
   2. `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
-  3. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributes`](#PayloadAttributes) or `null`
+  3. `payloadAttributesV1`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 
 #### Response
 
@@ -149,21 +161,21 @@ This structure contains the attributes required to initiate a payload build proc
   * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The prepared `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
   * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
   * Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
-  * Client software **SHOULD** stop the updating process when either a call to [**`engine_getPayload`**](#engine_getPayload) with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
+  * Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
 
 4. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
 
-### engine_getPayload
+### engine_getPayloadV1
 
 #### Request
 
-* method: `engine_getPayload`
+* method: `engine_getPayloadV1`
 * params:
   1. `payloadId`: `DATA`, 8 bytes - Identifier of the payload build process
 
 #### Response
 
-* result: [`ExecutionPayload`](#ExecutionPayload)
+* result: [`ExecutionPayloadV1`](#ExecutionPayloadV1)
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
