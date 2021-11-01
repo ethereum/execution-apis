@@ -143,8 +143,8 @@ This structure contains the attributes required to initiate a payload build proc
 * params: 
   1. `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
   2. `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
-  2. `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
-  3. `payloadAttributesV1`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+  3. `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
+  4. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 
 #### Response
 
