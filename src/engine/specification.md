@@ -2,6 +2,35 @@
 
 This document specifies the Engine API methods that the Consensus Layer uses to interact with the Execution Layer.
 
+## Table of contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Underlying protocol](#underlying-protocol)
+- [Versioning](#versioning)
+- [Message ordering](#message-ordering)
+- [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
+- [Errors](#errors)
+- [Structures](#structures)
+  - [ExecutionPayloadV1](#executionpayloadv1)
+  - [PayloadAttributesV1](#payloadattributesv1)
+- [Core](#core)
+  - [engine_executePayloadV1](#engine_executepayloadv1)
+    - [Request](#request)
+    - [Response](#response)
+    - [Specification](#specification)
+  - [engine_forkchoiceUpdatedV1](#engine_forkchoiceupdatedv1)
+    - [Request](#request-1)
+    - [Response](#response-1)
+    - [Specification](#specification-1)
+  - [engine_getPayloadV1](#engine_getpayloadv1)
+    - [Request](#request-2)
+    - [Response](#response-2)
+    - [Specification](#specification-2)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Underlying protocol
 
 This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc/API) and inherits the following properties of this standard:
