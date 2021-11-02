@@ -191,7 +191,7 @@ This ID-computation is versioned and may change over time, opaque to the engine 
 
 * method: `engine_getPayloadV1`
 * params:
-  1. `payloadId`: `DATA`, 8 bytes - Identifier of the payload build process
+  1. `payloadId`: `DATA`, 32 bytes - Identifier of the payload build process
 
 #### Response
 
