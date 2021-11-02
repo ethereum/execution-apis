@@ -157,6 +157,7 @@ This structure contains the attributes required to initiate a payload build proc
 * result: `object`
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
     - `latestValidHash`: `DATA|null`, 32 bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
+    - `message`: `STRING|null` - the message providing additional details on the response to the method call if needed
 * error: code and message set in case an exception happens during showing a message.
 
 #### Specification
@@ -168,6 +169,8 @@ This structure contains the attributes required to initiate a payload build proc
 2. Client software **MUST** discard the payload if it's deemed invalid.
 
 3. Client software **MUST** return `{status: SYNCING, lastestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
+
+4. Client software **MAY** provide additional details on the payload validation by utilizing `message` field in the response object. For example, particular error message occurred during the payload execution may accompany a response with `INVALID` status.
 
 ### engine_forkchoiceUpdatedV1
 
