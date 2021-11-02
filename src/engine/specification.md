@@ -182,7 +182,9 @@ sha256(PAYLOAD_ID_VERSION_BYTE + headBlockHash + payloadAttributes.timestamp.to_
 ```
 Note that the timestamp is encoded as big-endian and padded fully to 8 bytes.
 
-This ID-computation is versioned and may change over time, opaque to the engine API user, and **MUST** always be consistent between `engine_forkchoiceUpdated` and `engine_getPayload`. 
+This ID-computation is versioned and may change over time, opaque to the engine API user, and **MUST** always be consistent between `engine_forkchoiceUpdated` and `engine_getPayload`.
+The `PAYLOAD_ID_VERSION_BYTE` **SHOULD** be updated if the intent or typing of the payload production inputs changes,
+such that a payload cache can be safely shared between current and later versions of `engine_forkchoiceUpdated`. 
 
 
 ### engine_getPayloadV1
