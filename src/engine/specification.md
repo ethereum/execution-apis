@@ -14,7 +14,7 @@ The default port for the Engine API is 8550 for HTTP and 8551 for WebSocket.
 The Engine API is exposed under the `engine` namespace.
 
 To facilitate an Engine API consumer to access state and logs (e.g. proof-of-stake deposits) through the same connection,
-the client **MAY** also expose the `eth` namespace. 
+the client **MUST** also expose the `eth` namespace. 
 
 ## Versioning
 
