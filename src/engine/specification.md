@@ -186,7 +186,6 @@ This ID-computation is versioned and may change over time, opaque to the engine 
 The `PAYLOAD_ID_VERSION_BYTE` **SHOULD** be updated if the intent or typing of the payload production inputs changes,
 such that a payload cache can be safely shared between current and later versions of `engine_forkchoiceUpdated`. 
 
-
 ### engine_getPayloadV1
 
 #### Request
