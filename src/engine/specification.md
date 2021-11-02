@@ -175,14 +175,14 @@ This structure contains the attributes required to initiate a payload build proc
 
 ##### Hashing to `payloadId`
 
-The `payloadId` is the first `8` bytes of the `sha256` hash of the concatenation of version byte and inputs:
+The `payloadId` is the `sha256` hash of the concatenation of version byte and inputs:
 ```python
 PAYLOAD_ID_VERSION_BYTE = b"\x00"
-sha256(PAYLOAD_ID_VERSION_BYTE + headBlockHash + payloadAttributes.timestamp.to_bytes(8, "big") + payloadAttributes.random + payloadAttributes.feeRecipient)[0:8]
+sha256(PAYLOAD_ID_VERSION_BYTE + headBlockHash + payloadAttributes.timestamp.to_bytes(8, "big") + payloadAttributes.random + payloadAttributes.feeRecipient)
 ```
 Note that the timestamp is encoded as big-endian and padded fully to 8 bytes.
 
-This ID is versioned and may change over time, opaque to the engine API user, and **MUST** always be consistent between `engine_forkchoiceUpdated` and `engine_getPayload`. 
+This ID-computation is versioned and may change over time, opaque to the engine API user, and **MUST** always be consistent between `engine_forkchoiceUpdated` and `engine_getPayload`. 
 
 
 ### engine_getPayloadV1
