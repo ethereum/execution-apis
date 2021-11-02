@@ -165,13 +165,25 @@ This structure contains the attributes required to initiate a payload build proc
 3. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `headBlockHash` or the `finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
 4. Client software **MUST** begin a payload build process building on top of `headBlockHash` if `payloadAttributes` is not `null` and the client is not `SYNCING`. The build process is specified as:
-  * The payload build process **MUST** be identifid via `payloadId` where `payloadId` is defined as the first `8` bytes of the `sha256` hash of concatenation of `headBlockHash`, `payloadAttributes.timestamp`, `payloadAttributes.random`, and `payloadAttributes.feeRecipient` where `payloadAttributes.timestamp` is encoded as big-endian and padded fully to 8 bytes -- i.e. `sha256(headBlockHash + timestamp + random + feeRecipient)[0:8]`.
+  * The payload build process **MUST** be identified via `payloadId` where `payloadId` is defined as the hash of the block-production inputs, see [Hashing to `payloadId`](#hashing-to-payloadid).
   * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The prepared `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
   * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
   * Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
   * Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
 
 5. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
+
+##### Hashing to `payloadId`
+
+The `payloadId` is the first `8` bytes of the `sha256` hash of the concatenation of version byte and inputs:
+```python
+PAYLOAD_ID_VERSION_BYTE = b"\x00"
+sha256(PAYLOAD_ID_VERSION_BYTE + headBlockHash + payloadAttributes.timestamp.to_bytes(8, "big") + payloadAttributes.random + payloadAttributes.feeRecipient)[0:8]
+```
+Note that the timestamp is encoded as big-endian and padded fully to 8 bytes.
+
+This ID is versioned and may change over time, opaque to the engine API user, and **MUST** always be consistent between `engine_forkchoiceUpdated` and `engine_getPayload`. 
+
 
 ### engine_getPayloadV1
 
