@@ -139,7 +139,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 
 ### ForkchoiceStateV1
 
-This structure renders the fork choice state. The fields are encoded as follows:
+This structure encapsulates the fork choice state. The fields are encoded as follows:
 - `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
 - `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
 - `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
@@ -207,7 +207,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 4. Client software **MUST** return `{status: SYNCING, payloadId: null}` if the payload identified by either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
-5. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null` and the client is not `SYNCING`, and begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
+5. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null` and the client is not `SYNCING`, and **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
 
 6. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
 
@@ -216,7 +216,7 @@ The payload build process is specified as follows:
 * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The built `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
 * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
 * Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
-* Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
+* Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (12 in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
 
 ### engine_getPayloadV1
 
