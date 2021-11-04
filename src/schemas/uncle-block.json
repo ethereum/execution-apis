@@ -4,7 +4,7 @@
 		"type": "object",
 		"required": [
 			"parentHash",
-            "hash",
+			"hash",
 			"sha3Uncles",
 			"miner",
 			"stateRoot",
@@ -27,10 +27,10 @@
 				"title": "Parent block hash",
 				"$ref": "#/components/schemas/hash32"
 			},
-            "hash": {
-                "title": "Uncle block hash",
-                "$ref": "#/components/schemas/hash32"
-            },
+			"hash": {
+				"title": "Uncle block hash",
+				"$ref": "#/components/schemas/hash32"
+			},
 			"sha3Uncles": {
 				"title": "Ommers hash",
 				"$ref": "#/components/schemas/hash32"
