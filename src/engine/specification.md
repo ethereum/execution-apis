@@ -194,7 +194,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 * result: `object`
     - `status`: `enum` - `"SUCCESS" | "SYNCING"`
-    - `payloadId`: `QUANTITY|null`, 64 Bits - identifier of the payload build process or `null`
+    - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
 * error: code and message set in case an exception happens while updating the forkchoice or initiating the payload build process.
 
 #### Specification
@@ -224,7 +224,7 @@ The payload build process is specified as follows:
 
 * method: `engine_getPayloadV1`
 * params:
-  1. `payloadId`: `QUANTITY`, 64 Bits - Identifier of the payload build process
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
 
 #### Response
 
