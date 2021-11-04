@@ -26,7 +26,7 @@
 		}
 	},
 	{
-		"name": "eth_getStorage",
+		"name": "eth_getStorageAt",
 		"summary": "Returns the value from a storage position at a given address.",
 		"params": [
 			{
