@@ -14,6 +14,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 - [Errors](#errors)
 - [Structures](#structures)
   - [ExecutionPayloadV1](#executionpayloadv1)
+  - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
 - [Core](#core)
   - [engine_executePayloadV1](#engine_executepayloadv1)
@@ -24,6 +25,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
+      - [Payload build process](#payload-build-process)
   - [engine_getPayloadV1](#engine_getpayloadv1)
     - [Request](#request-2)
     - [Response](#response-2)
@@ -135,6 +137,13 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
+### ForkchoiceStateV1
+
+This structure encapsulates the fork choice state. The fields are encoded as follows:
+- `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
+- `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
+- `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
+
 ### PayloadAttributesV1
 
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
@@ -156,9 +165,9 @@ This structure contains the attributes required to initiate a payload build proc
 
 * result: `object`
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
-    - `latestValidHash`: `DATA|null`, 32 bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
+    - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
     - `message`: `STRING|null` - the message providing additional details on the response to the method call if needed
-* error: code and message set in case an exception happens during showing a message.
+* error: code and message set in case an exception happens while executing the payload.
 
 #### Specification
 
@@ -178,45 +187,36 @@ This structure contains the attributes required to initiate a payload build proc
 
 * method: "engine_forkchoiceUpdatedV1"
 * params: 
-  1. `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
-  2. `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
-  3. `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
-  4. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 
 #### Response
 
-* result: `enum`, `"SUCCESS" | "SYNCING"`
-* error: code and message set in case an exception happens while updating the forkchoice or preparing the payload.
+* result: `object`
+    - `status`: `enum` - `"SUCCESS" | "SYNCING"`
+    - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
+* error: code and message set in case an exception happens while updating the forkchoice or initiating the payload build process.
 
 #### Specification
 
-1. The values `(headBlockHash, finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
+1. The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
 
-2. All updates to the forkchoice resulting from this call **MUST** be made atomically.
+2. All updates to the forkchoice state resulting from this call **MUST** be made atomically.
 
-3. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `headBlockHash` or the `finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
+3. Client software **MUST** return `{status: SUCCESS, payloadId: null}` if `payloadAttributes` is `null` and the client is not `SYNCING`.
 
-4. Client software **MUST** begin a payload build process building on top of `headBlockHash` if `payloadAttributes` is not `null` and the client is not `SYNCING`. The build process is specified as:
-  * The payload build process **MUST** be identified via `payloadId` where `payloadId` is defined as the hash of the block-production inputs, see [Hashing to `payloadId`](#hashing-to-payloadid).
-  * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The prepared `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
-  * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
-  * Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
-  * Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (currently set to 12 in the Mainnet configuration) seconds have passed since the point in time identified by the `timestamp` parameter.
+4. Client software **MUST** return `{status: SYNCING, payloadId: null}` if the payload identified by either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
-5. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
+5. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null` and the client is not `SYNCING`, and **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
 
-##### Hashing to `payloadId`
+6. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
 
-The `payloadId` is the `sha256` hash of the concatenation of version byte and inputs:
-```python
-PAYLOAD_ID_VERSION_BYTE = b"\x00"
-sha256(PAYLOAD_ID_VERSION_BYTE + headBlockHash + payloadAttributes.timestamp.to_bytes(8, "big") + payloadAttributes.random + payloadAttributes.feeRecipient)
-```
-Note that the timestamp is encoded as big-endian and padded fully to 8 bytes.
-
-This ID-computation is versioned and may change over time, opaque to the engine API user, and **MUST** always be consistent between `engine_forkchoiceUpdated` and `engine_getPayload`.
-The `PAYLOAD_ID_VERSION_BYTE` **SHOULD** be updated if the intent or typing of the payload production inputs changes,
-such that a payload cache can be safely shared between current and later versions of `engine_forkchoiceUpdated`. 
+##### Payload build process
+The payload build process is specified as follows:
+* Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The built `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
+* Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
+* Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
+* Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (12s in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
 
 ### engine_getPayloadV1
 
@@ -224,7 +224,7 @@ such that a payload cache can be safely shared between current and later version
 
 * method: `engine_getPayloadV1`
 * params:
-  1. `payloadId`: `DATA`, 32 bytes - Identifier of the payload build process
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
 
 #### Response
 

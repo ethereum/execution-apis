@@ -20,6 +20,7 @@ rlp
 rpc
 schemas
 secp
+statev
 sha
 uint
 updatedv
