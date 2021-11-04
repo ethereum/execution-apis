@@ -14,6 +14,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 - [Errors](#errors)
 - [Structures](#structures)
   - [ExecutionPayloadV1](#executionpayloadv1)
+  - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
 - [Core](#core)
   - [engine_executePayloadV1](#engine_executepayloadv1)
@@ -135,6 +136,13 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
+### ForkchoiceStateV1
+
+This structure renders the fork choice state. The fields are encoded as follows:
+- `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
+- `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
+- `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
+
 ### PayloadAttributesV1
 
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
@@ -178,10 +186,8 @@ This structure contains the attributes required to initiate a payload build proc
 
 * method: "engine_forkchoiceUpdatedV1"
 * params: 
-  1. `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
-  2. `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
-  3. `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
-  4. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 
 #### Response
 
@@ -190,13 +196,13 @@ This structure contains the attributes required to initiate a payload build proc
 
 #### Specification
 
-1. The values `(headBlockHash, finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
+1. The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
 
 2. All updates to the forkchoice resulting from this call **MUST** be made atomically.
 
-3. Client software **MUST** return `SYNCING` status if the payload identified by either the `headBlockHash` or the `finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `headBlockHash` or the `finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
+3. Client software **MUST** return `SYNCING` status if the payload identified by either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
-4. Client software **MUST** begin a payload build process building on top of `headBlockHash` if `payloadAttributes` is not `null` and the client is not `SYNCING`. The build process is specified as:
+4. Client software **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` if `payloadAttributes` is not `null` and the client is not `SYNCING`. The build process is specified as:
   * The payload build process **MUST** be identified via `payloadId` where `payloadId` is defined as the hash of the block-production inputs, see [Hashing to `payloadId`](#hashing-to-payloadid).
   * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The prepared `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
   * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
