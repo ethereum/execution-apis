@@ -48,5 +48,10 @@
 		"title": "32 byte hex value",
 		"type": "string",
 		"pattern": "^0x[0-9a-f]{64}$"
+	},
+	"null": {
+		"title": "null value",
+		"type": "null",
+		"pattern": "null"
 	}
 }

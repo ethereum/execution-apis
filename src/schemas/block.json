@@ -4,6 +4,7 @@
 		"type": "object",
 		"required": [
 			"parentHash",
+			"hash",
 			"sha3Uncles",
 			"miner",
 			"stateRoot",
@@ -27,6 +28,20 @@
 				"title": "Parent block hash",
 				"$ref": "#/components/schemas/hash32"
 			},
+			"hash": {
+				"oneOf": [
+					{
+						"title": "Block hash",
+						"$ref": "#/components/schemas/hash32"
+					},
+					{
+						"title": "Null",
+						"description": "Returns null when the block is pending.",
+						"$ref": "#/components/schemas/null"
+					}
+				]
+
+			},
 			"sha3Uncles": {
 				"title": "Ommers hash",
 				"$ref": "#/components/schemas/hash32"
@@ -48,16 +63,34 @@
 				"$ref": "#/components/schemas/hash32"
 			},
 			"logsBloom": {
-				"title": "Bloom filter",
-				"$ref": "#/components/schemas/bytes256"
+				"oneOf": [
+					{
+						"title": "Bloom filter",
+						"$ref": "#/components/schemas/bytes256"
+					},
+					{
+						"title": "Null",
+						"description": "Returns null when the block is pending.",
+						"$ref": "#/components/schemas/null"
+					}
+				]
 			},
 			"difficulty": {
 				"title": "Difficulty",
-				"$ref": "#/components/schemas/bytes"
+				"$ref": "#/components/schemas/uint"
 			},
 			"number": {
-				"title": "Number",
-				"$ref": "#/components/schemas/uint"
+				"oneOf": [
+					{
+						"title": "Number",
+						"$ref": "#/components/schemas/uint"						
+					},
+					{
+						"title": "Null",
+						"description": "Returns null when the block is pending.",
+						"$ref": "#/components/schemas/null"
+					}
+				]
 			},
 			"gasLimit": {
 				"title": "Gas limit",
@@ -80,8 +113,17 @@
 				"$ref": "#/components/schemas/hash32"
 			},
 			"nonce": {
-				"title": "Nonce",
-				"$ref": "#/components/schemas/bytes"
+				"oneOf": [
+					{
+						"title": "Nonce",
+						"$ref": "#/components/schemas/bytes"
+					},
+					{
+						"title": "Null",
+						"description": "Returns null when the block is pending.",
+						"$ref": "#/components/schemas/null"
+					}
+				]
 			},
 			"totalDifficulty": {
 				"title": "Total difficult",
