@@ -172,12 +172,12 @@ This structure contains the attributes required to initiate a payload build proc
 #### Specification
 
 1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and return the validation result.
-    * If validation succeeds, return `{status: VALID, lastestValidHash: payload.blockHash}`
-    * If validation fails, return `{status: INVALID, lastestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`.
+    * If validation succeeds, return `{status: VALID, latestValidHash: payload.blockHash}`
+    * If validation fails, return `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`.
 
 2. Client software **MUST** discard the payload if it's deemed invalid.
 
-3. Client software **MUST** return `{status: SYNCING, lastestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
+3. Client software **MUST** return `{status: SYNCING, latestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
 4. Client software **MAY** provide additional details on the payload validation by utilizing `message` field in the response object. For example, particular error message occurred during the payload execution may accompany a response with `INVALID` status.
 
