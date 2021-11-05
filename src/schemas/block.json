@@ -79,18 +79,9 @@
 				"title": "Difficulty",
 				"$ref": "#/components/schemas/uint"
 			},
-			"number": {
-				"oneOf": [
-					{
-						"title": "Number",
-						"$ref": "#/components/schemas/uint"						
-					},
-					{
-						"title": "Null",
-						"description": "Returns null when the block is pending.",
-						"$ref": "#/components/schemas/null"
-					}
-				]
+			"number": { 
+				"title": "Number",
+				"$ref": "#/components/schemas/uint"						
 			},
 			"gasLimit": {
 				"title": "Gas limit",
