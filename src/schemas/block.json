@@ -47,8 +47,17 @@
 				"$ref": "#/components/schemas/hash32"
 			},
 			"miner": {
-				"title": "Coinbase",
-				"$ref": "#/components/schemas/address"
+				"oneOf": [
+					{
+						"title": "Coinbase",
+						"$ref": "#/components/schemas/address"
+					},
+					{
+						"title": "Null",
+						"description": "Returns null when the block is pending.",
+						"$ref": "#/components/schemas/null"
+					}
+				]
 			},
 			"stateRoot": {
 				"title": "State root",
@@ -63,17 +72,8 @@
 				"$ref": "#/components/schemas/hash32"
 			},
 			"logsBloom": {
-				"oneOf": [
-					{
-						"title": "Bloom filter",
-						"$ref": "#/components/schemas/bytes256"
-					},
-					{
-						"title": "Null",
-						"description": "Returns null when the block is pending.",
-						"$ref": "#/components/schemas/null"
-					}
-				]
+				"title": "Bloom filter",
+				"$ref": "#/components/schemas/bytes256"
 			},
 			"difficulty": {
 				"title": "Difficulty",
@@ -110,6 +110,7 @@
 			},
 			"mixHash": {
 				"title": "Mix hash",
+				"description": "Returns 0x0...0 when block is pending.",
 				"$ref": "#/components/schemas/hash32"
 			},
 			"nonce": {
