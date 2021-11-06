@@ -170,7 +170,9 @@
 					{
 						"title": "Uncle does not exist",
 						"description": "Must return null when uncle does not exist for the given request.",
-						"type": "null"
+						"schema": {
+							"$ref" : "#/components/schemas/null"
+						}
 					}
 				]
 			}
@@ -181,10 +183,10 @@
 		"summary": "Returns the uncle block information at the given index if the given block number contains any uncle blocks.",
 		"params": [
 			{
-				"name": "Block number",
+				"name": "Block number or tag",
 				"required": true,
 				"schema": {
-					"$ref": "#/components/schemas/uint"
+					"$ref": "#/components/schemas/BlockNumberOrTag"
 				}
 			},
 			{
@@ -205,7 +207,9 @@
 					{
 						"title": "Uncle does not exist",
 						"description": "Must return null when uncle does not exist for the given request.",
-						"type": "null"
+						"schema": {
+							"$ref" : "#/components/schemas/null"
+						}
 					}
 				]
 			}
