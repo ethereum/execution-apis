@@ -57,7 +57,7 @@
 			},
 			"difficulty": {
 				"title": "Difficulty",
-				"$ref": "#/components/schemas/bytes"
+				"$ref": "#/components/schemas/uint"
 			},
 			"number": {
 				"title": "Number",
