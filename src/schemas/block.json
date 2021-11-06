@@ -139,5 +139,22 @@
 				"$ref": "#/components/schemas/BlockTag"
 			}
 		]
+	},
+	"BlockNumberOrTagOrHash": {
+		"title": "Block number or tag",
+		"oneOf": [
+			{
+				"title": "Block number",
+				"$ref": "#/components/schemas/uint"
+			},
+			{
+				"title": "Block tag",
+				"$ref": "#/components/schemas/BlockTag"
+			},
+			{
+				"title":"Block hash",
+				"$ref": "#/components/schemas/hash32"
+			}
+		]
 	}
 }

@@ -28,6 +28,12 @@
 				"schema": {
 					"$ref": "#/components/schemas/TransactionWithSender"
 				}
+			},
+			{
+				"name": "Block number, tag, or hash",
+				"schema": {
+					"$ref": "#/components/schemas/BlockNumberOrTagOrHash"
+				}
 			}
 		],
 		"result": {
