@@ -214,6 +214,7 @@ This structure contains the attributes required to initiate a payload build proc
 ##### Payload build process
 The payload build process is specified as follows:
 * Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The built `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
+* Client software **MUST** reject `payloadAttributes` with timestamps that are more than one minute in the future from the clients current time or older or equal to the timestamp of the parent.
 * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
 * Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
 * Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (12s in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
