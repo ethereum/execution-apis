@@ -24,6 +24,7 @@
 		"params": [
 			{
 				"name": "Transaction",
+				"required": true,
 				"schema": {
 					"$ref": "#/components/schemas/TransactionWithSender"
 				}

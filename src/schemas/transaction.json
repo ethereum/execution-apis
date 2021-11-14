@@ -26,7 +26,6 @@
 		"type": "object",
 		"allOf": [
 			{
-				"required": ["from"],
 				"properties": {
 					"from": {
 						"title": "from",
@@ -40,7 +39,6 @@
 	"Transaction1559Unsigned": {
 		"type": "object",
 		"title": "EIP-1559 transaction.",
-		"required": [ "type", "nonce", "gas", "value", "input", "maxFeePerGas", "maxPriorityFeePerGas", "chainId", "accessList" ],
 		"properties": {
 			"type": {
 				"title": "type",
