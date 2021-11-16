@@ -19,6 +19,11 @@
 		"type": "string",
 		"pattern": "^0x[0-9a-f]*$"
 	},
+	"bytes8": {
+		"title": "8 hex encoded bytes",
+		"type": "string",
+		"pattern": "^0x[0-9a-f]{16}$"
+	},
 	"bytes32": {
 		"title": "32 hex encoded bytes",
 		"type": "string",
@@ -37,7 +42,7 @@
 	"uint": {
 		"title": "hex encoded unsigned integer",
 		"type": "string",
-		"pattern": "^0x[1-9a-f]+[0-9a-f]*$"
+		"pattern": "^0x([1-9a-f]+[0-9a-f]*|0)$"
 	},
 	"uint256": {
 		"title": "hex encoded unsigned integer",

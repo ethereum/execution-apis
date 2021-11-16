@@ -53,21 +53,21 @@
 		"summary": "Used for submitting a proof-of-work solution.",
 		"params": [
 			{
-				"name": "Proof-of-work hash",
+				"name": "nonce",
+				"required": true,
+				"schema": {
+					"$ref": "#/components/schemas/bytes8"
+				}
+			},
+			{
+				"name": "hash",
 				"required": true,
 				"schema": {
 					"$ref": "#/components/schemas/bytes32"
 				}
 			},
 			{
-				"name": "seed hash",
-				"required": true,
-				"schema": {
-					"$ref": "#/components/schemas/bytes32"
-				}
-			},
-			{
-				"name": "difficulty",
+				"name": "digest",
 				"required": true,
 				"schema": {
 					"$ref": "#/components/schemas/bytes32"
