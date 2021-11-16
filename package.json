@@ -1,5 +1,5 @@
 {
-  "name": "eth1.0-apis",
+  "name": "execution-apis",
   "version": "0.0.0",
   "description": "Collection of JSON-RPC APIs provided by Ethereum 1.0 clients",
   "main": "index.js",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethereum/eth1.0-apis.git"
+    "url": "git+https://github.com/ethereum/execution-apis.git"
   },
   "author": "Ethereum",
   "license": "CC0-1.0",
   "bugs": {
-    "url": "https://github.com/ethereum/eth1.0-apis/issues"
+    "url": "https://github.com/ethereum/execution-apis/issues"
   },
-  "homepage": "https://github.com/ethereum/eth1.0-apis#readme",
+  "homepage": "https://github.com/ethereum/execution-apis#readme",
   "dependencies": {
     "@open-rpc/schema-utils-js": "^1.15.0",
     "json-schema-merge-allof": "^0.8.1"
