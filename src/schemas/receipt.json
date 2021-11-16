@@ -79,7 +79,7 @@
 			},
 			"to": {
 				"title": "to",
-				"description": "Address of the receiver or null when a contract creation transaction.",
+				"description": "Address of the receiver or null in a contract creation transaction.",
 				"$ref": "#/components/schemas/address"
 			},
 			"cumulativeGasUsed": {
