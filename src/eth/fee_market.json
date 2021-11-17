@@ -13,7 +13,8 @@
     },
     {
         "name": "eth_feeHistory",
-        "summary": "",
+        "summary": "Transaction fee history",
+        "description": "Returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range.",
         "params": [
             {
                 "name": "blockCount",
