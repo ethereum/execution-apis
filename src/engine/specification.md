@@ -123,7 +123,7 @@ Fields having `DATA` and `QUANTITY` types **MUST** be encoded according to the [
 
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/merge/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
 - `parentHash`: `DATA`, 32 Bytes
-- `coinbase`:  `DATA`, 20 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
@@ -149,7 +149,7 @@ This structure encapsulates the fork choice state. The fields are encoded as fol
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
-- `feeRecipient`: `DATA`, 20 Bytes - suggested value for the `coinbase` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
 ## Core
 
@@ -213,7 +213,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 ##### Payload build process
 The payload build process is specified as follows:
-* Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `feeRecipient`. The built `ExecutionPayload` **MAY** deviate the `coinbase` field value from what is specified by the `feeRecipient` parameter.
+* Client software **MUST** set the payload field values according to the set of parameters passed into this method with exception of the `suggestedFeeRecipient`. The built `ExecutionPayload` **MAY** deviate the `feeRecipient` field value from what is specified by the `suggestedFeeRecipient` parameter.
 * Client software **SHOULD** build the initial version of the payload which has an empty transaction set.
 * Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
 * Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (12s in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
