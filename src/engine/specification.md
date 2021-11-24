@@ -151,6 +151,12 @@ This structure contains the attributes required to initiate a payload build proc
 - `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
+### ValidationError
+
+This structure contains details related to the corresponding validation error. It is encoded as follows:
+- `code`: `QUANTITY`, 64 Bits - corresponding error code
+- `message`: `string` - additional context regarding the error
+
 ## Core
 
 ### engine_executePayloadV1
@@ -166,7 +172,7 @@ This structure contains the attributes required to initiate a payload build proc
 * result: `object`
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
     - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
-    - `validationError`: `ErrorObject|null` - an object providing additional details on the validation error if the payload is deemed `INVALID`
+    - `validationError`: `ValidationError|null` - an object providing additional details on the validation error if the payload is deemed `INVALID`
 * error: code and message set in case an exception happens while executing the payload.
 
 #### Specification
@@ -179,7 +185,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 3. Client software **MUST** return `{status: SYNCING, latestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
-4. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding `{"code": errorCode, "message": "errorMessage"}` object to the `validationError` field.
+4. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding [`ValidationError`](#ValidationError) object to the `validationError` field.
 
 ### engine_forkchoiceUpdatedV1
 
