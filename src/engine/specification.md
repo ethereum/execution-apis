@@ -61,11 +61,12 @@ The versioning of the Engine API is defined as follows:
 
 ## Message ordering
 
-Consensus Layer client software **MUST** utilize JSON-RPC request IDs that are strictly
-increasing.
+Consensus Layer client software **MUST** utilize JSON-RPC request IDs that are strictly increasing.
+Request IDs assigned to `engine_forkchoiceUpdated` method calls **MUST** respect the order of
+the corresponding fork choice update events occurring in the system.
 
-Execution Layer client software **MUST** execute calls strictly in the order of request IDs
-to avoid degenerate race conditions.
+Execution Layer client software **MUST NOT** process `engine_forkchoiceUpdated` method call
+if its JSON-RPC request ID is lower than the ID assigned to the previous call of this method.
 
 ## Load-balancing and advanced configurations
 
