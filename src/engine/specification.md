@@ -90,6 +90,7 @@ The list of error codes introduced by this specification can be found below.
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32000 | Server error | Generic client error while processing request. |
 | -32001 | Unknown payload | Payload does not exist / is not available. |
+| -32002 | Invalid terminal block | Terminal block doesn't satisfy terminal block conditions. |
 
 Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
 
@@ -181,6 +182,8 @@ This structure contains the attributes required to initiate a payload build proc
 
 4. Client software **MAY** provide additional details on the payload validation by utilizing `message` field in the response object. For example, particular error message occurred during the payload execution may accompany a response with `INVALID` status.
 
+5. Client software **MUST** return `-32002: Invalid terminal block` error if the parent block is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps on the Transition block validity section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity).
+
 ### engine_forkchoiceUpdatedV1
 
 #### Request
@@ -209,7 +212,9 @@ This structure contains the attributes required to initiate a payload build proc
 
 5. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null` and the client is not `SYNCING`, and **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
 
-6. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
+6. Client software **MUST** return `-32002: Invalid terminal block` error if a block referenced by `forkchoiceState.headBlockHash` is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions).
+
+7. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
 
 ##### Payload build process
 The payload build process is specified as follows:
