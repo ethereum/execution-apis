@@ -154,7 +154,7 @@ This structure contains the attributes required to initiate a payload build proc
 ### ValidationError
 
 This structure contains details related to the corresponding validation error. It is encoded as follows:
-- `code`: `QUANTITY`, 64 Bits - corresponding error code
+- `code`: `integer` - corresponding error code
 - `message`: `string` - additional context regarding the error
 
 ## Core
