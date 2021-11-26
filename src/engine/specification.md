@@ -9,6 +9,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 
 - [Underlying protocol](#underlying-protocol)
 - [Versioning](#versioning)
+- [Constants](#constants)
 - [Message ordering](#message-ordering)
 - [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
 - [Errors](#errors)
@@ -59,6 +60,12 @@ The versioning of the Engine API is defined as follows:
   * a set of structure fields
 * The specification **MAY** reference a method or a structure without the version suffix e.g. `engine_executePayload`. These statements should be read as related to all versions of the referenced method or structure.
 
+## Constants
+
+| Name | Value |
+| - | - |
+| `MESSAGE_ORDER_RESET_ID` | `0` |
+
 ## Message ordering
 
 Consensus Layer client software **MUST** utilize JSON-RPC request IDs that are strictly increasing.
@@ -67,6 +74,11 @@ the corresponding fork choice update events occurring in the system.
 
 Execution Layer client software **MUST NOT** process `engine_forkchoiceUpdated` method call
 if its JSON-RPC request ID is lower than the ID assigned to the previous call of this method.
+
+Consensus Layer client software **SHOULD** use `MESSAGE_ORDER_RESET_ID` as initial value of request ID
+to reset the ID cached by Execution Layer client software.
+If the ID of a request equals to `MESSAGE_ORDER_RESET_ID`, Execution Layer client software **MUST** process this request
+disregarding the ID of the previous one; it implies caching `MESSAGE_ORDER_RESET_ID` value as the previous request ID.
 
 ## Load-balancing and advanced configurations
 
