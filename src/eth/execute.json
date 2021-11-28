@@ -26,7 +26,7 @@
 				"name": "Transaction",
 				"required": true,
 				"schema": {
-					"$ref": "#/components/schemas/TransactionWithSender"
+					"$ref": "#/components/schemas/TransactionWithOptionalSender"
 				}
 			}
 		],

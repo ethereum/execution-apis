@@ -26,6 +26,7 @@
 		"type": "object",
 		"allOf": [
 			{
+				"required": ["from"],
 				"properties": {
 					"from": {
 						"title": "from",
@@ -36,9 +37,25 @@
 			{ "$ref": "#/components/schemas/TransactionUnsigned" }
 		]
 	},
+	"TransactionWithOptionalSender": {
+		"title": "Transaction object with optional sender",
+		"type": "object",
+		"allOf": [
+			{
+				"properties": {
+					"from": {
+						"title": "from",
+						"$ref": "#/components/schemas/address"
+					}
+				}
+			},
+			{ "$ref": "#/components/schemas/TransactionOptionalUnsigned" }
+		]
+	},
 	"Transaction1559Unsigned": {
 		"type": "object",
 		"title": "EIP-1559 transaction.",
+		"required": ["type", "nonce", "gas", "value", "input", "maxFeePerGas", "maxPriorityFeePerGas", "chainId", "accessList" ],
 		"properties": {
 			"type": {
 				"title": "type",
@@ -173,11 +190,153 @@
 			}
 		}
 	},
+	"TransactionOptional1559Unsigned": {
+		"type": "object",
+		"title": "EIP-1559 transaction with optional parameters.",
+		"properties": {
+			"type": {
+				"title": "type",
+				"$ref": "#/components/schemas/byte"
+			},
+			"nonce": {
+				"title": "nonce",
+				"$ref": "#/components/schemas/uint"
+			},
+			"to": {
+				"title": "to address",
+				"$ref": "#/components/schemas/address"
+			},
+			"gas": {
+				"title": "gas limit",
+				"$ref": "#/components/schemas/uint"
+			},
+			"value": {
+				"title": "value",
+				"$ref": "#/components/schemas/uint"
+			},
+			"input": {
+				"title": "input data",
+				"$ref": "#/components/schemas/bytes"
+			},
+			"maxPriorityFeePerGas": {
+				"title": "max priority fee per gas",
+				"description": "Maximum fee per gas the sender is willing to pay to miners in wei",
+				"$ref": "#/components/schemas/uint"
+			},
+			"maxFeePerGas": {
+				"title": "max fee per gas",
+				"description": "The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei",
+				"$ref": "#/components/schemas/uint"
+			},
+			"accessList": {
+				"title": "accessList",
+				"description": "EIP-2930 access list",
+				"$ref": "#/components/schemas/AccessList"
+			},
+			"chainId": {
+				"title": "chainId",
+				"description": "Chain ID that this transaction is valid on.",
+				"$ref": "#/components/schemas/uint"
+			}
+		}
+	},
+	"TransactionOptional2930Unsigned": {
+		"type": "object",
+		"title": "EIP-2930 transaction with optional parameters.",
+		"properties": {
+			"type": {
+				"title": "type",
+				"$ref": "#/components/schemas/byte"
+			},
+			"nonce": {
+				"title": "nonce",
+				"$ref": "#/components/schemas/uint"
+			},
+			"to": {
+				"title": "to address",
+				"$ref": "#/components/schemas/address"
+			},
+			"gas": {
+				"title": "gas limit",
+				"$ref": "#/components/schemas/uint"
+			},
+			"value": {
+				"title": "value",
+				"$ref": "#/components/schemas/uint"
+			},
+			"input": {
+				"title": "input data",
+				"$ref": "#/components/schemas/bytes"
+			},
+			"gasPrice": {
+				"title": "gas price",
+				"description": "The gas price willing to be paid by the sender in wei",
+				"$ref": "#/components/schemas/uint"
+			},
+			"accessList": {
+				"title": "accessList",
+				"description": "EIP-2930 access list",
+				"$ref": "#/components/schemas/AccessList"
+			},
+			"chainId": {
+				"title": "chainId",
+				"description": "Chain ID that this transaction is valid on.",
+				"$ref": "#/components/schemas/uint"
+			}
+		}
+	},
+	"TransactionOptionalLegacyUnsigned": {
+		"type": "object",
+		"title": "Legacy transaction with optional parameters.",
+		"properties": {
+			"type": {
+				"title": "type",
+				"$ref": "#/components/schemas/byte"
+			},
+			"nonce": {
+				"title": "nonce",
+				"$ref": "#/components/schemas/uint"
+			},
+			"to": {
+				"title": "to address",
+				"$ref": "#/components/schemas/address"
+			},
+			"gas": {
+				"title": "gas limit",
+				"$ref": "#/components/schemas/uint"
+			},
+			"value": {
+				"title": "value",
+				"$ref": "#/components/schemas/uint"
+			},
+			"input": {
+				"title": "input data",
+				"$ref": "#/components/schemas/bytes"
+			},
+			"gasPrice": {
+				"title": "gas price",
+				"description": "The gas price willing to be paid by the sender in wei",
+				"$ref": "#/components/schemas/uint"
+			},
+			"chainId": {
+				"title": "chainId",
+				"description": "Chain ID that this transaction is valid on.",
+				"$ref": "#/components/schemas/uint"
+			}
+		}
+	},
 	"TransactionUnsigned": {
 		"oneOf": [
 			{ "$ref": "#/components/schemas/Transaction1559Unsigned"},
 			{ "$ref": "#/components/schemas/Transaction2930Unsigned"},
 			{ "$ref": "#/components/schemas/TransactionLegacyUnsigned"}
+		]
+	},
+	"TransactionOptionalUnsigned": {
+		"oneOf": [
+			{ "$ref": "#/components/schemas/TransactionOptional1559Unsigned"},
+			{ "$ref": "#/components/schemas/TransactionOptional2930Unsigned"},
+			{ "$ref": "#/components/schemas/TransactionOptionalLegacyUnsigned"}
 		]
 	},
 	"Transaction1559Signed": {
