@@ -16,7 +16,6 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
   - [ExecutionPayloadV1](#executionpayloadv1)
   - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
-  - [ValidationErrorV1](#validationerrorv1)
 - [Core](#core)
   - [engine_executePayloadV1](#engine_executepayloadv1)
     - [Request](#request)
@@ -152,12 +151,6 @@ This structure contains the attributes required to initiate a payload build proc
 - `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
-### ValidationErrorV1
-
-This structure contains details related to the corresponding validation error. It is encoded as follows:
-- `code`: `integer` - corresponding error code
-- `message`: `string` - additional context regarding the error
-
 ## Core
 
 ### engine_executePayloadV1
@@ -173,7 +166,7 @@ This structure contains details related to the corresponding validation error. I
 * result: `object`
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
     - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
-    - `validationError`: `ValidationErrorV1|null` - an object providing additional details on the validation error if the payload is deemed `INVALID`
+    - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
 * error: code and message set in case an exception happens while executing the payload.
 
 #### Specification
@@ -186,7 +179,7 @@ This structure contains details related to the corresponding validation error. I
 
 3. Client software **MUST** return `{status: SYNCING, latestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
-4. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding [`ValidationErrorV1`](#ValidationErrorV1) object to the `validationError` field.
+4. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
 
 ### engine_forkchoiceUpdatedV1
 
