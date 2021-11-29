@@ -78,7 +78,7 @@ if its JSON-RPC request ID is lower than the ID assigned to the previous call of
 Consensus Layer client software **SHOULD** use `MESSAGE_ORDER_RESET_ID` as initial value of request ID
 to reset the ID cached by Execution Layer client software.
 If the ID of a request equals to `MESSAGE_ORDER_RESET_ID`, Execution Layer client software **MUST** process this request
-disregarding the ID of the previous one; it implies caching `MESSAGE_ORDER_RESET_ID` value as the previous request ID.
+disregarding the ID of the previous one and use `MESSAGE_ORDER_RESET_ID` value as the latest previous request ID.
 
 ## Load-balancing and advanced configurations
 
