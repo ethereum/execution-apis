@@ -139,7 +139,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
-- `receiptRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
 - `random`: `DATA`, 32 Bytes
 - `blockNumber`: `QUANTITY`, 64 Bits
