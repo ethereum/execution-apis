@@ -113,5 +113,82 @@
 				"$ref": "#/components/schemas/bytes"
 			}
 		}
+	},
+	{
+		"name": "eth_getProof",
+		"summary": "Returns the account- and storage-values of the specified account including the Merkle-proof.",
+		"params": [
+			{
+				"name": "address",
+				"description": "The address of the account or contract",
+				"required": true,
+				"schema": {
+					"$ref": "#/components/schemas/Address"
+				}
+			},
+			{
+				"name": "storageKeys",
+				"required": true,
+				"schema": {
+					"title": "storageKeys",
+					"description": "A storage key is indexed from the solidity compiler by the order it is declared. For mappings it uses the keccak of the mapping key with its position (and recursively for X-dimensional mappings)",
+					"items": {
+						"$ref": "#/components/schemas/StorageProofKey"
+					}
+				}
+			},
+			{
+				"$ref": "#/components/contentDescriptors/BlockNumber"
+			}
+		],
+		"result": {
+			"name": "account",
+			"schema": {
+				"title": "proofAccountOrNull",
+				"oneOf": [
+					{
+						"title": "proofAccount",
+						"type": "object",
+						"description": "The merkle proofs of the specified account connecting them to the blockhash of the block specified",
+						"properties": {
+							"address": {
+								"title": "proofAccountAddress",
+								"description": "The address of the account or contract of the request",
+								"$ref": "#/components/schemas/Address"
+							},
+							"accountProof": {
+								"$ref": "#/components/schemas/ProofNodes"
+							},
+							"balance": {
+								"title": "proofAccountBalance",
+								"description": "The Ether balance of the account or contract of the request",
+								"$ref": "#/components/schemas/Integer"
+							},
+							"codeHash": {
+								"title": "proofAccountCodeHash",
+								"description": "The code hash of the contract of the request (keccak(NULL) if external account)",
+								"$ref": "#/components/schemas/Keccak"
+							},
+							"nonce": {
+								"title": "proofAccountNonce",
+								"description": "The transaction count of the account or contract of the request",
+								"$ref": "#/components/schemas/Nonce"
+							},
+							"storageHash": {
+								"title": "proofAccountStorageHash",
+								"description": "The storage hash of the contract of the request (keccak(rlp(NULL)) if external account)",
+								"$ref": "#/components/schemas/Keccak"
+							},
+							"storageProof": {
+								"$ref": "#/components/schemas/StorageProof"
+							}
+						}
+					},
+					{
+						"$ref": "#/components/schemas/Null"
+					}
+				]
+			}
+		}
 	}
 ]
