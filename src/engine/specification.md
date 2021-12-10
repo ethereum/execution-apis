@@ -17,6 +17,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
   - [ExecutionPayloadV1](#executionpayloadv1)
   - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
+  - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
 - [Core](#core)
   - [engine_executePayloadV1](#engine_executepayloadv1)
     - [Request](#request)
@@ -31,6 +32,10 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_getPayloadBodiesV1](#engine_getpayloadbodiesv1)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -165,6 +170,12 @@ This structure contains the attributes required to initiate a payload build proc
 - `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
+### ExecutionPayloadBodyV1
+
+This structure contains a body of an execution payload. The fields are encoded as follows:
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+
+
 ## Core
 
 ### engine_executePayloadV1
@@ -256,3 +267,22 @@ The payload build process is specified as follows:
 2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
+
+### engine_getPayloadBodiesV1
+
+#### Request
+
+* method: `engine_getPayloadBodiesV1`
+* params:
+  1. `Array of DATA`, 32 Bytes - Array of `block_hash` field values of the `ExecutionPayload` structure
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* error: code and message set in case an exception happens while processing the method call.
+
+#### Specification
+
+1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding hashes respecting the order of block hashes in the input array.
+
+2. Client software **MUST** skip the payload body in the response array if the data of this body is missing. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, C.body]`.
