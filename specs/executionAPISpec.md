@@ -1,6 +1,6 @@
 # Ethereum Execution Layer JSON-RPC API
 ## Technical Specification
-## Working Draft: Updated December 17th  
+## Working Draft: Updated December 19th  
 ---
 ### **Editor:**
 Jared Doro(jareddoro@gmail.com)
@@ -14,16 +14,19 @@ When referencing this specification the following citation format should be used
 
 [ethereum-execution-layer-JSON-RPC-API]
 
-Ethereum execution layer JSON-RPC API Edited by Jared Doro. 17th December 2021.
+Ethereum execution layer JSON-RPC API Edited by Jared Doro. 19th December 2021.
 # Table of Contents
 [1 Introduction](#1-introduction)\
 &nbsp;&nbsp;[1.1 Overview](#11-overview)\
-&nbsp;&nbsp;[1.2 Glossary](#12-glossary)\
-&nbsp;&nbsp;[1.3 Document Conventions](#13-document-conventions)\
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3.1 Input parameters](#131-input-parameters)\
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3.2 Not specified vs null vs empty](#132-not-specified-vs-null-vs-empty)\
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3.3 Default block parameter](#133-default-block-parameter)\
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3.4 Unavailable vs Does not exist](#134-unavailable-vs-does-not-exist)\
+&nbsp;&nbsp;[1.2 Terminology](#12-terminology)\
+&nbsp;&nbsp;[1.3 References](#13-references)\
+&nbsp;&nbsp;&nbsp;&nbsp;[1.3.1 Normative References](#131-normative-references)\
+&nbsp;&nbsp;&nbsp;&nbsp;[1.3.2 Non-normative References](#132-non-normative-references)\
+&nbsp;&nbsp;[1.4 Document Conventions](#14-document-conventions)\
+&nbsp;&nbsp;&nbsp;&nbsp;[1.4.1 Input Parameters](#141-input-parameters)\
+&nbsp;&nbsp;&nbsp;&nbsp;[1.4.2 Not Specified vs Null vs Empty](#142-not-specified-vs-null-vs-empty)\
+&nbsp;&nbsp;&nbsp;&nbsp;[1.4.3 Default Block Parameter](#143-default-block-parameter)\
+&nbsp;&nbsp;&nbsp;&nbsp;[1.4.4 Unavailable vs Does Not Exist](#144-unavailable-vs-does-not-exist)\
 [2 Standard endpoint specification](#2-standard-endpoint-specifications)\
 [3 Errors](#3-errors)\
 [Appendix](#appendix)
@@ -32,20 +35,48 @@ Ethereum execution layer JSON-RPC API Edited by Jared Doro. 17th December 2021.
 The Ethereum execution layer API is one of the key components of Ethereum. It acts as an intermediary between the users of Ethereum and the execution layer where the blocks are created and executed. It provides a way for users to send transactions to the blockchain, query data from the current and historical states of the blockchain, and monitor events and changes happening within the blockchain
 
 The purpose of this document is to act as a centralized source of information regarding the functional and non-functional requirements for Ethereum's execution layer API. This document is intended for development teams that are planning on implementing a version of the execution layer API. This document would also be beneficial to but is not intended for anyone interested in learning how the user interacts with Ethereum clients and at the most basic level. 
-## 1.2 Glossary
-* ETH
-* Smart contracts
-* user
-* client
-* EVM
-* Account
-* block
-* blockchain
-
-## 1.3 Document Conventions
-### 1.3.1 Input Parameters
+## 1.2 Terminology
+|Term| Definition|
+|---|---|
+|Account||
+|Address||
+|Block||
+|Blockchain||
+|call||
+|client| Software that allows users to run an instance of the Ethereum blockchain|
+|cryptography||
+|Ether|Cryptographic token created as a reward for participating in securing and running the Ethereum blockchain. Ether is also used to pay for all transactions on the Ethereum blockchain.|
+|EVM||
+|Execution layer||
+|gas||
+|genisis block||
+|hash||
+|header||
+|merkle tree||
+|mining||
+|network||
+|node| A running client connected to the Ethereum blockchain.|
+|nonce| An integer corresponding to the number of transactions an account has made on the blockchain.|
+|peer nodes||
+|private key||
+|public key||
+|rewards||
+|signing||
+|Smart Contract| Code|
+|state||
+|storage slot||
+|token||
+|transaction||
+|Uncle block| A block that was |
+|user||
+|Wei|The smallest unit of Ether where **1Eth = 1e18Wei**|
+## 1.3 References
+### 1.3.1 Normative References
+### 1.3.2 Non-normative References
+## 1.4 Document Conventions
+### 1.4.1 Input Parameters
 Input parameters will be displayed like `this` when referred to in the document.
-### 1.3.2 Not specified vs null vs empty
+### 1.4.2 Not Specified vs Null vs Empty
 * Not specified describes when a parameter is not part of the call.
 * Null describes when a parameter is part of the call, but has the value of null.
 * Empty describes when a parameter is part of the call, but has only an empty string.
@@ -66,7 +97,7 @@ An example where `gas` is not specified `value` is empty, and `data` is null.
 	"id": 1
 }
 ```
-### 1.3.3 Default Block Parameter
+### 1.4.3 Default Block Parameter
 Some endpoints use the `defaultBlockParameter` to specify the block that the data is being requested from.
 The `defaultBlockParameter` allows the following options to specify a block:
 * Block Number
@@ -76,11 +107,11 @@ The `defaultBlockParameter` allows the following options to specify a block:
   * latest: for the latest block received by the client.
   * pending: for the pending state/transactions.
 
-### 1.3.4 Unavailable vs Does not exist
+### 1.4.4 Unavailable vs Does Not Exist
 * Requested data is unavailable when the client does not contain the necessary information to respond to the request, but the information does exist on the network.
 * Requested data does not exist when neither the client or the network contain the necessary information to respond to the request.
-# 2 Standard endpoint specifications
-The following list does not contain every module that is available to clients. This only contains the standard modules that each client needs to function properly.
+# 2 Standard Endpoint Specifications
+The following list does not contain every module that is available on all clients. This only contains the standard modules that each client needs to function properly.
 ### Web3
 * <a href="#clientVersion">web3_clientVersion</a>
 * <a href="#sha3">web3_sha3</a>
