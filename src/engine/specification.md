@@ -169,13 +169,13 @@ This structure contains the attributes required to initiate a payload build proc
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
     - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
     - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
-    - `feeRecipientDiff`: `Quantity`, 256 Bits - the change in balance of the feeRecipient address
+    - `feeRecipientDiff`: `Quantity|null`, 256 Bits - the change in balance of the feeRecipient address
 * error: code and message set in case an exception happens while executing the payload.
 
 #### Specification
 
 1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and return the validation result.
-    * If validation succeeds, return `{status: VALID, latestValidHash: payload.blockHash}`
+    * If validation succeeds, return `{status: VALID, latestValidHash: payload.blockHash, feeRecipientDiff: <value>}`
     * If validation fails, return `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`.
 
 2. Client software **MUST** discard the payload if it's deemed invalid.
