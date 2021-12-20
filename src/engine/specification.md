@@ -169,6 +169,7 @@ This structure contains the attributes required to initiate a payload build proc
     - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
     - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
     - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
+    - `feeRecipientDiff`: `Quantity`, 256 Bits - the change in balance of the feeRecipient address
 * error: code and message set in case an exception happens while executing the payload.
 
 #### Specification
@@ -184,6 +185,8 @@ This structure contains the attributes required to initiate a payload build proc
 4. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
 
 5. Client software **MUST** return `-32002: Invalid terminal block` error if the parent block is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps on the Transition block validity section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity).
+
+6. Client software **MUST** calculate and return `feeRecipientDiff` as the difference in ETH balance of the `feeRecipient` address specified in [`ExecutionPayloadV1`](#ExecutionPayloadV1).
 
 ### engine_forkchoiceUpdatedV1
 
@@ -234,7 +237,9 @@ The payload build process is specified as follows:
 
 #### Response
 
-* result: [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+* result: `object`
+    - [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+    - `feeRecipientDiff`: `Quantity`, 256 Bits - the change in balance of the feeRecipient address
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -244,3 +249,5 @@ The payload build process is specified as follows:
 2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
+
+4. Client software **MUST** calculate and return `feeRecipientDiff` as the difference in ETH balance of the `feeRecipient` address specified in [`ExecutionPayloadV1`](#ExecutionPayloadV1).
