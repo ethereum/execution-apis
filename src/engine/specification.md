@@ -177,13 +177,15 @@ This structure contains the attributes required to initiate a payload build proc
     * If validation succeeds, return `{status: VALID, latestValidHash: payload.blockHash}`
     * If validation fails, return `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`.
 
-2. Client software **MUST** discard the payload if it's deemed invalid.
+1. Client software **MUST** discard the payload if it's deemed invalid.
 
-3. Client software **MUST** return `{status: SYNCING, latestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
+1. Client software **MUST** return `{status: SYNCING, latestValidHash: null}` if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
 
-4. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
+1. Client software **MUST** validate the payload and respond accordingly despite of the sync process being in progress if there is enough data for the payload validation.
 
-5. Client software **MUST** return `-32002: Invalid terminal block` error if the parent block is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps on the Transition block validity section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity).
+1. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
+
+1. Client software **MUST** return `-32002: Invalid terminal block` error if the parent block is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps on the Transition block validity section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity).
 
 ### engine_forkchoiceUpdatedV1
 
@@ -192,7 +194,7 @@ This structure contains the attributes required to initiate a payload build proc
 * method: "engine_forkchoiceUpdatedV1"
 * params: 
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+  1. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 
 #### Response
 
@@ -205,17 +207,19 @@ This structure contains the attributes required to initiate a payload build proc
 
 1. The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
 
-2. All updates to the forkchoice state resulting from this call **MUST** be made atomically.
+1. All updates to the forkchoice state resulting from this call **MUST** be made atomically.
 
-3. Client software **MUST** return `{status: SUCCESS, payloadId: null}` if `payloadAttributes` is `null` and the client is not `SYNCING`.
+1. Client software **MUST** return `{status: SUCCESS, payloadId: null}` if `payloadAttributes` is `null`.
 
-4. Client software **MUST** return `{status: SYNCING, payloadId: null}` if the payload identified by either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
+1. Client software **MUST** return `{status: SYNCING, payloadId: null}` if the payload identified by either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown. In the event that either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
 
-5. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null` and the client is not `SYNCING`, and **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
+1. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null`, and **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
 
-6. Client software **MUST** return `-32002: Invalid terminal block` error if a block referenced by `forkchoiceState.headBlockHash` is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions).
+1. Client software **MUST** update the fork choice state and initiate a payload build process, and respond accordingly despite of the sync process being in progress if payloads identified by the `forkchoiceState.headBlockHash` and the `forkchoiceState.finalizedBlockHash` are known.
 
-7. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
+1. Client software **MUST** return `-32002: Invalid terminal block` error if a block referenced by `forkchoiceState.headBlockHash` is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions).
+
+1. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
 
 ##### Payload build process
 The payload build process is specified as follows:
@@ -241,6 +245,6 @@ The payload build process is specified as follows:
 
 1. Given the `payloadId` client software **MUST** return the most recent version of the payload that is available in the corresponding build process at the time of receiving the call.
 
-2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+1. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
-3. Client software **MAY** stop the corresponding build process after serving this call.
+1. Client software **MAY** stop the corresponding build process after serving this call.
