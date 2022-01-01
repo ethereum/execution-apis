@@ -31,7 +31,7 @@
 			"name": "Current work",
 			"schema": {
 				"type": "array",
-				"items": [
+				"prefixItems": [
 					{
 						"title": "Proof-of-work hash",
 						"$ref": "#/components/schemas/bytes32"
