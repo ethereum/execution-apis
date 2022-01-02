@@ -246,7 +246,7 @@ ___
 ## <p id="call">eth_call</p>
 * [EC-1] eth_call **MUST** return the result of the given transaction.
 * [EC-2] eth_call **MUST** accept all current transaction types. Legacy transactions and [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) "typed" transactions.
-* [EC-3] eth_call **MUST NOT** mine any transaction on the blockchain.
+* [EC-3] eth_call **MUST NOT** sign nor propagate the transaction (if it happens to be signed) to the network.
 * [EC-4] eth_call **MUST** use the block requested by the `defaultBlockParameter` when interacting with contracts.
 * [EC-5] eth_call **MUST** error with code -32000 when the requested block does not exist or is not available.
 * [EC-6] eth_call **SHOULD NOT** be allowed to be called from an address where CODEHASH != EMPTYCODEHASH. [EIP-3607](https://eips.ethereum.org/EIPS/eip-3607)
