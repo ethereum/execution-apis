@@ -1,6 +1,6 @@
 # Ethereum Execution Layer JSON-RPC API
 ## Technical Specification
-## Working Draft: Updated December 19th  
+## Working Draft: Updated January 5th  
 ---
 ### **Editor:**
 Jared Doro(jareddoro@gmail.com)
@@ -14,14 +14,12 @@ When referencing this specification the following citation format should be used
 
 [ethereum-execution-layer-JSON-RPC-API]
 
-Ethereum execution layer JSON-RPC API Edited by Jared Doro. 19th December 2021.
+Ethereum execution layer JSON-RPC API Edited by Jared Doro. 5th January 2022.
 # Table of Contents
 [1 Introduction](#1-introduction)\
 &nbsp;&nbsp;[1.1 Overview](#11-overview)\
 &nbsp;&nbsp;[1.2 Terminology](#12-terminology)\
 &nbsp;&nbsp;[1.3 References](#13-references)\
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3.1 Normative References](#131-normative-references)\
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3.2 Non-normative References](#132-non-normative-references)\
 &nbsp;&nbsp;[1.4 Document Conventions](#14-document-conventions)\
 &nbsp;&nbsp;&nbsp;&nbsp;[1.4.1 Input Parameters](#141-input-parameters)\
 &nbsp;&nbsp;&nbsp;&nbsp;[1.4.2 Not Specified vs Null vs Empty](#142-not-specified-vs-null-vs-empty)\
@@ -36,43 +34,16 @@ The Ethereum execution layer API is one of the key components of Ethereum. It ac
 
 The purpose of this document is to act as a centralized source of information regarding the functional and non-functional requirements for Ethereum's execution layer API. This document is intended for development teams that are planning on implementing a version of the execution layer API. This document would also be beneficial to but is not intended for anyone interested in learning how the user interacts with Ethereum clients and at the most basic level. 
 ## 1.2 Terminology
-|Term| Definition|
-|---|---|
-|Account||
-|Address||
-|Block||
-|Blockchain||
-|call||
-|client| Software that allows users to run an instance of the Ethereum blockchain|
-|cryptography||
-|Ether|Cryptographic token created as a reward for participating in securing and running the Ethereum blockchain. Ether is also used to pay for all transactions on the Ethereum blockchain.|
-|EVM||
-|Execution layer||
-|gas||
-|genisis block||
-|hash||
-|header||
-|merkle tree||
-|mining||
-|network||
-|node| A running client connected to the Ethereum blockchain.|
-|nonce| An integer corresponding to the number of transactions an account has made on the blockchain.|
-|peer nodes||
-|private key||
-|public key||
-|rewards||
-|signing||
-|Smart Contract| Code|
-|state||
-|storage slot||
-|token||
-|transaction||
-|Uncle block| A block that was |
-|user||
-|Wei|The smallest unit of Ether where **1Eth = 1e18Wei**|
 ## 1.3 References
-### 1.3.1 Normative References
-### 1.3.2 Non-normative References
+* [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification)
+* [Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+* [JSON Standard](https://www.json.org/json-en.html)
+* [HTTP/2](https://httpwg.org/specs/rfc7540.html)
+* Martin Holst Swende, Nick Johnson, "EIP-191: Signed Data Standard," Ethereum Improvement Proposals, no. 191, January 2016. [Online serial]. Available: https://eips.ethereum.org/EIPS/eip-191
+* Micah Zoltu, "EIP-2718: Typed Transaction Envelope," Ethereum Improvement Proposals, no. 2718, June 2020. [Online serial]. Available: https://eips.ethereum.org/EIPS/eip-2718.
+* Dankrad Feist, Dmitry Khovratovich, Marius van der Wijden, "EIP-3607: Reject transactions from senders with deployed code," Ethereum Improvement Proposals, no. 3607, June 2021. [Online serial]. Available: https://eips.ethereum.org/EIPS/eip-3607.
+* Vitalik Buterin, Martin Swende, "EIP-2930: Optional access lists," Ethereum Improvement Proposals, no. 2930, August 2020. [Online serial]. Available: https://eips.ethereum.org/EIPS/eip-2930.
+* Paul Bouchon, Erik Marks, "EIP-1474: Remote procedure call specification," Ethereum Improvement Proposals, no. 1474, October 2018. [Online serial]. Available: https://eips.ethereum.org/EIPS/eip-1474.
 ## 1.4 Document Conventions
 ### 1.4.1 Input Parameters
 Input parameters will be displayed like `this` when referred to in the document.
@@ -206,7 +177,7 @@ ___
 * [EEB-1] eth_etherbase **MUST** return the public address where the client's mining rewards are sent to.
 * [EEB-2] eth_etherbase **MUST** error with code -32000 when the client does not have an address for the block reward to be sent to when not mining.
 ## <p id="accounts">eth_accounts</p>
-* [EA-1] eth_accounts **MUST** return the public addresses for each Ethereum account that the client you are using manages.
+* [EA-1] eth_accounts **MUST** return the public addresses for each Ethereum account that the client being using manages.
 ## <p id="mining">eth_mining</p>
 * [EM-1] eth_mining **MUST** return true when the client has mining enabled, otherwise it **MUST** return false.
 ## <p id="getWork">eth_getWork</p>
@@ -240,16 +211,16 @@ ___
 * [EBN-1] eth_blockNumber **MUST** return the block number for the most recent block mined.
 * [EBN-2] eth_blockNumber **MUST** return "0x0" when the client is not synced to the network.
 ## <p id="sign">eth_sign</p>
-* [ESN-1] eth_sign **MUST** return the Ethereum specific signature detailed in [EIP-191](https://eips.ethereum.org/EIPS/eip-191) for the given unlocked `address` and `message`.
-* [ESN-2] eth_sign **MUST** error with code -32000 when the account corresponding to the `address` is not unlocked.
-* [ESN-3] eth_sign **MUST** error with code -32000 when the account corresponding to the `address` is not owned by the client.
+* [ESN-1] eth_sign **MUST** return the Ethereum specific signature detailed in [EIP-191](https://eips.ethereum.org/EIPS/eip-191) for the given `address` and `message`.
+* [ESN-2] eth_sign **MUST** error with code -32000 when the account corresponding to the `address` is managed by the client, but encrypted.
+* [ESN-3] eth_sign **MUST** error with code -32000 when the account corresponding to the `address` is not managed by the client.
 ## <p id="call">eth_call</p>
 * [EC-1] eth_call **MUST** return the result of the given transaction.
 * [EC-2] eth_call **MUST** accept all current transaction types. Legacy transactions and [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) "typed" transactions.
 * [EC-3] eth_call **MUST NOT** sign nor propagate the transaction (if it happens to be signed) to the network.
 * [EC-4] eth_call **MUST** use the block requested by the `defaultBlockParameter` when interacting with contracts.
 * [EC-5] eth_call **MUST** error with code -32000 when the requested block does not exist or is not available.
-* [EC-6] eth_call **SHOULD NOT** be allowed to be called from an address where CODEHASH != EMPTYCODEHASH. [EIP-3607](https://eips.ethereum.org/EIPS/eip-3607)
+* [EC-6] eth_call **MUST** allow calls from an address where CODEHASH != EMPTYCODEHASH. [EIP-3607](https://eips.ethereum.org/EIPS/eip-3607)
 * [EC-7] eth_call **MUST NOT** error if the transaction exceeds the gas or fee cap.
 * [EC-8] eth_call **MUST** use 0x0000000000000000000000000000000000000000 as default `from` address when `from` is null or not specified. [Nethermind uses 0xf...fe] 
 * [EC-9] eth_call **MUST** check `from` account balance has sufficient funds to "pay" for the transaction.
@@ -289,29 +260,30 @@ ___
 * [ESNT-2] eth_signTransaction **MUST NOT** use given transaction `type` for transaction type, **MUST** determine transaction type from given transaction parameters.
 * [ESNT-3] eth_signTransaction **MUST** return encoded legacy transactions in the RLP format.
 * [ESNT-4] eth_signTransaction **MUST** return encoded [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) transactions as the transaction `type` concatenated with the transaction type's defined encoding method.
-* [ESNT-5] eth_signTransaction **MUST** use 0x0000000000000000000000000000000000000000 as default `from` address when `from` is null or not specified.
-* [ESNT-6] eth_signTransaction **MUST** error with code -32000 when the `from` address is locked.
-* [ESNT-7] eth_signTransaction **MUST** error with code -32000 when sending transaction using a `from` address that the client does not have the private key for.
-* [ESNT-8] eth_signTransaction **MUST** error with code -32000 when the `gas` is not specified.
-* [ESNT-9] eth_signTransaction **MUST** use 0x0 for `gas` when parameter is null.
-* [ESNT-10] eth_signTransaction **MUST** error with code -32000 when the `gasPrice` or `maxFeePerGas` and `maxPriorityFeePerGas` are not specified.
-* [ESNT-11] eth_signTransaction **MUST** error with code -32000 when `gasPrice` is used with `maxFeePerGas` and/or `maxPriorityFeePerGas`.
-* [ESNT-12] eth_signTransaction **MUST** use 0x0 for `gasPrice` or `maxFeePerGas` and `maxPriorityFeePerGas` when the parameter is null. 
-* [ESNT-13] eth_signTransaction **MUST** use null for `gasPrice` when using a type 2 transaction. 
-* [ESNT-14] eth_signTransaction **MUST** error with code -32000 when the `maxPriorityFeePerGas` has a larger value than the `maxFeePerGas`
-* [ESNT-15] eth_signTransaction **MUST** error with code -32000 when the `nonce` is not specified.
-* [ESNT-16] eth_signTransaction **MUST** use 0x0 for `nonce` when parameter is null.
-* [ESNT-17] eth_signTransaction **MUST** allow `to` address to be the same as `from` address.
-* [ESNT-18] eth_signTransaction **MUST** allow user to enter extra key value pairs within the `transaction` object that are not used by the selected transaction.
-* [ESNT-19] eth_signTransaction **MUST NOT** add any extra key value pairs sent by the user to the signed transaction sent to the network.
-* [ESNT-20] eth_signTransaction **MUST** allow user to use duplicate parameters in the `transaction` object and **MUST** use the last of the duplicate parameters.
-* [ESNT-21] eth_signTransaction **MUST** allow user to use `data` or `input` for contract deployment or contract interactions.
-* [ESNT-22] eth_signTransaction **MUST** error with code -32000 when `data` and `input` are both used and are not equal.
-* [ESNT-23] eth_signTransaction **MUST** error with code -32000 when `gas` exceeds block gas limit.
-* [ESNT-24] eth_signTransaction **MUST** error with code -32000 when `gasPrice` causes transaction to exceed the transaction fee cap.
-* [ESNT-25] eth_signTransaction **MUST** error with code -32000 when `maxFeePerGas` causes transaction to exceed the transaction fee cap.
-* [ESNT-26] eth_signTransaction **MUST** error with code -32000 when deploying contract with no `data` or `input`.
-* [ESNT-27] eth_signTransaction **MUST** error with code -32000 when specifying a `chainId` that is different from the network's chain Id.
+* [ESNT-5] eth_signTransaction **MUST** error with code -32602 when `from` is empty.
+* [ESNT-6] eth_signTransaction **MUST** error with code -32000 when `from` is null or not specified.
+* [ESNT-7] eth_signTransaction **MUST** error with code -32000 when the `from` address corresponds to an account with its private key encrypted.
+* [ESNT-8] eth_signTransaction **MUST** error with code -32000 when signing a transaction using a `from` address that the client does not have the private key for.
+* [ESNT-9] eth_signTransaction **MUST** error with code -32000 when the `gas` is not specified or null.
+* [ESNT-10] eth_signTransaction **MUST** use 0x0 for `gas` when it is empty.
+* [ESNT-11] eth_signTransaction **MUST** error with code -32000 when the `gasPrice` or `maxFeePerGas` and `maxPriorityFeePerGas` are not specified or null.
+* [ESNT-12] eth_signTransaction **MUST** error with code -32000 when `gasPrice` is used with `maxFeePerGas` and/or `maxPriorityFeePerGas`.
+* [ESNT-13] eth_signTransaction **MUST** use 0x0 for when `gasPrice`, `maxFeePerGas`, or `maxPriorityFeePerGas` is empty. 
+* [ESNT-14] eth_signTransaction **MUST** use null for `gasPrice` when using a type 2 transaction. 
+* [ESNT-15] eth_signTransaction **MUST** error with code -32000 when the `maxPriorityFeePerGas` has a larger value than the `maxFeePerGas`
+* [ESNT-16] eth_signTransaction **MUST** error with code -32000 when the `nonce` is not specified or null.
+* [ESNT-17] eth_signTransaction **MUST** use 0x0 for `nonce` when it is empty.
+* [ESNT-18] eth_signTransaction **MUST** allow `to` address to be the same as `from` address.
+* [ESNT-19] eth_signTransaction **MUST** allow user to enter extra key value pairs within the `transaction` object that are not used by the selected transaction.
+* [ESNT-20] eth_signTransaction **MUST NOT** add any extra key value pairs sent by the user to the signed transaction sent to the network.
+* [ESNT-21] eth_signTransaction **MUST** allow user to use duplicate parameters in the `transaction` object and **MUST** use the last of the duplicate parameters.
+* [ESNT-22] eth_signTransaction **MUST** allow user to use `data` or `input` for contract deployment or contract interactions.
+* [ESNT-23] eth_signTransaction **MUST** error with code -32000 when `data` and `input` are both used and are not equal.
+* [ESNT-24] eth_signTransaction **MUST** error with code -32000 when `gas` exceeds block gas limit.
+* [ESNT-25] eth_signTransaction **MUST** error with code -32000 when `gasPrice` causes transaction to exceed the transaction fee cap.
+* [ESNT-26] eth_signTransaction **MUST** error with code -32000 when `maxFeePerGas` causes transaction to exceed the transaction fee cap.
+* [ESNT-27] eth_signTransaction **MUST** error with code -32000 when deploying contract with no `data` or `input`.
+* [ESNT-28] eth_signTransaction **MUST** error with code -32000 when specifying a `chainId` that is different from the network's chain Id.
 ## <p id="sendRawTransaction">eth_sendRawTransaction</p>
 * [ESRT-1] eth_sendRawTransaction **MUST** return the transaction hash after submitting an encoded signed transaction to the network.
 * [ESRT-2] eth_sendRawTransaction **MUST** allow users to send transaction where `gasPrice` or `maxFeePerGas` or `maxPriorityFeePerGas` are below network average and may never be executed.
@@ -331,7 +303,7 @@ ___
 * [EST-6] eth_sendTransaction **MUST** allow user to use duplicate parameters in the `transaction` object and **MUST** use the last of the duplicate parameters.
 * [EST-7] eth_sendTransaction **MUST** use 0x0000000000000000000000000000000000000000 as default `from` address when `from` is null or not specified.
 * [EST-8] eth_sendTransaction **MUST** error with code -32000 when sending transaction using a `from` address that the client does not have the private key for.
-* [EST-9] eth_sendTransaction **MUST** error with code -32000 when sending transaction using a `from` address that is locked.
+* [EST-9] eth_sendTransaction **MUST** error with code -32000 when sending transaction using a `from` address that corresponds to an account with an encrypted private key.
 * [EST-10] eth_sendTransaction **MUST** allow user to use `value` parameter when deploying a contract.
 * [EST-11] eth_sendTransaction **MUST NOT** send `value` to created contract when used during contract deployment
 * [EST-12] eth_sendTransaction **MUST NOT** cost any extra when `value` is added during contract deployment.
@@ -522,9 +494,3 @@ This table has been taken from the initial version of the JSON-RPC API spec that
 |-32006|JSON-RPC version not supported|Version of JSON-RPC protocol is not supported|non-standard|
 
 [table source](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1474.md)
-# References
-# Appendix
-* [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification)
-* [Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf)
-* [JSON Standard](https://www.json.org/json-en.html)
-* [HTTP/2](https://httpwg.org/specs/rfc7540.html)
