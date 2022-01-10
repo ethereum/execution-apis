@@ -27,4 +27,5 @@ jobs:
           git checkout -b assembled-spec
           git add -f openrpc.json
           git commit -m "assemble openrpc.json"
+          git add -f refs-openrpc.json
           git push -fu origin assembled-spec
