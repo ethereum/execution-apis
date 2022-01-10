@@ -45,9 +45,10 @@ const doc = {
     schemas: schemas
   }
 }
-let spec = await dereferenceDocument(doc);
 
 fs.writeFileSync('refs-openrpc.json', JSON.stringify(doc, null, '\t'));
+
+let spec = await dereferenceDocument(doc);
 
 spec.components = {};
 
