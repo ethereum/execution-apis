@@ -47,7 +47,7 @@ const doc = {
 }
 let spec = await dereferenceDocument(doc);
 
-fs.writeFileSync('refs-openrpc.json', doc);
+fs.writeFileSync('refs-openrpc.json', JSON.stringify(doc, null, '\t'););
 
 spec.components = {};
 
