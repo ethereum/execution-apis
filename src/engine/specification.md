@@ -215,7 +215,7 @@ This structure contains the attributes required to initiate a payload build proc
 
 1. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null`, and **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
 
-1. Client software **MUST** update the fork choice state and initiate a payload build process, and respond accordingly despite of the sync process being in progress if payloads identified by the `forkchoiceState.headBlockHash` and the `forkchoiceState.finalizedBlockHash` are known.
+1. Client software **MUST** update the fork choice state and initiate a payload build process, and respond accordingly even if the sync process is in progress on some branch if payloads identified by the `forkchoiceState.headBlockHash` and the `forkchoiceState.finalizedBlockHash` are known.
 
 1. Client software **MUST** return `-32002: Invalid terminal block` error if a block referenced by `forkchoiceState.headBlockHash` is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions).
 
