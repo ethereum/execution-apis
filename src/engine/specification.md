@@ -9,7 +9,6 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 
 - [Underlying protocol](#underlying-protocol)
 - [Versioning](#versioning)
-- [Constants](#constants)
 - [Message ordering](#message-ordering)
 - [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
 - [Errors](#errors)
@@ -18,10 +17,12 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
   - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
 - [Core](#core)
-  - [engine_executePayloadV1](#engine_executepayloadv1)
+  - [engine_newPayloadV1](#engine_newpayloadv1)
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
+      - [Payload validation process](#payload-validation-process)
+      - [Sync process](#sync-process)
   - [engine_forkchoiceUpdatedV1](#engine_forkchoiceupdatedv1)
     - [Request](#request-1)
     - [Response](#response-1)
@@ -58,7 +59,7 @@ The versioning of the Engine API is defined as follows:
   * a method response value
   * a method behavior
   * a set of structure fields
-* The specification **MAY** reference a method or a structure without the version suffix e.g. `engine_executePayload`. These statements should be read as related to all versions of the referenced method or structure.
+* The specification **MAY** reference a method or a structure without the version suffix e.g. `engine_newPayload`. These statements should be read as related to all versions of the referenced method or structure.
 
 ## Message ordering
 
@@ -76,7 +77,7 @@ Intuitively this is because the Consensus Layer drives the Execution Layer and t
 On the other hand, generic many-to-one Consensus Layer to Execution Layer configurations are not supported out-of-the-box.
 The Execution Layer, by default, only supports one chain head at a time and thus has undefined behavior when multiple Consensus Layers simultaneously control the head.
 The Engine API does work properly, if in such a many-to-one configuration, only one Consensus Layer instantiation is able to *write* to the Execution Layer's chain head and initiate the payload build process (i.e. call `engine_forkchoiceUpdated` ),
-while other Consensus Layers can only safely insert payloads (i.e. `engine_executePayload`) and read from the Execution Layer.
+while other Consensus Layers can only safely insert payloads (i.e. `engine_newPayload`) and read from the Execution Layer.
 
 ## Errors
 
@@ -155,35 +156,60 @@ This structure contains the attributes required to initiate a payload build proc
 
 ## Core
 
-### engine_executePayloadV1
+### engine_newPayloadV1
 
 #### Request
 
-* method: `engine_executePayloadV1`
+* method: `engine_newPayloadV1`
 * params: 
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
 
 #### Response
 
 * result: `object`
-    - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING"`
+    - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH"`
     - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
     - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
-* error: code and message set in case an exception happens while executing the payload.
+* error: code and message set in case an exception happens while processing the payload.
 
 #### Specification
 
-1. Client software **MUST** validate the payload according to the execution environment rule set with modifications to this rule set defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and return the validation result.
-    * If validation succeeds, return `{status: VALID, latestValidHash: payload.blockHash}`
-    * If validation fails, return `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`.
+1. Client software **MUST** validate `blockHash` value as being equivalent to `Keccak256(RLP(ExecutionBlockHeader))`, where `ExecutionBlockHeader` object is composed of the payload field values and constant values described in the [Block structure](https://eips.ethereum.org/EIPS/eip-3675#block-structure) section of the [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification). Additionally:
+    * Client software **MUST** return `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: null}` and discard the payload if this validation fails
+    * Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process.
 
-2. Client software **MUST** discard the payload if it's deemed invalid.
+1. Client software **SHOULD** initiate the sync process if requisite data for payload validation is missing. The sync process is specified in the [Sync process](#sync-process) section. Additionally:
+    * Client software **MUST** return `{status: SYNCING, latestValidHash: null, validationError: null}` if the sync process has been initiated.
 
-3. Client software **MUST** return `{status: SYNCING, latestValidHash: null}` if the sync process is already in progress or if requisite data for payload validation is missing. In the event that requisite data to validate the payload is missing (e.g. does not have payload identified by `parentHash`), the client software **SHOULD** initiate the sync process.
+1. Client software **SHOULD** validate the payload if requisite data for payload validation is locally available. The validation process is specified in the [Payload validation process](#payload-validation-process) section. Additionally:
+    * Client software **MUST** return the result of the payload validation if the validation has been initiated.
 
-4. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
+1. Client software **MUST** return `{status: ACCEPTED, latestValidHash: null, validationError: null}` if neither payload validation nor sync process has been initiated.
 
-5. Client software **MUST** return `-32002: Invalid terminal block` error if the parent block is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps on the Transition block validity section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity).
+1. If any of the above fails due to errors unrelated to the normal processing flow of the method, the client software **MUST** return an error.
+
+##### Payload validation process
+
+Payload validation process consists of validating a payload with respect to the block header and execution environment rule sets. The process is specified as follows:
+
+1. Client software **MUST** validate the payload according to the block header and execution environment rule set with modifications to these rule sets defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification). Additionally:
+    * If validation succeeds, the response **MUST** contain `{status: VALID, latestValidHash: payload.blockHash}`
+    * If validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`
+    * Client software **MUST** discard the payload if it's deemed invalid.
+
+1. Client software **MUST** return `-32002: Invalid terminal block` error if the parent block is locally available and is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps on the Transition block validity section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity).
+
+1. Client software **MAY** provide additional details on the validation error if the payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
+
+1. The process of validating a payload on the canonical chain **MUST NOT** be affected by an active sync process on a side branch of the block tree. For example, if side branch `B` is `SYNCING` but the requisite data for validating a payload from canonical branch `A` is available, client software **MUST** initiate the validation process.
+
+##### Sync process
+
+In the context of this specification, the sync process is understood as the process of obtaining data required to validate the payload. The sync process may consist of the following stages:
+1. Pulling data from remote peers in the network.
+1. Validating ancestors of the payload and obtaining the parent state.
+
+Each of these stages is optional. Exact behavior of a client software during the sync process is implementation dependent.
 
 ### engine_forkchoiceUpdatedV1
 
@@ -197,25 +223,35 @@ This structure contains the attributes required to initiate a payload build proc
 #### Response
 
 * result: `object`
-    - `status`: `enum` - `"SUCCESS" | "SYNCING"`
+    - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED"`
+    - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
+    - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
     - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
-* error: code and message set in case an exception happens while updating the forkchoice or initiating the payload build process.
+* error: code and message set in case an exception happens while validating payload, updating the forkchoice or initiating the payload build process.
 
 #### Specification
 
-1. The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP.
+1. Client software **SHOULD** initiate the sync process if `forkchoiceState.headBlockHash` references an unknown payload or a payload that can't be validated because requisite data is missing. The sync process is specified in the [Sync process](#sync-process) section. Additionally:
+    * Client software **MUST** return `{status: SYNCING, latestValidHash: null, validationError: null, payloadId: null}` if the sync process has been initiated.
 
-2. All updates to the forkchoice state resulting from this call **MUST** be made atomically.
+1. Client software **MAY** skip an update of the forkchoice state and **MAY NOT** begin a payload build process if the payload identified by `forkchoiceState.headBlockHash` hasn't been validated yet. Additionally:
+    * Client software **MUST** return `{status: ACCEPTED, latestValidHash: null, validationError: null, payloadId: null}` in this case.
 
-3. Client software **MUST** return `{status: SUCCESS, payloadId: null}` if `payloadAttributes` is `null` and the client is not `SYNCING`.
+1. Client software **MAY** skip an update of the forkchoice state and **MAY NOT** begin a payload build process if `forkchoiceState.headBlockHash` references an ancestor of the head of the canonical chain. Additionally:
+    * Client software **MUST** return `{status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null, payloadId: null}` in this case.
 
-4. Client software **MUST** return `{status: SYNCING, payloadId: null}` if the payload identified by either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown or if the sync process is in progress. In the event that either the `forkchoiceState.headBlockHash` or the `forkchoiceState.finalizedBlockHash` is unknown, the client software **SHOULD** initiate the sync process.
+1. Before updating the forkchoice state, client software **MUST** ensure the validity of the payload identified by `forkchoiceState.headBlockHash`, and **MAY** initiate payload validation process if that need be. The validation process is specified in the [Payload validation process](#payload-validation-process) section. Additionally:
+    * Client software **MUST NOT** update the forkchoice state and immediately respond to the method call with the corresponding result if the payload or any of its ancestors is deemed `INVALID`.
 
-5. Client software **MUST** return `{status: SUCCESS, payloadId: buildProcessId}` if `payloadAttributes` is not `null` and the client is not `SYNCING`, and **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload build process](#payload-build-process) section.
+1. Client software **MUST** update its forkchoice state if payloads identified by `forkchoiceState.headBlockHash` and `forkchoiceState.finalizedBlockHash` are deemed valid. The update is specified as follows:
+    * The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification) and **MUST** be processed according to the specification defined in the EIP
+    * All updates to the forkchoice state resulting from this call **MUST** be made atomically
+    * Client software **MUST** return `{status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null, payloadId: null}` if `payloadAttributes` is `null`.
 
-6. Client software **MUST** return `-32002: Invalid terminal block` error if a block referenced by `forkchoiceState.headBlockHash` is a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions).
+1. Client software **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value if `payloadAttributes` is not `null` and the forkchoice state has been updated successfully. The build process is specified in the [Payload build process](#payload-build-process) section. Additionally:
+    * Client software **MUST** return `{status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null, payloadId: buildProcessId}`.
 
-7. If any of the above fails due to errors unrelated to the client software's normal `SYNCING` status, the client software **MUST** return an error.
+1. If any of the above fails due to errors unrelated to the normal processing flow of the method, the client software **MUST** return an error.
 
 ##### Payload build process
 The payload build process is specified as follows:
