@@ -42,7 +42,9 @@ The JWT payload/claims should include:
 
 - Required: `iat` (issued-at) claim. The EL **SHOULD** only accept `iat` timestamps which are within +-5 seconds from the current time. 
 - Optional: `id` claim. The CL **MAY** use this to communicate a unique identifier for the individual CL node. 
-- Optional: `clver` claim. The CL **MAY** use this to communicate the CL node type/version. 
+- Optional: `clv` claim. The CL **MAY** use this to communicate the CL node type/version. 
+
+Other claims included in the JWT payload, which the EL does not handle, **MUST** be ignored. 
 
 ## Examples
 
