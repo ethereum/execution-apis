@@ -12,7 +12,7 @@
 			},
 			{
 				"name": "Block",
-				"required": true,
+				"required": false,
 				"schema": {
 					"$ref": "#/components/schemas/BlockNumberOrTag"
 				}
