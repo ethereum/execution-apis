@@ -17,15 +17,16 @@ Authentication is performed as follows:
 - For `HTTP` dialogue, each `jsonrpc` request is individually authenticated by supplying `JWT` token in the HTTP header. 
 - For a WebSocket dialogue, only the initial handshake is authenticated, after which the message dialogue proceeds without further use of JWT.
   - Clarification: The websocket handshake starts with the client performing a websocket upgrade request. This is a regular http GET request, and the actual
-parameters for the WS-handshake is carried in the http headers. 
+parameters for the WS-handshake are carried in the http headers. 
 - For `inproc`, a.k.a raw ipc communication, no authentication is required, under the assumption that a process able to access `ipc` channels for the process, which usually means local file access, is already sufficiently permissioned that further authentication requirements do not add security. 
 
 
 ## JWT specifications
 
-- The authenticated `engine` api **MUST** use a different port from the legacy API. The EL **SHOULD** default to using port `8546`.
+- Client software MUST expose the authenticated Engine API at a port independent from legacy JSON-RPC API.
+  - The default port for the authenticated Engine API is `8551`. The Engine API is exposed under the `engine` namespace.
 - On the authenticated endpoint, the legacy API **MUST** also be available.
-- The EL **MUST** support the at least the following `alg` `HMAC + SHA256` (`HS256`)
+- The EL **MUST** support at least the following `alg` `HMAC + SHA256` (`HS256`)
 - The EL **MUST** reject the `alg` `none`. 
 
 
