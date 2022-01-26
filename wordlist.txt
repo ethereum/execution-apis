@@ -21,6 +21,7 @@ rpc
 schemas
 secp
 statev
+statusv
 sha
 uint
 updatedv
