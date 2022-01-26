@@ -195,7 +195,7 @@ In the context of this specification, the sync is understood as the process of o
 1. Pulling data from remote peers in the network.
 1. Passing ancestors of a payload through the [Payload validation](#payload-validation) and obtaining a parent state.
 
-*Note:* Each of these stages is optional. Exact behavior of a client software during the sync process is implementation dependent.
+*Note:* Each of these stages is optional. Exact behavior of client software during the sync process is implementation dependent.
 
 ### Payload building
 
@@ -244,7 +244,7 @@ The payload build process is specified as follows:
     - the payload hasn't been fully validated
   * with `-32002: Invalid terminal block` error if terminal block conditions aren't met.
 
-1. If any of the above fails due to errors unrelated to the normal processing flow of the method, a client software **MUST** respond with an error object.
+1. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
 ### engine_forkchoiceUpdatedV1
 
@@ -271,7 +271,7 @@ The payload build process is specified as follows:
 
 1. Client software **MAY** skip an update of the forkchoice state and **MUST NOT** begin a payload build process if `forkchoiceState.headBlockHash` doesn't reference a leaf of the block tree. That is, the block referenced by `forkchoiceState.headBlockHash` is neither the head of the canonical chain nor a block at the tip of any other chain.
 
-1. Client software **MUST** return `-32002: Invalid terminal block` error if `forkchoiceState.headBlockHash` references a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps on the Transition block validity section of the EIP.
+1. Client software **MUST** return `-32002: Invalid terminal block` error if `forkchoiceState.headBlockHash` references a PoW block that doesn't satisfy terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions). This check maps to the transition block validity section of the EIP.
 
 1. Before updating the forkchoice state, client software **MUST** ensure the validity of the payload referenced by `forkchoiceState.headBlockHash`, and **MAY** validate the payload while processing the call. The validation process is specified in the [Payload validation](#payload-validation) section.
 
@@ -282,13 +282,13 @@ The payload build process is specified as follows:
 1. Client software **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value if `payloadAttributes` is not `null` and the forkchoice state has been updated successfully. The build process is specified in the [Payload building](#payload-building) section.
 
 1. Client software **MUST** respond to this method call in the following way:
-  * `{payloadStatus: {status: SYNCING, latestValidHash: null, validationError: null}, payloadId: null}` if `forkchoiceState.headBlockHash` references an unknown payload or a payload that can't be validated because data that are requisite for the validation is missing
+  * `{payloadStatus: {status: SYNCING, latestValidHash: null, validationError: null}, payloadId: null}` if `forkchoiceState.headBlockHash` references an unknown payload or a payload that can't be validated because requisite data for the validation is missing
   * `{payloadStatus: {status: INVALID, latestValidHash: null, validationError: errorMessage | null}, payloadId: null}` obtained from the [Payload validation](#payload-validation) process if the payload is deemed `INVALID`
   * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: null}` if the payload is deemed `VALID` and a build process hasn't been started
   * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: buildProcessId}` if the payload is deemed `VALID` and the build process has begun
-  * with `-32002: Invalid terminal block` error if terminal block conditions aren't met.
+  * with `-32002: Invalid terminal block` error if terminal block conditions aren't met
 
-1. If any of the above fails due to errors unrelated to the normal processing flow of the method, a client software **MUST** respond with an error object.
+1. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
 ### engine_getPayloadV1
 
