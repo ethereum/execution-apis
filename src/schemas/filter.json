@@ -52,19 +52,35 @@
 			},
 			"topics": {
 				"title": "Topics",
-				"$ref": "#/components/schemas/Topics"
+				"$ref": "#/components/schemas/FilterTopics"
 			}
 		}
 	},
-	"Topic": {
-		"title": "Topic",
-		"$ref": "#/components/schemas/uint256"
-	},
-	"Topics": {
-		"title": "Topics",
+	"FilterTopics": {
+		"title": "Filter Topics",
 		"type": "array",
 		"items": {
-			"$ref": "#/components/schemas/Topic"
+			"$ref": "#/components/schemas/FilterTopic"
 		}
+	},
+	"FilterTopic": {
+		"title": "Filter Topic List Entry",
+		"oneOf": [
+			{
+				"title": "Any Topic Match",
+				"type": "null"
+			},
+			{
+				"title": "Single Topic Match",
+				"$ref": "#/components/schemas/bytes32"
+			},
+			{
+				"title": "Multiple Topic Match",
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/bytes32"
+				}
+			}
+		]
 	}
 }
