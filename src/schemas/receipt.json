@@ -37,7 +37,10 @@
 			},
 			"topics": {
 				"title": "topics",
-				"$ref": "#/components/schemas/Topics"
+				"type": "array",
+				"items": {
+					"$ref": "#/components/schemas/bytes32"
+				}
 			}
 		}
 	},

@@ -29,8 +29,7 @@ schemaFiles.forEach(file => {
     ...parsed,
   };
 });
-
-let spec = await dereferenceDocument({
+const doc = {
   openrpc: "1.2.4",
   info: {
     title: "Ethereum JSON-RPC Specification",
@@ -45,7 +44,12 @@ let spec = await dereferenceDocument({
   components: {
     schemas: schemas
   }
-})
+}
+
+fs.writeFileSync('refs-openrpc.json', JSON.stringify(doc, null, '\t'));
+
+let spec = await dereferenceDocument(doc);
+
 spec.components = {};
 
 function recursiveMerge(schema) {
