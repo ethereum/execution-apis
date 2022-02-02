@@ -17,6 +17,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
   - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
   - [PayloadStatusV1](#payloadstatusv1)
+  - [TransitionConfigurationV1](#transitionconfigurationv1)
 - [Routines](#routines)
   - [Payload validation](#payload-validation)
   - [Sync](#sync)
@@ -34,6 +35,10 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_getTransitionConfigurationV1](#engine_gettransitionconfigurationv1)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -167,6 +172,13 @@ This structure contains the result of processing a payload. The fields are encod
 - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH" | "INVALID_TERMINAL_BLOCK"`
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
+
+### TransitionConfigurationV1
+
+This structure contains configurable settings of the transition process. The fields are encoded as follows:
+- `terminalTotalDifficulty`: `QUANTITY`, 256 Bits - maps on the `TERMINAL_TOTAL_DIFFICULTY` parameter of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration)
+- `terminalBlockHash`: `DATA`, 32 Bytes - maps on `TERMINAL_BLOCK_HASH` parameter of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration)
+- `terminalBlockNumber`: `QUANTITY`, 64 Bits - maps on `TERMINAL_BLOCK_NUMBER` parameter of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration)
 
 ## Routines
 
@@ -310,3 +322,19 @@ The payload build process is specified as follows:
 1. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 1. Client software **MAY** stop the corresponding build process after serving this call.
+
+### engine_getTransitionConfigurationV1
+
+#### Request
+
+* method: `engine_getTransitionConfigurationV1`
+* params: *empty list*
+
+#### Response
+
+* result: [`TransitionConfigurationV1`](#TransitionConfigurationV1)
+* error: code and message set in case an exception happens while getting a transition configuration.
+
+#### Specification
+
+1. Client software **MUST** respond with configurable setting values that are set according to the Client software configuration section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration).
