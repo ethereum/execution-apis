@@ -35,7 +35,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
-  - [engine_getTransitionConfigurationV1](#engine_gettransitionconfigurationv1)
+  - [engine_exchangeTransitionConfigurationV1](#engine_exchangetransitionconfigurationv1)
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
@@ -323,12 +323,13 @@ The payload build process is specified as follows:
 
 1. Client software **MAY** stop the corresponding build process after serving this call.
 
-### engine_getTransitionConfigurationV1
+### engine_exchangeTransitionConfigurationV1
 
 #### Request
 
-* method: `engine_getTransitionConfigurationV1`
-* params: *empty list*
+* method: `engine_exchangeTransitionConfigurationV1`
+* params:
+  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1); `terminalBlockNumber` **MUST** be set to `0`
 
 #### Response
 
@@ -337,4 +338,8 @@ The payload build process is specified as follows:
 
 #### Specification
 
-1. Client software **MUST** respond with configurable setting values that are set according to the Client software configuration section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration).
+1. Execution Layer client software **MUST** respond with configurable setting values that are set according to the Client software configuration section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration).
+
+1. Execution Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values received in the call of this method, with exception for `terminalBlockNumber` value.
+
+1. Consensus Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values obtained from the response to the call of this method.
