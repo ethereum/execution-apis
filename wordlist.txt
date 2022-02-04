@@ -29,3 +29,9 @@ validator
 wei
 yaml
 yParity
+EL
+CL
+JWT
+WS
+ipc
+cli
