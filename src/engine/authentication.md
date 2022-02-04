@@ -23,7 +23,7 @@ parameters for the WS-handshake are carried in the http headers.
 
 ## JWT specifications
 
-- Client software MUST expose the authenticated Engine API at a port independent from legacy JSON-RPC API.
+- Client software MUST expose the authenticated Engine API at a port independent from existing JSON-RPC API.
   - The default port for the authenticated Engine API is `8551`. The Engine API is exposed under the `engine` namespace.
 - On the authenticated endpoint, the legacy API **MUST** also be available.
 - The EL **MUST** support at least the following `alg` `HMAC + SHA256` (`HS256`)
@@ -34,8 +34,11 @@ The HMAC algorithm means that symmetric encryption is used, thus several CL's wi
 
 ## Key distribution
 
-The `EL` and `CL` clients **MUST** accept a cli/config parameter: `jwt-secret`, a `256` bit key, to be used for verifying/generating jwt tokens. 
-If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and show the token in the output, which the user can then use to provision the counterpart client with.
+The `EL` and `CL` clients **MUST** accept a cli/config parameter: `jwt-secret`, which designates a file containing the hex-encoded 256 bit secret key to be used for verifying/generating jwt tokens. 
+
+If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and store it the hex-encoded secret as a `jwt.hex` file on the filesystem.  This file can then be used to provision the counterpart client. 
+
+If such a parameter _is_ given, but the file cannot be read, or does not contain a hex-encoded key of at least `256` bits, the client should treat this as an error: either abort the startup, or show error and continue without exposing the authenticated port.  
 
 ## JWT Claims
 
@@ -45,7 +48,7 @@ The JWT payload/claims should include:
 - Optional: `id` claim. The CL **MAY** use this to communicate a unique identifier for the individual CL node. 
 - Optional: `clv` claim. The CL **MAY** use this to communicate the CL node type/version. 
 
-Other claims included in the JWT payload, which the EL does not handle, **MUST** be ignored. 
+Other claims **MAY** be included in the JWT payload. If the EL sees claims it does not recognize, these **MUST** be ignored. 
 
 ## Examples
 
