@@ -42,7 +42,7 @@ If such a parameter _is_ given, but the file cannot be read, or does not contain
 
 ## JWT Claims
 
-The JWT payload/claims should include: 
+This specification utilizes the following list of JWT claims:
 
 - Required: `iat` (issued-at) claim. The EL **SHOULD** only accept `iat` timestamps which are within +-5 seconds from the current time. 
 - Optional: `id` claim. The CL **MAY** use this to communicate a unique identifier for the individual CL node. 
