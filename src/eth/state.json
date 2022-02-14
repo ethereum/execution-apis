@@ -138,7 +138,11 @@
 				}
 			},
 			{
-				"$ref": "#/components/contentDescriptors/BlockNumber"
+				"name": "Block",
+				"required": false,
+				"schema": {
+					"$ref": "#/components/schemas/BlockNumberOrTag"
+				}
 			}
 		],
 		"result": {
