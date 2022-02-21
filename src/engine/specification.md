@@ -171,7 +171,7 @@ This structure contains the result of processing a payload. The fields are encod
 
 - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH" | "INVALID_TERMINAL_BLOCK"`
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
-- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
+- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`, `INVALID_BLOCK_HASH` or `INVALID_TERMINAL_BLOCK.`
 
 ### TransitionConfigurationV1
 
