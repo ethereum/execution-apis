@@ -139,7 +139,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
-- `random`: `DATA`, 32 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
 - `blockNumber`: `QUANTITY`, 64 Bits
 - `gasLimit`: `QUANTITY`, 64 Bits
 - `gasUsed`: `QUANTITY`, 64 Bits
@@ -162,7 +162,7 @@ This structure encapsulates the fork choice state. The fields are encoded as fol
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
-- `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
 ### PayloadStatusV1
