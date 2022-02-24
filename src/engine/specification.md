@@ -44,18 +44,26 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 
 ## Underlying protocol
 
-This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc/API) and inherits the following properties of this standard:
-
-* Supported communication protocols (HTTP and WebSocket)
-* Message format and encoding notation
-* [Error codes improvement proposal](https://eth.wiki/json-rpc/json-rpc-error-codes-improvement-proposal)
+Message format and encoding notation used by this specification are inherited
+from [Ethereum JSON-RPC Specification](https://github.com/ethereum/execution-apis/tree/main/src/).
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API.
 The default port for the Engine API is 8550.
 The Engine API is exposed under the `engine` namespace.
 
 To facilitate an Engine API consumer to access state and logs (e.g. proof-of-stake deposits) through the same connection,
-the client **MUST** also expose the `eth` namespace. 
+the client **MUST** also expose the following subset of `eth` methods:
+* `eth_blockNumber`
+* `eth_call`
+* `eth_chainId`
+* `eth_getCode`
+* `eth_getBlockByHash`
+* `eth_getBlockByNumber`
+* `eth_getLogs`
+* `eth_sendRawTransaction`
+* `eth_syncing`
+
+Specification of these methods may be found in [`eth`](https://github.com/ethereum/execution-apis/tree/main/src/eth) folder of this repository.
 
 ## Versioning
 
@@ -126,7 +134,7 @@ $ curl https://localhost:8550 \
 
 ## Structures
 
-Fields having `DATA` and `QUANTITY` types **MUST** be encoded according to the [HEX value encoding](https://eth.wiki/json-rpc/API#hex-value-encoding) section of Ethereum JSON-RPC API.
+Encoding of values which have `DATA` and `QUANTITY` types **MUST** follow `bytes` and `uint` schemas from [`base-types.json`](https://github.com/ethereum/execution-apis/blob/main/src/schemas/base-types.json) respectively. Description of encoding notation of these two types may also be found in [HEX value encoding](https://eth.wiki/json-rpc/API#hex-value-encoding) section of Ethereum JSON-RPC API on eth.wiki.
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
 
