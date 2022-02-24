@@ -246,10 +246,11 @@ The payload build process is specified as follows:
 4. Client software **MAY NOT** validate the payload if the payload doesn't belong to the canonical chain.
 
 5. Client software **MUST** respond to this method call in the following way:
-  * `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed
-  * `{status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}` if terminal block conditions are not satisfied
+  * with a payload status obtained from the [Payload validation](#payload-validation) process, i.e.
+    - `{status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}` if the terminal block conditions are not satisfied
+    - `{status: INVALID, latestValidHash: validHash, validationError: errorMessage | null}` if the validation for `payload.blockHash` failed
+    - `{status: VALID, latestValidHash: payload.blockHash}` if the validation for `payload.blockHash` succeeded
   * `{status: SYNCING, latestValidHash: null, validationError: null}` if the payload extends the canonical chain and requisite data for its validation is missing
-  * with the payload status obtained from the [Payload validation](#payload-validation) process if the payload has been fully validated while processing the call
   * `{status: ACCEPTED, latestValidHash: null, validationError: null}` if the following conditions are met:
     - the `blockHash` of the payload is valid
     - the payload doesn't extend the canonical chain
