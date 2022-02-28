@@ -45,7 +45,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 ## Underlying protocol
 
 Message format and encoding notation used by this specification are inherited
-from [Ethereum JSON-RPC Specification](https://github.com/ethereum/execution-apis/tree/main/src/).
+from [Ethereum JSON-RPC Specification][json-rpc-spec].
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API.
 The default port for the Engine API is 8550.
@@ -63,7 +63,7 @@ the client **MUST** also expose the following subset of `eth` methods:
 * `eth_sendRawTransaction`
 * `eth_syncing`
 
-Specification of these methods may be found in [`eth`](https://github.com/ethereum/execution-apis/tree/main/src/eth) folder of this repository.
+These methods are described in [Ethereum JSON-RPC Specification][json-rpc-spec].
 
 ## Versioning
 
@@ -351,3 +351,5 @@ The payload build process is specified as follows:
 2. Execution Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values received in the call of this method, with exception for `terminalBlockNumber` value.
 
 3. Consensus Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values obtained from the response to the call of this method.
+
+[json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/eth1.0-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
