@@ -343,3 +343,7 @@ The payload build process is specified as follows:
 2. Execution Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values received in the call of this method, with exception for `terminalBlockNumber` value.
 
 3. Consensus Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values obtained from the response to the call of this method.
+
+4. Consensus Layer client software **SHOULD** poll this endpoint every 60 seconds.
+
+5. Execution Layer client software **SHOULD** surface an error to the user if it does not recieve a request on this endpoint at least once every 120 seconds.
