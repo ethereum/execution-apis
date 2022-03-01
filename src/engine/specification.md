@@ -134,7 +134,9 @@ $ curl https://localhost:8550 \
 
 ## Structures
 
-Encoding of values which have `DATA` and `QUANTITY` types **MUST** follow `bytes` and `uint` schemas from [`base-types.json`](https://github.com/ethereum/execution-apis/blob/main/src/schemas/base-types.json) respectively. Description of encoding notation of these two types may also be found in [HEX value encoding](https://eth.wiki/json-rpc/API#hex-value-encoding) section of Ethereum JSON-RPC API on eth.wiki.
+Encoding of values which have `DATA` type **MUST** be encoded as a hexadecimal string with a `0x` prefix matching the regular expression `^0x(?:[a-fA-F0-9]{2})*$`.
+
+Encoding of values which have `QUANTITY` type **MUST** be encoded as a hexadecimal string with a `0x` prefix and the leading 0s stripped (except for the case of encoding the value `0`) matching the regular expression `^0x(?:0|(?:[a-fA-F1-9][a-fA-F0-9]*))$`.
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
 
