@@ -329,7 +329,7 @@ The payload build process is specified as follows:
 
 * method: `engine_exchangeTransitionConfigurationV1`
 * params:
-  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1); `terminalBlockNumber` **MUST** be set to `0`
+  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1)
 
 #### Response
 
@@ -343,3 +343,5 @@ The payload build process is specified as follows:
 2. Execution Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values received in the call of this method, with exception for `terminalBlockNumber` value.
 
 3. Consensus Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values obtained from the response to the call of this method.
+
+4. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
