@@ -44,18 +44,26 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 
 ## Underlying protocol
 
-This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc/API) and inherits the following properties of this standard:
-
-* Supported communication protocols (HTTP and WebSocket)
-* Message format and encoding notation
-* [Error codes improvement proposal](https://eth.wiki/json-rpc/json-rpc-error-codes-improvement-proposal)
+Message format and encoding notation used by this specification are inherited
+from [Ethereum JSON-RPC Specification][json-rpc-spec].
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API.
 The default port for the Engine API is 8550.
 The Engine API is exposed under the `engine` namespace.
 
 To facilitate an Engine API consumer to access state and logs (e.g. proof-of-stake deposits) through the same connection,
-the client **MUST** also expose the `eth` namespace. 
+the client **MUST** also expose the following subset of `eth` methods:
+* `eth_blockNumber`
+* `eth_call`
+* `eth_chainId`
+* `eth_getCode`
+* `eth_getBlockByHash`
+* `eth_getBlockByNumber`
+* `eth_getLogs`
+* `eth_sendRawTransaction`
+* `eth_syncing`
+
+These methods are described in [Ethereum JSON-RPC Specification][json-rpc-spec].
 
 ## Versioning
 
@@ -126,7 +134,9 @@ $ curl https://localhost:8550 \
 
 ## Structures
 
-Fields having `DATA` and `QUANTITY` types **MUST** be encoded according to the [HEX value encoding](https://eth.wiki/json-rpc/API#hex-value-encoding) section of Ethereum JSON-RPC API.
+Values of a field of `DATA` type **MUST** be encoded as a hexadecimal string with a `0x` prefix matching the regular expression `^0x(?:[a-fA-F0-9]{2})*$`.
+
+Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string with a `0x` prefix and the leading 0s stripped (except for the case of encoding the value `0`) matching the regular expression `^0x(?:0|(?:[a-fA-F1-9][a-fA-F0-9]*))$`.
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
 
@@ -345,3 +355,5 @@ The payload build process is specified as follows:
 3. Consensus Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values obtained from the response to the call of this method.
 
 4. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
+
+[json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/eth1.0-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
