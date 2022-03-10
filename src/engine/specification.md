@@ -112,7 +112,7 @@ The list of error codes introduced by this specification can be found below.
 | -32700 | Parse error | Invalid JSON was received by the server. |
 | -32600 | Invalid Request | The JSON sent is not a valid Request object. |
 | -32601 | Method not found | The method does not exist / is not available. |
-| -32602 | Invalid params | Invalid method parameter(s). | 
+| -32602 | Invalid params | Invalid method parameter(s). |
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32000 | Server error | Generic client error while processing request. |
 | -38001 | Unknown payload | Payload does not exist / is not available. |
@@ -260,7 +260,7 @@ The payload build process is specified as follows:
 #### Request
 
 * method: `engine_newPayloadV1`
-* params: 
+* params:
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
 * timeout: 8s
 
@@ -297,7 +297,7 @@ The payload build process is specified as follows:
 #### Request
 
 * method: "engine_forkchoiceUpdatedV1"
-* params: 
+* params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 * timeout: 8s
@@ -393,6 +393,6 @@ The payload build process is specified as follows:
 
 6. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
 
-7. Considering the absence of the `TERMINAL_TOTAL_DIFFICULTY` value (i.e. when a value has not been decided), Consensus Layer and Execution Layer client software **MUST** use `115792089237316195423570985008687907853269984665640564039457584007913129638912` value (equal to`2**256-2**10`) for the `terminalTotalDifficulty` input parameter of this call. 
+7. Considering the absence of the `TERMINAL_TOTAL_DIFFICULTY` value (i.e. when a value has not been decided), Consensus Layer and Execution Layer client software **MUST** use `115792089237316195423570985008687907853269984665640564039457584007913129638912` value (equal to`2**256-2**10`) for the `terminalTotalDifficulty` input parameter of this call.
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
