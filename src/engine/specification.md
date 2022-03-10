@@ -174,6 +174,24 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
+### WithdrawalV1
+
+This structure maps onto the validator withdrawal object from the beacon chain spec.
+The fields are encoded as follows:
+
+- `index`: `QUANTITY`, 64 Bits
+- `address`: `DATA`, 20 Bytes
+- `amount`: `QUANTITY`, 256 Bits
+
+*Note*: the `amount` value is represented on the beacon chain as a little-endian value in units of Gwei, whereas the `amount` in this structure *MUST* be converted to a big-endian value in units of Wei.
+
+### ExecutionPayloadV2
+
+This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
+
+- `ExecutionPayloadV1` fields...
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+
 ### ForkchoiceStateV1
 
 This structure encapsulates the fork choice state. The fields are encoded as follows:
@@ -191,6 +209,13 @@ This structure contains the attributes required to initiate a payload build proc
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+
+### PayloadAttributesV2
+
+This structure has the syntax of `PayloadAttributesV1` and appends a single field: `withdrawals`.
+
+- `PayloadAttributesV1` fields...
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
 ### PayloadStatusV1
 
@@ -292,6 +317,23 @@ The payload build process is specified as follows:
 
 6. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
+### engine_newPayloadV2
+
+#### Request
+
+* method: `engine_newPayloadV2`
+* params:
+  1. [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+
+#### Response
+
+* result: [`PayloadStatusV1`](#PayloadStatusV1)
+* error: code and message set in case an exception happens while processing the payload.
+
+#### Specification
+
+Refer to the specification for `engine_newPayloadV1`.
+
 ### engine_forkchoiceUpdatedV1
 
 #### Request
@@ -343,6 +385,30 @@ The payload build process is specified as follows:
 
 10. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
+### engine_forkchoiceUpdatedV2
+
+#### Request
+
+* method: "engine_forkchoiceUpdatedV2"
+* params:
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`
+
+#### Response
+
+* result: `object`
+  - `payloadStatus`: [`PayloadStatusV1`](#PayloadStatusV1); values of the `status` field in the context of this method are restricted to the following subset:
+    * `"VALID"`
+    * `"INVALID"`
+    * `"SYNCING"`
+    * `"INVALID_TERMINAL_BLOCK"`
+  - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
+* error: code and message set in case an exception happens while the validating payload, updating the forkchoice or initiating the payload build process.
+
+#### Specification
+
+Refer to the specification for `engine_forkchoiceUpdatedV1`.
+
 ### engine_getPayloadV1
 
 #### Request
@@ -364,6 +430,23 @@ The payload build process is specified as follows:
 2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
+
+### engine_getPayloadV2
+
+#### Request
+
+* method: `engine_getPayloadV2`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+
+#### Response
+
+* result: [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+Refer to the specification for `engine_getPayloadV1`.
 
 ### engine_exchangeTransitionConfigurationV1
 
