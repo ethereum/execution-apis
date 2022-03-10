@@ -105,7 +105,7 @@ The list of error codes introduced by this specification can be found below.
 | -32700 | Parse error | Invalid JSON was received by the server. |
 | -32600 | Invalid Request | The JSON sent is not a valid Request object. |
 | -32601 | Method not found | The method does not exist / is not available. |
-| -32602 | Invalid params | Invalid method parameter(s). | 
+| -32602 | Invalid params | Invalid method parameter(s). |
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32000 | Server error | Generic client error while processing request. |
 | -32001 | Unknown payload | Payload does not exist / is not available. |
@@ -237,7 +237,7 @@ The payload build process is specified as follows:
 #### Request
 
 * method: `engine_newPayloadV1`
-* params: 
+* params:
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
 
 #### Response
@@ -272,7 +272,7 @@ The payload build process is specified as follows:
 #### Request
 
 * method: "engine_forkchoiceUpdatedV1"
-* params: 
+* params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 
