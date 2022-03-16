@@ -125,7 +125,7 @@
 	"BlockTag": {
 		"title": "Block tag",
 		"type": "string",
-		"enum": ["earliest", "latest", "pending"]
+		"enum": ["earliest", "latest", "pending", "finalized"]
 	},
 	"BlockNumberOrTag": {
 		"title": "Block number or tag",
