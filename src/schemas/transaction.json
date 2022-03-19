@@ -40,7 +40,7 @@
 	"Transaction1559Unsigned": {
 		"type": "object",
 		"title": "EIP-1559 transaction.",
-		"required": [ "type", "nonce", "gas", "value", "input", "maxFeePerGas", "maxPriorityFeePerGas", "chainId", "accessList" ],
+		"required": [ "type", "nonce", "gas", "value", "data", "maxFeePerGas", "maxPriorityFeePerGas", "chainId", "accessList" ],
 		"properties": {
 			"type": {
 				"title": "type",
@@ -62,8 +62,9 @@
 				"title": "value",
 				"$ref": "#/components/schemas/uint"
 			},
-			"input": {
+			"data": {
 				"title": "input data",
+				"description": "The compiled code of a contract OR the hash of the invoked method signature and encoded parameters",
 				"$ref": "#/components/schemas/bytes"
 			},
 			"maxPriorityFeePerGas": {
@@ -91,7 +92,7 @@
 	"Transaction2930Unsigned": {
 		"type": "object",
 		"title": "EIP-2930 transaction.",
-		"required": [ "type", "nonce", "gas", "value", "input", "gasPrice", "chainId", "accessList" ],
+		"required": [ "type", "nonce", "gas", "value", "data", "gasPrice", "chainId", "accessList" ],
 		"properties": {
 			"type": {
 				"title": "type",
@@ -113,8 +114,9 @@
 				"title": "value",
 				"$ref": "#/components/schemas/uint"
 			},
-			"input": {
+			"data": {
 				"title": "input data",
+				"description": "The compiled code of a contract OR the hash of the invoked method signature and encoded parameters",
 				"$ref": "#/components/schemas/bytes"
 			},
 			"gasPrice": {
@@ -137,7 +139,7 @@
 	"TransactionLegacyUnsigned": {
 		"type": "object",
 		"title": "Legacy transaction.",
-		"required": [ "type", "nonce", "gas", "value", "input", "gasPrice" ],
+		"required": [ "type", "nonce", "gas", "value", "data", "gasPrice" ],
 		"properties": {
 			"type": {
 				"title": "type",
@@ -159,8 +161,9 @@
 				"title": "value",
 				"$ref": "#/components/schemas/uint"
 			},
-			"input": {
+			"data": {
 				"title": "input data",
+				"description": "The compiled code of a contract OR the hash of the invoked method signature and encoded parameters",
 				"$ref": "#/components/schemas/bytes"
 			},
 			"gasPrice": {
