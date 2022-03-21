@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.js",
-    "lint": "node scripts/build.js && node scripts/validate.js"
+    "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
+    "graphql:schema": "node scripts/graphql.js",
+    "graphql:validate": "node scripts/graphql-validate.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,8 @@
   "homepage": "https://github.com/ethereum/execution-apis#readme",
   "dependencies": {
     "@open-rpc/schema-utils-js": "^1.15.0",
+    "graphql": "^16.3.0",
+    "graphql-request": "^4.1.0",
     "json-schema-merge-allof": "^0.8.1"
   }
 }
