@@ -165,7 +165,8 @@ This structure encapsulates the fork choice state. The fields are encoded as fol
 
 - `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
 - `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
-- `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
+- `justifiedBlockHash`: `DATA`, 32 Bytes - hash of the most recent justified block
+- `finalizedBlockHash`: `DATA`, 32 Bytes - hash of the most recent finalized block
 
 ### PayloadAttributesV1
 
