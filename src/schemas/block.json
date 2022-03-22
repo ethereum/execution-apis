@@ -125,7 +125,8 @@
 	"BlockTag": {
 		"title": "Block tag",
 		"type": "string",
-		"enum": ["earliest", "latest", "pending", "finalized", "safe", "unsafe"]
+		"enum": ["earliest", "latest", "pending", "finalized", "safe", "unsafe"],
+		"description": "Tags \"finalized\" and \"safe\" refer to the corresponding blocks defined by the most recent fork choice state. Tag \"unsafe\" is an alias to the \"latest\"."
 	},
 	"BlockNumberOrTag": {
 		"title": "Block number or tag",
