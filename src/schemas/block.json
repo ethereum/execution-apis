@@ -126,7 +126,7 @@
 		"title": "Block tag",
 		"type": "string",
 		"enum": ["earliest", "finalized", "safe", "unsafe", "pending"],
-		"description": "`earliest`: The lowest numbered block the client has available; `finalized`: The most recent block that cannot be reorged outside of a hard fork; `safe`: The most recent block that is will not reorg unless there is an active ongoing attack; `unsafe`: The most recent block the client has seen that it believes will be part of the canonical chain (high probability of being reorged out); `pending`: A sample next block built by the client containing what it believes will be the set of transactions likely to show up in that block; `latest`: **DEPRECATED** Will be removed at some point in the future, currently an alias for `unsafe` or `safe`."
+		"description": "`earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `unsafe`: The most recent block in the canonical chain observed by the client, this block can be re-orged out of the canonical chain; `pending`: A sample next block built by the client on top of `unsafe` and containing the set of transactions usually taken from local mempool; `latest`: **DEPRECATED** Currently an alias for `unsafe`, will be removed at some point in the future"
 	},
 	"BlockNumberOrTag": {
 		"title": "Block number or tag",
