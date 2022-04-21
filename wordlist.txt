@@ -1,5 +1,6 @@
 apis
 attributesv
+bls
 bytecode
 configurationv
 eip
@@ -21,9 +22,10 @@ rlp
 rpc
 schemas
 secp
+sha
+ssz
 statev
 statusv
-sha
 uint
 updatedv
 url
