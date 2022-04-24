@@ -56,19 +56,19 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `proposerIndex`: `QUANTITY`, 64 Bits
 - `parentRoot`: `DATA`, 32 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
-- `body`: `object`, `BlindBeaconBlockBodyV1`
+- `body`: `object`, [`BlindBeaconBlockBodyV1`](#blindbeaconblockbodyv1)
 
 ### `BlindBeaconBlockBodyV1`
 - `randaoReveal`: `DATA`, 96 Bytes
-- `eth1Data`: `object`, `Eth1DataV1`
+- `eth1Data`: `object`, [`Eth1DataV1`](#eth1datav1)
 - `graffiti`: `DATA`, 32 Bytes
-- `proposerSlashings`: `object`, `ProposerSlashingV1`
-- `attesterSlashings`: `object`, `AttesterSlashingV1`
-- `attestations`: `Array`, `AttestationV1`
-- `deposits`: `Array`, `DespositV1`
-- `voluntaryExits`: `Array`, `SignedVoluntaryExitV1`
-- `syncAggregate`: `object`, `SyncAggregateV1`
-- `executionPayload`: `object`, `ExecutionPayloadHeaderV1`
+- `proposerSlashings`: `object`, [`ProposerSlashingV1`](#proposerslashingv1)
+- `attesterSlashings`: `object`, [`AttesterSlashingV1`](#attesterslashingv1)
+- `attestations`: `Array`, [`AttestationV1`](#attestationv1)
+- `deposits`: `Array`, [`DespositV1`](#depositv1)
+- `voluntaryExits`: `Array`, [`SignedVoluntaryExitV1`](#signedvoluntaryexitv1)
+- `syncAggregate`: `object`, [`SyncAggregateV1`](#syncaggregatev1)
+- `executionPayload`: `object`, [`ExecutionPayloadHeaderV1`](#executionpayloadheader)
 
 ### `Eth1DataV1`
 - `depositRoot`: `DATA`, 32 Bytes
@@ -76,8 +76,8 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `blockHash`: `DATA`, 32 Bytes
 
 ### `ProposerSlashing`
-- `signedHeader1`: `object`, `SignedBeaconBlockBlockHeaderV1`
-- `signedHeader2`: `object`, `SignedBeaconBlockBlockHeaderV1`
+- `signedHeader1`: `object`, [`SignedBeaconBlockBlockHeaderV1`](#signedbeaconblockheaderv1)
+- `signedHeader2`: `object`, [`SignedBeaconBlockBlockHeaderV1`](#signedbeaconblockheaderv1)
 
 ### `BeaconBlockHeaderV1`
 - `slot`: `QUANTITY`, 64 Bits
@@ -87,20 +87,20 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `bodyRoot`: `DATA`, 32 Bytes
 
 ### `AttesterSlashingV1`
-- `attestation1`: `object`, `IndexedAttestationV1`
-- `attestation2`: `object`, `IndexedAttestationV1`
+- `attestation1`: `object`, [`IndexedAttestationV1`](#indexedattestationv1)
+- `attestation2`: `object`, [`IndexedAttestationV1`](#indexedattestationv1)
 
 ### `IndexedAttestationV1`
 - `attestingIndices`: `Array`, `QUANTITY`, 64 Bits
-- `data`: `object`, `AttestationDataV1`
+- `data`: `object`, [`AttestationDataV1`](#attestationdatav1)
 - `signature`: `DATA`, 96 Bytes
 
 ### `AttestationDataV1`
 - `slot`: `QUANTITY`, 64 Bits
 - `index`: `QUANTITY`, 64 Bits
 - `beaconBlockRoot`, `DATA`, 32 Bytes
-- `source`: `object`, `CheckpointV1`
-- `target`: `object`, `CheckpointV1`
+- `source`: `object`, [`CheckpointV1`](#checkpointv1)
+- `target`: `object`, [`CheckpointV1`](#checkpointv1)
 
 ### `CheckpointV1`
 - `epoch`: `QUANTITY`, 64 Bits
@@ -108,12 +108,12 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 
 ### `AttestationV1`
 - `aggregationBits`: `DATA`, 0 to 256 Bytes
-- `data`: `object`, `AttestationDataV1`
+- `data`: `object`, [`AttestationDataV1`](#attestationdatav1)
 - `signature`: `DATA`, 96 Bytes
 
 ### `DespositV1`
 - `proof`: `Array`, 32 Bytes
-- `data`: `object`, `DepositDataV1`
+- `data`: `object`, [`DepositDataV1`](#depositdatav1)
 
 ### `DepositDataV1`
 - `pubkey`: `DATA`, 48 Bytes
@@ -132,11 +132,11 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 #### Signed Containers
 
 ### `SignedBeaconBlockBlockHeaderV1`
-- `message`: `object`, BeaconBlockHeader
+- `message`: `object`, [`BeaconBlockHeader`](#beaconblockheaderv1)
 - `signature`: `DATA`, 96 Bytes
 
 ### `SignedVoluntaryExitV1`
-- `message`: `object`, `VoluntaryExitV1`
+- `message`: `object`, [`VoluntaryExitV1`](#voluntaryexitv1)
 - `signature`: `DATA`, 96 Bytes
 
 #### SSZ Objects
@@ -294,7 +294,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - error: code and message set in case an exception happens while proposing the payload.
 
 #### Specification
-1. Builder software **MUST** verify that the beacon block's exeuction payload is a matching `ExecutionPayloadHeaderV1` provided from `builder_getHeaderV1`, otherwise the return `-32004: Unknown block`.
+1. Builder software **MUST** verify that the beacon block's exeuction payload is a matching [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1) provided from [`builder_getHeaderV1`](#buildergetheaderv1), otherwise the return `-32004: Unknown block`.
 2. Builder software **MUST** verify that `signature` is a BLS signature over `block` using [`verify_block_signature`][verify-block-signature] from the validator that is expected to propose in the slot. If the signature is determined to be invalid or from a different validator than expected, the builder **MUST** return `-32005: Invalid signature`.
 
 [consensus-specs]: https://github.com/ethereum/consensus-specs
