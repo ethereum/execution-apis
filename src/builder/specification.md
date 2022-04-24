@@ -249,7 +249,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 #### Specification
 1. Builder software **MUST** verify `signature` is valid under `pubkey`, otherwise return error `-32005: Invalid Signature`.
-2. Builder software **MUST** respond to requests where `timestamp` is before the latest announcement from the validator with error `-32007: Invalid timestamp`.
+2. Builder software **MUST** respond to requests where `timestamp` is less than or equal to the latest announcement from the validator or more than 1 hour in the future with error `-32007: Invalid timestamp`.
 3. Builder software **MUST** store `feeRecipient` in a map keyed by `pubkey`.
 
 ### `builder_getHeaderV1`
