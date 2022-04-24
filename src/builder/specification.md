@@ -76,8 +76,8 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `blockHash`: `DATA`, 32 Bytes
 
 ### `ProposerSlashing`
-- `signedHeader1`: `object`, [`SignedBeaconBlockBlockHeaderV1`](#signedbeaconblockheaderv1)
-- `signedHeader2`: `object`, [`SignedBeaconBlockBlockHeaderV1`](#signedbeaconblockheaderv1)
+- `signedHeader1`: `object`, [`SignedBeaconBlockHeaderV1`](#signedbeaconblockheaderv1)
+- `signedHeader2`: `object`, [`SignedBeaconBlockHeaderV1`](#signedbeaconblockheaderv1)
 
 ### `BeaconBlockHeaderV1`
 - `slot`: `QUANTITY`, 64 Bits
@@ -131,7 +131,7 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 
 #### Signed Containers
 
-### `SignedBeaconBlockBlockHeaderV1`
+### `SignedBeaconBlockHeaderV1`
 - `message`: `object`, [`BeaconBlockHeader`](#beaconblockheaderv1)
 - `signature`: `DATA`, 96 Bytes
 
