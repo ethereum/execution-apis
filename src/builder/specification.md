@@ -9,8 +9,8 @@ sequenceDiagram
     participant relays
     Title: Block Proposal
     Note over consensus: sign fee recipient announcement
-    consensus->>mev_boost: builder_setFeeRecipient
-    mev_boost->>relays: builder_setFeeRecipient
+    consensus->>mev_boost: builder_registerValidator
+    mev_boost->>relays: builder_registerValidator
     Note over consensus: wait for allocated slot
     consensus->>mev_boost: builder_getHeader
     mev_boost->>relays: builder_getHeader
@@ -35,7 +35,6 @@ sequenceDiagram
 Mirror of [`ExecutionPayloadV1`][execution-payload].
 
 ### `ExecutionPayloadHeaderV1`
-
 Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `transactionsRoot`.
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -52,16 +51,105 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `blockHash`: `DATA`, 32 Bytes
 - `transactionsRoot`: `DATA`, 32 Bytes
 
+### `BlindBeaconBlockV1`
+- `slot`: `QUANTITY`, 64 Bits
+- `proposerIndex`: `QUANTITY`, 64 Bits
+- `parentRoot`: `DATA`, 32 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `body`: `object`, `BlindBeaconBlockBodyV1`
+
+### `BlindBeaconBlockBodyV1`
+- `randaoReveal`: `DATA`, 96 Bytes
+- `eth1Data`: `object`, `Eth1DataV1`
+- `graffiti`: `DATA`, 32 Bytes
+- `proposerSlashings`: `object`, `ProposerSlashingV1`
+- `attesterSlashings`: `object`, `AttesterSlashingV1`
+- `attestations`: `Array`, `AttestationV1`
+- `deposits`: `Array`, `DespositV1`
+- `voluntaryExits`: `Array`, `SignedVoluntaryExitV1`
+- `syncAggregate`: `object`, `SyncAggregateV1`
+- `executionPayload`: `object`, `ExecutionPayloadHeaderV1`
+
+### `Eth1DataV1`
+- `depositRoot`: `DATA`, 32 Bytes
+- `depositCount`: `QUANTITY`, 64 Bits
+- `blockHash`: `DATA`, 32 Bytes
+
+### `ProposerSlashing`
+- `signedHeader1`: `object`, `SignedBeaconBlockBlockHeaderV1`
+- `signedHeader2`: `object`, `SignedBeaconBlockBlockHeaderV1`
+
+### `BeaconBlockHeaderV1`
+- `slot`: `QUANTITY`, 64 Bits
+- `proposerIndex`: `QUANTITY`, 64 Bits
+- `parentRoot`: `DATA`, 32 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `bodyRoot`: `DATA`, 32 Bytes
+
+### `AttesterSlashingV1`
+- `attestation1`: `object`, `IndexedAttestationV1`
+- `attestation2`: `object`, `IndexedAttestationV1`
+
+### `IndexedAttestationV1`
+- `attestingIndices`: `Array`, `QUANTITY`, 64 Bits
+- `data`: `object`, `AttestationDataV1`
+- `signature`: `DATA`, 96 Bytes
+
+### `AttestationDataV1`
+- `slot`: `QUANTITY`, 64 Bits
+- `index`: `QUANTITY`, 64 Bits
+- `beaconBlockRoot`, `DATA`, 32 Bytes
+- `source`: `object`, `CheckpointV1`
+- `target`: `object`, `CheckpointV1`
+
+### `CheckpointV1`
+- `epoch`: `QUANTITY`, 64 Bits
+- `root`: `DATA`, 32 Bytes
+
+### `AttestationV1`
+- `aggregationBits`: `DATA`, 0 to 256 Bytes
+- `data`: `object`, `AttestationDataV1`
+- `signature`: `DATA`, 96 Bytes
+
+### `DespositV1`
+- `proof`: `Array`, 32 Bytes
+- `data`: `object`, `DepositDataV1`
+
+### `DepositDataV1`
+- `pubkey`: `DATA`, 48 Bytes
+- `withdrawalCredentials`: `DATA`, 32 Bytes
+- `amount`: `QUANTITY`, 64 Bits
+- `signature`: `DATA`, 96 Bytes
+
+### `VoluntaryExitV1`
+- `epoch`: `QUANTITY`, 64 Bits
+- `ValidatorIndex`: `QUANTITY`, 64 Bits
+
+### `SyncAggregateV1`
+- `syncCommitteeBits`: `DATA`, 0 to 64 Bytes
+- `syncCommitteeSignature`: `DATA`, 96 Bytes
+
+#### Signed Containers
+
+### `SignedBeaconBlockBlockHeaderV1`
+- `message`: `object`, BeaconBlockHeader
+- `signature`: `DATA`, 96 Bytes
+
+### `SignedVoluntaryExitV1`
+- `message`: `object`, `VoluntaryExitV1`
+- `signature`: `DATA`, 96 Bytes
+
 #### SSZ Objects
 
 Consider the following definitions supplementary to the definitions in [`consensus-specs`][consensus-specs].
 
-##### `builder_setFeeRecipientV1` Request
+##### `builder_registerValidatorV1` Request
 
 ```python
-class SetFeeRecipientRequestV1(Container):
+class RegisterValidatorV1(Container):
     feeRecipient: Bytes20
     timestamp: uint64
+    pubkey: BLSPubkey
 ```
 
 ##### `builder_getPayloadV1` Response
@@ -117,8 +205,8 @@ The list of error codes introduced by this specification can be found below.
 | - | - | - |
 | -32000 | Server error | Generic client error while processing request. |
 | -32001 | Unknown hash | No block with the provided hash is known. |
-| -32002 | Unknown validator | No known mapping between validator and feeRecipient. |
-| -32003 | Invalid SSZ | Unable to decode SSZ. |
+| -32002 | Unknown validator | Unknown validator. |
+| -32003 | Unknown fee recipient | No known mapping between validator and fee recipient. |
 | -32004 | Unknown block | Block does not match the provided header. |
 | -32005 | Invalid signature | Provided signature is invalid. |
 | -32006 | Invalid timestamp | Provided timestamp was invalid. |
@@ -136,22 +224,22 @@ All signature operations should follow the [standard BLS operations][bls] interf
 
 There are two types of data to sign over in the Builder API:
 * In-protocol messages, e.g. [`BlindBeaconBlock`](#blindbeaconblock), which should compute the signing root using [`compute_signing_root`][compute-signing-root] and use the domain specified for beacon block proposals.
-* Builder API messages, e.g. [`builder_setFeeRecipientV1`](#builder_setFeeRecipientV1) and the response to [`builder_getHeader`](#response-2), which should compute the signing root using [`compute_signing_root`][compute-signing-root] and the domain `DomainType('0xXXXXXXXX')` (TODO: get a proper domain).
+* Builder API messages, e.g. [`builder_registerValidatorV1`](#builder_registerValidatorV1) and the response to [`builder_getHeader`](#response-2), which should compute the signing root using [`compute_signing_root`][compute-signing-root] and the domain `DomainType('0xXXXXXXXX')` (TODO: get a proper domain).
 
 As `compute_signing_root` takes `SSZObject` as input, client software should convert in-protocol messages to their SSZ representation to compute the signing root and Builder API messages to the SSZ representations defined [above](#sszobjects).
 
 ## Methods
 
-### `builder_setFeeRecipientV1`
+### `builder_registerValidatorV1`
 
 #### Request
 
-- method: `builder_setFeeRecipientV1`
+- method: `builder_registerValidatorV1`
 - params:
   1. `message`: `object`
       1. `feeRecipient`: `DATA`, 20 Bytes - Address of account which should receive fees.
       2. `timestamp`: `QUANTITY`, uint64 - Unix timestamp of announcement.
-  2. `publicKey`: `DATA`, 48 Bytes - Public key of validator.
+      3. `pubkey`: `DATA`, 48 Bytes - Public key of validator.
   3. `signature`: `DATA`, 96 Bytes - Signature over `feeRecipient` and `timestamp`.
 
 #### Response
@@ -160,9 +248,9 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
-1. Builder software **MUST** verify `signature` is valid under `publicKey`.
-2. Builder software **MUST** respond to requests where `timestamp` is before the latest announcement from the validator with `-32006: Invalid timestamp`.
-3. Builder software **MUST** store `feeRecipient` in a map keyed by `publicKey`.
+1. Builder software **MUST** verify `signature` is valid under `pubkey`, otherwise return error `-32005: Invalid Signature`.
+2. Builder software **MUST** respond to requests where `timestamp` is before the latest announcement from the validator with error `-32007: Invalid timestamp`.
+3. Builder software **MUST** store `feeRecipient` in a map keyed by `pubkey`.
 
 ### `builder_getHeaderV1`
 
@@ -170,23 +258,26 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 - method: `builder_getHeaderV1`
 - params:
-  1. `hash`: `DATA`, 32 Bytes - Hash of Execution Layer block which the validator intends to use as the parent for its proposal.
+  1. `slot`: `QUANTITY`, 64 Bits - Slot number of the block proposal.
+  2. `pubkey`: `QUANTITY`, 64 Bits - Corresponding public key of proposer.
+  3. `hash`: `DATA`, 32 Bytes - Hash of execution layer block the proposer will use as the proposal's parent.
 
 #### Response
 
 - result: `object`
     - `message`: `object`
         - `header`: [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1).
-        - `value`: `DATA`, 32 Bytes - the payment in wei that will be directed to the `feeRecipient` account.
-    - `publicKey`: `DATA`, 48 Bytes - the public key associated with the builder.
-    - `signature`: `DATA`, 96 Bytes - BLS signature of the builder over `payload` and `value`.
+        - `value`: `DATA`, 32 Bytes - the payment in wei that will be paid to the `feeRecipient` account.
+        - `pubkey`: `DATA`, 48 Bytes - the public key associated with the builder.
+    - `signature`: `DATA`, 96 Bytes - BLS signature of the builder over `message`.
 - error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
 1. Builder software **SHOULD** respond immediately with the `header` that increases the `feeRecipient`'s balance by the most.
-2. Builder software **MUST** return `-32001: Unknown hash` if the block identified by `hash` does not exist.
-3. Builder software **MUST** return `-32002: Unknown validator` if the validator the builder expects to propose in the current slot has not been mapped to a `feeRecipient`.
-4. Builder software **MAY** set the `feeRecipient` for the block to a different address than the address mapped to the validator so long as a payment equal to `value` is made to `feeRecipient`.
+2. Builder software **MUST** return `-32001: Unknown hash` if the block identified by `hash` is not known.
+3. Builder software **MUST** return `-32002: Unknown validator` if `pubkey` does not map to the validator that is expected to propose at `slot`.
+4. Builder software **MUST** return `-32003: Unknown fee recipient` if the builder does not have a `feeRecipient` mapped to the validator.
+5. Builder software **MAY** set the `feeRecipient` for the block to a different address than the address mapped to the validator so long as a payment equal to `value` is made to `feeRecipient`.
 
 ### `builder_getPayloadV1`
 
@@ -194,7 +285,8 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 - method: `builder_getPayloadV1`
 - params:
-  1. `block`: `DATA`, arbitray length - SSZ encoded [`SignedBlindBeaconBlock`](#blindbeaconblock).
+  1. `message`: [`SignedBlindBeaconBlock`](#signedblindbeaconblockv1).
+  2. `signature`: `DATA`, 96 Bytes.
 
 #### Response
 
@@ -202,8 +294,8 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - error: code and message set in case an exception happens while proposing the payload.
 
 #### Specification
-1. Builder software **MUST** verify that `block` is an SSZ encoded [`SignBlindBeaconBlock`](#blindbeaconblock). If the block is encoded incorrectly, the builder **MUST** return `-32003: Invalid SSZ`. If the block is encoded correctly, but does not include a matching `ExecutionPayloadHeaderV1` provided from `builder_getHeaderV1`, the builder **SHOULD** return `-32004: Unknown block`.
-2. Builder software **MUST** verify that `signature` is a BLS signature over `block` using [`verify_block_signature`][verify-block-signature] from the validator that is expected to propose in the given slot. If the signature is determined to be invalid or from a different validator than expected, the builder **MUST** return `-32005: Invalid signature`.
+1. Builder software **MUST** verify that the beacon block's exeuction payload is a matching `ExecutionPayloadHeaderV1` provided from `builder_getHeaderV1`, otherwise the return `-32004: Unknown block`.
+2. Builder software **MUST** verify that `signature` is a BLS signature over `block` using [`verify_block_signature`][verify-block-signature] from the validator that is expected to propose in the slot. If the signature is determined to be invalid or from a different validator than expected, the builder **MUST** return `-32005: Invalid signature`.
 
 [consensus-specs]: https://github.com/ethereum/consensus-specs
 [bls]: https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#bls-signatures
