@@ -111,7 +111,7 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `data`: `object`, [`AttestationDataV1`](#attestationdatav1)
 - `signature`: `DATA`, 96 Bytes
 
-### `DespositV1`
+### `DepositV1`
 - `proof`: `Array`, 32 Bytes
 - `data`: `object`, [`DepositDataV1`](#depositdatav1)
 
