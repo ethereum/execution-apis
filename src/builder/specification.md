@@ -152,12 +152,13 @@ class RegisterValidatorV1(Container):
     pubkey: BLSPubkey
 ```
 
-##### `builder_getPayloadV1` Response
+##### `builder_getHeaderV1` Response
 
 ```python
-class GetPayloadResponseV1(Container):
+class GetHeaderResponseV1(Container):
     payload: ExecutionPayloadHeader
     value: uint256
+    pubkey: BLSPubkey
 ```
 
 ##### `builder_getPayloadV1` Request
