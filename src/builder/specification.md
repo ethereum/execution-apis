@@ -75,7 +75,7 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `depositCount`: `QUANTITY`, 64 Bits
 - `blockHash`: `DATA`, 32 Bytes
 
-### `ProposerSlashing`
+### `ProposerSlashingV1`
 - `signedHeader1`: `object`, [`SignedBeaconBlockHeaderV1`](#signedbeaconblockheaderv1)
 - `signedHeader2`: `object`, [`SignedBeaconBlockHeaderV1`](#signedbeaconblockheaderv1)
 
