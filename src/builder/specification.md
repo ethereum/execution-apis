@@ -217,6 +217,28 @@ The list of error codes introduced by this specification can be found below.
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32700 | Parse error | Invalid JSON was received by the server. |
 
+Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
+
+For example:
+
+```
+$ curl https://localhost:8550 \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","method":"engine_getPayloadV1","params": ["0x1"],"id":1}'
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32000,
+    "message": "Server error",
+    "data": {
+        "err": "Database corrupted"
+    }
+  }
+}
+```
+
 ## Routines
 
 ### Signing
@@ -230,6 +252,22 @@ There are two types of data to sign over in the Builder API:
 As `compute_signing_root` takes `SSZObject` as input, client software should convert in-protocol messages to their SSZ representation to compute the signing root and Builder API messages to the SSZ representations defined [above](#sszobjects).
 
 ## Methods
+
+### `builder_status`
+
+#### Request
+
+- method: `builder_status`
+- params: `null`
+
+#### Response
+
+- result: `null`
+- error: code and message set in case the builder is not operating normally.
+
+#### Specification
+
+1. Builder software **SHOULD** return `-32000: Server error` if it is unable to respond to requests. `err` **MUST** be set explaining the issue.
 
 ### `builder_registerValidatorV1`
 
@@ -246,7 +284,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 #### Response
 
 - result: `null`
-- error: code and message set in case an exception happens while getting the payload.
+- error: code and message set in case an exception happens while registering the validator.
 
 #### Specification
 1. Builder software **MUST** verify `signature` is valid under `pubkey`, otherwise return error `-32005: Invalid Signature`.
@@ -271,7 +309,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
         - `value`: `DATA`, 32 Bytes - the payment in wei that will be paid to the `feeRecipient` account.
         - `pubkey`: `DATA`, 48 Bytes - the public key associated with the builder.
     - `signature`: `DATA`, 96 Bytes - BLS signature of the builder over `message`.
-- error: code and message set in case an exception happens while getting the payload.
+- error: code and message set in case an exception happens while getting the header.
 
 #### Specification
 1. Builder software **SHOULD** respond immediately with the `header` that increases the `feeRecipient`'s balance by the most.
