@@ -161,7 +161,7 @@ class BuilderReceiptV1(Container):
     pubkey: BLSPubkey
 ```
 
-##### `SignedBlindBeaconBlock
+##### `SignedBlindBeaconBlock`
 
 ###### `SignedBlindBeaconBlock`
 
