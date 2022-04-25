@@ -143,25 +143,25 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 
 Consider the following definitions supplementary to the definitions in [`consensus-specs`][consensus-specs].
 
-##### `builder_registerValidatorV1` Request
+##### `ValidatorRegistrationV1`
 
 ```python
-class RegisterValidatorV1(Container):
+class ValidatorRegistrationV1(Container):
     feeRecipient: Bytes20
     timestamp: uint64
     pubkey: BLSPubkey
 ```
 
-##### `builder_getHeaderV1` Response
+##### `BuilderReceiptV1`
 
 ```python
-class GetHeaderResponseV1(Container):
+class BuilderReceiptV1(Container):
     payload: ExecutionPayloadHeader
     value: uint256
     pubkey: BLSPubkey
 ```
 
-##### `builder_getPayloadV1` Request
+##### `SignedBlindBeaconBlock
 
 ###### `SignedBlindBeaconBlock`
 
@@ -278,8 +278,8 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
   1. `message`: `object`
       1. `feeRecipient`: `DATA`, 20 Bytes - Address of account which should receive fees.
       2. `timestamp`: `QUANTITY`, uint64 - Unix timestamp of announcement.
-      3. `pubkey`: `DATA`, 48 Bytes - Public key of validator.
-  3. `signature`: `DATA`, 96 Bytes - Signature over `feeRecipient` and `timestamp`.
+      3. `pubkey`: `DATA`, 48 Bytes - BLS public key of validator.
+  3. `signature`: `DATA`, 96 Bytes - BLS signature over [`ValidatorRegistrationV1`](#validatorregistrationv1).
 
 #### Response
 
@@ -299,7 +299,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - method: `builder_getHeaderV1`
 - params:
   1. `slot`: `QUANTITY`, 64 Bits - Slot number of the block proposal.
-  2. `pubkey`: `QUANTITY`, 64 Bits - Corresponding public key of proposer.
+  2. `pubkey`: `QUANTITY`, 64 Bits - BLS public key of proposer.
   3. `hash`: `DATA`, 32 Bytes - Hash of execution layer block the proposer will use as the proposal's parent.
 
 #### Response
@@ -307,9 +307,9 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - result: `object`
     - `message`: `object`
         - `header`: [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1).
-        - `value`: `DATA`, 32 Bytes - the payment in wei that will be paid to the `feeRecipient` account.
-        - `pubkey`: `DATA`, 48 Bytes - the public key associated with the builder.
-    - `signature`: `DATA`, 96 Bytes - BLS signature of the builder over `message`.
+        - `value`: `DATA`, 32 Bytes - Payment in wei that will be paid to the `feeRecipient` account.
+        - `pubkey`: `DATA`, 48 Bytes - BLS public key associated with the builder.
+    - `signature`: `DATA`, 96 Bytes - BLS signature over [`BuilderReceiptV1`](#builderreceiptv1).
 - error: code and message set in case an exception happens while getting the header.
 
 #### Specification
@@ -326,7 +326,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - method: `builder_getPayloadV1`
 - params:
   1. `message`: [`SignedBlindBeaconBlock`](#signedblindbeaconblockv1).
-  2. `signature`: `DATA`, 96 Bytes.
+  2. `signature`: `DATA`, 96 Bytes - BLS signature over [`SignedBlindBeaconBlock`](#signedblindbeaconblockv1).
 
 #### Response
 
