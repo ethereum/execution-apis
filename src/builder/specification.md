@@ -262,12 +262,12 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 #### Response
 
-- result: `null`
+- result: `enum`, `"OK" | null`
 - error: code and message set in case the builder is not operating normally.
 
 #### Specification
 
-1. Builder software **SHOULD** return `-32000: Server error` if it is unable to respond to requests. `err` **MUST** be set explaining the issue.
+1. Builder software **MUST** return `-32000: Server error` if it is unable to respond to requests. `err` **SHOULD** be set explaining the issue and `result` **MUST** be `null`.
 
 ### `builder_registerValidatorV1`
 
@@ -283,13 +283,14 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 #### Response
 
-- result: `null`
+- result: `enum`, `"OK" | null`
 - error: code and message set in case an exception happens while registering the validator.
 
 #### Specification
 1. Builder software **MUST** verify `signature` is valid under `pubkey`, otherwise return error `-32005: Invalid Signature`.
 2. Builder software **MUST** respond to requests where `timestamp` is less than or equal to the latest announcement from the validator or more than 1 hour in the future with error `-32007: Invalid timestamp`.
 3. Builder software **MUST** store `feeRecipient` in a map keyed by `pubkey`.
+4. Builder software **MUST** return `result` as `"OK"` if the request succeeds, `null` otherwise.
 
 ### `builder_getHeaderV1`
 
