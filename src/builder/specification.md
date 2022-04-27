@@ -126,7 +126,7 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `ValidatorIndex`: `QUANTITY`, 64 Bits
 
 ### `SyncAggregateV1`
-- `syncCommitteeBits`: `DATA`, 0 to 64 Bytes
+- `syncCommitteeBits`: `DATA`, 64 Bytes
 - `syncCommitteeSignature`: `DATA`, 96 Bytes
 
 #### Signed Containers
