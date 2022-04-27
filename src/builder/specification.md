@@ -62,8 +62,8 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `randaoReveal`: `DATA`, 96 Bytes
 - `eth1Data`: `object`, [`Eth1DataV1`](#eth1datav1)
 - `graffiti`: `DATA`, 32 Bytes
-- `proposerSlashings`: `object`, [`ProposerSlashingV1`](#proposerslashingv1)
-- `attesterSlashings`: `object`, [`AttesterSlashingV1`](#attesterslashingv1)
+- `proposerSlashings`: `Array`, [`ProposerSlashingV1`](#proposerslashingv1)
+- `attesterSlashings`: `Array`, [`AttesterSlashingV1`](#attesterslashingv1)
 - `attestations`: `Array`, [`AttestationV1`](#attestationv1)
 - `deposits`: `Array`, [`DespositV1`](#depositv1)
 - `voluntaryExits`: `Array`, [`SignedVoluntaryExitV1`](#signedvoluntaryexitv1)
