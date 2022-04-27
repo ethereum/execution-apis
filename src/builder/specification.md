@@ -325,8 +325,8 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 - method: `builder_getPayloadV1`
 - params:
-  1. `message`: [`SignedBlindBeaconBlock`](#signedblindbeaconblockv1).
-  2. `signature`: `DATA`, 96 Bytes - BLS signature over [`SignedBlindBeaconBlock`](#signedblindbeaconblockv1).
+  1. `message`: [`BlindBeaconBlock`](#blindbeaconblockv1).
+  2. `signature`: `DATA`, 96 Bytes - BLS signature over [`BlindBeaconBlock`](#blindbeaconblockv1).
 
 #### Response
 
