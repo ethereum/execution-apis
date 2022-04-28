@@ -2,32 +2,6 @@
 
 This document specifies the Builder API methods that the Consensus Layer uses to interact with external block builders.
 
-```mermaid
-sequenceDiagram
-    participant consensus
-    participant mev_boost
-    participant relays
-    Title: Block Proposal
-    Note over consensus: sign fee recipient announcement
-    consensus->>mev_boost: builder_registerValidator
-    mev_boost->>relays: builder_registerValidator
-    Note over consensus: wait for allocated slot
-    consensus->>mev_boost: builder_getHeader
-    mev_boost->>relays: builder_getHeader
-    relays-->>mev_boost: builder_getHeader response
-    Note over mev_boost: verify response matches expected
-    Note over mev_boost: select best payload
-    mev_boost-->>consensus: builder_getHeader response
-    Note over consensus: sign the block
-    consensus->>mev_boost: builder_getPayload
-    Note over mev_boost: identify payload source
-    mev_boost->>relays: builder_getPayload
-    Note over relays: validate signature
-    relays-->>mev_boost: builder_getPayload response
-    Note over mev_boost: verify response matches expected
-    mev_boost-->>consensus: builder_getPayload response
-```
-
 ## Structures
 
 ### `ExecutionPayloadV1`
