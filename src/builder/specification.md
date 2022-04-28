@@ -126,7 +126,7 @@ class ValidatorRegistrationV1(Container):
     pubkey: BLSPubkey
 ```
 
-##### `BuilderReceiptV1`
+##### `BuilderBidV1`
 
 ```python
 class BuilderBidV1(Container):
@@ -273,7 +273,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
         - `header`: [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1).
         - `value`: `DATA`, 32 Bytes - Payment in wei that will be paid to the `feeRecipient` account.
         - `pubkey`: `DATA`, 48 Bytes - BLS public key associated with the builder.
-    - `signature`: `DATA`, 96 Bytes - BLS signature over [`BuilderReceiptV1`](#builderreceiptv1).
+    - `signature`: `DATA`, 96 Bytes - BLS signature over [`BuilderBid1`](#builderbidv1).
 - error: code and message set in case an exception happens while getting the header.
 
 #### Specification
