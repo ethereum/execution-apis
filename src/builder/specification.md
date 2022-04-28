@@ -42,7 +42,7 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `deposits`: `Array`, [`DespositV1`](#depositv1)
 - `voluntaryExits`: `Array`, [`SignedVoluntaryExitV1`](#signedvoluntaryexitv1)
 - `syncAggregate`: `object`, [`SyncAggregateV1`](#syncaggregatev1)
-- `executionPayload`: `object`, [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1)
+- `executionPayloadHeader`: `object`, [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1)
 
 ### `Eth1DataV1`
 - `depositRoot`: `DATA`, 32 Bytes
