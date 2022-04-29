@@ -25,14 +25,14 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 - `blockHash`: `DATA`, 32 Bytes
 - `transactionsRoot`: `DATA`, 32 Bytes
 
-### `BlindBeaconBlockV1`
+### `BlindedBeaconBlockV1`
 - `slot`: `QUANTITY`, 64 Bits
 - `proposerIndex`: `QUANTITY`, 64 Bits
 - `parentRoot`: `DATA`, 32 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
-- `body`: `object`, [`BlindBeaconBlockBodyV1`](#blindbeaconblockbodyv1)
+- `body`: `object`, [`BlindedBeaconBlockBodyV1`](#blindedbeaconblockbodyv1)
 
-### `BlindBeaconBlockBodyV1`
+### `BlindedBeaconBlockBodyV1`
 - `randaoReveal`: `DATA`, 96 Bytes
 - `eth1Data`: `object`, [`Eth1DataV1`](#eth1datav1)
 - `graffiti`: `DATA`, 32 Bytes
@@ -135,21 +135,21 @@ class BuilderBidV1(Container):
     pubkey: BLSPubkey
 ```
 
-###### `BlindBeaconBlock`
+###### `BlindedBeaconBlock`
 
 ```python
-class BlindBeaconBlock(Container):
+class BlindedBeaconBlock(Container):
     slot: Slot
     proposer_index: ValidatorIndex
     parent_root: Root
     state_root: Root
-    body: BlindBeaconBlockBody
+    body: BlindedBeaconBlockBody
 ```
 
-###### `BlindBeaconBlockBody`
+###### `BlindedBeaconBlockBody`
 
 ```python
-class BlindBeaconBlockBody(Container):
+class BlindedBeaconBlockBody(Container):
     randao_reveal: BLSSignature
     eth1_data: Eth1Data
     graffiti: Bytes32
@@ -210,7 +210,7 @@ $ curl https://localhost:8550 \
 All signature operations should follow the [standard BLS operations][bls] interface defined in `consensus-specs`.
 
 There are two types of data to sign over in the Builder API:
-* In-protocol messages, e.g. [`BlindBeaconBlock`](#blindbeaconblock), which should compute the signing root using [`compute_signing_root`][compute-signing-root] and use the domain specified for beacon block proposals.
+* In-protocol messages, e.g. [`BlindedBeaconBlock`](#blindedbeaconblock), which should compute the signing root using [`compute_signing_root`][compute-signing-root] and use the domain specified for beacon block proposals.
 * Builder API messages, e.g. [`builder_registerValidatorV1`](#builder_registerValidatorV1) and the response to [`builder_getHeader`](#response-2), which should compute the signing root using [`compute_signing_root`][compute-signing-root] and the domain `DomainType('0xXXXXXXXX')` (TODO: get a proper domain).
 
 As `compute_signing_root` takes `SSZObject` as input, client software should convert in-protocol messages to their SSZ representation to compute the signing root and Builder API messages to the SSZ representations defined [above](#sszobjects).
@@ -289,8 +289,8 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 - method: `builder_getPayloadV1`
 - params:
-  1. `message`: [`BlindBeaconBlock`](#blindbeaconblockv1).
-  2. `signature`: `DATA`, 96 Bytes - BLS signature over [`BlindBeaconBlock`](#blindbeaconblockv1).
+  1. `message`: [`BlindedBeaconBlock`](#blindedbeaconblockv1).
+  2. `signature`: `DATA`, 96 Bytes - BLS signature over [`BlindedBeaconBlock`](#blindedbeaconblockv1).
 
 #### Response
 
