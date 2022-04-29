@@ -299,7 +299,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - error: code and message set in case an exception happens while proposing the payload.
 
 #### Specification
-1. Builder software **MUST** verify that the beacon block's execution payload is a matching [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1) provided from [`builder_getHeaderV1`](#buildergetheaderv1), otherwise the return `-32004: Unknown block`.
+1. Builder software **MUST** be able to un-blind the [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1) in `message`, otherwise the return `-32004: Unknown block`.
 2. Builder software **MUST** verify that `signature` is a BLS signature over `block` using [`verify_block_signature`][verify-block-signature] from the validator that is expected to propose in the slot. If the signature is determined to be invalid or from a different validator than expected, the builder **MUST** return `-32005: Invalid signature`.
 
 [consensus-specs]: https://github.com/ethereum/consensus-specs
