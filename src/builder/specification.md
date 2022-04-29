@@ -300,7 +300,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 #### Specification
 1. Builder software **MUST** be able to un-blind the [`ExecutionPayloadHeaderV1`](#executionpayloadheaderv1) in `message`, otherwise the return `-32004: Unknown block`.
-2. Builder software **MUST** verify that `signature` is a BLS signature over `block` using [`verify_block_signature`][verify-block-signature] from the validator that is expected to propose in the slot. If the signature is determined to be invalid or from a different validator than expected, the builder **MUST** return `-32005: Invalid signature`.
+2. Builder software **MUST** verify that `signature` is a BLS signature over `block` using [`verify_block_signature`][verify-block-signature] from the validator that is expected to propose in the slot. If the signature is determined to be invalid or from a different validator than expected, the builder **MUST** return `-32005: Invalid signature`. It's possible that competing chains could have different proposer shuffling, causing multiple proposer indexes to be valid for a given slot.
 
 [consensus-specs]: https://github.com/ethereum/consensus-specs
 [bls]: https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#bls-signatures
