@@ -8,8 +8,8 @@ Ethereum clients as modules that can be swapped at will.
 
 ## Building
 
-The specification is split into multiple files to improve readability. It
-can be compiled the spec into a single document as follows:
+The specification is split into multiple files to improve readability. The 
+spec can be compiled into a single document as follows:
 
 ```console
 $ npm install
