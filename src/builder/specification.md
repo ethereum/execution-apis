@@ -267,7 +267,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - params:
   1. `slot`: `QUANTITY`, 64 Bits - Slot number of the block proposal.
   2. `pubkey`: `QUANTITY`, 48 Bytes - BLS public key of validator.
-  3. `hash`: `DATA`, 32 Bytes - Hash of execution layer block the proposer will use as the proposal's parent.
+  3. `parentHash`: `DATA`, 32 Bytes - Hash of execution layer block the proposer will use as the proposal's parent.
 
 #### Response
 
@@ -281,7 +281,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 
 #### Specification
 1. Builder software **SHOULD** respond immediately with the `header` that increases the `feeRecipient`'s balance by the most.
-2. Builder software **MUST** return `-32001: Unknown hash` if the block identified by `hash` is not known.
+2. Builder software **MUST** return a `header` whose `parentHash` matches the request's `parentHash`. If `parentHash` is not known by the builder, it **MUST** return `-32001: Unknown hash`.
 3. Builder software **MUST** return `-32002: Unknown validator` if `pubkey` does not map to the validator that is expected to propose at `slot`.
 4. Builder software **MUST** return `-32003: Unknown fee recipient` if the builder does not have a `feeRecipient` mapped to the validator.
 5. Builder software **MAY** set the `feeRecipient` for the block to a different address than the address mapped to the validator so long as a payment equal to `value` is made to `feeRecipient`.
