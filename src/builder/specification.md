@@ -122,6 +122,7 @@ Consider the following definitions supplementary to the definitions in [`consens
 ```python
 class ValidatorRegistrationV1(Container):
     feeRecipient: Bytes20
+    gasTarget: uint64
     timestamp: uint64
     pubkey: BLSPubkey
 ```
@@ -241,7 +242,8 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - params:
   1. `message`: `object`
       1. `feeRecipient`: `DATA`, 20 Bytes - Address of account which should receive fees.
-      2. `timestamp`: `QUANTITY`, uint64 - Unix timestamp of announcement.
+      2. `gasTarget`: QUANTITY, 64 bits - Target for block `gasTarget`.
+      2. `timestamp`: `QUANTITY`, 64 bits - Unix timestamp of announcement.
       3. `pubkey`: `DATA`, 48 Bytes - BLS public key of validator.
   3. `signature`: `DATA`, 96 Bytes - BLS signature over [`ValidatorRegistrationV1`](#validatorregistrationv1).
 
@@ -283,6 +285,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 3. Builder software **MUST** return `-32002: Unknown validator` if `pubkey` does not map to the validator that is expected to propose at `slot`.
 4. Builder software **MUST** return `-32003: Unknown fee recipient` if the builder does not have a `feeRecipient` mapped to the validator.
 5. Builder software **MAY** set the `feeRecipient` for the block to a different address than the address mapped to the validator so long as a payment equal to `value` is made to `feeRecipient`.
+6. Builder software **MUST** return a header whose `gasLimit` is equal to the validator's registered `gasTarget * 2` or as close as possible under the constraints of the consensus rules.
 
 ### `builder_getPayloadV1`
 
