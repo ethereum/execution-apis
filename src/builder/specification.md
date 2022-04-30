@@ -97,7 +97,7 @@ Equivalent to `ExecutionPayloadV1`, except `transactions` is replaced with `tran
 
 ### `VoluntaryExitV1`
 - `epoch`: `QUANTITY`, 64 Bits
-- `ValidatorIndex`: `QUANTITY`, 64 Bits
+- `validatorIndex`: `QUANTITY`, 64 Bits
 
 ### `SyncAggregateV1`
 - `syncCommitteeBits`: `DATA`, 64 Bytes
