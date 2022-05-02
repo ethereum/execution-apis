@@ -266,7 +266,7 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
 - method: `builder_getHeaderV1`
 - params:
   1. `slot`: `QUANTITY`, 64 Bits - Slot number of the block proposal.
-  2. `pubkey`: `QUANTITY`, 48 Bytes - BLS public key of validator.
+  2. `pubkey`: `DATA`, 48 Bytes - BLS public key of validator.
   3. `parentHash`: `DATA`, 32 Bytes - Hash of execution layer block the proposer will use as the proposal's parent.
 
 #### Response
