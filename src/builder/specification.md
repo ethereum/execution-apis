@@ -243,9 +243,9 @@ As `compute_signing_root` takes `SSZObject` as input, client software should con
   1. `message`: `object`
       1. `feeRecipient`: `DATA`, 20 Bytes - Address of account which should receive fees.
       2. `gasTarget`: QUANTITY, 64 bits - Target for block `gasTarget`.
-      2. `timestamp`: `QUANTITY`, 64 bits - Unix timestamp of announcement.
-      3. `pubkey`: `DATA`, 48 Bytes - BLS public key of validator.
-  3. `signature`: `DATA`, 96 Bytes - BLS signature over [`ValidatorRegistrationV1`](#validatorregistrationv1).
+      3. `timestamp`: `QUANTITY`, 64 bits - Unix timestamp of announcement.
+      4. `pubkey`: `DATA`, 48 Bytes - BLS public key of validator.
+  2. `signature`: `DATA`, 96 Bytes - BLS signature over [`ValidatorRegistrationV1`](#validatorregistrationv1).
 
 #### Response
 
