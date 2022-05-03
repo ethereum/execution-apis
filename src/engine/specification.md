@@ -108,7 +108,7 @@ The list of error codes introduced by this specification can be found below.
 | -32602 | Invalid params | Invalid method parameter(s). | 
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32000 | Server error | Generic client error while processing request. |
-| -32001 | Unknown payload | Payload does not exist / is not available. |
+| -31001 | Unknown payload | Payload does not exist / is not available. |
 
 Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
 
@@ -329,7 +329,7 @@ The payload build process is specified as follows:
 
 1. Given the `payloadId` client software **MUST** return the most recent version of the payload that is available in the corresponding build process at the time of receiving the call.
 
-2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+2. The call **MUST** return `-31001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
 
