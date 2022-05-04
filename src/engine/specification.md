@@ -135,9 +135,9 @@ $ curl https://localhost:8550 \
 
 ## Timeouts
 
-After the specified `timeout` for a given call transpires without a response, Consensus Layer software **MUST** abort and consider the call as failed.
+Consensus Layer client software **MUST** wait for a specified `timeout` before aborting the call. In such an event, the Consensus Layer client software **MAY** retry the call.
 
-In such an event, the Consensus Layer software **MAY** retry the call.
+Consensus Layer client software **MAY** wait for response longer than it is specified by the `timeout` parameter.
 
 ## Structures
 
@@ -246,7 +246,7 @@ The payload build process is specified as follows:
 * method: `engine_newPayloadV1`
 * params: 
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
-* timeout: 120s
+* timeout: 8s
 
 #### Response
 
@@ -283,7 +283,7 @@ The payload build process is specified as follows:
 * params: 
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
-* timeout: 120s
+* timeout: 8s
 
 #### Response
 
@@ -328,7 +328,7 @@ The payload build process is specified as follows:
 * method: `engine_getPayloadV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 12s
+* timeout: 1s
 
 #### Response
 
@@ -350,7 +350,7 @@ The payload build process is specified as follows:
 * method: `engine_exchangeTransitionConfigurationV1`
 * params:
   1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1)
-* timeout: 12s
+* timeout: 1s
 
 #### Response
 
