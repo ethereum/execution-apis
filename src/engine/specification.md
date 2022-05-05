@@ -12,6 +12,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 - [Message ordering](#message-ordering)
 - [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
 - [Errors](#errors)
+- [Timeouts](#timeouts)
 - [Structures](#structures)
   - [ExecutionPayloadV1](#executionpayloadv1)
   - [ForkchoiceStateV1](#forkchoicestatev1)
@@ -133,6 +134,12 @@ $ curl https://localhost:8550 \
 }
 ```
 
+## Timeouts
+
+Consensus Layer client software **MUST** wait for a specified `timeout` before aborting the call. In such an event, the Consensus Layer client software **MAY** retry the call.
+
+Consensus Layer client software **MAY** wait for response longer than it is specified by the `timeout` parameter.
+
 ## Structures
 
 Values of a field of `DATA` type **MUST** be encoded as a hexadecimal string with a `0x` prefix matching the regular expression `^0x(?:[a-fA-F0-9]{2})*$`.
@@ -240,6 +247,7 @@ The payload build process is specified as follows:
 * method: `engine_newPayloadV1`
 * params: 
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+* timeout: 8s
 
 #### Response
 
@@ -276,6 +284,7 @@ The payload build process is specified as follows:
 * params: 
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+* timeout: 8s
 
 #### Response
 
@@ -323,6 +332,7 @@ The payload build process is specified as follows:
 * method: `engine_getPayloadV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
@@ -344,6 +354,7 @@ The payload build process is specified as follows:
 * method: `engine_exchangeTransitionConfigurationV1`
 * params:
   1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1)
+* timeout: 1s
 
 #### Response
 
