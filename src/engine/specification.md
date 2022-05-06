@@ -41,10 +41,14 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
-  - [engine_getPayloadBodiesV1](#engine_getpayloadbodiesv1)
+  - [engine_getPayloadBodiesByRootV1](#engine_getpayloadbodiesbyrootv1)
     - [Request](#request-4)
     - [Response](#response-4)
     - [Specification](#specification-4)
+  - [engine_getPayloadBodiesByRangeV1](#engine_getpayloadbodiesbyrangev1)
+    - [Request](#request-5)
+    - [Response](#response-5)
+    - [Specification](#specification-5)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -388,11 +392,11 @@ The payload build process is specified as follows:
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
 1. Client software **MAY** stop the corresponding build process after serving this call.
 
-### engine_getPayloadBodiesV1
+### engine_getPayloadBodiesByRootV1
 
 #### Request
 
-* method: `engine_getPayloadBodiesV1`
+* method: `engine_getPayloadBodiesByRootV1`
 * params:
   1. `Array of DATA`, 32 Bytes - Array of `block_hash` field values of the `ExecutionPayload` structure
 
@@ -406,3 +410,31 @@ The payload build process is specified as follows:
 1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding hashes respecting the order of block hashes in the input array.
 
 1. Client software **MUST** skip the payload body in the response array if the data of this body is missing. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, C.body]`.
+
+1. Clients that support `engine_getPayloadBodiesByRangeV1` are not required to respond to requests for finalized blocks by root.
+
+1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification. Callers must be careful to use the execution block root, instead of the beacon block root.
+
+### engine_getPayloadBodiesByRangeV1
+
+#### Request
+
+* method: `engine_getPayloadBodiesByRangeV1`
+* params:
+  1. `start`: `QUANTITY`, 64 bits - Starting block number
+  1. `count`: `QUANITTY`, 64 bits - Number of blocks to return
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* error: code and message set in case an exception happens while processing the method call.
+  * Clients that don't support fetching bodies by range **MUST** return the error code `-32601 	Method not found 	The method does not exist / is not available.`. Callers may then revert to `engine_getPayloadBodiesByRootV1`.
+
+#### Specification
+
+1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `forkChoiceUpdated` call.
+
+1. Client software **MUST** skip the payload body for any blocks that have been pruned by the execution client or where the request extends past the current latest known block.
+
+1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification.
+ Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number.
