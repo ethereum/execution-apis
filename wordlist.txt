@@ -1,5 +1,7 @@
 apis
 attributesv
+bodyv
+bodiesv
 bytecode
 configurationv
 eip
