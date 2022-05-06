@@ -110,8 +110,8 @@ The list of error codes introduced by this specification can be found below.
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32000 | Server error | Generic client error while processing request. |
 | -38001 | Unknown payload | Payload does not exist / is not available. |
-| -38002 | Invalid payload attributes | Payload attributes are invalid / inconsistent. |
-| -38003 | Invalid forkchoice state | Forkchoice state is invalid / inconsistent. |
+| -38002 | Invalid forkchoice state | Forkchoice state is invalid / inconsistent. |
+| -38003 | Invalid payload attributes | Payload attributes are invalid / inconsistent. |
 
 Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
 
@@ -312,9 +312,9 @@ The payload build process is specified as follows:
   * The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#block-validity) and **MUST** be processed according to the specification defined in the EIP
   * All updates to the forkchoice state resulting from this call **MUST** be made atomically.
 
-6. Client software **MUST** return `-38003: Invalid forkchoice state` error if the payload referenced by `forkchoiceState.headBlockHash` is `VALID` and a payload referenced by either `forkchoiceState.finalizedBlockHash` or `forkchoiceState.safeBlockHash` does not exist.
+6. Client software **MUST** return `-38002: Invalid forkchoice state` error if the payload referenced by `forkchoiceState.headBlockHash` is `VALID` and a payload referenced by either `forkchoiceState.finalizedBlockHash` or `forkchoiceState.safeBlockHash` does not belong to the chain defined by `forkchoiceState.headBlockHash`.
 
-7. Client software **MUST** ensure that `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`. If this condition isn't held client software **MUST** respond with `-38002: Invalid payload attributes` and **MUST NOT** begin a payload build process. In such an event, the `forkchoiceState` update **MUST NOT** be rolled back.
+7. Client software **MUST** ensure that `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`. If this condition isn't held client software **MUST** respond with `-38003: Invalid payload attributes` and **MUST NOT** begin a payload build process. In such an event, the `forkchoiceState` update **MUST NOT** be rolled back.
 
 8. Client software **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value if `payloadAttributes` is not `null` and the forkchoice state has been updated successfully. The build process is specified in the [Payload building](#payload-building) section.
 
@@ -324,8 +324,8 @@ The payload build process is specified as follows:
   * `{payloadStatus: {status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}, payloadId: null}` obtained either from the [Payload validation](#payload-validation) process or as a result of validating a PoW block referenced by `forkchoiceState.headBlockHash`
   * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: null}` if the payload is deemed `VALID` and a build process hasn't been started
   * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: buildProcessId}` if the payload is deemed `VALID` and the build process has begun
-  * `{error: {code: -38003, message: "Invalid forkchoice state"}}` if `forkchoiceState` is either invalid or inconsistent
-  * `{error: {code: -38002, message: "Invalid payload attributes"}}` if the payload is deemed `VALID` and `forkchoiceState` has been applied successfully, but no build process has been started due to invalid `payloadAttributes`.
+  * `{error: {code: -38002, message: "Invalid forkchoice state"}}` if `forkchoiceState` is either invalid or inconsistent
+  * `{error: {code: -38003, message: "Invalid payload attributes"}}` if the payload is deemed `VALID` and `forkchoiceState` has been applied successfully, but no build process has been started due to invalid `payloadAttributes`.
 
 9. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
