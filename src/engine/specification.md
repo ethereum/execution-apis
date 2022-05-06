@@ -390,7 +390,6 @@ The payload build process is specified as follows:
 6. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
-1. Client software **MAY** stop the corresponding build process after serving this call.
 
 ### engine_getPayloadBodiesByRootV1
 
@@ -437,4 +436,4 @@ The payload build process is specified as follows:
 1. Client software **MUST** skip the payload body for any blocks that have been pruned by the execution client or where the request extends past the current latest known block.
 
 1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification.
- Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number.
+ Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to requests non-finalized blocks by root in order to avoid race conditions around the current view of the canonical chain.
