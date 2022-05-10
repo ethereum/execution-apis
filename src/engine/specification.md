@@ -436,4 +436,4 @@ The payload build process is specified as follows:
 1. Client software **MUST** skip the payload body for any blocks that have been pruned by the execution client or where the request extends past the current latest known block.
 
 1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification.
- Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to requests non-finalized blocks by root in order to avoid race conditions around the current view of the canonical chain.
+1. Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to request non-finalized blocks by root in order to avoid race conditions around the current view of the canonical chain.
