@@ -410,7 +410,7 @@ The payload build process is specified as follows:
 
 1. Client software **MUST** skip the payload body in the response array if the data of this body is missing. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, C.body]`.
 
-1. Clients that support `engine_getPayloadBodiesByRangeV1` are not required to respond to requests for finalized blocks by root.
+1. Clients that support `engine_getPayloadBodiesByRangeV1` **MAY NOT** respond to requests for finalized blocks by hash.
 
 1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification. Callers must be careful to use the execution block root, instead of the beacon block root.
 
