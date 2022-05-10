@@ -20,6 +20,8 @@ matrix:
         ignores:
         - code
         - pre
+        - besu
+        - graphql
   - name: json schemas
     sources:
       - 'src/**/*.json'
