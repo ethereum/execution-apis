@@ -8,6 +8,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Underlying protocol](#underlying-protocol)
+  - [Authentication](#authentication)
 - [Versioning](#versioning)
 - [Message ordering](#message-ordering)
 - [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
@@ -49,7 +50,7 @@ Message format and encoding notation used by this specification are inherited
 from [Ethereum JSON-RPC Specification][json-rpc-spec].
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API.
-The default port for the Engine API is 8550.
+The default port for the Engine API is 8551.
 The Engine API is exposed under the `engine` namespace.
 
 To facilitate an Engine API consumer to access state and logs (e.g. proof-of-stake deposits) through the same connection,
@@ -65,6 +66,11 @@ the client **MUST** also expose the following subset of `eth` methods:
 * `eth_syncing`
 
 These methods are described in [Ethereum JSON-RPC Specification][json-rpc-spec].
+
+### Authentication
+
+Engine API uses JWT authentication enabled by default.
+JWT authentication is specified in [Authentication](./authentication.md) document.
 
 ## Versioning
 
@@ -118,7 +124,7 @@ Each error returns a `null` `data` value, except `-32000` which returns the `dat
 For example:
 
 ```console
-$ curl https://localhost:8550 \
+$ curl https://localhost:8551 \
     -X POST \
     -H "Content-Type: application/json" \
     -d '{"jsonrpc":"2.0","method":"engine_getPayloadV1","params": ["0x1"],"id":1}'
