@@ -274,12 +274,13 @@ The payload build process is specified as follows:
 5. Client software **MUST** respond to this method call in the following way:
   * `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed
   * `{status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}` if terminal block conditions are not satisfied
-  * `{status: SYNCING, latestValidHash: null, validationError: null}` if the payload extends the canonical chain and requisite data for its validation is missing
+  * `{status: SYNCING, latestValidHash: null, validationError: null}` if requisite data for the payload's acceptance or validation is missing
   * with the payload status obtained from the [Payload validation](#payload-validation) process if the payload has been fully validated while processing the call
   * `{status: ACCEPTED, latestValidHash: null, validationError: null}` if the following conditions are met:
     - the `blockHash` of the payload is valid
     - the payload doesn't extend the canonical chain
-    - the payload hasn't been fully validated.
+    - the payload hasn't been fully validated
+    - ancestors of a payload are know and comprise a well-formed chain.
 
 6. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
