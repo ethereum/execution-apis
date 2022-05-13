@@ -264,7 +264,8 @@ The payload build process is specified as follows:
   * `{status: ACCEPTED, latestValidHash: null, validationError: null}` if the following conditions are met:
     - the `blockHash` of the payload is valid
     - the payload doesn't extend the canonical chain
-    - the payload hasn't been fully validated.
+    - the payload hasn't been fully validated
+    - ancestors of a payload are know and comprise a well-formed chain.
 
 6. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
