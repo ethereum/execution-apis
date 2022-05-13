@@ -2,6 +2,7 @@ apis
 attributesv
 bytecode
 configurationv
+crypto
 eip
 endian
 enum
