@@ -194,9 +194,9 @@ This structure contains the attributes required to initiate a payload build proc
 
 This structure contains the result of processing a payload. The fields are encoded as follows:
 
-- `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH" | "INVALID_TERMINAL_BLOCK"`
+- `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH"`
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
-- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`, `INVALID_BLOCK_HASH` or `INVALID_TERMINAL_BLOCK.`
+- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
 
 ### TransitionConfigurationV1
 
@@ -213,11 +213,12 @@ Payload validation process consists of validating a payload with respect to the 
 
 1. Client software **MAY** obtain a parent state by executing ancestors of a payload as a part of the validation process. In this case each ancestor **MUST** also pass payload validation process.
 
-2. Client software **MUST** validate that the most recent PoW block in the chain of a payload ancestors satisfies terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity). This check maps to the transition block validity section of the EIP. If this validation fails, the response **MUST** contain `{status: INVALID_TERMINAL_BLOCK, latestValidHash: null}`. Additionally, each block in a tree of descendants of an invalid terminal block **MUST** be deemed `INVALID`.
+2. Client software **MUST** validate that the most recent PoW block in the chain of a payload ancestors satisfies terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity). This check maps to the transition block validity section of the EIP. If this validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000}`. Additionally, each block in a tree of descendants of an invalid terminal block **MUST** be deemed `INVALID`.
 
 3. Client software **MUST** validate a payload according to the block header and execution environment rule set with modifications to these rule sets defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification):
   * If validation succeeds, the response **MUST** contain `{status: VALID, latestValidHash: payload.blockHash}`
   * If validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`
+  * If the most recent valid ancestor is a PoW block, `latestValidHash` **MUST** be set to `0x0000000000000000000000000000000000000000000000000000000000000000`
   * Client software **MUST NOT** surface an `INVALID` payload over any API endpoint and p2p interface.
 
 4. Client software **MAY** provide additional details on the validation error if a payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
@@ -273,7 +274,7 @@ The payload build process is specified as follows:
 
 5. Client software **MUST** respond to this method call in the following way:
   * `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed
-  * `{status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}` if terminal block conditions are not satisfied
+  * `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000, validationError: errorMessage | null}` if terminal block conditions are not satisfied
   * `{status: SYNCING, latestValidHash: null, validationError: null}` if requisite data for the payload's acceptance or validation is missing
   * with the payload status obtained from the [Payload validation](#payload-validation) process if the payload has been fully validated while processing the call
   * `{status: ACCEPTED, latestValidHash: null, validationError: null}` if the following conditions are met:
@@ -301,7 +302,6 @@ The payload build process is specified as follows:
     * `"VALID"`
     * `"INVALID"`
     * `"SYNCING"`
-    * `"INVALID_TERMINAL_BLOCK"`
   - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
 * error: code and message set in case an exception happens while the validating payload, updating the forkchoice or initiating the payload build process.
 
@@ -328,7 +328,7 @@ The payload build process is specified as follows:
 9. Client software **MUST** respond to this method call in the following way:
   * `{payloadStatus: {status: SYNCING, latestValidHash: null, validationError: null}, payloadId: null}` if `forkchoiceState.headBlockHash` references an unknown payload or a payload that can't be validated because requisite data for the validation is missing
   * `{payloadStatus: {status: INVALID, latestValidHash: validHash, validationError: errorMessage | null}, payloadId: null}` obtained from the [Payload validation](#payload-validation) process if the payload is deemed `INVALID`
-  * `{payloadStatus: {status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}, payloadId: null}` obtained either from the [Payload validation](#payload-validation) process or as a result of validating a PoW block referenced by `forkchoiceState.headBlockHash`
+  * `{payloadStatus: {status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000, validationError: errorMessage | null}, payloadId: null}` obtained either from the [Payload validation](#payload-validation) process or as a result of validating a terminal PoW block referenced by `forkchoiceState.headBlockHash`
   * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: null}` if the payload is deemed `VALID` and a build process hasn't been started
   * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: buildProcessId}` if the payload is deemed `VALID` and the build process has begun
   * `{error: {code: -38002, message: "Invalid forkchoice state"}}` if `forkchoiceState` is either invalid or inconsistent
