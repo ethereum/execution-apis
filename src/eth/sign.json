@@ -1,7 +1,33 @@
 [
 	{
 		"name": "eth_sign",
-		"summary": "Returns an EIP-191 signature over the provided data.",
+		"summary": "Returns an EIP-191 signature over the provided data. (unprefixed)",
+		"params": [
+			{
+				"name": "Address",
+				"required": true,
+				"schema": {
+					"$ref": "#/components/schemas/address"
+				}
+			},
+			{
+				"name": "Message",
+				"required": true,
+				"schema": {
+					"$ref": "#/components/schemas/bytes"
+				}
+			}
+		],
+		"result": {
+			"name": "Signature",
+			"schema": {
+				"$ref": "#/components/schemas/bytes65"
+			}
+		}
+	},
+		{
+		"name": "eth_signMessage",
+		"summary": "Returns an EIP-191 signature over the provided data. (prefixed)",
 		"params": [
 			{
 				"name": "Address",
