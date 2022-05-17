@@ -38,3 +38,7 @@ JWT
 WS
 ipc
 cli
+blobsbundlev
+getblobsbundlev
+ssz
+kzg
