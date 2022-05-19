@@ -38,3 +38,5 @@ JWT
 WS
 ipc
 cli
+besu
+graphql
