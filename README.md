@@ -55,7 +55,7 @@ data.json valid
 
 [View the spec][graphql-schema]
 
-[EIP-1767](https://eips.ethereum.org/EIPS/eip-1767) proposed a GraphQL schema for interacting with Ethereum clients. Since then Besu and Geth have implemented the interface. This repo contains a live specification to integrate changes to the protocol as well as other improvements into the GraphQL shema.
+[EIP-1767][eip-1767] proposed a GraphQL schema for interacting with Ethereum clients. Since then Besu and Geth have implemented the interface. This repo contains a live specification to integrate changes to the protocol as well as other improvements into the GraphQL shema.
 
 ### Generation
 
@@ -83,3 +83,4 @@ This repository is licensed under [CC0](LICENSE).
 [validator]: https://open-rpc.github.io/schema-utils-js/globals.html#validateopenrpcdocument
 [spellchecker]: https://facelessuser.github.io/pyspelling/
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
+[eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
