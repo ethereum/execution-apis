@@ -49,10 +49,10 @@
 		"summary": "Returns information about a transaction by block number and transaction index position.",
 		"params": [
 			{
-				"name": "Block number",
+				"name": "Block",
 				"required": true,
 				"schema": {
-					"$ref": "#/components/schemas/uint"
+					"$ref": "#/components/schemas/BlockNumberOrTag"
 				}
 			},
 			{
