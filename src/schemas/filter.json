@@ -31,11 +31,11 @@
 		"properties": {
 			"fromBlock": {
 				"title": "from block",
-				"$ref": "#/components/schemas/BlockNumberOrTag"
+				"$ref": "#/components/schemas/uint"
 			},
 			"toBlock": {
 				"title": "to block",
-				"$ref": "#/components/schemas/BlockNumberOrTag"
+				"$ref": "#/components/schemas/uint"
 			},
 			"address": {
 				"title": "Address(es)",
