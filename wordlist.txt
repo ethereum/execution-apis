@@ -2,7 +2,7 @@ apis
 attributesv
 bodyv
 bodiesbyrangev
-bodiesbyrootv
+bodiesbyhashv
 bytecode
 configurationv
 crypto

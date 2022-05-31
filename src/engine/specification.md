@@ -42,7 +42,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
-  - [engine_getPayloadBodiesByRootV1](#engine_getpayloadbodiesbyrootv1)
+  - [engine_getPayloadBodiesByHashV1](#engine_getpayloadbodiesByHashV1)
     - [Request](#request-4)
     - [Response](#response-4)
     - [Specification](#specification-4)
@@ -404,11 +404,11 @@ The payload build process is specified as follows:
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
 
-### engine_getPayloadBodiesByRootV1
+### engine_getPayloadBodiesByHashV1
 
 #### Request
 
-* method: `engine_getPayloadBodiesByRootV1`
+* method: `engine_getPayloadBodiesByHashV1`
 * params:
   1. `Array of DATA`, 32 Bytes - Array of `block_hash` field values of the `ExecutionPayload` structure
 
@@ -440,7 +440,7 @@ The payload build process is specified as follows:
 
 * result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
 * error: code and message set in case an exception happens while processing the method call.
-  * Clients that don't support fetching bodies by range **MUST** return the error code `-32601 	Method not found 	The method does not exist / is not available.`. Callers may then revert to `engine_getPayloadBodiesByRootV1`.
+  * Clients that don't support fetching bodies by range **MUST** return the error code `-32601 	Method not found 	The method does not exist / is not available.`. Callers may then revert to `engine_getPayloadBodiesByHashV1`.
 
 #### Specification
 
