@@ -9,6 +9,13 @@
 				"schema": {
 					"$ref": "#/components/schemas/TransactionWithSender"
 				}
+			},
+			{
+				"name": "Block",
+				"required": false,
+				"schema": {
+					"$ref": "#/components/schemas/BlockNumberOrTag"
+				}
 			}
 		],
 		"result": {
@@ -27,6 +34,13 @@
 				"required": true,
 				"schema": {
 					"$ref": "#/components/schemas/TransactionWithSender"
+				}
+			},
+			{
+				"name": "Block",
+				"required": false,
+				"schema": {
+					"$ref": "#/components/schemas/BlockNumberOrTag"
 				}
 			}
 		],
