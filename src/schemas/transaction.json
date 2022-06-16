@@ -167,11 +167,6 @@
 				"title": "gas price",
 				"description": "The gas price willing to be paid by the sender in wei",
 				"$ref": "#/components/schemas/uint"
-			},
-			"chainId": {
-				"title": "chainId",
-				"description": "Chain ID that this transaction is valid on.",
-				"$ref": "#/components/schemas/uint"
 			}
 		}
 	},
