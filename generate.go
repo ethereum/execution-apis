@@ -2,54 +2,57 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/lightclient/rpctestgen/testgen"
 )
 
-type test struct {
-	Name  string
-	About string
-	Run   func(context.Context, *ethclient.Client)
-}
-
-var tests = []test{
-	{"eth_blockNumber", "simple test", EthBlockNumber},
-}
-
-func EthBlockNumber(ctx context.Context, eth *ethclient.Client) {
-	eth.BlockNumber(ctx)
-}
-
+// runGenerator generates test fixtures against the specified client and writes
+// them to the output directory.
 func runGenerator(ctx context.Context) error {
 	args := ctx.Value("args").(*Args)
+
+	// Start Ethereum client.
 	client, err := spawnClient(ctx, args)
 	if err != nil {
 		return err
 	}
 	defer client.Close()
 
-	time.Sleep(time.Second)
-
+	// Connect ethclient to Ethreum client.
 	handler, err := NewEthclientHandler(client.HttpAddr())
 	if err != nil {
 		return err
 	}
 	defer handler.Close()
 
-	for _, test := range tests {
-		ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
-		defer cancel()
-		handler.RotateLog(fmt.Sprintf("%s.json", test.Name))
-		test.Run(ctx, handler.ethclient)
+	// Generate test fixtures for all methods.
+	tests := testgen.AllMethods
+	for _, methodTest := range tests {
+		methodDir := fmt.Sprintf("%s/%s", args.OutDir, methodTest.MethodName)
+		if err := mkdir(methodDir); err != nil {
+			return err
+		}
+		for _, test := range methodTest.Tests {
+			handler.RotateLog(fmt.Sprintf("%s/%s.io", methodDir, test.Name))
+			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+			test.Run(ctx, handler.ethclient)
+		}
 	}
-
 	return nil
 }
 
+// spawnClient starts an Ethereum client on separate thread.
+//
+// It waits until the client is responding to JSON-RPC requests
+// before returning.
 func spawnClient(ctx context.Context, args *Args) (Client, error) {
 	var (
 		client        Client
@@ -71,6 +74,10 @@ func spawnClient(ctx context.Context, args *Args) (Client, error) {
 		return nil, err
 	}
 	eth := ethclient.NewClient(c)
+
+	// Try to connect for 5 seconds.
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 	for {
 		_, err := eth.BlockNumber(ctx)
 		if err == nil {
@@ -83,4 +90,14 @@ func spawnClient(ctx context.Context, args *Args) (Client, error) {
 		}
 	}
 	return client, nil
+}
+
+// mkdir makes a directory at the specified path, if it doesn't already exist.
+func mkdir(path string) error {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			return err
+		}
+	}
+	return nil
 }

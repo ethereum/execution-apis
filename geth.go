@@ -13,12 +13,20 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
+// Client is an interface for generically interacting with Ethereum clients.
 type Client interface {
+	// Start starts client, but does not wait for the command to exit.
 	Start(ctx context.Context, verbose bool) error
+
+	// HttpAddr returns the address where the client is servering its
+	// JSON-RPC.
 	HttpAddr() string
+
+	// Close closes the client.
 	Close() error
 }
 
+// GethClient is a wrapper around a go-ethereum instance on a separate thread.
 type GethClient struct {
 	cmd     *exec.Cmd
 	path    string
@@ -27,6 +35,10 @@ type GethClient struct {
 	genesis *core.Genesis
 }
 
+// NewGethClient instantiates a new GethClient.
+//
+// The client's data directory is set to a temporary location and it
+// initializes with the genesis and the provided blocks.
 func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, blocks []*types.Block, verbose bool) (*GethClient, error) {
 	tmp, err := ioutil.TempDir("", "geth-")
 	if err != nil {
@@ -45,8 +57,19 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	return &GethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp}, nil
 }
 
+// Start starts geth, but does not wait for the command to exit.
 func (g *GethClient) Start(ctx context.Context, verbose bool) error {
-	g.cmd = exec.CommandContext(ctx, g.path, fmt.Sprintf("--datadir=%s", g.workdir), "--http", "--nodiscover", "--fakepow")
+	g.cmd = exec.CommandContext(
+		ctx,
+		g.path,
+		fmt.Sprintf("--datadir=%s", g.workdir),
+		fmt.Sprintf("--port=%s", NETWORKPORT),
+		"--nodiscover",
+		"--fakepow",
+		"--http",
+		fmt.Sprintf("--http.addr=%s", HOST),
+		fmt.Sprintf("--http.port=%s", PORT),
+	)
 	if verbose {
 		g.cmd.Stdout = os.Stdout
 		g.cmd.Stderr = os.Stderr
@@ -57,16 +80,20 @@ func (g *GethClient) Start(ctx context.Context, verbose bool) error {
 	return nil
 }
 
+// HttpAddr returns the address where the client is servering its JSON-RPC.
 func (g *GethClient) HttpAddr() string {
 	return fmt.Sprintf("http://%s:%s", HOST, PORT)
 }
 
+// Close closes the client.
 func (g *GethClient) Close() error {
 	g.cmd.Process.Kill()
 	g.cmd.Wait()
 	return os.RemoveAll(g.workdir)
 }
 
+// runCmd runs a command and outputs the command's stdout and stderr to the
+// caller's stdout and stderr if verbose is set.
 func runCmd(ctx context.Context, path string, verbose bool, args ...string) error {
 	cmd := exec.CommandContext(ctx, path, args...)
 	if verbose {
@@ -79,6 +106,7 @@ func runCmd(ctx context.Context, path string, verbose bool, args ...string) erro
 	return nil
 }
 
+// writeChain writes the genesis and blocks to disk.
 func writeChain(path string, genesis *core.Genesis, blocks []*types.Block) error {
 	out, err := json.Marshal(genesis)
 	if err != nil {
