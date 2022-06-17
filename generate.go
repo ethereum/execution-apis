@@ -25,7 +25,7 @@ func runGenerator(ctx context.Context) error {
 	}
 	defer client.Close()
 
-	// Connect ethclient to Ethreum client.
+	// Connect ethclient to Ethereum client.
 	handler, err := NewEthclientHandler(client.HttpAddr())
 	if err != nil {
 		return err
