@@ -18,7 +18,7 @@ type MethodTests struct {
 type Test struct {
 	Name  string
 	About string
-	Run   func(context.Context, *ethclient.Client)
+	Run   func(context.Context, *ethclient.Client) error
 }
 
 // AllMethods is a slice of all JSON-RPC methods with tests.
@@ -39,8 +39,9 @@ var EthBlockNumber = MethodTests{
 	},
 }
 
-func ethBlockNumber(ctx context.Context, eth *ethclient.Client) {
-	eth.BlockNumber(ctx)
+func ethBlockNumber(ctx context.Context, eth *ethclient.Client) error {
+	_, err := eth.BlockNumber(ctx)
+	return err
 }
 
 // EthGetBlockByNumber stores a list of all tests against the method.
@@ -55,6 +56,7 @@ var EthGetBlockByNumber = MethodTests{
 	},
 }
 
-func ethGetBlockByNumberGenesis(ctx context.Context, eth *ethclient.Client) {
-	eth.BlockByNumber(ctx, common.Big0)
+func ethGetBlockByNumberGenesis(ctx context.Context, eth *ethclient.Client) error {
+	_, err := eth.BlockByNumber(ctx, common.Big0)
+	return err
 }

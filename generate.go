@@ -32,18 +32,27 @@ func runGenerator(ctx context.Context) error {
 	}
 	defer handler.Close()
 
-	// Generate test fixtures for all methods.
+	// Generate test fixtures for all methods. Store them in the format:
+	// outputDir/methodName/testName.io
 	tests := testgen.AllMethods
 	for _, methodTest := range tests {
 		methodDir := fmt.Sprintf("%s/%s", args.OutDir, methodTest.MethodName)
 		if err := mkdir(methodDir); err != nil {
 			return err
 		}
+
 		for _, test := range methodTest.Tests {
+			// Write the exchange for each test in a separte file.
 			handler.RotateLog(fmt.Sprintf("%s/%s.io", methodDir, test.Name))
+
+			// Fail test fill if request exceeds timeout.
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
-			test.Run(ctx, handler.ethclient)
+
+			err := test.Run(ctx, handler.ethclient)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to fill test: %s", test.Name)
+			}
 		}
 	}
 	return nil
@@ -59,6 +68,8 @@ func spawnClient(ctx context.Context, args *Args) (Client, error) {
 		err           error
 		gspec, blocks = genSimpleChain()
 	)
+
+	// Initialize specified client and start it in a separate thread.
 	switch args.ClientType {
 	case "geth":
 		client, err = NewGethClient(ctx, args.ClientBin, gspec, blocks, args.Verbose)
@@ -69,26 +80,16 @@ func spawnClient(ctx context.Context, args *Args) (Client, error) {
 	default:
 		return nil, fmt.Errorf("unsupported client: %s", args.ClientType)
 	}
-	c, err := rpc.DialHTTPWithClient(fmt.Sprintf("http://%s:%s", HOST, PORT), http.DefaultClient)
+
+	// Try to connect for 5 seconds. Error otherwise.
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	err = tryConnection(ctx, fmt.Sprintf("http://%s:%s", HOST, PORT), 500*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
-	eth := ethclient.NewClient(c)
 
-	// Try to connect for 5 seconds.
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	for {
-		_, err := eth.BlockNumber(ctx)
-		if err == nil {
-			break
-		}
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("timeout while fetching information (last error: %w)", err)
-		case <-time.After(500 * time.Millisecond):
-		}
-	}
 	return client, nil
 }
 
@@ -97,6 +98,26 @@ func mkdir(path string) error {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// tryConnection checks if a client's JSON-RPC API is accepting requests.
+func tryConnection(ctx context.Context, addr string, waitTime time.Duration) error {
+	c, err := rpc.DialHTTPWithClient(addr, http.DefaultClient)
+	if err != nil {
+		return err
+	}
+	e := ethclient.NewClient(c)
+	for {
+		if _, err := e.BlockNumber(ctx); err != nil {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("retry timeout: %w", err)
+		case <-time.After(waitTime):
 		}
 	}
 	return nil
