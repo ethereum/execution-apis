@@ -7,7 +7,7 @@ consensus tests, in that it takes test definitions (in rpctestgen's case, go
 functions), executes them against a client, and outputs the resulting
 interaction.
 
-The full API specification can be found in [`ethereum/exeuction-apis`][exeuciton-apis]
+The full API specification can be found in [`ethereum/exeuction-apis`][execution-apis]
 
 ## Usage
 
