@@ -51,7 +51,7 @@ func runGenerator(ctx context.Context) error {
 
 			err := test.Run(ctx, handler.ethclient)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to fill test: %s", test.Name)
+				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.MethodName, test.Name, err)
 			}
 		}
 	}
@@ -111,7 +111,7 @@ func tryConnection(ctx context.Context, addr string, waitTime time.Duration) err
 	}
 	e := ethclient.NewClient(c)
 	for {
-		if _, err := e.BlockNumber(ctx); err != nil {
+		if _, err := e.BlockNumber(ctx); err == nil {
 			break
 		}
 		select {
