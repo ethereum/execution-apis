@@ -49,7 +49,7 @@ func runGenerator(ctx context.Context) error {
 	return nil
 }
 
-// spawnClient starts an Ethereum client on separate thread.
+// spawnClient starts an Ethereum client on a separate thread.
 //
 // It waits until the client is responding to JSON-RPC requests
 // before returning.
