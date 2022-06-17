@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/lightclient/rpctestgen/testgen"
@@ -18,8 +20,15 @@ import (
 func runGenerator(ctx context.Context) error {
 	args := ctx.Value("args").(*Args)
 
+	// Generate test chain and write to output directory.
+	gspec, blocks := genSimpleChain()
+	if err := mkdir(args.OutDir); err != nil {
+		return err
+	}
+	writeChain(args.OutDir, gspec, blocks)
+
 	// Start Ethereum client.
-	client, err := spawnClient(ctx, args)
+	client, err := spawnClient(ctx, args, gspec, blocks)
 	if err != nil {
 		return err
 	}
@@ -62,11 +71,10 @@ func runGenerator(ctx context.Context) error {
 //
 // It waits until the client is responding to JSON-RPC requests
 // before returning.
-func spawnClient(ctx context.Context, args *Args) (Client, error) {
+func spawnClient(ctx context.Context, args *Args, gspec *core.Genesis, blocks []*types.Block) (Client, error) {
 	var (
-		client        Client
-		err           error
-		gspec, blocks = genSimpleChain()
+		client Client
+		err    error
 	)
 
 	// Initialize specified client and start it in a separate thread.
