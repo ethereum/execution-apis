@@ -14,16 +14,15 @@ import (
 )
 
 type Client interface {
-	Init() error
-	Start() error
-	Close()
+	Start(ctx context.Context, verbose bool) error
+	HttpAddr() string
+	Close() error
 }
 
 type GethClient struct {
 	cmd     *exec.Cmd
 	path    string
 	workdir string
-
 	blocks  []*types.Block
 	genesis *core.Genesis
 }
@@ -58,8 +57,12 @@ func (g *GethClient) Start(ctx context.Context, verbose bool) error {
 	return nil
 }
 
+func (g *GethClient) HttpAddr() string {
+	return fmt.Sprintf("http://%s:%s", HOST, PORT)
+}
+
 func (g *GethClient) Close() error {
-	fmt.Println("closing geth")
+	g.cmd.Process.Kill()
 	g.cmd.Wait()
 	return os.RemoveAll(g.workdir)
 }
