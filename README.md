@@ -7,7 +7,8 @@ consensus tests, in that it takes test definitions (in rpctestgen's case, go
 functions), executes them against a client, and outputs the resulting
 interaction.
 
-The full API specification can be found in [`ethereum/exeuction-apis`][execution-apis]
+The full API specification can be found in
+[`ethereum/exeuction-apis`][execution-apis].
 
 ## Usage
 
@@ -31,8 +32,9 @@ Options:
 
 ## Fixture format
 
-The fixtures are very simple. Each statement is delimited by a newline. The `>>` prefix denotes
-a request sent to the client. The `<<` prefix denotes the client's response.
+The fixtures are very simple. Each statement is delimited by a newline. The
+`>>` prefix denotes a request sent to the client. The `<<` prefix denotes the
+client's response.
 
 ```js
 >> {"jsonrpc":"2.0","id":1,"method":"eth_blockNumber"}
