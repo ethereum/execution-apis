@@ -1,11 +1,10 @@
 # rpctestgen
 
-`rpctestgen` is a test fixture generator for the execution client JSON-RPC API. 
+`rpctestgen` is a test fixture generator for the execution layer JSON-RPC API. 
 
 Conceptually, it is similar to [`retesteth`][retesteth], which generates
 consensus tests, in that it takes test definitions (in rpctestgen's case, go
-functions), executes them against a client, and outputs the resulting
-interaction.
+functions), executes them against a client, and outputs the exchange.
 
 The full API specification can be found in
 [`ethereum/exeuction-apis`][execution-apis].
