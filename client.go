@@ -47,7 +47,7 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	writeChain(tmp, genesis, blocks)
 
 	var (
-		isFakepow = !(ctx.Value("args").(*Args)).Ethash
+		isFakepow = !(ctx.Value(ARGKEY).(*Args)).Ethash
 		datadir   = fmt.Sprintf("--datadir=%s", tmp)
 	)
 
@@ -74,7 +74,7 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 func (g *GethClient) Start(ctx context.Context, verbose bool) error {
 	fmt.Println("starting client")
 
-	isFakepow := !(ctx.Value("args").(*Args)).Ethash
+	isFakepow := !(ctx.Value(ARGKEY).(*Args)).Ethash
 	options := []string{
 		fmt.Sprintf("--datadir=%s", g.workdir),
 		fmt.Sprintf("--port=%s", NETWORKPORT),

@@ -26,12 +26,14 @@ type Args struct {
 
 type argKey struct{}
 
+var ARGKEY = argKey{}
+
 func main() {
 	var args Args
 	arg.MustParse(&args)
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, argKey{}, &args)
+	ctx = context.WithValue(ctx, ARGKEY, &args)
 
 	if err := runGenerator(ctx); err != nil {
 		exit(err)
