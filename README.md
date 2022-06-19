@@ -13,22 +13,31 @@ The full API specification can be found in
 ## Usage
 
 rpctestgen runs with sane defaults. The tests will be filled with whatever
-binary `geth` matches in the `PATH`. See `rpctestgen --help` for a full list of
-options.
+binary `geth` matches in the `$PATH`. By default, tests are not sealed. To seal
+with ethash, run with the `--ethash` flag. For a full list of options, see
+`rpctestgen --help`.
+
+### Quick Start
+
+To fill all tests with ethash seal, simply run `make fill`.
 
 ```console
-$ rpctestgen --help
-Usage: rpctestgen [--client CLIENT] [--bin BIN] [--out OUT] [--verbose] [--log-level LOG-LEVEL]
+$ make fill
+go build .
+./rpctestgen  --ethash
+sealing block 1
+sealing block 2
+sealing block 3
+starting client
+filling tests...
+generating tests/eth_blockNumber/simple-test.io  done.
+generating tests/eth_getBlockByNumber/get-genesis.io  done.
+generating tests/eth_getBlockByNumber/get-block-n.io  done.
+```
 
-Options:
-  --client CLIENT        client type [default: geth]
-  --bin BIN              path to client binary [default: geth]
-  --out OUT              directory where test fixtures will be written [default: tests]
-  --verbose, -v          verbosity level of rpctestgen
-  --log-level LOG-LEVEL
-                         log level of client [default: info]
-  --help, -h             display this help and exit
-  ```
+This will write the generated test fixtures to `tests/` directory. In addition
+to JSON-RPC exchange, a `chain.rlp` and `genesis.json` will be included so that
+the exchange can be verified on all clients.
 
 ## Fixture format
 
