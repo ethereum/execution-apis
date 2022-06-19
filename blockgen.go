@@ -26,6 +26,7 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block) {
 			Alloc:      core.GenesisAlloc{address: {Balance: funds}},
 			BaseFee:    big.NewInt(params.InitialBaseFee),
 			Difficulty: common.Big1,
+			GasLimit:   5_000_000,
 		}
 		gendb   = rawdb.NewMemoryDatabase()
 		genesis = gspec.MustCommit(gendb)
