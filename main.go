@@ -24,12 +24,14 @@ type Args struct {
 	LogLevel   string `arg:"--loglevel" help:"log level of client" default:"info"`
 }
 
+type argKey struct{}
+
 func main() {
 	var args Args
 	arg.MustParse(&args)
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "args", &args)
+	ctx = context.WithValue(ctx, argKey{}, &args)
 
 	if err := runGenerator(ctx); err != nil {
 		exit(err)
