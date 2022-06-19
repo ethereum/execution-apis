@@ -53,10 +53,20 @@ var EthGetBlockByNumber = MethodTests{
 			"gets block 0",
 			ethGetBlockByNumberGenesis,
 		},
+		{
+			"get-block-n",
+			"gets block 2",
+			ethGetBlockByNumberN,
+		},
 	},
 }
 
 func ethGetBlockByNumberGenesis(ctx context.Context, eth *ethclient.Client) error {
 	_, err := eth.BlockByNumber(ctx, common.Big0)
+	return err
+}
+
+func ethGetBlockByNumberN(ctx context.Context, eth *ethclient.Client) error {
+	_, err := eth.BlockByNumber(ctx, common.Big2)
 	return err
 }

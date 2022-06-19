@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -20,8 +22,21 @@ import (
 func runGenerator(ctx context.Context) error {
 	args := ctx.Value("args").(*Args)
 
+	// Make consensus engine.
+	var engine consensus.Engine
+	config := ethash.Config{
+		PowMode:        ethash.ModeFake,
+		CachesInMem:    2,
+		DatasetsOnDisk: 2,
+		DatasetDir:     args.EthashDir,
+	}
+	if args.Ethash {
+		config.PowMode = ethash.ModeNormal
+	}
+	engine = ethash.New(config, nil, false)
+
 	// Generate test chain and write to output directory.
-	gspec, blocks := genSimpleChain()
+	gspec, blocks := genSimpleChain(engine)
 	if err := mkdir(args.OutDir); err != nil {
 		return err
 	}
@@ -43,6 +58,7 @@ func runGenerator(ctx context.Context) error {
 
 	// Generate test fixtures for all methods. Store them in the format:
 	// outputDir/methodName/testName.io
+	fmt.Println("filling tests...")
 	tests := testgen.AllMethods
 	for _, methodTest := range tests {
 		methodDir := fmt.Sprintf("%s/%s", args.OutDir, methodTest.MethodName)
@@ -51,8 +67,10 @@ func runGenerator(ctx context.Context) error {
 		}
 
 		for _, test := range methodTest.Tests {
+			filename := fmt.Sprintf("%s/%s.io", methodDir, test.Name)
+			fmt.Printf("generating %s", filename)
 			// Write the exchange for each test in a separte file.
-			handler.RotateLog(fmt.Sprintf("%s/%s.io", methodDir, test.Name))
+			handler.RotateLog(filename)
 
 			// Fail test fill if request exceeds timeout.
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -60,8 +78,10 @@ func runGenerator(ctx context.Context) error {
 
 			err := test.Run(ctx, handler.ethclient)
 			if err != nil {
+				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.MethodName, test.Name, err)
 			}
+			fmt.Println("  done.")
 		}
 	}
 	return nil
