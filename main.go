@@ -18,8 +18,10 @@ type Args struct {
 	ClientType string `arg:"--client" help:"client type" default:"geth"`
 	ClientBin  string `arg:"--bin" help:"path to client binary" default:"geth"`
 	OutDir     string `arg:"--out" help:"directory where test fixtures will be written" default:"tests"`
+	Ethash     bool   `args:"--ethash" help:"seal blocks using proof-of-work"`
+	EthashDir  string `args:"--ethashdir" help:"directory to store ethash dag (empty for in-memory only)"`
 	Verbose    bool   `arg:"-v,--verbose" help:"verbosity level of rpctestgen"`
-	LogLevel   string `arg:"--log-level" help:"log level of client" default:"info"`
+	LogLevel   string `arg:"--loglevel" help:"log level of client" default:"info"`
 }
 
 func main() {
@@ -32,7 +34,6 @@ func main() {
 	if err := runGenerator(ctx); err != nil {
 		exit(err)
 	}
-
 }
 
 func exit(err error) {

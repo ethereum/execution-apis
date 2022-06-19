@@ -45,30 +45,49 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 		return nil, err
 	}
 	writeChain(tmp, genesis, blocks)
-	datadir := fmt.Sprintf("--datadir=%s", tmp)
-	err = runCmd(ctx, path, verbose, datadir, "--fakepow", "init", fmt.Sprintf("%s/genesis.json", tmp))
+
+	var (
+		isFakepow = !(ctx.Value("args").(*Args)).Ethash
+		datadir   = fmt.Sprintf("--datadir=%s", tmp)
+	)
+
+	// Run geth init.
+	options := []string{datadir, "init", fmt.Sprintf("%s/genesis.json", tmp)}
+	options = maybePrepend(isFakepow, options, "--fakepow")
+	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
 		return nil, err
 	}
-	err = runCmd(ctx, path, verbose, datadir, "--fakepow", "import", fmt.Sprintf("%s/chain.rlp", tmp))
+
+	// Run geth import.
+	options = []string{datadir, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
+	options = maybePrepend(isFakepow, options, "--fakepow")
+	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
 		return nil, err
 	}
+
 	return &GethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp}, nil
 }
 
 // Start starts geth, but does not wait for the command to exit.
 func (g *GethClient) Start(ctx context.Context, verbose bool) error {
-	g.cmd = exec.CommandContext(
-		ctx,
-		g.path,
+	fmt.Println("starting client")
+
+	isFakepow := !(ctx.Value("args").(*Args)).Ethash
+	options := []string{
 		fmt.Sprintf("--datadir=%s", g.workdir),
 		fmt.Sprintf("--port=%s", NETWORKPORT),
 		"--nodiscover",
-		"--fakepow",
 		"--http",
 		fmt.Sprintf("--http.addr=%s", HOST),
 		fmt.Sprintf("--http.port=%s", PORT),
+	}
+	options = maybePrepend(isFakepow, options, "--fakepow")
+	g.cmd = exec.CommandContext(
+		ctx,
+		g.path,
+		options...,
 	)
 	if verbose {
 		g.cmd.Stdout = os.Stdout
@@ -126,4 +145,11 @@ func writeChain(path string, genesis *core.Genesis, blocks []*types.Block) error
 		}
 	}
 	return nil
+}
+
+func maybePrepend(shouldAdd bool, options []string, maybe ...string) []string {
+	if shouldAdd {
+		options = append(maybe, options...)
+	}
+	return options
 }
