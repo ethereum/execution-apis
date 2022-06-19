@@ -14,7 +14,7 @@ jobs:
         id: go
 
       - name: Install geth
-        run: sudo apt-get install -y geth
+        run: sudo snap install geth
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
