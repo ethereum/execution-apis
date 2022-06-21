@@ -50,7 +50,7 @@ func runGenerator(ctx context.Context) error {
 	defer client.Close()
 
 	// Connect ethclient to Ethereum client.
-	handler, err := NewEthclientHandler(client.HttpAddr())
+	handler, err := newEthclientHandler(client.HttpAddr())
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func spawnClient(ctx context.Context, args *Args, gspec *core.Genesis, blocks []
 	// Initialize specified client and start it in a separate thread.
 	switch args.ClientType {
 	case "geth":
-		client, err = NewGethClient(ctx, args.ClientBin, gspec, blocks, args.Verbose)
+		client, err = newGethClient(ctx, args.ClientBin, gspec, blocks, args.Verbose)
 		if err != nil {
 			return nil, err
 		}

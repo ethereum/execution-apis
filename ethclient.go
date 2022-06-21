@@ -12,13 +12,13 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-type EthclientHandler struct {
+type ethclientHandler struct {
 	ethclient *ethclient.Client
 	logFile   *os.File
 	transport *loggingRoundTrip
 }
 
-func NewEthclientHandler(addr string) (*EthclientHandler, error) {
+func newEthclientHandler(addr string) (*ethclientHandler, error) {
 	rt := &loggingRoundTrip{
 		inner: http.DefaultTransport,
 	}
@@ -27,10 +27,10 @@ func NewEthclientHandler(addr string) (*EthclientHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &EthclientHandler{ethclient.NewClient(rpcClient), nil, rt}, nil
+	return &ethclientHandler{ethclient.NewClient(rpcClient), nil, rt}, nil
 }
 
-func (l *EthclientHandler) RotateLog(filename string) error {
+func (l *ethclientHandler) RotateLog(filename string) error {
 	if l.logFile != nil {
 		if err := l.logFile.Close(); err != nil {
 			return err
@@ -45,7 +45,7 @@ func (l *EthclientHandler) RotateLog(filename string) error {
 	return nil
 }
 
-func (l *EthclientHandler) Close() {
+func (l *ethclientHandler) Close() {
 	if l.logFile != nil {
 		l.logFile.Close()
 	}

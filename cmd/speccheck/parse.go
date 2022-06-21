@@ -29,8 +29,8 @@ type jsonError struct {
 
 // parseRoundTrips walks a root directory and parses round trip HTTP exchanges
 // from files that match the regular expression.
-func parseRoundTrips(root string, re *regexp.Regexp) ([]*RoundTrip, error) {
-	rts := make([]*RoundTrip, 0)
+func parseRoundTrips(root string, re *regexp.Regexp) ([]*roundTrip, error) {
+	rts := make([]*roundTrip, 0)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("unable to walk path: %s\n", err)
@@ -62,12 +62,12 @@ func parseRoundTrips(root string, re *regexp.Regexp) ([]*RoundTrip, error) {
 }
 
 // parseTest parses a single test into a slice of HTTP round trips.
-func parseTest(filename string) ([]*RoundTrip, error) {
+func parseTest(filename string) ([]*roundTrip, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	rts := make([]*RoundTrip, 0)
+	rts := make([]*roundTrip, 0)
 	var req *jsonrpcMessage
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimSpace(line)
@@ -93,7 +93,7 @@ func parseTest(filename string) ([]*RoundTrip, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse params: %s %v", err, req.Params)
 			}
-			rts = append(rts, &RoundTrip{req.Method, params, resp.Result})
+			rts = append(rts, &roundTrip{req.Method, params, resp.Result})
 			req = nil
 		default:
 			return nil, fmt.Errorf("invalid line in test: %s", line)
@@ -130,7 +130,7 @@ func parseParamValues(raw json.RawMessage) ([][]byte, error) {
 
 // parseMethodSchemas reads an OpenRPC specification and parses out each
 // method's schemas.
-func parseMethodSchemas(filename string) (map[string]*MethodSchema, error) {
+func parseMethodSchemas(filename string) (map[string]*methodSchema, error) {
 	spec, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -141,9 +141,9 @@ func parseMethodSchemas(filename string) (map[string]*MethodSchema, error) {
 	}
 	// Iterate over each method in the OpenRPC spec and pull out the parameter
 	// schema and result schema.
-	parsed := make(map[string]*MethodSchema)
+	parsed := make(map[string]*methodSchema)
 	for _, method := range *doc.Methods {
-		var schema MethodSchema
+		var schema methodSchema
 
 		// Read parameter schemas.
 		for _, param := range *method.MethodObject.Params {
@@ -154,7 +154,7 @@ func parseMethodSchemas(filename string) (map[string]*MethodSchema, error) {
 			if err != nil {
 				return nil, err
 			}
-			schema.Params = append(schema.Params, buf)
+			schema.params = append(schema.params, buf)
 		}
 
 		// Read result schema.
@@ -162,7 +162,7 @@ func parseMethodSchemas(filename string) (map[string]*MethodSchema, error) {
 		if err != nil {
 			return nil, err
 		}
-		schema.Result = buf
+		schema.result = buf
 		parsed[string(*method.MethodObject.Name)] = &schema
 	}
 
