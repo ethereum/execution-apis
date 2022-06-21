@@ -20,7 +20,7 @@ import (
 // runGenerator generates test fixtures against the specified client and writes
 // them to the output directory.
 func runGenerator(ctx context.Context) error {
-	args := ctx.Value(ARGKEY).(*Args)
+	args := ctx.Value(ARGS).(*Args)
 
 	// Make consensus engine.
 	var engine consensus.Engine

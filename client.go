@@ -47,12 +47,14 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	writeChain(tmp, genesis, blocks)
 
 	var (
-		isFakepow = !(ctx.Value(ARGKEY).(*Args)).Ethash
+		args      = ctx.Value(ARGS).(*Args)
+		isFakepow = !args.Ethash
 		datadir   = fmt.Sprintf("--datadir=%s", tmp)
+		loglevel  = fmt.Sprintf("--verbosity=%d", args.logLevelInt)
 	)
 
 	// Run geth init.
-	options := []string{datadir, "init", fmt.Sprintf("%s/genesis.json", tmp)}
+	options := []string{datadir, loglevel, "init", fmt.Sprintf("%s/genesis.json", tmp)}
 	options = maybePrepend(isFakepow, options, "--fakepow")
 	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
@@ -60,7 +62,7 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	}
 
 	// Run geth import.
-	options = []string{datadir, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
+	options = []string{datadir, loglevel, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
 	options = maybePrepend(isFakepow, options, "--fakepow")
 	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
@@ -73,16 +75,19 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 // Start starts geth, but does not wait for the command to exit.
 func (g *GethClient) Start(ctx context.Context, verbose bool) error {
 	fmt.Println("starting client")
-
-	isFakepow := !(ctx.Value(ARGKEY).(*Args)).Ethash
-	options := []string{
-		fmt.Sprintf("--datadir=%s", g.workdir),
-		fmt.Sprintf("--port=%s", NETWORKPORT),
-		"--nodiscover",
-		"--http",
-		fmt.Sprintf("--http.addr=%s", HOST),
-		fmt.Sprintf("--http.port=%s", PORT),
-	}
+	var (
+		args      = ctx.Value(ARGS).(*Args)
+		isFakepow = !args.Ethash
+		options   = []string{
+			fmt.Sprintf("--datadir=%s", g.workdir),
+			fmt.Sprintf("--verbosity=%d", args.logLevelInt),
+			fmt.Sprintf("--port=%s", NETWORKPORT),
+			"--nodiscover",
+			"--http",
+			fmt.Sprintf("--http.addr=%s", HOST),
+			fmt.Sprintf("--http.port=%s", PORT),
+		}
+	)
 	options = maybePrepend(isFakepow, options, "--fakepow")
 	g.cmd = exec.CommandContext(
 		ctx,
