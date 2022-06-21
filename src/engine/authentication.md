@@ -35,7 +35,7 @@ The HMAC algorithm means that symmetric encryption is used, thus several CL's wi
 
 The `EL` and `CL` clients **MUST** accept a cli/config parameter: `jwt-secret`, which designates a file containing the hex-encoded 256 bit secret key to be used for verifying/generating jwt tokens. 
 
-If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and store it the hex-encoded secret as a `jwt.hex` file on the filesystem with user permission flags set to 0600 (only owner can read and write). This file can then be used to provision the counterpart client. 
+If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and store it the hex-encoded secret as a `jwt.hex` file on the filesystem with secure read and write permissions set. This file can then be used to provision the counterpart client.
 
 If such a parameter _is_ given, but the file cannot be read, or does not contain a hex-encoded key of at least `256` bits, the client should treat this as an error: either abort the startup, or show error and continue without exposing the authenticated port.  
 
