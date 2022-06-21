@@ -81,7 +81,7 @@
 			},
 			"nonce": {
 				"title": "Nonce",
-				"$ref": "#/components/schemas/bytes"
+				"$ref": "#/components/schemas/bytes8"
 			},
 			"totalDifficulty": {
 				"title": "Total difficult",
