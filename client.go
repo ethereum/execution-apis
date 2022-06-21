@@ -26,8 +26,8 @@ type Client interface {
 	Close() error
 }
 
-// GethClient is a wrapper around a go-ethereum instance on a separate thread.
-type GethClient struct {
+// gethClient is a wrapper around a go-ethereum instance on a separate thread.
+type gethClient struct {
 	cmd     *exec.Cmd
 	path    string
 	workdir string
@@ -35,11 +35,11 @@ type GethClient struct {
 	genesis *core.Genesis
 }
 
-// NewGethClient instantiates a new GethClient.
+// newGethClient instantiates a new GethClient.
 //
 // The client's data directory is set to a temporary location and it
 // initializes with the genesis and the provided blocks.
-func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, blocks []*types.Block, verbose bool) (*GethClient, error) {
+func newGethClient(ctx context.Context, path string, genesis *core.Genesis, blocks []*types.Block, verbose bool) (*gethClient, error) {
 	tmp, err := ioutil.TempDir("", "geth-")
 	if err != nil {
 		return nil, err
@@ -47,12 +47,14 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	writeChain(tmp, genesis, blocks)
 
 	var (
-		isFakepow = !(ctx.Value(ARGKEY).(*Args)).Ethash
+		args      = ctx.Value(ARGS).(*Args)
+		isFakepow = !args.Ethash
 		datadir   = fmt.Sprintf("--datadir=%s", tmp)
+		loglevel  = fmt.Sprintf("--verbosity=%d", args.logLevelInt)
 	)
 
 	// Run geth init.
-	options := []string{datadir, "init", fmt.Sprintf("%s/genesis.json", tmp)}
+	options := []string{datadir, loglevel, "init", fmt.Sprintf("%s/genesis.json", tmp)}
 	options = maybePrepend(isFakepow, options, "--fakepow")
 	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
@@ -60,29 +62,32 @@ func NewGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	}
 
 	// Run geth import.
-	options = []string{datadir, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
+	options = []string{datadir, loglevel, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
 	options = maybePrepend(isFakepow, options, "--fakepow")
 	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp}, nil
+	return &gethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp}, nil
 }
 
 // Start starts geth, but does not wait for the command to exit.
-func (g *GethClient) Start(ctx context.Context, verbose bool) error {
+func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 	fmt.Println("starting client")
-
-	isFakepow := !(ctx.Value(ARGKEY).(*Args)).Ethash
-	options := []string{
-		fmt.Sprintf("--datadir=%s", g.workdir),
-		fmt.Sprintf("--port=%s", NETWORKPORT),
-		"--nodiscover",
-		"--http",
-		fmt.Sprintf("--http.addr=%s", HOST),
-		fmt.Sprintf("--http.port=%s", PORT),
-	}
+	var (
+		args      = ctx.Value(ARGS).(*Args)
+		isFakepow = !args.Ethash
+		options   = []string{
+			fmt.Sprintf("--datadir=%s", g.workdir),
+			fmt.Sprintf("--verbosity=%d", args.logLevelInt),
+			fmt.Sprintf("--port=%s", NETWORKPORT),
+			"--nodiscover",
+			"--http",
+			fmt.Sprintf("--http.addr=%s", HOST),
+			fmt.Sprintf("--http.port=%s", PORT),
+		}
+	)
 	options = maybePrepend(isFakepow, options, "--fakepow")
 	g.cmd = exec.CommandContext(
 		ctx,
@@ -100,12 +105,12 @@ func (g *GethClient) Start(ctx context.Context, verbose bool) error {
 }
 
 // HttpAddr returns the address where the client is servering its JSON-RPC.
-func (g *GethClient) HttpAddr() string {
+func (g *gethClient) HttpAddr() string {
 	return fmt.Sprintf("http://%s:%s", HOST, PORT)
 }
 
 // Close closes the client.
-func (g *GethClient) Close() error {
+func (g *gethClient) Close() error {
 	g.cmd.Process.Kill()
 	g.cmd.Wait()
 	return os.RemoveAll(g.workdir)
