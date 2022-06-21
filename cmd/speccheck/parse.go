@@ -3,6 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	openrpc "github.com/open-rpc/meta-schema"
@@ -23,7 +27,46 @@ type jsonError struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func parseTest(data []byte) ([]*RoundTrip, error) {
+// parseRoundTrips walks a root directory and parses round trip HTTP exchanges
+// from files that match the regular expression.
+func parseRoundTrips(root string, re *regexp.Regexp) ([]*RoundTrip, error) {
+	rts := make([]*RoundTrip, 0)
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Printf("unable to walk path: %s\n", err)
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if fname := info.Name(); !strings.HasSuffix(fname, ".io") {
+			return nil
+		}
+		pathname := strings.TrimSuffix(strings.TrimPrefix(path, root), ".io")
+		if !re.MatchString(pathname) {
+			fmt.Println("skip", pathname)
+			return nil // skip
+		}
+		// Found a good test, parse it and append to list.
+		test, err := parseTest(path)
+		if err != nil {
+			return err
+		}
+		rts = append(rts, test...)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return rts, nil
+}
+
+// parseTest parses a single test into a slice of HTTP round trips.
+func parseTest(filename string) ([]*RoundTrip, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
 	rts := make([]*RoundTrip, 0)
 	var req *jsonrpcMessage
 	for _, line := range strings.Split(string(data), "\n") {
@@ -46,11 +89,11 @@ func parseTest(data []byte) ([]*RoundTrip, error) {
 				return nil, err
 			}
 			// Parse parameters into slice of string.
-			params, err := parseParams(req.Params)
+			params, err := parseParamValues(req.Params)
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse params: %s %v", err, req.Params)
 			}
-			rts = append(rts, &RoundTrip{req.Method, params, string(resp.Result)})
+			rts = append(rts, &RoundTrip{req.Method, params, resp.Result})
 			req = nil
 		default:
 			return nil, fmt.Errorf("invalid line in test: %s", line)
@@ -62,32 +105,39 @@ func parseTest(data []byte) ([]*RoundTrip, error) {
 	return rts, nil
 }
 
-func parseParams(params []byte) ([]string, error) {
+// parseParamValues parses each parameter out of the raw json value in its own byte
+// slice.
+func parseParamValues(params json.RawMessage) ([][]byte, error) {
 	if len(params) == 0 {
-		return []string{}, nil
+		return [][]byte{}, nil
 	}
 	var abstractParams []interface{}
 	if err := json.Unmarshal(params, &abstractParams); err != nil {
 		return nil, err
 	}
-	var out []string
+	var out [][]byte
 	for _, param := range abstractParams {
 		buf, err := json.Marshal(param)
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, string(buf))
+		out = append(out, buf)
 	}
 	return out, nil
 }
 
-func parseMethods(spec []byte) (map[string]*MethodSchema, error) {
+// parseMethodSchemas reads an OpenRPC specification and parses out each
+// method's schemas.
+func parseMethodSchemas(filename string) (map[string]*MethodSchema, error) {
+	spec, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
 	var doc openrpc.OpenrpcDocument
 	if err := json.Unmarshal(spec, &doc); err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
-
-	// Iterate over each method in the openrpc spec and pull out the parameter
+	// Iterate over each method in the OpenRPC spec and pull out the parameter
 	// schema and result schema.
 	parsed := make(map[string]*MethodSchema)
 	for _, method := range *doc.Methods {
