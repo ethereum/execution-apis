@@ -107,16 +107,18 @@ func parseTest(filename string) ([]*RoundTrip, error) {
 
 // parseParamValues parses each parameter out of the raw json value in its own byte
 // slice.
-func parseParamValues(params json.RawMessage) ([][]byte, error) {
-	if len(params) == 0 {
+func parseParamValues(raw json.RawMessage) ([][]byte, error) {
+	if len(raw) == 0 {
 		return [][]byte{}, nil
 	}
-	var abstractParams []interface{}
-	if err := json.Unmarshal(params, &abstractParams); err != nil {
+	var params []interface{}
+	if err := json.Unmarshal(raw, &params); err != nil {
 		return nil, err
 	}
+	// Iterate over top-level parameter values and re-marshal them to get a
+	// list of json-encoded parameter values.
 	var out [][]byte
-	for _, param := range abstractParams {
+	for _, param := range params {
 		buf, err := json.Marshal(param)
 		if err != nil {
 			return nil, err
