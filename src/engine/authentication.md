@@ -25,7 +25,6 @@ parameters for the WS-handshake are carried in the http headers.
 
 - Client software MUST expose the authenticated Engine API at a port independent from existing JSON-RPC API.
   - The default port for the authenticated Engine API is `8551`. The Engine API is exposed under the `engine` namespace.
-- On the authenticated endpoint, the legacy API **MUST** also be available.
 - The EL **MUST** support at least the following `alg` `HMAC + SHA256` (`HS256`)
 - The EL **MUST** reject the `alg` `none`. 
 

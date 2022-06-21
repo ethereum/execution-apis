@@ -31,10 +31,10 @@
 		"summary": "Returns information about a block by number.",
 		"params": [
 			{
-				"name": "Block number",
+				"name": "Block",
 				"required": true,
 				"schema": {
-					"$ref": "#/components/schemas/uint"
+					"$ref": "#/components/schemas/BlockNumberOrTag"
 				}
 			},
 			{
@@ -80,9 +80,9 @@
 		"summary": "Returns the number of transactions in a block matching the given block number.",
 		"params": [
 			{
-				"name": "Block number",
+				"name": "Block",
 				"schema": {
-					"$ref": "#/components/schemas/uint"
+					"$ref": "#/components/schemas/BlockNumberOrTag"
 				}
 			}
 		],
@@ -124,9 +124,9 @@
 		"summary": "Returns the number of transactions in a block matching the given block number.",
 		"params": [
 			{
-				"name": "Block number",
+				"name": "Block",
 				"schema": {
-					"$ref": "#/components/schemas/uint"
+					"$ref": "#/components/schemas/BlockNumberOrTag"
 				}
 			}
 		],

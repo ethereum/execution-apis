@@ -2,6 +2,9 @@
 	"Log": {
 		"title": "log",
 		"type": "object",
+		"required": [
+			"transactionHash"
+		],
 		"properties": {
 			"removed": {
 				"title": "removed",

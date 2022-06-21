@@ -2,6 +2,7 @@ apis
 attributesv
 bytecode
 configurationv
+crypto
 eip
 endian
 enum
@@ -37,3 +38,5 @@ JWT
 WS
 ipc
 cli
+besu
+graphql

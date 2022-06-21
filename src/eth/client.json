@@ -1,13 +1,24 @@
 [
 	{
 		"name": "eth_protocolVersion",
-		"summary": "Returns the current ethereum protocol version.",
+		"summary": "Returns the current Ethereum protocol version.",
 		"params": [],
 		"result": {
 			"name": "Protocol version",
 			"schema": {
 				"title": "version",
 				"type": "string"
+			}
+		}
+	},
+	{
+		"name": "eth_chainId",
+		"summary": "Returns the chain ID of the current network.",
+		"params": [],
+		"result": {
+			"name": "Chain ID",
+			"schema": {
+				"$ref": "#/components/schemas/uint"
 			}
 		}
 	},

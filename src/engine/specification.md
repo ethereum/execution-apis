@@ -8,10 +8,12 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Underlying protocol](#underlying-protocol)
+  - [Authentication](#authentication)
 - [Versioning](#versioning)
 - [Message ordering](#message-ordering)
 - [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
 - [Errors](#errors)
+- [Timeouts](#timeouts)
 - [Structures](#structures)
   - [ExecutionPayloadV1](#executionpayloadv1)
   - [ForkchoiceStateV1](#forkchoicestatev1)
@@ -44,18 +46,31 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 
 ## Underlying protocol
 
-This specification is based on [Ethereum JSON-RPC API](https://eth.wiki/json-rpc/API) and inherits the following properties of this standard:
-
-* Supported communication protocols (HTTP and WebSocket)
-* Message format and encoding notation
-* [Error codes improvement proposal](https://eth.wiki/json-rpc/json-rpc-error-codes-improvement-proposal)
+Message format and encoding notation used by this specification are inherited
+from [Ethereum JSON-RPC Specification][json-rpc-spec].
 
 Client software **MUST** expose Engine API at a port independent from JSON-RPC API.
-The default port for the Engine API is 8550.
+The default port for the Engine API is 8551.
 The Engine API is exposed under the `engine` namespace.
 
 To facilitate an Engine API consumer to access state and logs (e.g. proof-of-stake deposits) through the same connection,
-the client **MUST** also expose the `eth` namespace. 
+the client **MUST** also expose the following subset of `eth` methods:
+* `eth_blockNumber`
+* `eth_call`
+* `eth_chainId`
+* `eth_getCode`
+* `eth_getBlockByHash`
+* `eth_getBlockByNumber`
+* `eth_getLogs`
+* `eth_sendRawTransaction`
+* `eth_syncing`
+
+These methods are described in [Ethereum JSON-RPC Specification][json-rpc-spec].
+
+### Authentication
+
+Engine API uses JWT authentication enabled by default.
+JWT authentication is specified in [Authentication](./authentication.md) document.
 
 ## Versioning
 
@@ -100,14 +115,16 @@ The list of error codes introduced by this specification can be found below.
 | -32602 | Invalid params | Invalid method parameter(s). | 
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32000 | Server error | Generic client error while processing request. |
-| -32001 | Unknown payload | Payload does not exist / is not available. |
+| -38001 | Unknown payload | Payload does not exist / is not available. |
+| -38002 | Invalid forkchoice state | Forkchoice state is invalid / inconsistent. |
+| -38003 | Invalid payload attributes | Payload attributes are invalid / inconsistent. |
 
 Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
 
 For example:
 
 ```console
-$ curl https://localhost:8550 \
+$ curl https://localhost:8551 \
     -X POST \
     -H "Content-Type: application/json" \
     -d '{"jsonrpc":"2.0","method":"engine_getPayloadV1","params": ["0x1"],"id":1}'
@@ -124,9 +141,17 @@ $ curl https://localhost:8550 \
 }
 ```
 
+## Timeouts
+
+Consensus Layer client software **MUST** wait for a specified `timeout` before aborting the call. In such an event, the Consensus Layer client software **MAY** retry the call.
+
+Consensus Layer client software **MAY** wait for response longer than it is specified by the `timeout` parameter.
+
 ## Structures
 
-Fields having `DATA` and `QUANTITY` types **MUST** be encoded according to the [HEX value encoding](https://eth.wiki/json-rpc/API#hex-value-encoding) section of Ethereum JSON-RPC API.
+Values of a field of `DATA` type **MUST** be encoded as a hexadecimal string with a `0x` prefix matching the regular expression `^0x(?:[a-fA-F0-9]{2})*$`.
+
+Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string with a `0x` prefix and the leading 0s stripped (except for the case of encoding the value `0`) matching the regular expression `^0x(?:0|(?:[a-fA-F1-9][a-fA-F0-9]*))$`.
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
 
@@ -139,7 +164,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
-- `random`: `DATA`, 32 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
 - `blockNumber`: `QUANTITY`, 64 Bits
 - `gasLimit`: `QUANTITY`, 64 Bits
 - `gasUsed`: `QUANTITY`, 64 Bits
@@ -157,21 +182,23 @@ This structure encapsulates the fork choice state. The fields are encoded as fol
 - `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
 - `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
 
+*Note:* `safeBlockHash` and `finalizedBlockHash` fields are allowed to have `0x0000000000000000000000000000000000000000000000000000000000000000` value unless transition block is finalized.
+
 ### PayloadAttributesV1
 
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
-- `random`: `DATA`, 32 Bytes - value for the `random` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
 ### PayloadStatusV1
 
 This structure contains the result of processing a payload. The fields are encoded as follows:
 
-- `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH" | "INVALID_TERMINAL_BLOCK"`
+- `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH"`
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
-- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is deemed `INVALID`
+- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
 
 ### TransitionConfigurationV1
 
@@ -188,11 +215,12 @@ Payload validation process consists of validating a payload with respect to the 
 
 1. Client software **MAY** obtain a parent state by executing ancestors of a payload as a part of the validation process. In this case each ancestor **MUST** also pass payload validation process.
 
-2. Client software **MUST** validate that the most recent PoW block in the chain of a payload ancestors satisfies terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity). This check maps to the transition block validity section of the EIP. If this validation fails, the response **MUST** contain `{status: INVALID_TERMINAL_BLOCK, latestValidHash: null}`. Additionally, each block in a tree of descendants of an invalid terminal block **MUST** be deemed `INVALID`.
+2. Client software **MUST** validate that the most recent PoW block in the chain of a payload ancestors satisfies terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity). This check maps to the transition block validity section of the EIP. If this validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000}`. Additionally, each block in a tree of descendants of an invalid terminal block **MUST** be deemed `INVALID`.
 
 3. Client software **MUST** validate a payload according to the block header and execution environment rule set with modifications to these rule sets defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification):
   * If validation succeeds, the response **MUST** contain `{status: VALID, latestValidHash: payload.blockHash}`
   * If validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`
+  * If the most recent valid ancestor is a PoW block, `latestValidHash` **MUST** be set to `0x0000000000000000000000000000000000000000000000000000000000000000`
   * Client software **MUST NOT** surface an `INVALID` payload over any API endpoint and p2p interface.
 
 4. Client software **MAY** provide additional details on the validation error if a payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
@@ -229,6 +257,7 @@ The payload build process is specified as follows:
 * method: `engine_newPayloadV1`
 * params: 
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+* timeout: 8s
 
 #### Response
 
@@ -247,13 +276,14 @@ The payload build process is specified as follows:
 
 5. Client software **MUST** respond to this method call in the following way:
   * `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed
-  * `{status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}` if terminal block conditions are not satisfied
-  * `{status: SYNCING, latestValidHash: null, validationError: null}` if the payload extends the canonical chain and requisite data for its validation is missing
+  * `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000, validationError: errorMessage | null}` if terminal block conditions are not satisfied
+  * `{status: SYNCING, latestValidHash: null, validationError: null}` if requisite data for the payload's acceptance or validation is missing
   * with the payload status obtained from the [Payload validation](#payload-validation) process if the payload has been fully validated while processing the call
   * `{status: ACCEPTED, latestValidHash: null, validationError: null}` if the following conditions are met:
     - the `blockHash` of the payload is valid
     - the payload doesn't extend the canonical chain
-    - the payload hasn't been fully validated.
+    - the payload hasn't been fully validated
+    - ancestors of a payload are know and comprise a well-formed chain.
 
 6. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
@@ -265,6 +295,7 @@ The payload build process is specified as follows:
 * params: 
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+* timeout: 8s
 
 #### Response
 
@@ -273,7 +304,6 @@ The payload build process is specified as follows:
     * `"VALID"`
     * `"INVALID"`
     * `"SYNCING"`
-    * `"INVALID_TERMINAL_BLOCK"`
   - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
 * error: code and message set in case an exception happens while the validating payload, updating the forkchoice or initiating the payload build process.
 
@@ -281,26 +311,32 @@ The payload build process is specified as follows:
 
 1. Client software **MAY** initiate a sync process if `forkchoiceState.headBlockHash` references an unknown payload or a payload that can't be validated because data that are requisite for the validation is missing. The sync process is specified in the [Sync](#sync) section.
 
-2. Client software **MAY** skip an update of the forkchoice state and **MUST NOT** begin a payload build process if `forkchoiceState.headBlockHash` doesn't reference a leaf of the block tree. That is, the block referenced by `forkchoiceState.headBlockHash` is neither the head of the canonical chain nor a block at the tip of any other chain.
+2. Client software **MAY** skip an update of the forkchoice state and **MUST NOT** begin a payload build process if `forkchoiceState.headBlockHash` doesn't reference a leaf of the block tree. That is, the block referenced by `forkchoiceState.headBlockHash` is neither the head of the canonical chain nor a block at the tip of any other chain. In the case of such an event, client software **MUST** return `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: null}`.
 
 3. If `forkchoiceState.headBlockHash` references a PoW block, client software **MUST** validate this block with respect to terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity). This check maps to the transition block validity section of the EIP. Additionally, if this validation fails, client software **MUST NOT** update the forkchoice state and **MUST NOT** begin a payload build process.
 
-4. Before updating the forkchoice state, client software **MUST** ensure the validity of the payload referenced by `forkchoiceState.headBlockHash`, and **MAY** validate the payload while processing the call. The validation process is specified in the [Payload validation](#payload-validation) section.
+4. Before updating the forkchoice state, client software **MUST** ensure the validity of the payload referenced by `forkchoiceState.headBlockHash`, and **MAY** validate the payload while processing the call. The validation process is specified in the [Payload validation](#payload-validation) section. If the validation process fails, client software **MUST NOT** update the forkchoice state and **MUST NOT** begin a payload build process.
 
 5. Client software **MUST** update its forkchoice state if payloads referenced by `forkchoiceState.headBlockHash` and `forkchoiceState.finalizedBlockHash` are `VALID`. The update is specified as follows:
   * The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#block-validity) and **MUST** be processed according to the specification defined in the EIP
   * All updates to the forkchoice state resulting from this call **MUST** be made atomically.
 
-6. Client software **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value if `payloadAttributes` is not `null` and the forkchoice state has been updated successfully. The build process is specified in the [Payload building](#payload-building) section.
+6. Client software **MUST** return `-38002: Invalid forkchoice state` error if the payload referenced by `forkchoiceState.headBlockHash` is `VALID` and a payload referenced by either `forkchoiceState.finalizedBlockHash` or `forkchoiceState.safeBlockHash` does not belong to the chain defined by `forkchoiceState.headBlockHash`.
 
-7. Client software **MUST** respond to this method call in the following way:
+7. Client software **MUST** ensure that `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`. If this condition isn't held client software **MUST** respond with `-38003: Invalid payload attributes` and **MUST NOT** begin a payload build process. In such an event, the `forkchoiceState` update **MUST NOT** be rolled back.
+
+8. Client software **MUST** begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value if `payloadAttributes` is not `null` and the forkchoice state has been updated successfully. The build process is specified in the [Payload building](#payload-building) section.
+
+9. Client software **MUST** respond to this method call in the following way:
   * `{payloadStatus: {status: SYNCING, latestValidHash: null, validationError: null}, payloadId: null}` if `forkchoiceState.headBlockHash` references an unknown payload or a payload that can't be validated because requisite data for the validation is missing
   * `{payloadStatus: {status: INVALID, latestValidHash: validHash, validationError: errorMessage | null}, payloadId: null}` obtained from the [Payload validation](#payload-validation) process if the payload is deemed `INVALID`
-  * `{payloadStatus: {status: INVALID_TERMINAL_BLOCK, latestValidHash: null, validationError: errorMessage | null}, payloadId: null}` obtained either from the [Payload validation](#payload-validation) process or as a result of validating a PoW block referenced by `forkchoiceState.headBlockHash`
+  * `{payloadStatus: {status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000, validationError: errorMessage | null}, payloadId: null}` obtained either from the [Payload validation](#payload-validation) process or as a result of validating a terminal PoW block referenced by `forkchoiceState.headBlockHash`
   * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: null}` if the payload is deemed `VALID` and a build process hasn't been started
-  * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: buildProcessId}` if the payload is deemed `VALID` and the build process has begun.
+  * `{payloadStatus: {status: VALID, latestValidHash: forkchoiceState.headBlockHash, validationError: null}, payloadId: buildProcessId}` if the payload is deemed `VALID` and the build process has begun
+  * `{error: {code: -38002, message: "Invalid forkchoice state"}}` if `forkchoiceState` is either invalid or inconsistent
+  * `{error: {code: -38003, message: "Invalid payload attributes"}}` if the payload is deemed `VALID` and `forkchoiceState` has been applied successfully, but no build process has been started due to invalid `payloadAttributes`.
 
-8. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
+10. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
 ### engine_getPayloadV1
 
@@ -309,6 +345,7 @@ The payload build process is specified as follows:
 * method: `engine_getPayloadV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
@@ -319,7 +356,7 @@ The payload build process is specified as follows:
 
 1. Given the `payloadId` client software **MUST** return the most recent version of the payload that is available in the corresponding build process at the time of receiving the call.
 
-2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
 
@@ -329,7 +366,8 @@ The payload build process is specified as follows:
 
 * method: `engine_exchangeTransitionConfigurationV1`
 * params:
-  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1); `terminalBlockNumber` **MUST** be set to `0`
+  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1)
+* timeout: 1s
 
 #### Response
 
@@ -343,3 +381,11 @@ The payload build process is specified as follows:
 2. Execution Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values received in the call of this method, with exception for `terminalBlockNumber` value.
 
 3. Consensus Layer client software **SHOULD** surface an error to the user if local configuration settings mismatch corresponding values obtained from the response to the call of this method.
+
+4. Consensus Layer client software **SHOULD** poll this endpoint every 60 seconds.
+
+5. Execution Layer client software **SHOULD** surface an error to the user if it does not recieve a request on this endpoint at least once every 120 seconds.
+
+6. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
+
+[json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
