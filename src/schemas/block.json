@@ -96,7 +96,7 @@
 				"$ref": "#/components/schemas/uint"
 			},
 			"transactions": {
-				"oneOf": [
+				"anyOf": [
 					{
 						"title": "Transaction hashes",
 						"type": "array",
