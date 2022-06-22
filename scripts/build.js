@@ -1,4 +1,5 @@
 import fs from "fs";
+import yaml from "js-yaml";
 import merger from "json-schema-merge-allof";
 import { dereferenceDocument } from "@open-rpc/schema-utils-js";
 
@@ -10,7 +11,7 @@ let methodFiles = fs.readdirSync(methodsBase);
 methodFiles.forEach(file => {
   console.log(file);
   let raw = fs.readFileSync(methodsBase + file);
-  let parsed = JSON.parse(raw);
+  let parsed = yaml.load(raw);
   methods = [
     ...methods,
     ...parsed,
@@ -23,7 +24,7 @@ let schemaFiles = fs.readdirSync(schemasBase);
 schemaFiles.forEach(file => {
   console.log(file);
   let raw = fs.readFileSync(schemasBase + file);
-  let parsed = JSON.parse(raw);
+  let parsed = yaml.load(raw);
   schemas = {
     ...schemas,
     ...parsed,
