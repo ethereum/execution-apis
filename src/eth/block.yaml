@@ -1,0 +1,84 @@
+- name: eth_getBlockByHash
+  summary: Returns information about a block by hash.
+  params:
+    - name: Block hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Hydrated transactions
+      required: true
+      schema:
+        title: hydrated
+        type: boolean
+  result:
+    name: Block information
+    schema:
+      $ref: '#/components/schemas/Block'
+- name: eth_getBlockByNumber
+  summary: Returns information about a block by number.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+    - name: Hydrated transactions
+      required: true
+      schema:
+        title: hydrated
+        type: boolean
+  result:
+    name: Block information
+    schema:
+      $ref: '#/components/schemas/Block'
+- name: eth_getBlockTransactionCountByHash
+  summary: Returns the number of transactions in a block from a block matching the given block hash.
+  params:
+    - name: Block hash
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Transaction count
+    schema:
+      title: Transaction count
+      type: array
+      items:
+        $ref: '#/components/schemas/uint'
+- name: eth_getBlockTransactionCountByNumber
+  summary: Returns the number of transactions in a block matching the given block number.
+  params:
+    - name: Block
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Transaction count
+    schema:
+      title: Transaction count
+      type: array
+      items:
+        $ref: '#/components/schemas/uint'
+- name: eth_getUncleCountByBlockHash
+  summary: Returns the number of uncles in a block from a block matching the given block hash.
+  params:
+    - name: Block hash
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Uncle count
+    schema:
+      title: Uncle count
+      type: array
+      items:
+        $ref: '#/components/schemas/uint'
+- name: eth_getUncleCountByBlockNumber
+  summary: Returns the number of transactions in a block matching the given block number.
+  params:
+    - name: Block
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Uncle count
+    schema:
+      title: Uncle count
+      type: array
+      items:
+        $ref: '#/components/schemas/uint'

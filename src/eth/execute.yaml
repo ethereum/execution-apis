@@ -1,0 +1,30 @@
+- name: eth_call
+  summary: Executes a new message call immediately without creating a transaction on the block chain.
+  params:
+    - name: Transaction
+      required: true
+      schema:
+        $ref: '#/components/schemas/TransactionWithSender'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Return data
+    schema:
+      $ref: '#/components/schemas/bytes'
+- name: eth_estimateGas
+  summary: Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+  params:
+    - name: Transaction
+      required: true
+      schema:
+        $ref: '#/components/schemas/TransactionWithSender'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Gas used
+    schema:
+      $ref: '#/components/schemas/uint'

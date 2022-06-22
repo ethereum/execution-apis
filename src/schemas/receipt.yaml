@@ -1,0 +1,101 @@
+Log:
+  title: log
+  type: object
+  required:
+    - transactionHash
+  properties:
+    removed:
+      title: removed
+      type: boolean
+    logIndex:
+      title: log index
+      $ref: '#/components/schemas/uint'
+    transactionIndex:
+      title: transaction index
+      $ref: '#/components/schemas/uint'
+    transactionHash:
+      title: transaction hash
+      $ref: '#/components/schemas/hash32'
+    blockHash:
+      title: block hash
+      $ref: '#/components/schemas/hash32'
+    blockNumber:
+      title: block number
+      $ref: '#/components/schemas/uint'
+    address:
+      title: address
+      $ref: '#/components/schemas/address'
+    data:
+      title: data
+      $ref: '#/components/schemas/bytes'
+    topics:
+      title: topics
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes32'
+ReceiptInfo:
+  type: object
+  title: Receipt info
+  required:
+    - blockHash
+    - blockNumber
+    - from
+    - cumulativeGasUsed
+    - gasUsed
+    - logs
+    - logsBloom
+    - transactionHash
+    - transactionIndex
+    - effectiveGasPrice
+  properties:
+    transactionHash:
+      title: transaction hash
+      $ref: '#/components/schemas/hash32'
+    transactionIndex:
+      title: transaction index
+      $ref: '#/components/schemas/uint'
+    blockHash:
+      title: block hash
+      $ref: '#/components/schemas/hash32'
+    blockNumber:
+      title: block number
+      $ref: '#/components/schemas/uint'
+    from:
+      title: from
+      $ref: '#/components/schemas/address'
+    to:
+      title: to
+      description: Address of the receiver or null in a contract creation transaction.
+      $ref: '#/components/schemas/address'
+    cumulativeGasUsed:
+      title: cumulative gas used
+      description: The sum of gas used by this transaction and all preceding transactions in the same block.
+      $ref: '#/components/schemas/uint'
+    gasUsed:
+      title: gas used
+      description: The amount of gas used for this specific transaction alone.
+      $ref: '#/components/schemas/uint'
+    contractAddress:
+      title: contract address
+      description: The contract address created, if the transaction was a contract creation, otherwise null.
+      $ref: '#/components/schemas/address'
+    logs:
+      title: logs
+      type: array
+      items:
+        $ref: '#/components/schemas/Log'
+    logsBloom:
+      title: logs bloom
+      $ref: '#/components/schemas/bytes256'
+    root:
+      title: state root
+      description: The post-transaction state root. Only specified for transactions included before the Byzantium upgrade.
+      $ref: '#/components/schemas/bytes32'
+    status:
+      title: status
+      description: Either 1 (success) or 0 (failure). Only specified for transactions included after the Byzantium upgrade.
+      $ref: '#/components/schemas/uint'
+    effectiveGasPrice:
+      title: effective gas price
+      description: The actual value per gas deducted from the senders account. Before EIP-1559, this is equal to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas).
+      $ref: '#/components/schemas/uint'

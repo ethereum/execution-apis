@@ -1,0 +1,67 @@
+- name: eth_getBalance
+  summary: Returns the balance of the account of given address.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Balance
+    schema:
+      $ref: '#/components/schemas/uint'
+- name: eth_getStorageAt
+  summary: Returns the value from a storage position at a given address.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Storage slot
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint256'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Value
+    schema:
+      $ref: '#/components/schemas/bytes'
+- name: eth_getTransactionCount
+  summary: Returns the number of transactions sent from an address.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Transaction count
+    schema:
+      title: Transaction count
+      type: array
+      items:
+        $ref: '#/components/schemas/uint'
+- name: eth_getCode
+  summary: Returns code at a given address.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Bytecode
+    schema:
+      $ref: '#/components/schemas/bytes'
