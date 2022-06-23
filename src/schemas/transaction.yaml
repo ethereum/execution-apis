@@ -1,0 +1,254 @@
+AccessListEntry:
+  title: Access list entry
+  type: object
+  properties:
+    address:
+      $ref: '#/components/schemas/address'
+    storageKeys:
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+AccessList:
+  title: Access list
+  type: array
+  items:
+    $ref: '#/components/schemas/AccessListEntry'
+TransactionWithSender:
+  title: Transaction object with sender
+  type: object
+  allOf:
+    - required:
+        - from
+      properties:
+        from:
+          title: from
+          $ref: '#/components/schemas/address'
+    - $ref: '#/components/schemas/TransactionUnsigned'
+Transaction1559Unsigned:
+  type: object
+  title: EIP-1559 transaction.
+  required:
+    - type
+    - nonce
+    - gas
+    - value
+    - input
+    - maxFeePerGas
+    - maxPriorityFeePerGas
+    - chainId
+    - accessList
+  properties:
+    type:
+      title: type
+      $ref: '#/components/schemas/byte'
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint'
+    to:
+      title: to address
+      $ref: '#/components/schemas/address'
+    gas:
+      title: gas limit
+      $ref: '#/components/schemas/uint'
+    value:
+      title: value
+      $ref: '#/components/schemas/uint'
+    input:
+      title: input data
+      $ref: '#/components/schemas/bytes'
+    maxPriorityFeePerGas:
+      title: max priority fee per gas
+      description: Maximum fee per gas the sender is willing to pay to miners in wei
+      $ref: '#/components/schemas/uint'
+    maxFeePerGas:
+      title: max fee per gas
+      description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+      $ref: '#/components/schemas/uint'
+    accessList:
+      title: accessList
+      description: EIP-2930 access list
+      $ref: '#/components/schemas/AccessList'
+    chainId:
+      title: chainId
+      description: Chain ID that this transaction is valid on.
+      $ref: '#/components/schemas/uint'
+Transaction2930Unsigned:
+  type: object
+  title: EIP-2930 transaction.
+  required:
+    - type
+    - nonce
+    - gas
+    - value
+    - input
+    - gasPrice
+    - chainId
+    - accessList
+  properties:
+    type:
+      title: type
+      $ref: '#/components/schemas/byte'
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint'
+    to:
+      title: to address
+      $ref: '#/components/schemas/address'
+    gas:
+      title: gas limit
+      $ref: '#/components/schemas/uint'
+    value:
+      title: value
+      $ref: '#/components/schemas/uint'
+    input:
+      title: input data
+      $ref: '#/components/schemas/bytes'
+    gasPrice:
+      title: gas price
+      description: The gas price willing to be paid by the sender in wei
+      $ref: '#/components/schemas/uint'
+    accessList:
+      title: accessList
+      description: EIP-2930 access list
+      $ref: '#/components/schemas/AccessList'
+    chainId:
+      title: chainId
+      description: Chain ID that this transaction is valid on.
+      $ref: '#/components/schemas/uint'
+TransactionLegacyUnsigned:
+  type: object
+  title: Legacy transaction.
+  required:
+    - type
+    - nonce
+    - gas
+    - value
+    - input
+    - gasPrice
+  properties:
+    type:
+      title: type
+      $ref: '#/components/schemas/byte'
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint'
+    to:
+      title: to address
+      $ref: '#/components/schemas/address'
+    gas:
+      title: gas limit
+      $ref: '#/components/schemas/uint'
+    value:
+      title: value
+      $ref: '#/components/schemas/uint'
+    input:
+      title: input data
+      $ref: '#/components/schemas/bytes'
+    gasPrice:
+      title: gas price
+      description: The gas price willing to be paid by the sender in wei
+      $ref: '#/components/schemas/uint'
+    chainId:
+      title: chainId
+      description: Chain ID that this transaction is valid on.
+      $ref: '#/components/schemas/uint'
+TransactionUnsigned:
+  oneOf:
+    - $ref: '#/components/schemas/Transaction1559Unsigned'
+    - $ref: '#/components/schemas/Transaction2930Unsigned'
+    - $ref: '#/components/schemas/TransactionLegacyUnsigned'
+Transaction1559Signed:
+  title: Signed 1559 Transaction
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/Transaction1559Unsigned'
+    - title: EIP-1559 transaction signature properties.
+      required:
+        - yParity
+        - r
+        - s
+      properties:
+        yParity:
+          title: yParity
+          description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+          $ref: '#/components/schemas/uint'
+        r:
+          title: r
+          $ref: '#/components/schemas/uint'
+        s:
+          title: s
+          $ref: '#/components/schemas/uint'
+Transaction2930Signed:
+  title: Signed 2930 Transaction
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/Transaction2930Unsigned'
+    - title: EIP-2930 transaction signature properties.
+      required:
+        - yParity
+        - r
+        - s
+      properties:
+        yParity:
+          title: yParity
+          description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+          $ref: '#/components/schemas/uint'
+        r:
+          title: r
+          $ref: '#/components/schemas/uint'
+        s:
+          title: s
+          $ref: '#/components/schemas/uint'
+TransactionLegacySigned:
+  title: Signed Legacy Transaction
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/TransactionLegacyUnsigned'
+    - title: Legacy transaction signature properties.
+      required:
+        - v
+        - r
+        - s
+      properties:
+        v:
+          title: v
+          $ref: '#/components/schemas/uint'
+        r:
+          title: r
+          $ref: '#/components/schemas/uint'
+        s:
+          title: s
+          $ref: '#/components/schemas/uint'
+TransactionSigned:
+  oneOf:
+    - $ref: '#/components/schemas/Transaction1559Signed'
+    - $ref: '#/components/schemas/Transaction2930Signed'
+    - $ref: '#/components/schemas/TransactionLegacySigned'
+TransactionInfo:
+  type: object
+  title: Transaction information
+  allOf:
+    - title: Contextual information
+      required:
+        - blockHash
+        - blockNumber
+        - from
+        - hash
+        - transactionIndex
+      properties:
+        blockHash:
+          title: block hash
+          $ref: '#/components/schemas/hash32'
+        blockNumber:
+          title: block number
+          $ref: '#/components/schemas/uint'
+        from:
+          title: from address
+          $ref: '#/components/schemas/address'
+        hash:
+          title: transaction hash
+          $ref: '#/components/schemas/hash32'
+        transactionIndex:
+          title: transaction index
+          $ref: '#/components/schemas/uint'
+    - $ref: '#/components/schemas/TransactionSigned'

@@ -1,0 +1,51 @@
+- name: eth_getTransactionByHash
+  summary: Returns the information about a transaction requested by transaction hash.
+  params:
+    - name: Transaction hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Transaction information
+    schema:
+      $ref: '#/components/schemas/TransactionInfo'
+- name: eth_getTransactionByBlockHashAndIndex
+  summary: Returns information about a transaction by block hash and transaction index position.
+  params:
+    - name: Block hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Transaction index
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Transaction information
+    schema:
+      $ref: '#/components/schemas/TransactionInfo'
+- name: eth_getTransactionByBlockNumberAndIndex
+  summary: Returns information about a transaction by block number and transaction index position.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+    - name: Transaction index
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Transaction information
+    schema:
+      $ref: '#/components/schemas/TransactionInfo'
+- name: eth_getTransactionReceipt
+  summary: Returns the receipt of a transaction by transaction hash.
+  params:
+    - name: Transaction hash
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Receipt Information
+    schema:
+      $ref: '#/components/schemas/ReceiptInfo'

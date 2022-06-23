@@ -1,0 +1,51 @@
+FilterResults:
+  title: Filter results
+  oneOf:
+    - title: new block hashes
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    - title: new transaction hashes
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    - title: new logs
+      type: array
+      items:
+        $ref: '#/components/schemas/Log'
+Filter:
+  title: filter
+  type: object
+  properties:
+    fromBlock:
+      title: from block
+      $ref: '#/components/schemas/uint'
+    toBlock:
+      title: to block
+      $ref: '#/components/schemas/uint'
+    address:
+      title: Address(es)
+      oneOf:
+        - title: Address
+          $ref: '#/components/schemas/address'
+        - title: Addresses
+          $ref: '#/components/schemas/addresses'
+    topics:
+      title: Topics
+      $ref: '#/components/schemas/FilterTopics'
+FilterTopics:
+  title: Filter Topics
+  type: array
+  items:
+    $ref: '#/components/schemas/FilterTopic'
+FilterTopic:
+  title: Filter Topic List Entry
+  oneOf:
+    - title: Any Topic Match
+      type: "null"
+    - title: Single Topic Match
+      $ref: '#/components/schemas/bytes32'
+    - title: Multiple Topic Match
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes32'

@@ -1,0 +1,66 @@
+- name: eth_gasPrice
+  summary: Returns the current price per gas in wei.
+  params: []
+  result:
+    name: Gas price
+    schema:
+      title: Gas price
+      $ref: '#/components/schemas/uint'
+- name: eth_feeHistory
+  summary: Transaction fee history
+  description: Returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range.
+  params:
+    - name: blockCount
+      description: Requested range of blocks. Clients will return less than the requested range if not all blocks are available.
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint'
+    - name: newestBlock
+      description: Highest block of the requested range.
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+    - name: rewardPercentiles
+      description: A monotonically increasing list of percentile values. For each block in the requested range, the transactions will be sorted in ascending order by effective tip per gas and the coresponding effective tip for the percentile will be determined, accounting for gas consumed.
+      required: true
+      schema:
+        title: rewardPercentiles
+        type: array
+        items:
+          title: rewardPercentile
+          description: Floating point value between 0 and 100.
+          type: number
+  result:
+    name: feeHistoryResult
+    description: Fee history for the returned block range. This can be a subsection of the requested range if not all blocks are available.
+    schema:
+      title: feeHistoryResults
+      description: Fee history results.
+      type: object
+      required:
+        - firstBlock
+        - baseFeePerGas
+        - gasUsedRatio
+      properties:
+        oldestBlock:
+          title: oldestBlock
+          description: Lowest number block of returned range.
+          $ref: '#/components/schemas/uint'
+        baseFeePerGas:
+          title: baseFeePerGasArray
+          description: An array of block base fees per gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-1559 blocks.
+          type: array
+          items:
+            $ref: '#/components/schemas/uint'
+        reward:
+          title: rewardArray
+          description: A two-dimensional array of effective priority fees per gas at the requested block percentiles.
+          type: array
+          items:
+            title: rewardPercentile
+            description: An array of effective priority fee per gas data points from a single block. All zeroes are returned if the block is empty.
+            type: array
+            items:
+              title: rewardPercentile
+              description: A given percentile sample of effective priority fees per gas from a single block in ascending order, weighted by gas used. Zeroes are returned if the block is empty.
+              $ref: '#/components/schemas/uint'

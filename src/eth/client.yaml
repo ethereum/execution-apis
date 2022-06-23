@@ -1,0 +1,46 @@
+- name: eth_protocolVersion
+  summary: Returns the current Ethereum protocol version.
+  params: []
+  result:
+    name: Protocol version
+    schema:
+      title: version
+      type: string
+- name: eth_chainId
+  summary: Returns the chain ID of the current network.
+  params: []
+  result:
+    name: Chain ID
+    schema:
+      $ref: '#/components/schemas/uint'
+- name: eth_syncing
+  summary: Returns an object with data about the sync status or false.
+  params: []
+  result:
+    name: Syncing status
+    schema:
+      $ref: '#/components/schemas/SyncingStatus'
+- name: eth_coinbase
+  summary: Returns the client coinbase address.
+  params: []
+  result:
+    name: Coinbase address
+    schema:
+      $ref: '#/components/schemas/address'
+- name: eth_accounts
+  summary: Returns a list of addresses owned by client.
+  params: []
+  result:
+    name: Accounts
+    schema:
+      title: Accounts
+      type: array
+      items:
+        $ref: '#/components/schemas/address'
+- name: eth_blockNumber
+  summary: Returns the number of most recent block.
+  params: []
+  result:
+    name: Block number
+    schema:
+      $ref: '#/components/schemas/uint'

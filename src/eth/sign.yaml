@@ -1,0 +1,26 @@
+- name: eth_sign
+  summary: Returns an EIP-191 signature over the provided data.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Message
+      required: true
+      schema:
+        $ref: '#/components/schemas/bytes'
+  result:
+    name: Signature
+    schema:
+      $ref: '#/components/schemas/bytes65'
+- name: eth_signTransaction
+  summary: Returns an RLP encoded transaction signed by the specified account.
+  params:
+    - name: Transaction
+      required: true
+      schema:
+        $ref: '#/components/schemas/TransactionWithSender'
+  result:
+    name: Encoded transaction
+    schema:
+      $ref: '#/components/schemas/bytes'
