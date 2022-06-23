@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "npm run clean && npm run build:spec && npm run generate-clients",
+    "build": "npm run build:spec",
     "build:spec": "node scripts/build.js",
-    "build:docs": "cd build/docs/gatsby && npm install --legacy-peer-deps && gatsby build --prefix-paths",
+    "build:docs": "mkdir -p build && npm run generate-clients && cd build/docs/gatsby && npm install --legacy-peer-deps && gatsby build --prefix-paths",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",
     "generate-clients": "open-rpc-generator generate -c open-rpc-generator-config.json",
