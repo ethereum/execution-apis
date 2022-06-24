@@ -20,7 +20,7 @@
     name: Block RLP
     schema:
       $ref: '#/components/schemas/bytes'
-- name: debug_getRecieptRaw
+- name: debug_getReceiptRaw
   summary: Returns a binary-encoded array of receipts.
   params:
     - name: Block
