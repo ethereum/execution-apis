@@ -19,8 +19,6 @@ jobs:
         with:
           go-version: ^1.18
         id: go
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
       - name: Install staticcheck
         run: go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
       - name: Install staticcheck
