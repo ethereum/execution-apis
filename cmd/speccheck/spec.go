@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
@@ -20,6 +21,7 @@ type methodSchema struct {
 // method.
 type roundTrip struct {
 	method   string
+	name     string
 	params   [][]byte
 	response []byte
 }
@@ -49,6 +51,12 @@ func checkSpec(args *Args) error {
 		if !ok {
 			return fmt.Errorf("undefined method: %s", rt.method)
 		}
+		// skip validator of test if name includes "invalid" as the schema
+		// doesn't yet support it.
+		// TODO(matt): create error schemas.
+		if strings.Contains(rt.name, "invalid") {
+			continue
+		}
 		if len(methodSchema.params) < len(rt.params) {
 			return fmt.Errorf("too many parameters")
 		}
@@ -69,8 +77,8 @@ func checkSpec(args *Args) error {
 			buf, _ := json.MarshalIndent(schema, "", "  ")
 			fmt.Println(string(buf))
 			fmt.Println(string(methodSchema.result))
-			fmt.Println(rt.response)
-			return err
+			fmt.Println(string(rt.response))
+			return fmt.Errorf("invalid result %s: %w", rt.name, err)
 		}
 	}
 
@@ -79,11 +87,16 @@ func checkSpec(args *Args) error {
 }
 
 // validateParam validates the provided value against schema using the url base.
-func validate(val []byte, schema []byte, url string) error {
+func validate(val []byte, baseSchema []byte, url string) error {
 	// Unmarshal value into interface{} so that validator can properly reflect
 	// the contents.
 	var x interface{}
 	if err := json.Unmarshal(val, &x); err != nil {
+		return err
+	}
+	// Add $schema explicitly to force jsonschema to use draft 07.
+	schema, err := appendDraft07(baseSchema)
+	if err != nil {
 		return err
 	}
 	s, err := jsonschema.CompileString(url, string(schema))
@@ -94,4 +107,14 @@ func validate(val []byte, schema []byte, url string) error {
 		return err
 	}
 	return nil
+}
+
+// appendDraft07 adds $schema = draft-07 to the schema.
+func appendDraft07(schema []byte) ([]byte, error) {
+	var out map[string]interface{}
+	if err := json.Unmarshal(schema, &out); err != nil {
+		return nil, err
+	}
+	out["$schema"] = "http://json-schema.org/draft-07/schema#"
+	return json.Marshal(out)
 }

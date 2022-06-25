@@ -48,7 +48,7 @@ func parseRoundTrips(root string, re *regexp.Regexp) ([]*roundTrip, error) {
 			return nil // skip
 		}
 		// Found a good test, parse it and append to list.
-		test, err := parseTest(path)
+		test, err := parseTest(pathname, path)
 		if err != nil {
 			return err
 		}
@@ -62,7 +62,7 @@ func parseRoundTrips(root string, re *regexp.Regexp) ([]*roundTrip, error) {
 }
 
 // parseTest parses a single test into a slice of HTTP round trips.
-func parseTest(filename string) ([]*roundTrip, error) {
+func parseTest(testname string, filename string) ([]*roundTrip, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func parseTest(filename string) ([]*roundTrip, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse params: %s %v", err, req.Params)
 			}
-			rts = append(rts, &roundTrip{req.Method, params, resp.Result})
+			rts = append(rts, &roundTrip{req.Method, testname, params, resp.Result})
 			req = nil
 		default:
 			return nil, fmt.Errorf("invalid line in test: %s", line)
