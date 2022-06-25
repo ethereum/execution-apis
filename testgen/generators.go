@@ -75,7 +75,7 @@ var EthGetBlockByNumber = MethodTests{
 					return err
 				}
 				if n := block.Number().Uint64(); n != 0 {
-					fmt.Errorf("expected block 0, got block %d", n)
+					return fmt.Errorf("expected block 0, got block %d", n)
 				}
 				return nil
 			},
