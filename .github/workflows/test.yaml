@@ -4,7 +4,6 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -20,3 +19,18 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run lint
+  speccheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.18
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - name: Install staticcheck
+        run: go install github.com/lightclient/rpctestgen/cmd/speccheck
+      - name: Install staticcheck
+        run: speccheck -v
+
