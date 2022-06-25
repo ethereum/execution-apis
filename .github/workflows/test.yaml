@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Lint and check
 
 on: [push, pull_request, workflow_dispatch]
 
