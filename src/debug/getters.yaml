@@ -1,4 +1,4 @@
-- name: debug_getHeaderRlp
+- name: debug_getHeaderRLP
   summary: Returns an RLP-encoded header.
   params:
     - name: Block
@@ -9,7 +9,7 @@
     name: Header RLP
     schema:
       $ref: '#/components/schemas/bytes'
-- name: debug_getBlockRlp
+- name: debug_getBlockRLP
   summary: Returns an RLP-encoded block.
   params:
     - name: Block
