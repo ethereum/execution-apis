@@ -9,7 +9,6 @@ Block:
     - transactionsRoot
     - receiptsRoot
     - logsBloom
-    - totalDifficulty
     - number
     - gasLimit
     - gasUsed
