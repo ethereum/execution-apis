@@ -11,7 +11,9 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/lightclient/rpctestgen/testgen"
@@ -41,6 +43,20 @@ func runGenerator(ctx context.Context) error {
 		return err
 	}
 	writeChain(args.OutDir, gspec, blocks)
+
+	// Create BlockChain to verify client responses against.
+	db := rawdb.NewMemoryDatabase()
+	gspec.MustCommit(db)
+	chain, err := core.NewBlockChain(db, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
+	if err != nil {
+		return err
+	}
+	n, err := chain.InsertChain(blocks)
+	if n != len(blocks) {
+		return fmt.Errorf("unable to insert all generated blocks into local chain")
+	} else if err != nil {
+		return err
+	}
 
 	// Start Ethereum client.
 	client, err := spawnClient(ctx, args, gspec, blocks)
@@ -76,10 +92,11 @@ func runGenerator(ctx context.Context) error {
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
 
-			err := test.Run(ctx, handler.ethclient)
+			err := test.Run(ctx, testgen.NewT(handler.ethclient, handler.rpc, chain))
 			if err != nil {
 				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.MethodName, test.Name, err)
+				continue
 			}
 			fmt.Println("  done.")
 		}

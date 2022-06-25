@@ -84,6 +84,7 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 			fmt.Sprintf("--port=%s", NETWORKPORT),
 			"--nodiscover",
 			"--http",
+			"--http.api=admin,eth,debug",
 			fmt.Sprintf("--http.addr=%s", HOST),
 			fmt.Sprintf("--http.port=%s", PORT),
 		}

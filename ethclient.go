@@ -14,6 +14,7 @@ import (
 
 type ethclientHandler struct {
 	ethclient *ethclient.Client
+	rpc       *rpc.Client
 	logFile   *os.File
 	transport *loggingRoundTrip
 }
@@ -27,7 +28,7 @@ func newEthclientHandler(addr string) (*ethclientHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ethclientHandler{ethclient.NewClient(rpcClient), nil, rt}, nil
+	return &ethclientHandler{ethclient.NewClient(rpcClient), rpcClient, nil, rt}, nil
 }
 
 func (l *ethclientHandler) RotateLog(filename string) error {
