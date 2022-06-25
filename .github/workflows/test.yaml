@@ -1,9 +1,9 @@
-name: Node.js CI
+name: Test
 
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  build:
+  lint-and-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
