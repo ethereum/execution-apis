@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -24,42 +26,14 @@ import (
 func runGenerator(ctx context.Context) error {
 	args := ctx.Value(ARGS).(*Args)
 
-	// Make consensus engine.
-	var engine consensus.Engine
-	config := ethash.Config{
-		PowMode:        ethash.ModeFake,
-		CachesInMem:    2,
-		DatasetsOnDisk: 2,
-		DatasetDir:     args.EthashDir,
-	}
-	if args.Ethash {
-		config.PowMode = ethash.ModeNormal
-	}
-	engine = ethash.New(config, nil, false)
-
-	// Generate test chain and write to output directory.
-	gspec, blocks := genSimpleChain(engine)
-	if err := mkdir(args.OutDir); err != nil {
-		return err
-	}
-	writeChain(args.OutDir, gspec, blocks)
-
-	// Create BlockChain to verify client responses against.
-	db := rawdb.NewMemoryDatabase()
-	gspec.MustCommit(db)
-	chain, err := core.NewBlockChain(db, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
+	// Initialize generated chain.
+	chain, err := initChain(ctx, args)
 	if err != nil {
-		return err
-	}
-	n, err := chain.InsertChain(blocks)
-	if n != len(blocks) {
-		return fmt.Errorf("unable to insert all generated blocks into local chain")
-	} else if err != nil {
 		return err
 	}
 
 	// Start Ethereum client.
-	client, err := spawnClient(ctx, args, gspec, blocks)
+	client, err := spawnClient(ctx, args, chain)
 	if err != nil {
 		return err
 	}
@@ -81,7 +55,6 @@ func runGenerator(ctx context.Context) error {
 		if err := mkdir(methodDir); err != nil {
 			return err
 		}
-
 		for _, test := range methodTest.Tests {
 			filename := fmt.Sprintf("%s/%s.io", methodDir, test.Name)
 			fmt.Printf("generating %s", filename)
@@ -92,7 +65,7 @@ func runGenerator(ctx context.Context) error {
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
 
-			err := test.Run(ctx, testgen.NewT(handler.ethclient, handler.rpc, chain))
+			err := test.Run(ctx, testgen.NewT(handler.ethclient, handler.rpc, chain.bc))
 			if err != nil {
 				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.MethodName, test.Name, err)
@@ -104,11 +77,72 @@ func runGenerator(ctx context.Context) error {
 	return nil
 }
 
+type chainData struct {
+	bc     *core.BlockChain
+	gspec  *core.Genesis
+	blocks []*types.Block
+}
+
+// initChain either attempts to read the chain config from args.ChainDir or it
+// generates a fresh test chain.
+func initChain(ctx context.Context, args *Args) (*chainData, error) {
+	var chain chainData
+	if args.ChainDir != "" {
+		chain.gspec = &core.Genesis{}
+		if g, err := ioutil.ReadFile(fmt.Sprintf("%s/genesis.json", args.ChainDir)); err != nil {
+			return nil, err
+		} else if err := json.Unmarshal(g, chain.gspec); err != nil {
+			return nil, err
+		}
+		b, err := readChain(fmt.Sprintf("%s/chain.rlp", args.ChainDir))
+		if err != nil {
+			return nil, err
+		}
+		chain.blocks = b
+	} else {
+		// Make consensus engine.
+		var engine consensus.Engine
+		config := ethash.Config{
+			PowMode:        ethash.ModeFake,
+			CachesInMem:    2,
+			DatasetsOnDisk: 2,
+			DatasetDir:     args.EthashDir,
+		}
+		if args.Ethash {
+			config.PowMode = ethash.ModeNormal
+		}
+		engine = ethash.New(config, nil, false)
+
+		// Generate test chain and write to output directory.
+		chain.gspec, chain.blocks = genSimpleChain(engine)
+		if err := mkdir(args.OutDir); err != nil {
+			return nil, err
+		}
+		if err := writeChain(args.OutDir, chain.gspec, chain.blocks); err != nil {
+			return nil, err
+		}
+	}
+
+	// Create BlockChain to verify client responses against.
+	db := rawdb.NewMemoryDatabase()
+	chain.gspec.MustCommit(db)
+
+	var err error
+	chain.bc, err = core.NewBlockChain(db, nil, chain.gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := chain.bc.InsertChain(chain.blocks[0:2]); err != nil {
+		return nil, err
+	}
+	return &chain, nil
+}
+
 // spawnClient starts an Ethereum client on a separate thread.
 //
 // It waits until the client is responding to JSON-RPC requests
 // before returning.
-func spawnClient(ctx context.Context, args *Args, gspec *core.Genesis, blocks []*types.Block) (Client, error) {
+func spawnClient(ctx context.Context, args *Args, chain *chainData) (Client, error) {
 	var (
 		client Client
 		err    error
@@ -117,7 +151,7 @@ func spawnClient(ctx context.Context, args *Args, gspec *core.Genesis, blocks []
 	// Initialize specified client and start it in a separate thread.
 	switch args.ClientType {
 	case "geth":
-		client, err = newGethClient(ctx, args.ClientBin, gspec, blocks, args.Verbose)
+		client, err = newGethClient(ctx, args.ClientBin, chain.gspec, chain.blocks, args.Verbose)
 		if err != nil {
 			return nil, err
 		}

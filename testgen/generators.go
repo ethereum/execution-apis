@@ -52,14 +52,17 @@ var EthBlockNumber = MethodTests{
 		{
 			"simple-test",
 			"retrieves the client's current block number",
-			ethBlockNumber,
+			func(ctx context.Context, t *T) error {
+				got, err := t.eth.BlockNumber(ctx)
+				if err != nil {
+					return err
+				} else if want := t.chain.CurrentHeader().Number.Uint64(); got != want {
+					return fmt.Errorf("unexpect current block number (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
 		},
 	},
-}
-
-func ethBlockNumber(ctx context.Context, t *T) error {
-	_, err := t.eth.BlockNumber(ctx)
-	return err
 }
 
 // EthGetBlockByNumber stores a list of all tests against the method.

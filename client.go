@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -151,6 +152,31 @@ func writeChain(path string, genesis *core.Genesis, blocks []*types.Block) error
 		}
 	}
 	return nil
+}
+
+// readChain reads a chain.rlp file to a slice of Block.
+func readChain(filename string) ([]*types.Block, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	var (
+		stream = rlp.NewStream(f, 0)
+		blocks = make([]*types.Block, 0)
+		i      = 0
+	)
+	for {
+		var b types.Block
+		if err := stream.Decode(&b); err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("at block %d: %v", i, err)
+		}
+		blocks = append(blocks, &b)
+		i++
+	}
+	return blocks, nil
 }
 
 func maybePrepend(shouldAdd bool, options []string, maybe ...string) []string {
