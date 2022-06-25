@@ -4,19 +4,22 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [15.x]
-
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 15.x
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ^15.x
       - run: npm ci
       - run: npm run build
       - run: npm run lint
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.18
+        id: go
+      - name: Install staticcheck
+        run: go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
+      - name: Install staticcheck
+        run: speccheck -v
