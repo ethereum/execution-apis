@@ -18,8 +18,9 @@ type Args struct {
 	ClientType string `arg:"--client" help:"client type" default:"geth"`
 	ClientBin  string `arg:"--bin" help:"path to client binary" default:"geth"`
 	OutDir     string `arg:"--out" help:"directory where test fixtures will be written" default:"tests"`
-	Ethash     bool   `args:"--ethash" help:"seal blocks using proof-of-work"`
-	EthashDir  string `args:"--ethashdir" help:"directory to store ethash dag (empty for in-memory only)"`
+	Ethash     bool   `arg:"--ethash" help:"seal blocks using proof-of-work"`
+	EthashDir  string `arg:"--ethashdir" help:"directory to store ethash dag (empty for in-memory only)"`
+	ChainDir   string `arg:"--chain" help:"path to directory with chain.rlp and genesis.json"`
 	Verbose    bool   `arg:"-v,--verbose" help:"verbosity level of rpctestgen"`
 	LogLevel   string `arg:"--loglevel" help:"log level of client" default:"info"`
 
