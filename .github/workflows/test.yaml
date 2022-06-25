@@ -19,9 +19,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run lint
-  speccheck:
-    runs-on: ubuntu-latest
-    steps:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
@@ -33,4 +30,3 @@ jobs:
         run: go install github.com/lightclient/rpctestgen/cmd/speccheck
       - name: Install staticcheck
         run: speccheck -v
-
