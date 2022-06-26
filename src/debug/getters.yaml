@@ -1,4 +1,4 @@
-- name: debug_getHeaderRLP
+- name: debug_getHeader
   summary: Returns an RLP-encoded header.
   params:
     - name: Block
@@ -9,7 +9,7 @@
     name: Header RLP
     schema:
       $ref: '#/components/schemas/bytes'
-- name: debug_getBlockRLP
+- name: debug_getBlock
   summary: Returns an RLP-encoded block.
   params:
     - name: Block
@@ -20,7 +20,18 @@
     name: Block RLP
     schema:
       $ref: '#/components/schemas/bytes'
-- name: debug_getReceiptsRaw
+- name: debug_getTransaction
+  summary: Returns an RLP-encoded transaction.
+  params:
+    - name: Transaction hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Transaction RLP
+    schema:
+      $ref: '#/components/schemas/bytes'
+- name: debug_getReceipts
   summary: Returns an array of EIP-2718 binary-encoded receipts.
   params:
     - name: Block
