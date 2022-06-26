@@ -34,6 +34,7 @@ yaml
 yParity
 EL
 CL
+CLs
 JWT
 WS
 ipc
