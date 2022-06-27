@@ -132,7 +132,7 @@ func initChain(ctx context.Context, args *Args) (*chainData, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := chain.bc.InsertChain(chain.blocks[0:2]); err != nil {
+	if _, err := chain.bc.InsertChain(chain.blocks); err != nil {
 		return nil, err
 	}
 	return &chain, nil

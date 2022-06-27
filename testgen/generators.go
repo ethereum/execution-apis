@@ -1,6 +1,7 @@
 package testgen
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -40,9 +41,10 @@ type Test struct {
 var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
-	DebugGetHeaderRLP,
-	DebugGetBlockRLP,
-	DebugGetReceiptsRaw,
+	DebugGetHeader,
+	DebugGetBlock,
+	DebugGetReceipts,
+	DebugGetTransaction,
 }
 
 // EthBlockNumber stores a list of all tests against the method.
@@ -100,15 +102,15 @@ var EthGetBlockByNumber = MethodTests{
 	},
 }
 
-var DebugGetHeaderRLP = MethodTests{
-	"debug_getHeaderRLP",
+var DebugGetHeader = MethodTests{
+	"debug_getHeader",
 	[]Test{
 		{
 			"get-genesis",
 			"gets block 0",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getHeaderRLP", "0x0"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getHeader", "0x0"); err != nil {
 					return err
 				}
 				return checkHeaderRLP(t, 0, got)
@@ -119,7 +121,7 @@ var DebugGetHeaderRLP = MethodTests{
 			"gets non-zero block",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getHeaderRLP", "0x3"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getHeader", "0x3"); err != nil {
 					return err
 				}
 				return checkHeaderRLP(t, 3, got)
@@ -129,7 +131,7 @@ var DebugGetHeaderRLP = MethodTests{
 			"get-invalid-number",
 			"gets block with invalid number formatting",
 			func(ctx context.Context, t *T) error {
-				err := t.rpc.CallContext(ctx, nil, "debug_getHeaderRLP", "2")
+				err := t.rpc.CallContext(ctx, nil, "debug_getHeader", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
 				}
@@ -139,15 +141,15 @@ var DebugGetHeaderRLP = MethodTests{
 	},
 }
 
-var DebugGetBlockRLP = MethodTests{
-	"debug_getBlockRLP",
+var DebugGetBlock = MethodTests{
+	"debug_getBlock",
 	[]Test{
 		{
 			"get-genesis",
 			"gets block 0",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getBlockRLP", "0x0"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getBlock", "0x0"); err != nil {
 					return err
 				}
 				return checkBlockRLP(t, 0, got)
@@ -158,7 +160,7 @@ var DebugGetBlockRLP = MethodTests{
 			"gets non-zero block",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getBlockRLP", "0x3"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getBlock", "0x3"); err != nil {
 					return err
 				}
 				return checkBlockRLP(t, 3, got)
@@ -168,7 +170,7 @@ var DebugGetBlockRLP = MethodTests{
 			"get-invalid-number",
 			"gets block with invalid number formatting",
 			func(ctx context.Context, t *T) error {
-				err := t.rpc.CallContext(ctx, nil, "debug_getBlockRLP", "2")
+				err := t.rpc.CallContext(ctx, nil, "debug_getBlock", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
 				}
@@ -178,28 +180,65 @@ var DebugGetBlockRLP = MethodTests{
 	},
 }
 
-var DebugGetReceiptsRaw = MethodTests{
-	"debug_getReceiptsRaw",
+var DebugGetReceipts = MethodTests{
+	"debug_getReceipts",
 	[]Test{
 		{
 			"get-genesis",
 			"gets receipts for block 0",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "debug_getReceiptsRaw", "0x0")
+				return t.rpc.CallContext(ctx, nil, "debug_getReceipts", "0x0")
 			},
 		},
 		{
 			"get-block-n",
 			"gets receipts non-zero block",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "debug_getReceiptsRaw", "0x3")
+				return t.rpc.CallContext(ctx, nil, "debug_getReceipts", "0x3")
 			},
 		},
 		{
 			"get-invalid-number",
 			"gets receipts with invalid number formatting",
 			func(ctx context.Context, t *T) error {
-				err := t.rpc.CallContext(ctx, nil, "debug_getReceiptsRaw", "2")
+				err := t.rpc.CallContext(ctx, nil, "debug_getReceipts", "2")
+				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+var DebugGetTransaction = MethodTests{
+	"debug_getTransaction",
+	[]Test{
+		{
+			"get-tx",
+			"gets tx rlp by hash",
+			func(ctx context.Context, t *T) error {
+				tx := t.chain.GetBlockByNumber(1).Transactions()[0]
+				var got hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "debug_getTransaction", tx.Hash().Hex()); err != nil {
+					return err
+				}
+				want, err := tx.MarshalBinary()
+				if err != nil {
+					return err
+				}
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("mismatching raw tx (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				}
+				return nil
+			},
+		},
+		{
+			"get-invalid-hash",
+			"gets tx with hash missing 0x prefix",
+			func(ctx context.Context, t *T) error {
+				var got hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &got, "debug_getTransaction", "1000000000000000000000000000000000000000000000000000000000000001")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
 				}
