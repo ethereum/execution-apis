@@ -143,7 +143,7 @@ $ curl https://localhost:8551 \
 
 ## Timeouts
 
-Consensus Layer client software **MUST** wait for a specified `timeout` before aborting the call. In such an event, the Consensus Layer client software **MAY** retry the call.
+Consensus Layer client software **MUST** wait for a specified `timeout` before aborting the call. In such an event, the Consensus Layer client software **SHOULD** retry the call when it is needed to keep progressing.
 
 Consensus Layer client software **MAY** wait for response longer than it is specified by the `timeout` parameter.
 
