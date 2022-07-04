@@ -219,7 +219,9 @@ Payload validation process consists of validating a payload with respect to the 
 
 3. Client software **MUST** validate a payload according to the block header and execution environment rule set with modifications to these rule sets defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification):
   * If validation succeeds, the response **MUST** contain `{status: VALID, latestValidHash: payload.blockHash}`
-  * If validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the most recent *valid* ancestor of the invalid payload. That is, the valid ancestor of the payload with the highest `blockNumber`
+  * If validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: validHash}` where `validHash` is the block hash of the unique ancestor of the invalid payload satisfying the following two conditions:
+    - It is `VALID`
+    - Any other ancestor of the invalid payload with a higher `blockNumber` is `INVALID`
   * If the most recent valid ancestor is a PoW block, `latestValidHash` **MUST** be set to `0x0000000000000000000000000000000000000000000000000000000000000000`
   * Client software **MUST NOT** surface an `INVALID` payload over any API endpoint and p2p interface.
 
