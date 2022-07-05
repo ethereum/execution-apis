@@ -4,9 +4,17 @@
 
 [View the spec][playground]
 
-The Ethereum JSON-RPC is a collection of methods that all clients implement.
+The Ethereum JSON-RPC is a standard collection of methods that all exectuion
+clients implement. It is the canonical interface between users and the network.
 This interface allows downstream tooling and infrastructure to treat different
 Ethereum clients as modules that can be swapped at will.
+
+### Contributing
+
+
+
+The specification is written in [OpenRPC][openrpc]. Refer to the
+OpenRPC specification and the JSON schema specification to get started.
 
 ### Building
 
@@ -21,11 +29,6 @@ Build successful.
 
 This will output the file `openrpc.json` in the root of the project. This file
 will have all schema `#ref`s resolved.
-
-### Contributing
-
-The specification is written in [OpenRPC][openrpc]. Refer to the
-OpenRPC specification and the JSON schema specification to get started.
 
 #### Testing
 
