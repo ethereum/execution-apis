@@ -45,10 +45,10 @@ var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
 	EthGetProof,
-	// DebugGetHeader,
-	// DebugGetBlock,
-	// DebugGetReceipts,
-	// DebugGetTransaction,
+	DebugGetHeader,
+	DebugGetBlock,
+	DebugGetReceipts,
+	DebugGetTransaction,
 }
 
 // EthBlockNumber stores a list of all tests against the method.
