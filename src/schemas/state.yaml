@@ -8,7 +8,7 @@ AccountProof:
     - codeHash
     - nonce
     - storageHash
-    - storageResult
+    - storageProof
   properties:
     address:
       title: address
@@ -17,7 +17,7 @@ AccountProof:
       title: accountProof
       type: array
       items:
-        $ref: '#/components/schemas/hash32'
+        $ref: '#/components/schemas/bytes'
     balance:
       title: balance
       $ref: '#/components/schemas/uint'
@@ -26,11 +26,11 @@ AccountProof:
       $ref: '#/components/schemas/hash32'
     nonce:
       title: nonce
-      $ref: '#/components/schemas/uint64'
+      $ref: '#/components/schemas/uint'
     storageHash:
       title: storageHash
       $ref: '#/components/schemas/hash32'
-    storageResult:
+    storageProof:
       title: storageProof
       type: array
       items:
@@ -53,4 +53,4 @@ StorageProof:
       title: proof
       type: array
       items:
-        $ref: '#/components/schemas/hash32'
+        $ref: '#/components/schemas/bytes'
