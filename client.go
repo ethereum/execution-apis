@@ -134,7 +134,7 @@ func runCmd(ctx context.Context, path string, verbose bool, args ...string) erro
 
 // writeChain writes the genesis and blocks to disk.
 func writeChain(path string, genesis *core.Genesis, blocks []*types.Block) error {
-	out, err := json.Marshal(genesis)
+	out, err := json.MarshalIndent(genesis, "", "  ")
 	if err != nil {
 		return err
 	}
