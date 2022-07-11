@@ -22,7 +22,7 @@ bytes8:
 bytes32:
   title: 32 hex encoded bytes
   type: string
-  pattern: ^0x[0-9a-f]{64}$
+  pattern: ^0x([0-9a-f][0-9a-f]){0,32}$
 bytes256:
   title: 256 hex encoded bytes
   type: string
@@ -46,4 +46,4 @@ uint256:
 hash32:
   title: 32 byte hex value
   type: string
-  pattern: ^0x[0-9a-f]{64}$
+  pattern: ^0x([0-9a-f][0-9a-f]){0,32}$

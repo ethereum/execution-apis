@@ -48,7 +48,7 @@ StorageProof:
       $ref: '#/components/schemas/hash32'
     value:
       title: value
-      $ref: '#/components/schemas/bytes32'
+      $ref: '#/components/schemas/uint'
     proof:
       title: proof
       type: array
