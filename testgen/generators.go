@@ -4,23 +4,26 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/ethclient/gethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type T struct {
 	eth   *ethclient.Client
+	geth  *gethclient.Client
 	rpc   *rpc.Client
 	chain *core.BlockChain
 }
 
-func NewT(eth *ethclient.Client, rpc *rpc.Client, chain *core.BlockChain) *T {
-	return &T{eth, rpc, chain}
+func NewT(eth *ethclient.Client, geth *gethclient.Client, rpc *rpc.Client, chain *core.BlockChain) *T {
+	return &T{eth, geth, rpc, chain}
 }
 
 // MethodTests is a collection of tests for a certain JSON-RPC method.
@@ -41,10 +44,11 @@ type Test struct {
 var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
-	DebugGetHeader,
-	DebugGetBlock,
-	DebugGetReceipts,
-	DebugGetTransaction,
+	EthGetProof,
+	// DebugGetHeader,
+	// DebugGetBlock,
+	// DebugGetReceipts,
+	// DebugGetTransaction,
 }
 
 // EthBlockNumber stores a list of all tests against the method.
@@ -95,6 +99,50 @@ var EthGetBlockByNumber = MethodTests{
 				}
 				if n := block.Number().Uint64(); n != 2 {
 					return fmt.Errorf("expected block 2, got block %d", n)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetProof stores a list of all tests against the method.
+var EthGetProof = MethodTests{
+	"eth_getProof",
+	[]Test{
+		{
+			"get-account-proof",
+			"gets proof for a certain account",
+			func(ctx context.Context, t *T) error {
+				addr := common.HexToAddress("aa")
+				result, err := t.geth.GetProof(ctx, addr, nil, big.NewInt(3))
+				if err != nil {
+					return err
+				}
+				state, _ := t.chain.State()
+				balance := state.GetBalance(addr)
+				if result.Balance.Cmp(balance) != 0 {
+					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
+				}
+				return nil
+			},
+		},
+		{
+			"get-account-proof-with-storage",
+			"gets proof for a certain account",
+			func(ctx context.Context, t *T) error {
+				addr := common.HexToAddress("aa")
+				result, err := t.geth.GetProof(ctx, addr, []string{"0x01"}, big.NewInt(3))
+				if err != nil {
+					return err
+				}
+				state, _ := t.chain.State()
+				balance := state.GetBalance(addr)
+				if result.Balance.Cmp(balance) != 0 {
+					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
+				}
+				if len(result.StorageProof) == 0 {
+					return fmt.Errorf("expected storage proof")
 				}
 				return nil
 			},
