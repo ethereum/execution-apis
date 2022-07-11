@@ -65,3 +65,25 @@
     name: Bytecode
     schema:
       $ref: '#/components/schemas/bytes'
+- name: eth_getProof
+  summary: Returns the merkle proof for a given account and optionally some storage keys.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: StorageKeys
+      required: true
+      schema:
+        title: Storage keys
+        type: array
+        items:
+          $ref: '#/components/schemas/hash32'
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Account
+    schema:
+      $ref: '#/components/schemas/AccountProof'

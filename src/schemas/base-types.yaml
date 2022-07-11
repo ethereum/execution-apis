@@ -35,6 +35,10 @@ uint:
   title: hex encoded unsigned integer
   type: string
   pattern: ^0x([1-9a-f]+[0-9a-f]*|0)$
+uint64:
+  title: hex encoded unsigned integer
+  type: string
+  pattern: ^0x[0-9a-f]{16}$
 uint256:
   title: hex encoded unsigned integer
   type: string
