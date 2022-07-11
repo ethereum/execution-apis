@@ -114,7 +114,7 @@ var EthGetProof = MethodTests{
 			"get-account-proof",
 			"gets proof for a certain account",
 			func(ctx context.Context, t *T) error {
-				addr := common.HexToAddress("aa")
+				addr := common.Address{0xaa}
 				result, err := t.geth.GetProof(ctx, addr, nil, big.NewInt(3))
 				if err != nil {
 					return err
@@ -131,7 +131,7 @@ var EthGetProof = MethodTests{
 			"get-account-proof-with-storage",
 			"gets proof for a certain account",
 			func(ctx context.Context, t *T) error {
-				addr := common.HexToAddress("aa")
+				addr := common.Address{0xaa}
 				result, err := t.geth.GetProof(ctx, addr, []string{"0x01"}, big.NewInt(3))
 				if err != nil {
 					return err
@@ -141,7 +141,7 @@ var EthGetProof = MethodTests{
 				if result.Balance.Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
-				if len(result.StorageProof) == 0 {
+				if len(result.StorageProof) == 0 || len(result.StorageProof[0].Proof) == 0 {
 					return fmt.Errorf("expected storage proof")
 				}
 				return nil
