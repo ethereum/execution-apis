@@ -1,0 +1,57 @@
+- name: debug_getHeader
+  summary: Returns an RLP-encoded header.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Header RLP
+    schema:
+      $ref: '#/components/schemas/bytes'
+- name: debug_getBlock
+  summary: Returns an RLP-encoded block.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Block RLP
+    schema:
+      $ref: '#/components/schemas/bytes'
+- name: debug_getTransaction
+  summary: Returns an RLP-encoded transaction.
+  params:
+    - name: Transaction hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Transaction RLP
+    schema:
+      $ref: '#/components/schemas/bytes'
+- name: debug_getReceipts
+  summary: Returns an array of EIP-2718 binary-encoded receipts.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Receipts
+    schema:
+      title: Receipt array
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+- name: debug_getBadBlocks
+  summary: Returns an array of recent bad blocks that the client has seen on the network.
+  params: []
+  result:
+    name: Blocks
+    schema:
+      title: Bad block array
+      type: array
+      items:
+        $ref: '#/components/schemas/BadBlock'
