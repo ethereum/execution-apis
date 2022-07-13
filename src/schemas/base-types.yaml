@@ -38,7 +38,7 @@ uint:
 uint64:
   title: hex encoded unsigned integer
   type: string
-  pattern: ^0x[0-9a-f]{0,16}$
+  pattern: ^0x([1-9a-f][0-9a-f]{0,31})|0$
 uint256:
   title: hex encoded unsigned integer
   type: string
