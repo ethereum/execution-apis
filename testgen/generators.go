@@ -45,6 +45,7 @@ var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
 	EthGetProof,
+	EthChainID,
 	DebugGetHeader,
 	DebugGetBlock,
 	DebugGetReceipts,
@@ -64,6 +65,26 @@ var EthBlockNumber = MethodTests{
 					return err
 				} else if want := t.chain.CurrentHeader().Number.Uint64(); got != want {
 					return fmt.Errorf("unexpect current block number (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthChainID stores a list of all tests against the method.
+var EthChainID = MethodTests{
+	"eth_chainId",
+	[]Test{
+		{
+			"get-chain-id",
+			"retrieves the client's current chain id",
+			func(ctx context.Context, t *T) error {
+				got, err := t.eth.ChainID(ctx)
+				if err != nil {
+					return err
+				} else if want := t.chain.Config().ChainID.Uint64(); got.Uint64() != want {
+					return fmt.Errorf("unexpect chain id (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
