@@ -11,6 +11,7 @@ ethereum
 interop
 json
 mempool
+merkle
 npm
 ommers
 openrpc
