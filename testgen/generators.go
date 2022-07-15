@@ -46,10 +46,11 @@ var AllMethods = []MethodTests{
 	EthGetBlockByNumber,
 	EthGetProof,
 	EthChainID,
-	DebugGetHeader,
-	DebugGetBlock,
-	DebugGetReceipts,
-	DebugGetTransaction,
+	EthGetBalance,
+	// DebugGetHeader,
+	// DebugGetBlock,
+	// DebugGetReceipts,
+	// DebugGetTransaction,
 }
 
 // EthBlockNumber stores a list of all tests against the method.
@@ -85,6 +86,30 @@ var EthChainID = MethodTests{
 					return err
 				} else if want := t.chain.Config().ChainID.Uint64(); got.Uint64() != want {
 					return fmt.Errorf("unexpect chain id (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthChainID stores a list of all tests against the method.
+var EthGetBalance = MethodTests{
+	"eth_getBalance",
+	[]Test{
+		{
+			"get-balance",
+			"retrieves the an account's balance",
+			func(ctx context.Context, t *T) error {
+				addr := common.Address{0xaa}
+				got, err := t.eth.BalanceAt(ctx, addr, nil)
+				if err != nil {
+					return err
+				}
+				state, _ := t.chain.State()
+				want := state.GetBalance(addr)
+				if got.Uint64() != want.Uint64() {
+					return fmt.Errorf("unexpect balance (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
