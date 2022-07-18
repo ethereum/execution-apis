@@ -32,7 +32,7 @@ type Account {
   storage(slot: Bytes32!): Bytes32!
 }
 
-"""Address scalar"""
+"""Address is a 20 byte Ethereum address, represented as 0x-prefixed hexadecimal."""
 scalar Address
 
 """A BigInt (UInt256) scalar"""
