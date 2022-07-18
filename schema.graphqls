@@ -220,7 +220,7 @@ An empty byte string is represented as '0x'. Byte strings must have an even numb
 """
 scalar Bytes
 
-"""A Bytes32 scalar"""
+"""Bytes32 is a 32 byte binary string, represented as 0x-prefixed hexadecimal."""
 scalar Bytes32
 
 """
