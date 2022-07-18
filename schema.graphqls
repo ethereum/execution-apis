@@ -324,7 +324,7 @@ type Log {
   transaction: Transaction!
 }
 
-"""A Long (UInt64) scalar"""
+"""Long is a 64 bit unsigned integer."""
 scalar Long
 
 type Mutation {
