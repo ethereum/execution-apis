@@ -203,7 +203,7 @@ input BlockFilterCriteria {
   of topics. Topics matches a prefix of that list. An empty element array matches any
   topic. Non-empty elements represent an alternative that matches any of the
   contained topics.
-    
+  
   Examples:
    - [] or nil          matches any topic list
    - [[A]]              matches topic A in first position
@@ -292,7 +292,7 @@ input FilterCriteria {
   of topics. Topics matches a prefix of that list. An empty element array matches any
   topic. Non-empty elements represent an alternative that matches any of the
   contained topics.
-    
+  
   Examples:
    - [] or nil          matches any topic list
    - [[A]]              matches topic A in first position
