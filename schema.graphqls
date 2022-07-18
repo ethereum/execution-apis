@@ -214,7 +214,10 @@ input BlockFilterCriteria {
   topics: [[Bytes32!]!]
 }
 
-"""A Bytes scalar"""
+"""
+Bytes is an arbitrary length binary string, represented as 0x-prefixed hexadecimal.
+An empty byte string is represented as '0x'. Byte strings must have an even number of hexadecimal nybbles.
+"""
 scalar Bytes
 
 """A Bytes32 scalar"""
