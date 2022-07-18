@@ -35,7 +35,11 @@ type Account {
 """Address is a 20 byte Ethereum address, represented as 0x-prefixed hexadecimal."""
 scalar Address
 
-"""A BigInt (UInt256) scalar"""
+"""
+BigInt is a large integer. Input is accepted as either a JSON number or as a string.
+Strings may be either decimal or 0x-prefixed hexadecimal. Output values are all
+0x-prefixed hexadecimal.
+"""
 scalar BigInt
 
 """Block is an Ethereum block."""
