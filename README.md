@@ -1,5 +1,7 @@
 # Ethereum API Specification
 
+[![GitPOAP Badge](https://public-api.gitpoap.io/v1/repo/ethereum/execution-apis/badge)](https://www.gitpoap.io/gh/ethereum/execution-apis)
+
 ## JSON-RPC
 
 [View the spec][playground]
