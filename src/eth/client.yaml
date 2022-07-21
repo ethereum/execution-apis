@@ -1,11 +1,3 @@
-- name: eth_protocolVersion
-  summary: Returns the current Ethereum protocol version.
-  params: []
-  result:
-    name: Protocol version
-    schema:
-      title: version
-      type: string
 - name: eth_chainId
   summary: Returns the chain ID of the current network.
   params: []
