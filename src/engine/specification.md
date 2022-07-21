@@ -16,6 +16,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 - [Timeouts](#timeouts)
 - [Structures](#structures)
   - [ExecutionPayloadV1](#executionpayloadv1)
+  - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
   - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
   - [PayloadStatusV1](#payloadstatusv1)
@@ -41,6 +42,14 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
+  - [engine_getPayloadBodiesByHashV1](#engine_getpayloadbodiesByHashV1)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
+  - [engine_getPayloadBodiesByRangeV1](#engine_getpayloadbodiesbyrangev1)
+    - [Request](#request-5)
+    - [Response](#response-5)
+    - [Specification](#specification-5)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -112,7 +121,7 @@ The list of error codes introduced by this specification can be found below.
 | -32700 | Parse error | Invalid JSON was received by the server. |
 | -32600 | Invalid Request | The JSON sent is not a valid Request object. |
 | -32601 | Method not found | The method does not exist / is not available. |
-| -32602 | Invalid params | Invalid method parameter(s). | 
+| -32602 | Invalid params | Invalid method parameter(s). |
 | -32603 | Internal error | Internal JSON-RPC error. |
 | -32000 | Server error | Generic client error while processing request. |
 | -38001 | Unknown payload | Payload does not exist / is not available. |
@@ -172,6 +181,11 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `extraData`: `DATA`, 0 to 32 Bytes
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+
+### ExecutionPayloadBodyV1
+
+This structure contains a body of an execution payload. The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
 ### ForkchoiceStateV1
@@ -260,7 +274,7 @@ The payload build process is specified as follows:
 #### Request
 
 * method: `engine_newPayloadV1`
-* params: 
+* params:
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
 * timeout: 8s
 
@@ -297,7 +311,7 @@ The payload build process is specified as follows:
 #### Request
 
 * method: "engine_forkchoiceUpdatedV1"
-* params: 
+* params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 * timeout: 8s
@@ -394,3 +408,50 @@ The payload build process is specified as follows:
 6. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
+
+### engine_getPayloadBodiesByHashV1
+
+#### Request
+
+* method: `engine_getPayloadBodiesByHashV1`
+* params:
+  1. `Array of DATA`, 32 Bytes - Array of `block_hash` field values of the `ExecutionPayload` structure
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* error: code and message set in case an exception happens while processing the method call.
+
+#### Specification
+
+1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding hashes respecting the order of block hashes in the input array.
+
+1. Client software **MUST** skip the payload body in the response array if the data of this body is missing. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, C.body]`.
+
+1. Clients that support `engine_getPayloadBodiesByRangeV1` **MAY NOT** respond to requests for finalized blocks by hash.
+
+1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification. Callers must be careful to use the execution block root, instead of the beacon block root.
+
+### engine_getPayloadBodiesByRangeV1
+
+#### Request
+
+* method: `engine_getPayloadBodiesByRangeV1`
+* params:
+  1. `start`: `QUANTITY`, 64 bits - Starting block number
+  1. `count`: `QUANITTY`, 64 bits - Number of blocks to return
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* error: code and message set in case an exception happens while processing the method call.
+  * Clients that don't support fetching bodies by range **MUST** return the error code `-32601 	Method not found 	The method does not exist / is not available.`. Callers may then revert to `engine_getPayloadBodiesByHashV1`.
+
+#### Specification
+
+1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `forkChoiceUpdated` call.
+
+1. Client software **MUST** skip the payload body for any blocks that have been pruned by the execution client or where the request extends past the current latest known block.
+
+1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification.
+1. Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to request non-finalized blocks by root in order to avoid race conditions around the current view of the canonical chain.
