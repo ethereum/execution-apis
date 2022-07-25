@@ -191,7 +191,7 @@ var EthGetCode = MethodTests{
 				}
 				state, _ := t.chain.State()
 				want := state.GetCode(addr)
-				if bytes.Compare(got, want) != 0 {
+				if !bytes.Equal(got, want) {
 					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
 				}
 				return nil
@@ -216,7 +216,7 @@ var EthGetStorage = MethodTests{
 				}
 				state, _ := t.chain.State()
 				want := state.GetState(addr, key)
-				if bytes.Compare(got, want.Bytes()) != 0 {
+				if !bytes.Equal(got, want.Bytes()) {
 					return fmt.Errorf("unexpected storage value (got: %s, want %s)", got, want)
 				}
 				return nil
