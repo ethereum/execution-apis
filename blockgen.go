@@ -21,6 +21,7 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block) {
 		key, _  = crypto.HexToECDSA(keyHex)
 		address = crypto.PubkeyToAddress(key.PublicKey) // 658bdf435d810c91414ec09147daa6db62406379
 		aa      = common.Address{0xaa}
+		bb      = common.Address{0xbb}
 		funds   = big.NewInt(0).Mul(big.NewInt(1337), big.NewInt(params.Ether))
 		gspec   = &core.Genesis{
 			Config:     params.AllEthashProtocolChanges,
@@ -38,7 +39,19 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block) {
 	storage[common.Hash{0x00}] = common.Hash{0x00}
 	storage[common.Hash{0x01}] = common.Hash{0x01}
 	storage[common.Hash{0x02}] = common.Hash{0x02}
-	gspec.Alloc[aa] = core.GenesisAccount{Balance: common.Big1, Nonce: 1, Storage: storage}
+	storage[common.Hash{0x03}] = common.HexToHash("0303")
+	gspec.Alloc[aa] = core.GenesisAccount{
+		Balance: common.Big1,
+		Nonce:   1,
+		Storage: storage,
+		Code:    common.Hex2Bytes("6042"),
+	}
+	gspec.Alloc[bb] = core.GenesisAccount{
+		Balance: common.Big2,
+		Nonce:   1,
+		Storage: storage,
+		Code:    common.Hex2Bytes("600154600354"),
+	}
 
 	genesis := gspec.MustCommit(gendb)
 
