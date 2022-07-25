@@ -46,10 +46,7 @@
   result:
     name: Transaction count
     schema:
-      title: Transaction count
-      type: array
-      items:
-        $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint'
 - name: eth_getCode
   summary: Returns code at a given address.
   params:

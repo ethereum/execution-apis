@@ -4,7 +4,7 @@
     - name: Transaction
       required: true
       schema:
-        $ref: '#/components/schemas/TransactionWithSender'
+        $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
       schema:
@@ -19,7 +19,7 @@
     - name: Transaction
       required: true
       schema:
-        $ref: '#/components/schemas/TransactionWithSender'
+        $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
       schema:
@@ -28,3 +28,29 @@
     name: Gas used
     schema:
       $ref: '#/components/schemas/uint'
+- name: eth_createAccessList
+  summary: Generates an access list for a transaction.
+  params:
+    - name: Transaction
+      required: true
+      schema:
+        $ref: '#/components/schemas/GenericTransaction'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Gas used
+    schema:
+      title: Access list result
+      type: object
+      properties:
+        accessList:
+          title: "accessList"
+          $ref: '#/components/schemas/AccessList'
+        error:
+          title: "error"
+          type: string
+        gasUsed:
+          title: Gas used
+          $ref: '#/components/schemas/uint'
