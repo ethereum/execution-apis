@@ -3,17 +3,33 @@ package testgen
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"reflect"
 	"strings"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 )
+
+var (
+	addr common.Address
+	pk   *ecdsa.PrivateKey
+)
+
+func init() {
+	pk, _ = crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
+	addr = crypto.PubkeyToAddress(pk.PublicKey) // 658bdf435d810c91414ec09147daa6db62406379
+}
 
 type T struct {
 	eth   *ethclient.Client
@@ -47,6 +63,26 @@ var AllMethods = []MethodTests{
 	EthGetProof,
 	EthChainID,
 	EthGetBalance,
+	// EthGetHeaderByNumber,
+	// EthGetHeaderByHash,
+	EthGetBlockByHash,
+	EthGetCode,
+	EthGetStorage,
+	EthCall,
+	EthEstimateGas,
+	EthCreateAccessList,
+	EthGetBlockTransactionCountByNumber,
+	EthGetBlockTransactionCountByHash,
+	EthGetTransactionByBlockHashAndIndex,
+	EthGetTransactionByBlockNumberAndIndex,
+	EthGetTransactionCount,
+	EthGetTransactionByHash,
+	EthGetTransactionReceipt,
+	EthSendRawTransaction,
+	EthGasPrice,
+	EthMaxPriorityFeePerGas,
+	EthSyncing,
+	// EthGetUncleByBlockNumberAndIndex,
 	// DebugGetHeader,
 	// DebugGetBlock,
 	// DebugGetReceipts,
@@ -86,6 +122,124 @@ var EthChainID = MethodTests{
 					return err
 				} else if want := t.chain.Config().ChainID.Uint64(); got.Uint64() != want {
 					return fmt.Errorf("unexpect chain id (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetHeaderByNumber stores a list of all tests against the method.
+var EthGetHeaderByNumber = MethodTests{
+	"eth_getHeaderByNumber",
+	[]Test{
+		{
+			"get-header-by-number",
+			"gets a header by number",
+			func(ctx context.Context, t *T) error {
+				var got *types.Header
+				err := t.rpc.CallContext(ctx, got, "eth_getHeaderByNumber", "0x1")
+				if err != nil {
+					return err
+				}
+				want := t.chain.GetHeaderByNumber(1)
+				if reflect.DeepEqual(got, want) {
+					return fmt.Errorf("unexpected header (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetHeaderByHash stores a list of all tests against the method.
+var EthGetHeaderByHash = MethodTests{
+	"eth_getHeaderByHash",
+	[]Test{
+		{
+			"get-header-by-hash",
+			"gets a header by hash",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetHeaderByNumber(1)
+				var got *types.Header
+				err := t.rpc.CallContext(ctx, got, "eth_getHeaderByHash", want.Hash())
+				if err != nil {
+					return err
+				}
+				if reflect.DeepEqual(got, want) {
+					return fmt.Errorf("unexpected header (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetCode stores a list of all tests against the method.
+var EthGetCode = MethodTests{
+	"eth_getCode",
+	[]Test{
+		{
+			"get-code",
+			"gets code for 0xaa",
+			func(ctx context.Context, t *T) error {
+				addr := common.Address{0xaa}
+				var got hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &got, "eth_getCode", addr, "latest")
+				if err != nil {
+					return err
+				}
+				state, _ := t.chain.State()
+				want := state.GetCode(addr)
+				if bytes.Compare(got, want) != 0 {
+					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetStorage stores a list of all tests against the method.
+var EthGetStorage = MethodTests{
+	"eth_getStorage",
+	[]Test{
+		{
+			"get-storage",
+			"gets storage for 0xaa",
+			func(ctx context.Context, t *T) error {
+				addr := common.Address{0xaa}
+				key := common.Hash{0x01}
+				got, err := t.eth.StorageAt(ctx, addr, key, nil)
+				if err != nil {
+					return err
+				}
+				state, _ := t.chain.State()
+				want := state.GetState(addr, key)
+				if bytes.Compare(got, want.Bytes()) != 0 {
+					return fmt.Errorf("unexpected storage value (got: %s, want %s)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetBlockByHash stores a list of all tests against the method.
+var EthGetBlockByHash = MethodTests{
+	"eth_getBlockByHash",
+	[]Test{
+		{
+			"get-block-by-hash",
+			"gets block 1",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetHeaderByNumber(1)
+				got, err := t.eth.BlockByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("unexpected block (got: %s, want: %s)", got.Hash(), want.Hash())
 				}
 				return nil
 			},
@@ -145,6 +299,454 @@ var EthGetBlockByNumber = MethodTests{
 				}
 				if n := block.Number().Uint64(); n != 2 {
 					return fmt.Errorf("expected block 2, got block %d", n)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthCall stores a list of all tests against the method.
+var EthCall = MethodTests{
+	"eth_call",
+	[]Test{
+		{
+			"call-simple-transfer",
+			"simulates a simple transfer",
+			func(ctx context.Context, t *T) error {
+				msg := ethereum.CallMsg{From: common.Address{0xaa}, To: &common.Address{0x01}, Gas: 100000}
+				got, err := t.eth.CallContract(ctx, msg, nil)
+				if err != nil {
+					return err
+				}
+				if len(got) != 0 {
+					return fmt.Errorf("unexpected return value (got: %s, want: nil)", hexutil.Bytes(got))
+				}
+				return nil
+			},
+		},
+		{
+			"call-simple-contract",
+			"simulates a simple contract call with no return",
+			func(ctx context.Context, t *T) error {
+				aa := common.Address{0xaa}
+				msg := ethereum.CallMsg{From: aa, To: &aa}
+				got, err := t.eth.CallContract(ctx, msg, nil)
+				if err != nil {
+					return err
+				}
+				if len(got) != 0 {
+					return fmt.Errorf("unexpected return value (got: %s, want: nil)", hexutil.Bytes(got))
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthEstimateGas stores a list of all tests against the method.
+var EthEstimateGas = MethodTests{
+	"eth_estimateGas",
+	[]Test{
+		{
+			"estimate-simple-transfer",
+			"estimates a simple transfer",
+			func(ctx context.Context, t *T) error {
+				msg := ethereum.CallMsg{From: common.Address{0xaa}, To: &common.Address{0x01}}
+				got, err := t.eth.EstimateGas(ctx, msg)
+				if err != nil {
+					return err
+				}
+				if got != params.TxGas {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				}
+				return nil
+			},
+		},
+		{
+			"estimate-simple-contract",
+			"estimates a simple contract call with no return",
+			func(ctx context.Context, t *T) error {
+				aa := common.Address{0xaa}
+				msg := ethereum.CallMsg{From: aa, To: &aa}
+				got, err := t.eth.EstimateGas(ctx, msg)
+				if err != nil {
+					return err
+				}
+				want := params.TxGas + 3
+				if got != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthEstimateGas stores a list of all tests against the method.
+var EthCreateAccessList = MethodTests{
+	"eth_createAccessList",
+	[]Test{
+		{
+			"create-al-simple-transfer",
+			"estimates a simple transfer",
+			func(ctx context.Context, t *T) error {
+				msg := make(map[string]interface{})
+				msg["from"] = addr
+				msg["to"] = common.Address{0x01}
+
+				got := make(map[string]interface{})
+				err := t.rpc.CallContext(ctx, &got, "eth_createAccessList", msg, "latest")
+				if err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			"create-al-simple-contract",
+			"estimates a simple contract call with no return",
+			func(ctx context.Context, t *T) error {
+				msg := make(map[string]interface{})
+				msg["from"] = addr
+				msg["to"] = common.Address{0xaa}
+
+				got := make(map[string]interface{})
+				err := t.rpc.CallContext(ctx, &got, "eth_createAccessList", msg, "latest")
+				if err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			"create-al-multiple-reads",
+			"estimates a simple contract call with no return",
+			func(ctx context.Context, t *T) error {
+				msg := make(map[string]interface{})
+				msg["from"] = addr
+				msg["to"] = common.Address{0xbb}
+
+				got := make(map[string]interface{})
+				err := t.rpc.CallContext(ctx, &got, "eth_createAccessList", msg, "latest")
+				if err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetBlockTransactionCountByNumber stores a list of all tests against the method.
+var EthGetBlockTransactionCountByNumber = MethodTests{
+	"eth_getBlockTransactionCountByNumber",
+	[]Test{
+		{
+			"get-genesis",
+			"gets tx count in block 0",
+			func(ctx context.Context, t *T) error {
+				var got hexutil.Uint
+				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByNumber", hexutil.Uint(0))
+				if err != nil {
+					return err
+				}
+				want := len(t.chain.GetBlockByNumber(0).Transactions())
+				if int(got) != want {
+					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-n",
+			"gets tx count in block 2",
+			func(ctx context.Context, t *T) error {
+				var got hexutil.Uint
+				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByNumber", hexutil.Uint(2))
+				if err != nil {
+					return err
+				}
+				want := len(t.chain.GetBlockByNumber(2).Transactions())
+				if int(got) != want {
+					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetBlockTransactionCountByHash stores a list of all tests against the method.
+var EthGetBlockTransactionCountByHash = MethodTests{
+	"eth_getBlockTransactionCountByHash",
+	[]Test{
+		{
+			"get-genesis",
+			"gets tx count in block 0",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(0)
+				var got hexutil.Uint
+				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByHash", block.Hash())
+				if err != nil {
+					return err
+				}
+				want := len(t.chain.GetBlockByNumber(0).Transactions())
+				if int(got) != want {
+					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-n",
+			"gets tx count in block 2",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(2)
+				var got hexutil.Uint
+				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByHash", block.Hash())
+				if err != nil {
+					return err
+				}
+				want := len(t.chain.GetBlockByNumber(2).Transactions())
+				if int(got) != want {
+					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetTransactionByBlockHashAndIndex stores a list of all tests against the method.
+var EthGetTransactionByBlockHashAndIndex = MethodTests{
+	"eth_getTransactionByBlockNumberAndIndex",
+	[]Test{
+		{
+			"get-block-n",
+			"gets tx 0 in block 2",
+			func(ctx context.Context, t *T) error {
+				var got types.Transaction
+				err := t.rpc.CallContext(ctx, &got, "eth_getTransactionByBlockNumberAndIndex", hexutil.Uint(2), hexutil.Uint(0))
+				if err != nil {
+					return err
+				}
+				want := t.chain.GetBlockByNumber(2).Transactions()[0]
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx don't match (got: %d, want: %d)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetTransactionByBlockNumberAndIndex stores a list of all tests against the method.
+var EthGetTransactionByBlockNumberAndIndex = MethodTests{
+	"eth_getTransactionByBlockHashAndIndex",
+	[]Test{
+		{
+			"get-block-n",
+			"gets tx 0 in block 2",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(2)
+				var got types.Transaction
+				err := t.rpc.CallContext(ctx, &got, "eth_getTransactionByBlockHashAndIndex", block.Hash(), hexutil.Uint(0))
+				if err != nil {
+					return err
+				}
+				want := t.chain.GetBlockByNumber(2).Transactions()[0]
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx don't match (got: %d, want: %d)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetTransactionCount stores a list of all tests against the method.
+var EthGetTransactionCount = MethodTests{
+	"eth_getTransactionCount",
+	[]Test{
+		{
+			"get-account-nonce",
+			"gets nonce for a certain account",
+			func(ctx context.Context, t *T) error {
+				addr := common.Address{0xaa}
+				got, err := t.eth.NonceAt(ctx, addr, nil)
+				if err != nil {
+					return err
+				}
+				state, _ := t.chain.State()
+				want := state.GetNonce(addr)
+				if got != want {
+					return fmt.Errorf("unexpected nonce (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetTransactionByHash stores a list of all tests against the method.
+// TODO: do legacy, al, and dynamic txs
+var EthGetTransactionByHash = MethodTests{
+	"eth_getTransactionByHash",
+	[]Test{
+		{
+			"get-legacy-tx",
+			"gets a legacy transaction",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlockByNumber(2).Transactions()[0]
+				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetTransactionReceipt stores a list of all tests against the method.
+// TODO: do legacy, al, and dynamic txs
+var EthGetTransactionReceipt = MethodTests{
+	"eth_getTransactionReceipt",
+	[]Test{
+		{
+			"get-legacy-receipt",
+			"gets a receipt for a legacy transaction",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(2)
+				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				if err != nil {
+					return err
+				}
+				got, _ := receipt.MarshalBinary()
+				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthSendRawTransaction stores a list of all tests against the method.
+// TODO: do legacy, al, and dynamic txs
+var EthSendRawTransaction = MethodTests{
+	"eth_sendRawTransaction",
+	[]Test{
+		{
+			"send-legacy-transaction",
+			"sends a raw legacy transaction",
+			func(ctx context.Context, t *T) error {
+				state, _ := t.chain.State()
+				txdata := &types.LegacyTx{
+					Nonce:    state.GetNonce(addr),
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(10),
+					Gas:      25000,
+					GasPrice: big.NewInt(1),
+					Data:     common.FromHex("5544"),
+				}
+				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				tx, _ := types.SignNewTx(pk, s, txdata)
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGasPrice stores a list of all tests against the method.
+var EthGasPrice = MethodTests{
+	"eth_gasPrice",
+	[]Test{
+		{
+			"get-current-gas-price",
+			"gets the current gas price in wei",
+			func(ctx context.Context, t *T) error {
+				if _, err := t.eth.SuggestGasPrice(ctx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthMaxPriorityFeePerGas stores a list of all tests against the method.
+var EthMaxPriorityFeePerGas = MethodTests{
+	"eth_maxPriorityFeePerGas",
+	[]Test{
+		{
+			"get-current-tip",
+			"gets the current maxPriorityFeePerGas in wei",
+			func(ctx context.Context, t *T) error {
+				if _, err := t.eth.SuggestGasTipCap(ctx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// TODO
+// EthFeeHistory stores a list of all tests against the method.
+var EthFeeHistory = MethodTests{
+	"eth_feeHistory",
+	[]Test{
+		{
+			"get-fee-history",
+			"gets the history",
+			func(ctx context.Context, t *T) error {
+
+				return nil
+			},
+		},
+	},
+}
+
+// EthSyncing stores a list of all tests against the method.
+var EthSyncing = MethodTests{
+	"eth_syncing",
+	[]Test{
+		{
+			"check-syncing",
+			"checks client syncing status",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.SyncProgress(ctx)
+				if err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetUncleByBlockNumberAndIndex stores a list of all tests against the method.
+var EthGetUncleByBlockNumberAndIndex = MethodTests{
+	"eth_getUncleByBlockNumberAndIndex",
+	[]Test{
+		{
+			"get-uncle",
+			"gets uncle header",
+			func(ctx context.Context, t *T) error {
+				var got *types.Header
+				t.rpc.CallContext(ctx, got, "eth_getUncleByBlockNumberAndIndex", hexutil.Uint(2), hexutil.Uint(0))
+				want := t.chain.GetBlockByNumber(2).Uncles()[0]
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("mismatch uncle hash (got: %s, want: %s", got.Hash(), want.Hash())
 				}
 				return nil
 			},
