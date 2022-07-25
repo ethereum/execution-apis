@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	openrpc "github.com/open-rpc/meta-schema"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
@@ -13,7 +14,7 @@ import (
 // response corresponding to the method.
 type methodSchema struct {
 	// Schemas
-	params [][]byte
+	params []openrpc.ContentDescriptorObject
 	result []byte
 }
 
@@ -62,12 +63,19 @@ func checkSpec(args *Args) error {
 		}
 		// Validate each parameter value against their respective schema.
 		for i, schema := range methodSchema.params {
-			// If there are not enough parameters in the method invocation, fail.
 			if len(rt.params) <= i {
-				return fmt.Errorf("missing required param %d for method %s", i, rt.method)
+				if schema.Required == nil || !(*schema.Required) {
+					// skip missing optional values
+					continue
+				}
+				return fmt.Errorf("missing required parameter %s.param[%d]", rt.method, i)
 			}
-			if err := validate(rt.params[i], schema, fmt.Sprintf("%s.param[%d]", rt.method, i)); err != nil {
+			raw, err := json.Marshal(schema.Schema.JSONSchemaObject)
+			if err != nil {
 				return err
+			}
+			if err := validate(rt.params[i], raw, fmt.Sprintf("%s.param[%d]", rt.method, i)); err != nil {
+				return fmt.Errorf("unable to validate parameter: %s", err)
 			}
 		}
 		if err := validate(rt.response, methodSchema.result, fmt.Sprintf("%s.result", rt.method)); err != nil {

@@ -150,11 +150,7 @@ func parseMethodSchemas(filename string) (map[string]*methodSchema, error) {
 			if param.ReferenceObject != nil {
 				return nil, fmt.Errorf("parameter references not supported")
 			}
-			buf, err := json.Marshal(param.ContentDescriptorObject.Schema.JSONSchemaObject)
-			if err != nil {
-				return nil, err
-			}
-			schema.params = append(schema.params, buf)
+			schema.params = append(schema.params, *param.ContentDescriptorObject)
 		}
 
 		// Read result schema.
