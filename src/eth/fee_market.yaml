@@ -46,7 +46,7 @@
       description: Fee history results.
       type: object
       required:
-        - firstBlock
+        - oldestBlock
         - baseFeePerGas
         - gasUsedRatio
       properties:
