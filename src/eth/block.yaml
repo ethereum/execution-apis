@@ -39,10 +39,7 @@
   result:
     name: Transaction count
     schema:
-      title: Transaction count
-      type: array
-      items:
-        $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint'
 - name: eth_getBlockTransactionCountByNumber
   summary: Returns the number of transactions in a block matching the given block number.
   params:
@@ -52,10 +49,7 @@
   result:
     name: Transaction count
     schema:
-      title: Transaction count
-      type: array
-      items:
-        $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint'
 - name: eth_getUncleCountByBlockHash
   summary: Returns the number of uncles in a block from a block matching the given block hash.
   params:
@@ -65,10 +59,7 @@
   result:
     name: Uncle count
     schema:
-      title: Uncle count
-      type: array
-      items:
-        $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint'
 - name: eth_getUncleCountByBlockNumber
   summary: Returns the number of transactions in a block matching the given block number.
   params:
@@ -78,7 +69,4 @@
   result:
     name: Uncle count
     schema:
-      title: Uncle count
-      type: array
-      items:
-        $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint'
