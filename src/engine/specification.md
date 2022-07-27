@@ -288,7 +288,7 @@ The payload build process is specified as follows:
     - the `blockHash` of the payload is valid
     - the payload doesn't extend the canonical chain
     - the payload hasn't been fully validated
-    - ancestors of a payload are know and comprise a well-formed chain.
+    - ancestors of a payload are known and comprise a well-formed chain.
 
 6. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
