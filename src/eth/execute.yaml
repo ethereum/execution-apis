@@ -13,6 +13,27 @@
     name: Return data
     schema:
       $ref: '#/components/schemas/bytes'
+- name: eth_multicall
+  summary: Executes multiple message calls immediately one after the other without creating transactions on the block chain.
+  params:
+    - name: Transactions
+      required: true
+      schema:
+        title: Transactions
+        type: array
+        items:
+          $ref: '#/components/schemas/GenericTransaction'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Return data
+    schema:
+      title: Return data
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
 - name: eth_estimateGas
   summary: Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
   params:
