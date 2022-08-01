@@ -20,6 +20,17 @@
     name: Block RLP
     schema:
       $ref: '#/components/schemas/bytes'
+- name: debug_getRawTransaction
+  summary: Returns an array of EIP-2718 binary-encoded transactions.
+  params:
+    - name: Transaction hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: EIP-2718 binary-encoded transaction
+    schema:
+      $ref: '#/components/schemas/bytes'
 - name: debug_getRawReceipts
   summary: Returns an array of EIP-2718 binary-encoded receipts.
   params:
