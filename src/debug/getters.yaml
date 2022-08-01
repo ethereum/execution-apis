@@ -1,4 +1,4 @@
-- name: debug_getHeaderRlp
+- name: debug_getRawHeader
   summary: Returns an RLP-encoded header.
   params:
     - name: Block
@@ -9,7 +9,7 @@
     name: Header RLP
     schema:
       $ref: '#/components/schemas/bytes'
-- name: debug_getBlockRlp
+- name: debug_getRawBlock
   summary: Returns an RLP-encoded block.
   params:
     - name: Block
@@ -20,7 +20,7 @@
     name: Block RLP
     schema:
       $ref: '#/components/schemas/bytes'
-- name: debug_getReceiptsRaw
+- name: debug_getRawReceipts
   summary: Returns an array of EIP-2718 binary-encoded receipts.
   params:
     - name: Block
