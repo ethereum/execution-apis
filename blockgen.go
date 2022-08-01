@@ -57,7 +57,7 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block) {
 
 	sealingEngine := sealingEngine{engine}
 	chain, _ := core.GenerateChain(gspec.Config, genesis, sealingEngine, gendb, 3, func(i int, gen *core.BlockGen) {
-		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(address), address, big.NewInt(1000), params.TxGas, gen.BaseFee(), nil), signer, key)
+		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(address), address, big.NewInt(1000), params.TxGas, new(big.Int).Add(gen.BaseFee(), common.Big1), nil), signer, key)
 		gen.AddTx(tx)
 	})
 	return gspec, chain
