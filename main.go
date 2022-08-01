@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 
 	"github.com/alexflint/go-arg"
 )
@@ -15,15 +16,17 @@ const (
 )
 
 type Args struct {
-	ClientType string `arg:"--client" help:"client type" default:"geth"`
-	ClientBin  string `arg:"--bin" help:"path to client binary" default:"geth"`
-	OutDir     string `arg:"--out" help:"directory where test fixtures will be written" default:"tests"`
-	Ethash     bool   `arg:"--ethash" help:"seal blocks using proof-of-work"`
-	EthashDir  string `arg:"--ethashdir" help:"directory to store ethash dag (empty for in-memory only)"`
-	ChainDir   string `arg:"--chain" help:"path to directory with chain.rlp and genesis.json"`
-	Verbose    bool   `arg:"-v,--verbose" help:"verbosity level of rpctestgen"`
-	LogLevel   string `arg:"--loglevel" help:"log level of client" default:"info"`
+	ClientType  string `arg:"--client" help:"client type" default:"geth"`
+	ClientBin   string `arg:"--bin" help:"path to client binary" default:"geth"`
+	OutDir      string `arg:"--out" help:"directory where test fixtures will be written" default:"tests"`
+	Ethash      bool   `arg:"--ethash" help:"seal blocks using proof-of-work"`
+	EthashDir   string `arg:"--ethashdir" help:"directory to store ethash dag (empty for in-memory only)"`
+	ChainDir    string `arg:"--chain" help:"path to directory with chain.rlp and genesis.json"`
+	Verbose     bool   `arg:"-v,--verbose" help:"verbosity level of rpctestgen"`
+	LogLevel    string `arg:"--loglevel" help:"log level of client" default:"info"`
+	TestsRegexp string `arg:"--tests" help:"regex of tests to fill" default:".*"`
 
+	tests       *regexp.Regexp
 	logLevelInt int
 }
 
@@ -40,6 +43,10 @@ func main() {
 		exit(err)
 	}
 	args.logLevelInt = lvl
+
+	if args.tests, err = regexp.Compile(args.TestsRegexp); err != nil {
+		exit(err)
+	}
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, ARGS, &args)

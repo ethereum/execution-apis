@@ -51,7 +51,12 @@ func runGenerator(ctx context.Context) error {
 	fmt.Println("filling tests...")
 	tests := testgen.AllMethods
 	for _, methodTest := range tests {
-		methodDir := fmt.Sprintf("%s/%s", args.OutDir, methodTest.MethodName)
+		// Skip tests that don't match regexp.
+		if !args.tests.MatchString(methodTest.Name) {
+			continue
+		}
+
+		methodDir := fmt.Sprintf("%s/%s", args.OutDir, methodTest.Name)
 		if err := mkdir(methodDir); err != nil {
 			return err
 		}
@@ -68,7 +73,7 @@ func runGenerator(ctx context.Context) error {
 			err := test.Run(ctx, testgen.NewT(handler.ethclient, handler.gethclient, handler.rpc, chain.bc))
 			if err != nil {
 				fmt.Println(" fail.")
-				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.MethodName, test.Name, err)
+				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.Name, test.Name, err)
 				continue
 			}
 			fmt.Println("  done.")
