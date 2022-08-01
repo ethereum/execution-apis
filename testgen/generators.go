@@ -44,8 +44,8 @@ func NewT(eth *ethclient.Client, geth *gethclient.Client, rpc *rpc.Client, chain
 
 // MethodTests is a collection of tests for a certain JSON-RPC method.
 type MethodTests struct {
-	MethodName string
-	Tests      []Test
+	Name  string
+	Tests []Test
 }
 
 // Test is a wrapper for a function that performs an interaction with the
@@ -82,11 +82,12 @@ var AllMethods = []MethodTests{
 	EthGasPrice,
 	EthMaxPriorityFeePerGas,
 	EthSyncing,
+	EthFeeHistory,
 	// EthGetUncleByBlockNumberAndIndex,
-	// DebugGetHeader,
-	// DebugGetBlock,
-	// DebugGetReceipts,
-	// DebugGetTransaction,
+	DebugGetRawHeader,
+	DebugGetRawBlock,
+	DebugGetRawReceipts,
+	DebugGetRawTransaction,
 }
 
 // EthBlockNumber stores a list of all tests against the method.
@@ -700,16 +701,30 @@ var EthMaxPriorityFeePerGas = MethodTests{
 	},
 }
 
-// TODO
 // EthFeeHistory stores a list of all tests against the method.
 var EthFeeHistory = MethodTests{
 	"eth_feeHistory",
 	[]Test{
 		{
-			"get-fee-history",
-			"gets the history",
+			"fee-history",
+			"gets fee history information",
 			func(ctx context.Context, t *T) error {
+				got, err := t.eth.FeeHistory(ctx, 1, big.NewInt(2), []float64{95, 99})
+				if err != nil {
+					return err
+				}
+				block := t.chain.GetBlockByNumber(2)
+				tip, err := block.Transactions()[0].EffectiveGasTip(block.BaseFee())
+				if err != nil {
+					return fmt.Errorf("unable to get effective tip", err)
+				}
 
+				if len(got.Reward) != 1 {
+					return fmt.Errorf("mismatch number of rewards (got: %d, want: 1", len(got.Reward))
+				}
+				if got.Reward[0][0].Cmp(tip) != 0 {
+					return fmt.Errorf("mismatch reward value (got: %d, want: %d)", got.Reward[0][0], tip)
+				}
 				return nil
 			},
 		},
@@ -798,15 +813,15 @@ var EthGetProof = MethodTests{
 	},
 }
 
-var DebugGetHeader = MethodTests{
-	"debug_getHeader",
+var DebugGetRawHeader = MethodTests{
+	"debug_getRawHeader",
 	[]Test{
 		{
 			"get-genesis",
 			"gets block 0",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getHeader", "0x0"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getRawHeader", "0x0"); err != nil {
 					return err
 				}
 				return checkHeaderRLP(t, 0, got)
@@ -817,7 +832,7 @@ var DebugGetHeader = MethodTests{
 			"gets non-zero block",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getHeader", "0x3"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getRawHeader", "0x3"); err != nil {
 					return err
 				}
 				return checkHeaderRLP(t, 3, got)
@@ -827,7 +842,7 @@ var DebugGetHeader = MethodTests{
 			"get-invalid-number",
 			"gets block with invalid number formatting",
 			func(ctx context.Context, t *T) error {
-				err := t.rpc.CallContext(ctx, nil, "debug_getHeader", "2")
+				err := t.rpc.CallContext(ctx, nil, "debug_getRawHeader", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
 				}
@@ -837,15 +852,15 @@ var DebugGetHeader = MethodTests{
 	},
 }
 
-var DebugGetBlock = MethodTests{
-	"debug_getBlock",
+var DebugGetRawBlock = MethodTests{
+	"debug_getRawBlock",
 	[]Test{
 		{
 			"get-genesis",
 			"gets block 0",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getBlock", "0x0"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getRawBlock", "0x0"); err != nil {
 					return err
 				}
 				return checkBlockRLP(t, 0, got)
@@ -856,7 +871,7 @@ var DebugGetBlock = MethodTests{
 			"gets non-zero block",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getBlock", "0x3"); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getRawBlock", "0x3"); err != nil {
 					return err
 				}
 				return checkBlockRLP(t, 3, got)
@@ -866,7 +881,7 @@ var DebugGetBlock = MethodTests{
 			"get-invalid-number",
 			"gets block with invalid number formatting",
 			func(ctx context.Context, t *T) error {
-				err := t.rpc.CallContext(ctx, nil, "debug_getBlock", "2")
+				err := t.rpc.CallContext(ctx, nil, "debug_getRawBlock", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
 				}
@@ -876,28 +891,28 @@ var DebugGetBlock = MethodTests{
 	},
 }
 
-var DebugGetReceipts = MethodTests{
-	"debug_getReceipts",
+var DebugGetRawReceipts = MethodTests{
+	"debug_getRawReceipts",
 	[]Test{
 		{
 			"get-genesis",
 			"gets receipts for block 0",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "debug_getReceipts", "0x0")
+				return t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "0x0")
 			},
 		},
 		{
 			"get-block-n",
 			"gets receipts non-zero block",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "debug_getReceipts", "0x3")
+				return t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "0x3")
 			},
 		},
 		{
 			"get-invalid-number",
 			"gets receipts with invalid number formatting",
 			func(ctx context.Context, t *T) error {
-				err := t.rpc.CallContext(ctx, nil, "debug_getReceipts", "2")
+				err := t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
 				}
@@ -907,8 +922,8 @@ var DebugGetReceipts = MethodTests{
 	},
 }
 
-var DebugGetTransaction = MethodTests{
-	"debug_getTransaction",
+var DebugGetRawTransaction = MethodTests{
+	"debug_getRawTransaction",
 	[]Test{
 		{
 			"get-tx",
@@ -916,7 +931,7 @@ var DebugGetTransaction = MethodTests{
 			func(ctx context.Context, t *T) error {
 				tx := t.chain.GetBlockByNumber(1).Transactions()[0]
 				var got hexutil.Bytes
-				if err := t.rpc.CallContext(ctx, &got, "debug_getTransaction", tx.Hash().Hex()); err != nil {
+				if err := t.rpc.CallContext(ctx, &got, "debug_getRawTransaction", tx.Hash().Hex()); err != nil {
 					return err
 				}
 				want, err := tx.MarshalBinary()
@@ -934,7 +949,7 @@ var DebugGetTransaction = MethodTests{
 			"gets tx with hash missing 0x prefix",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				err := t.rpc.CallContext(ctx, &got, "debug_getTransaction", "1000000000000000000000000000000000000000000000000000000000000001")
+				err := t.rpc.CallContext(ctx, &got, "debug_getRawTransaction", "1000000000000000000000000000000000000000000000000000000000000001")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
 				}
