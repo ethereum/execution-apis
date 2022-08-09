@@ -106,3 +106,20 @@ BlockNumberOrTag:
       $ref: '#/components/schemas/uint'
     - title: Block tag
       $ref: '#/components/schemas/BlockTag'
+BadBlock:
+  title: Bad block
+  type: object
+  required:
+    - block
+    - hash
+    - rlp
+  properties:
+    block:
+      title: Block
+      $ref: '#/components/schemas/bytes'
+    hash:
+      title: Hash
+      $ref: '#/components/schemas/hash32'
+    rlp:
+      title: RLP
+      $ref: '#/components/schemas/bytes'
