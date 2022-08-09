@@ -41,6 +41,7 @@ jobs:
           node-version: '15'
       - run: npm ci
       - run: npm run build
+      - run: npm run build:docs
       - run: 'sed -i -e "s|Prefix: \"\"|Prefix: \"/execution-apis\"|g" build/docs/gatsby/gatsby-config.js'
       - run: 'sed -i -e "s|/api|api|g" build/docs/gatsby/src/pages/index.tsx'
       - run: npm run build:docs
