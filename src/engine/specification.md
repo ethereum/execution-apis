@@ -393,4 +393,6 @@ The payload build process is specified as follows:
 
 6. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
 
+7. Considering the absence of the `TERMINAL_TOTAL_DIFFICULTY` value (i.e. when a value has not been decided), Consensus Layer and Execution Layer client software **MUST** use `115792089237316195423570985008687907853269984665640564039457584007913129638912` (`2**256-2**10`) value for the `terminalTotalDifficulty` input parameter of this call. 
+
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
