@@ -15,7 +15,7 @@ import (
 )
 
 // genSimpleChain generates a short chain with a few basic transactions.
-func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block) {
+func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *types.Block) {
 	var (
 		keyHex  = "9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c"
 		key, _  = crypto.HexToECDSA(keyHex)
@@ -56,11 +56,23 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block) {
 	genesis := gspec.MustCommit(gendb)
 
 	sealingEngine := sealingEngine{engine}
-	chain, _ := core.GenerateChain(gspec.Config, genesis, sealingEngine, gendb, 3, func(i int, gen *core.BlockGen) {
+	chain, _ := core.GenerateChain(gspec.Config, genesis, sealingEngine, gendb, 4, func(i int, gen *core.BlockGen) {
 		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(address), address, big.NewInt(1000), params.TxGas, new(big.Int).Add(gen.BaseFee(), common.Big1), nil), signer, key)
 		gen.AddTx(tx)
 	})
-	return gspec, chain
+
+	// Modify block so that recorded gas used does not equal actual.
+	bad := chain[len(chain)-1]
+	h := bad.Header()
+	h.GasUsed += 1
+	bad.WithSeal(h)
+	sealedBlock := make(chan *types.Block, 1)
+	if err := engine.Seal(nil, bad, sealedBlock, nil); err != nil {
+		panic(err)
+	}
+
+	chain = chain[:len(chain)-1]
+	return gspec, chain, bad
 }
 
 // sealingEngine overrides FinalizeAndAssemble and performs sealing in-place.

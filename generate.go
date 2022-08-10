@@ -86,6 +86,7 @@ type chainData struct {
 	bc     *core.BlockChain
 	gspec  *core.Genesis
 	blocks []*types.Block
+	bad    *types.Block
 }
 
 // initChain either attempts to read the chain config from args.ChainDir or it
@@ -119,11 +120,18 @@ func initChain(ctx context.Context, args *Args) (*chainData, error) {
 		engine = ethash.New(config, nil, false)
 
 		// Generate test chain and write to output directory.
-		chain.gspec, chain.blocks = genSimpleChain(engine)
+		var bad *types.Block
+		chain.gspec, chain.blocks, bad = genSimpleChain(engine)
 		if err := mkdir(args.OutDir); err != nil {
 			return nil, err
 		}
-		if err := writeChain(args.OutDir, chain.gspec, chain.blocks); err != nil {
+		if err := writeGenesis(fmt.Sprintf("%s/genesis.json", args.OutDir), chain.gspec); err != nil {
+			return nil, err
+		}
+		if err := writeChain(fmt.Sprintf("%s/chain.rlp", args.OutDir), chain.blocks); err != nil {
+			return nil, err
+		}
+		if err := writeChain(fmt.Sprintf("%s/bad.rlp", args.OutDir), []*types.Block{bad}); err != nil {
 			return nil, err
 		}
 	}

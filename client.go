@@ -45,7 +45,12 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	if err != nil {
 		return nil, err
 	}
-	writeChain(tmp, genesis, blocks)
+	if err := writeGenesis(fmt.Sprintf("%s/genesis.json", tmp), genesis); err != nil {
+		return nil, err
+	}
+	if err := writeChain(fmt.Sprintf("%s/chain.rlp", tmp), blocks); err != nil {
+		return nil, err
+	}
 
 	var (
 		args      = ctx.Value(ARGS).(*Args)
@@ -132,16 +137,21 @@ func runCmd(ctx context.Context, path string, verbose bool, args ...string) erro
 	return nil
 }
 
-// writeChain writes the genesis and blocks to disk.
-func writeChain(path string, genesis *core.Genesis, blocks []*types.Block) error {
+// writeGenesis writes the genesis to disk.
+func writeGenesis(filename string, genesis *core.Genesis) error {
 	out, err := json.MarshalIndent(genesis, "", "  ")
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(fmt.Sprintf("%s/genesis.json", path), out, 0644); err != nil {
+	if err := os.WriteFile(filename, out, 0644); err != nil {
 		return err
 	}
-	w, err := os.OpenFile(fmt.Sprintf("%s/chain.rlp", path), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	return nil
+}
+
+// writeChain writes a chain to disk.
+func writeChain(filename string, blocks []*types.Block) error {
+	w, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
