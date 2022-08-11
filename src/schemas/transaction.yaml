@@ -265,6 +265,9 @@ GenericTransaction:
     to:
       title: to address
       $ref: '#/components/schemas/address'
+    from:
+      title: from address
+      $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
