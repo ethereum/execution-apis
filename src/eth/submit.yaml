@@ -4,7 +4,7 @@
     - name: Transaction
       required: true
       schema:
-        $ref: '#/components/schemas/TransactionWithSender'
+        $ref: '#/components/schemas/GenericTransaction'
   result:
     name: Transaction hash
     schema:

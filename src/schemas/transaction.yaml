@@ -13,17 +13,6 @@ AccessList:
   type: array
   items:
     $ref: '#/components/schemas/AccessListEntry'
-TransactionWithSender:
-  title: Transaction object with sender
-  type: object
-  allOf:
-    - required:
-        - from
-      properties:
-        from:
-          title: from
-          $ref: '#/components/schemas/address'
-    - $ref: '#/components/schemas/TransactionUnsigned'
 Transaction1559Unsigned:
   type: object
   title: EIP-1559 transaction.
@@ -264,6 +253,9 @@ GenericTransaction:
       $ref: '#/components/schemas/uint'
     to:
       title: to address
+      $ref: '#/components/schemas/address'
+    from:
+      title: from address
       $ref: '#/components/schemas/address'
     gas:
       title: gas limit
