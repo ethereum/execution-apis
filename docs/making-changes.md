@@ -17,11 +17,12 @@ provided over via API will not be easily accessible to users.
 When considering a change to the API, it's important to keep a few guiding
 principles in mind.
 
-### Neccesity
+### Necessity
 
-The most common path to a newly standardized method is neccesity. As the protocol
-changes over time, new types of data become available. EIP-2930 neccesitated the
-introduction of `eth_accessList` and EIP-1559 neccesitated `eth_feeHistory`.
+The most common path to a newly standardized method is necessity. As the
+protocol changes over time, new types of data become available. EIP-2930
+necessitated the introduction of `eth_accessList` and EIP-1559 neccesitated
+`eth_feeHistory`.
 
 Therefore, a good question to ask before making a new API proposal is whether
 or not the method is strictly neccessary. Sometimes the answer is yes even
@@ -65,7 +66,7 @@ method be created.
 ## Standardization
 
 There is not a formal process for standardization of API changes. However, the
-outline below should given proposal authors and champions a rough proccess to
+outline below should given proposal authors and champions a rough process to
 follow.
 
 ### Idea
@@ -82,9 +83,9 @@ lot of time formalizing a proposal that has little change of being accepted.
 
 ### Proposal
 
-The formal proposal stage is where the bulk of time will be spent. A formal proposal
-is a PR to this repository ([ethereum/execution-apis][execution-apis]). A good proposal
-will have the following:
+The formal proposal stage is where the bulk of time will be spent. A formal
+proposal is a PR to this repository ([ethereum/execution-apis][exec-apis]). A
+good proposal will have the following:
 
 * a modification to the specification implementing the proposal
 * test cases for proposal ([guide][test-gen])
@@ -96,8 +97,9 @@ will have the following:
 
 Once a formal proposal has been created, formal support of clients can be
 acquired. This has historically been done via the AllCoreDevs call. It is
-recommended to post a request on the ACD agenda (usually in [ethereum/pm][pm])
-to discuss the proposal, at which point formal support can be ascertained.
+recommended to post a request on the AllCoreDevs agenda (usually in
+[ethereum/pm][pm]) to discuss the proposal, at which point formal support can
+be ascertained.
 
 Often times, support will be conditional certain changes. This means that
 proposals will cycle between formal proposal work and earning support from
@@ -112,6 +114,6 @@ that there is not much time where some clients support a certain methods and
 others don't.
 
 
-[execution-apis]: https://github.com/ethereum/execution-apis
+[exec-apis]: https://github.com/ethereum/execution-apis
 [pm]: https://github.com/ethereum/pm
 [test-gen]: ../tests/README.md
