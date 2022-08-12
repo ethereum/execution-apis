@@ -1,8 +1,14 @@
 # Tests
 
 The Execution API has a comprehensive test suite to verify conformance of
-clients. It is run multiple times a day and results from all major clients are
-available [here][hivetests2] under the tag `rpc-compat`.
+clients. The tests in this repository are loaded into the [`hive`][hive] test
+simulator [`rpc-compat`][rpc-compat] and validated against every major client.
+
+The test suite is run daily and results are always available [here][hivetests2]
+under the tag `rpc-compat`. 
+
+To learn more about the `rpc-compat` simulator, please see its
+[documentation][rpc-compat].
 
 ## Format
 
