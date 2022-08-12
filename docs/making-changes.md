@@ -87,7 +87,7 @@ is a PR to this repository ([ethereum/execution-apis][execution-apis]). A good p
 will have the following:
 
 * a modification to the specification implementing the proposal
-* test cases for proposal
+* test cases for proposal ([guide][test-gen])
 * motivation for the change
 * links to acknowledgements that proposal idea is sound
 * clear rationale for non-obvious design decisions
@@ -114,3 +114,4 @@ others don't.
 
 [execution-apis]: https://github.com/ethereum/execution-apis
 [pm]: https://github.com/ethereum/pm
+[test-gen]: ../tests/README.md
