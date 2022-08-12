@@ -32,7 +32,7 @@ as demand for the functionality grew. Before `eth_getProof`, there was no
 interface for getting intermediary trie nodes over the API. This is a great
 example of a method that became more neccessary over time.
 
-Sometimes efficiency is the basis of neccesity. If certain patterns of requests
+Sometimes efficiency is the basis of necessity. If certain patterns of requests
 becomes popular, it can be adventageous to enshrine the behavior into the API.
 
 
