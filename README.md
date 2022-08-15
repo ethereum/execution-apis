@@ -1,12 +1,23 @@
-# Ethereum API Specification
+# Execution API Specification
 
 ## JSON-RPC
 
 [View the spec][playground]
 
-The Ethereum JSON-RPC is a collection of methods that all clients implement.
+The Ethereum JSON-RPC is a standard collection of methods that all execution
+clients implement. It is the canonical interface between users and the network.
 This interface allows downstream tooling and infrastructure to treat different
 Ethereum clients as modules that can be swapped at will.
+
+### Contributing
+
+Please see the contributors guide in [`docs/making-changes.md`][making-changes]
+for general information about the process of standardizing new API methods and
+making changes to existing ones. Information on test generation can be found
+in [`tests/README.md`][test-gen]
+
+The specification itself is written in [OpenRPC][openrpc]. Refer to the OpenRPC
+specification and the JSON schema [specification][json-schema] to get started.
 
 ### Building
 
@@ -22,34 +33,41 @@ Build successful.
 This will output the file `openrpc.json` in the root of the project. This file
 will have all schema `#ref`s resolved.
 
-### Contributing
-
-The specification is written in [OpenRPC][openrpc]. Refer to the
-OpenRPC specification and the JSON schema specification to get started.
-
 #### Testing
 
-There are currently three tools for testing contributions. The main two that
-run as GitHub actions are an [OpenRPC validator][validator] and a
-[spellchecker][spellchecker]:
+There are several mechanisms for testing specification contributions and client
+conformance. 
+
+First is the [OpenRPC validator][validator]. It performs some basic syntactic
+checks on the generated specification.
 
 ```console
 $ npm install
 $ npm run lint
 OpenRPC spec validated successfully.
+```
 
+Next is `speccheck`. This tool validates the test cases in the `tests`
+directory against the specification.
+
+```console
+$ go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
+$ speccheck -v
+all passing.
+```
+
+The spell checker ensures the specification is free of spelling errors.
+
+```console
 $ pip install pyspelling
 $ pyspelling -c spellcheck.yaml
 Spelling check passed :)
 ```
 
-The third tool can validate a live JSON-RPC provider hosted at
-`http://localhost:8545` against the specification:
-
-```console
-$ ./scripts/debug.sh eth_getBlockByNumber \"0xc7d772\",false
-data.json valid
-```
+Finally, the test cases in the `tests/` directory may be run against individual
+execution client using the [`hive`] simulator [`rpc-compat`][rpc-compat].
+Please see the documentation in the aforementioned repositories for more
+information.
 
 ## GraphQL
 
@@ -81,6 +99,10 @@ This repository is licensed under [CC0](LICENSE).
 [playground]: https://ethereum.github.io/execution-apis/api-documentation/
 [openrpc]: https://open-rpc.org
 [validator]: https://open-rpc.github.io/schema-utils-js/globals.html#validateopenrpcdocument
-[spellchecker]: https://facelessuser.github.io/pyspelling/
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
+[making-changes]: docs/making-changes.md
+[json-schema]: https://json-schema.org 
+[hive]: https://github.com/ethereum/hive
+[rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
+[test-gen]: tests/README.md
