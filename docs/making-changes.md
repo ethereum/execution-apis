@@ -35,7 +35,6 @@ example of a method that became more neccessary over time.
 Sometimes efficiency is the basis of necessity. If certain patterns of requests
 becomes popular, it can be adventageous to enshrine the behavior into the API.
 
-
 ### Implementation Complexity
 
 How a method is implemented should be carefully considered before proposing a
