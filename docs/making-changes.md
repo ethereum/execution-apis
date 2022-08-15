@@ -9,8 +9,8 @@ The Ethereum JSON-RPC API is the canonical interface between users and the
 Ethereum network. Each execution layer client implements the API as defined by
 the spec. 
 
-As the main source of chain information, anything that is not
-provided over via API will not be easily accessible to users. 
+As the main source of chain information, anything that is not provided over via
+API will not be easily accessible to users. 
 
 ## Guiding Principles
 
