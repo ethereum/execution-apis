@@ -33,11 +33,11 @@ The HMAC algorithm implies that several CLs will be able to use the same key, an
 
 ## Key distribution
 
-The `EL` and `CL` clients **MUST** accept a cli/config parameter: `jwt-secret`, which designates a file containing the hex-encoded 256 bit secret key to be used for verifying/generating JWT tokens.
+The execution layer and consensus layer clients **SHOULD** accept a configuration parameter: `jwt-secret`, which contains the hex-encoded 256 bit secret key to be used for verifying/generating JWT tokens, or a file path to a file containing such a key.
 
 If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and store the hex-encoded secret as a `jwt.hex` file on the filesystem.  This file can then be used to provision the counterpart client.
 
-If such a parameter _is_ given, but the file cannot be read, or does not contain a hex-encoded key of `256` bits, the client should treat this as an error: either abort the startup, or show error and continue without exposing the authenticated port.
+If such a parameter _is_ given and it is a file path but the file cannot be read, or if it or the file it points to does not contain a hex-encoded key of `256` bits, the client should treat this as an error: either abort the startup, or show error and continue without exposing the authenticated port.
 
 ## JWT Claims
 
