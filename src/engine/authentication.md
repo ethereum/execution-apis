@@ -19,7 +19,7 @@ Authentication is performed as follows:
   - Clarification: The websocket handshake starts with the consensus layer client performing a websocket upgrade request. This is a regular http GET request, and the actual
 parameters for the WS-handshake are carried in the http headers.
 - For `inproc`, a.k.a raw ipc communication, no authentication is required, under the assumption that a process able to access `ipc` channels for the process, which usually means local file access, is already sufficiently permissioned that further authentication requirements do not add security.
-
+- If the listening address is `127.0.0.1`, a fixed `JWT` secret must be used, under the assumption that sockets bound to the localhost cannot accept external connections and therefore are not susceptible to manipulation from remote adversaries. The fixed secret serves to protect against malicious webpages that may attempt to make requests against the localhost.
 
 ## JWT specifications
 
@@ -35,7 +35,13 @@ The HMAC algorithm implies that several consensus layer clients will be able to 
 
 The execution layer and consensus layer clients **SHOULD** accept a configuration parameter: `jwt-secret`, which designates a file containing the hex-encoded 256 bit secret key to be used for verifying/generating JWT tokens.
 
-If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and **SHOULD** store the hex-encoded secret as a `jwt.hex` file on the filesystem.  This file can then be used to provision the counterpart client.
+If such a parameter is not given and the host is `127.0.0.1` the client **MUST** continue with the default `jwt-secret`:
+
+```
+0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3584bdb5d4e74fe97f5a5222b533fe1322fd0b6ad3eb03f02c3221984e2c0b4304985f5ca3d2afbec36529aa96f74de3cc10a2a4a6c44f2157a57d2c6059a11bb2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f058eff9265aedf8a54da8121de1324e1e0d9aac99f694d16c6a41afffe3817d73b1fcff633029ee18ab6482b58ff8b6e95dd7c82a954c852157152a7a6d32785eeddb0590e1095fbe51205a51a297daef7259e229af0432214ae6cb2c1f750750eddb0590e1095fbe51205a51a297daef7259e229af0432214ae6cb2c1f750750
+```
+
+If such a parameter is not given and the host _is not_ `127.0.0.1`, the client **SHOULD** generate such a token, valid for the duration of the execution, and store the hex-encoded secret as a `jwt.hex` file on the filesystem.  This file can then be used to provision the counterpart client.
 
 If such a parameter _is_ given, but the file cannot be read, or does not contain a hex-encoded key of `256` bits, the client **SHOULD** treat this as an error: either abort the startup, or show error and continue without exposing the authenticated port.
 
