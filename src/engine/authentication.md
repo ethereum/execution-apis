@@ -19,7 +19,7 @@ Authentication is performed as follows:
   - Clarification: The websocket handshake starts with the CL performing a websocket upgrade request. This is a regular http GET request, and the actual
 parameters for the WS-handshake are carried in the http headers.
 - For `inproc`, a.k.a raw ipc communication, no authentication is required, under the assumption that a process able to access `ipc` channels for the process, which usually means local file access, is already sufficiently permissioned that further authentication requirements do not add security.
-
+- If the listening address is `127.0.0.1`, no authentication is required, under the assumption that sockets bound to the localhost cannot accept external connections and therefore are not suceptible to manipulation from remote adversaries. Furthermore, EL clients **SHOULD** reject requests where the `Origin` header field does not equal the current domain as the request most likey originated from a browser.
 
 ## JWT specifications
 
