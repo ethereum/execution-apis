@@ -3,6 +3,18 @@ import yaml from "js-yaml";
 import merger from "json-schema-merge-allof";
 import { dereferenceDocument } from "@open-rpc/schema-utils-js";
 
+function sortByMethodName(methods) {
+  return methods.slice().sort((a, b) => {
+    if (a['name'] > b['name']) {
+      return 1;
+    } else if (a['name'] < b['name']) {
+      return -1;
+    } else {
+      return 0;
+    }
+  })
+}
+
 console.log("Loading files...\n");
 
 let methods = [];
@@ -53,7 +65,7 @@ const doc = {
     },
     version: "0.0.0"
   },
-  methods: methods,
+  methods: sortByMethodName(methods),
   components: {
     schemas: schemas
   }
