@@ -15,6 +15,10 @@ bytes:
   title: hex encoded bytes
   type: string
   pattern: ^0x[0-9a-f]*$
+bytesMax32:
+  title: 32 hex encoded bytes
+  type: string
+  pattern: ^0x[0-9a-f]{0,64}$
 bytes8:
   title: 8 hex encoded bytes
   type: string

@@ -75,7 +75,7 @@
         title: Storage keys
         type: array
         items:
-          $ref: '#/components/schemas/hash32'
+          $ref: '#/components/schemas/bytesMax32'
     - name: Block
       required: true
       schema:
