@@ -21,19 +21,19 @@ principles in mind.
 
 The most common path to a newly standardized method is necessity. As the
 protocol changes over time, new types of data become available. EIP-2930
-necessitated the introduction of `eth_accessList` and EIP-1559 neccesitated
+necessitated the introduction of `eth_accessList` and EIP-1559 necessitated
 `eth_feeHistory`.
 
 Therefore, a good question to ask before making a new API proposal is whether
-or not the method is strictly neccessary. Sometimes the answer is yes even
+or not the method is strictly necessary. Sometimes the answer is yes even
 without a protocol change. For example, `eth_getProof` has been possible since
-the inital version of Ethereum -- yet, it was only standardized in recent years
+the initial version of Ethereum -- yet, it was only standardized in recent years
 as demand for the functionality grew. Before `eth_getProof`, there was no
 interface for getting intermediary trie nodes over the API. This is a great
-example of a method that became more neccessary over time.
+example of a method that became more necessary over time.
 
 Sometimes efficiency is the basis of necessity. If certain patterns of requests
-becomes popular, it can be adventageous to enshrine the behavior into the API.
+becomes popular, it can be advantageous to enshrine the behavior into the API.
 
 ### Implementation Complexity
 
@@ -42,7 +42,7 @@ change to the API. Although each client is able to validate the Ethereum chain,
 there can be a huge variance in actual design decisions.
 
 As an example, a proposal for a method such as `eth_totalSupply` seems
-reasonable. This is a quanity that users are often interested in and it would
+reasonable. This is a quantity that users are often interested in and it would
 nice to have it available. However, tracking the total supply is tricky. There
 are several avenues where ether can enter and leave supply. This method would
 need to either i) compute the value on demand or ii) store value for each block
@@ -77,8 +77,8 @@ in time can save time and make the rest of the process much smoother.
 During the idea phase, it is recommended to contemplate the proposal idea in
 the context of the guiding principles above. It's also good to get feedback on
 the idea in the open. Just one or two rough acknowledgements from client
-developers that an idea makes sense and is worth pursing can avoid wasting a
-lot of time formalizing a proposal that has little change of being accepted.
+developers that an idea makes sense and is worth pursuing can avoid wasting a
+lot of time formalizing a proposal that has little chance of being accepted.
 
 ### Proposal
 
@@ -100,7 +100,7 @@ recommended to post a request on the AllCoreDevs agenda (usually in
 [ethereum/pm][pm]) to discuss the proposal, at which point formal support can
 be ascertained.
 
-Often times, support will be conditional certain changes. This means that
+Oftentimes, support will be conditional on certain changes. This means that
 proposals will cycle between formal proposal work and earning support from
 clients. This should be expected and not discourage authors.
 
