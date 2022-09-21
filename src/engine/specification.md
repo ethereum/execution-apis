@@ -204,7 +204,20 @@ The fields are encoded as follows:
 
 This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
 
-- `ExecutionPayloadV1` fields...
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
 ### ForkchoiceStateV1
@@ -229,7 +242,9 @@ This structure contains the attributes required to initiate a payload build proc
 
 This structure has the syntax of `PayloadAttributesV1` and appends a single field: `withdrawals`.
 
-- `PayloadAttributesV1` fields...
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
 ### PayloadStatusV1
@@ -347,7 +362,7 @@ The payload build process is specified as follows:
 
 #### Specification
 
-Refer to the specification for `engine_newPayloadV1`.
+Refer to the specification for [`engine_newPayloadV1`](#enginenewpayloadv1).
 
 ### engine_forkchoiceUpdatedV1
 
@@ -411,14 +426,7 @@ Refer to the specification for `engine_newPayloadV1`.
 
 #### Response
 
-* result: `object`
-  - `payloadStatus`: [`PayloadStatusV1`](#PayloadStatusV1); values of the `status` field in the context of this method are restricted to the following subset:
-    * `"VALID"`
-    * `"INVALID"`
-    * `"SYNCING"`
-    * `"INVALID_TERMINAL_BLOCK"`
-  - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
-* error: code and message set in case an exception happens while the validating payload, updating the forkchoice or initiating the payload build process.
+Refer to the response for [`engine_forkchoiceUpdatedV1`](#engineforkchoiceupdatedv1).
 
 #### Specification
 
@@ -461,7 +469,7 @@ Refer to the specification for `engine_forkchoiceUpdatedV1`.
 
 #### Specification
 
-Refer to the specification for `engine_getPayloadV1`.
+Refer to the specification for [`engine_getPayloadV1`](#enginegetpayloadv1).
 
 ### engine_exchangeTransitionConfigurationV1
 
