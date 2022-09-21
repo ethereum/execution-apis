@@ -357,8 +357,7 @@ The payload build process is specified as follows:
 
 #### Response
 
-* result: [`PayloadStatusV1`](#PayloadStatusV1)
-* error: code and message set in case an exception happens while processing the payload.
+Refer to the response for [`engine_newPayloadV1`](#engine_newpayloadv1).
 
 #### Specification
 
