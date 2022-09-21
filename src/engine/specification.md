@@ -362,7 +362,7 @@ The payload build process is specified as follows:
 
 #### Specification
 
-Refer to the specification for [`engine_newPayloadV1`](#enginenewpayloadv1).
+Refer to the specification for [`engine_newPayloadV1`](#engine_newpayloadv1).
 
 ### engine_forkchoiceUpdatedV1
 
@@ -426,11 +426,11 @@ Refer to the specification for [`engine_newPayloadV1`](#enginenewpayloadv1).
 
 #### Response
 
-Refer to the response for [`engine_forkchoiceUpdatedV1`](#engineforkchoiceupdatedv1).
+Refer to the response for [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1).
 
 #### Specification
 
-Refer to the specification for `engine_forkchoiceUpdatedV1`.
+Refer to the specification for [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1).
 
 ### engine_getPayloadV1
 
@@ -469,7 +469,7 @@ Refer to the specification for `engine_forkchoiceUpdatedV1`.
 
 #### Specification
 
-Refer to the specification for [`engine_getPayloadV1`](#enginegetpayloadv1).
+Refer to the specification for [`engine_getPayloadV1`](#engine_getpayloadv1).
 
 ### engine_exchangeTransitionConfigurationV1
 
