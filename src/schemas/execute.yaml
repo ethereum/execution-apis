@@ -18,7 +18,19 @@ Calls:
   title: List of message calls
   type: array
   items:
-    $ref: '#/components/schemas/GenericTransaction'
+    $ref: '#/components/schemas/Call'
+Call:
+  title: Call + block overrides
+  type: object
+  required:
+    - transactionArgs
+  properties:
+    transactionArgs:
+      title: Call args
+      $ref: '#/components/schemas/GenericTransaction'
+    blockOverrides:
+      title: Overrides for block metadata
+      $ref: '#/components/schemas/BlockOverrides'
 StateOverrides:
   title: Accounts in state to be overridden
   type: object
@@ -64,7 +76,32 @@ AccountStorage:
   title: Storage slots for an account
   type: object
   additionalProperties:
-    - $ref: '#/components/schemas/bytes256'
+    - $ref: '#/components/schemas/hash32'
+BlockOverrides:
+  title: Context fields related to the block being executed
+  type: object
+  properties:
+    number:
+      title: Number
+      $ref: '#/components/schemas/uint256'
+    difficulty:
+      title: Difficulty
+      $ref: '#/components/schemas/uint256'
+    time:
+      title: Time
+      $ref: '#/components/schemas/uint256'
+    gasLimit:
+      title: Gas limit
+      $ref: '#/components/schemas/uint64'
+    coinbase:
+      title: Coinbase
+      $ref: '#/components/schemas/address'
+    random:
+      title: Random
+      $ref: '#/components/schemas/hash32'
+    baseFee:
+      title: Base fee
+      $ref: '#/components/schemas/uint256'
 CallResults:
   title: Results of batch call
   type: array
