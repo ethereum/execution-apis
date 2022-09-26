@@ -1,0 +1,84 @@
+BatchCallArgs:
+  title: Arguments for batch call
+  type: object
+  required:
+    - block
+    - calls
+  properties:
+    block:
+      title: Block tag
+      $ref: '#/components/schemas/BlockNumberOrTag'
+    stateOverrides:
+      title: State overrides
+      $ref: '#/components/schemas/StateOverrides'
+    calls:
+      title: List of calls
+      $ref: '#/components/schemas/Calls'
+Calls:
+  title: List of message calls
+  type: array
+  items:
+    $ref: '#/components/schemas/GenericTransaction'
+StateOverrides:
+  title: Accounts in state to be overridden
+  type: object
+  additionalProperties:
+    $ref: '#/components/schemas/AccountOverride'
+AccountOverride:
+  title: Details of an account to be overridden
+  type: object
+  oneOf:
+    - $ref: '#/components/schemas/AccountOverrideState'
+    - $ref: '#/components/schemas/AccountOverrideStateDiff'
+AccountOverrideState:
+  title: Account override with whole storage replacement
+  properties:
+    nonce:
+      title: Nonce
+      $ref: '#/components/schemas/uint64'
+    balance:
+      title: Balance
+      $ref: '#/components/schemas/uint256'
+    code:
+      title: Code
+      $ref: '#/components/schemas/bytes'
+    state:
+      title: Storage
+      $ref: '#/components/schemas/AccountStorage'
+AccountOverrideStateDiff:
+  title: Account override with partial storage modification
+  properties:
+    nonce:
+      title: Nonce
+      $ref: '#/components/schemas/uint64'
+    balance:
+      title: Balance
+      $ref: '#/components/schemas/uint256'
+    code:
+      title: Code
+      $ref: '#/components/schemas/bytes'
+    stateDiff:
+      title: Storage difference
+      $ref: '#/components/schemas/AccountStorage'
+AccountStorage:
+  title: Storage slots for an account
+  type: object
+  additionalProperties:
+    - $ref: '#/components/schemas/bytes256'
+CallResults:
+  title: Results of batch call
+  type: array
+  items:
+    $ref: '#/components/schemas/CallResult'
+CallResult:
+  title: Result of a call
+  type: object
+  required:
+    - return
+  properties:
+    return:
+      title: Return data
+      $ref: '#/components/schemas/bytes'
+    error:
+      title: Execution error
+      type: string
