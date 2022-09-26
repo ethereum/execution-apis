@@ -26,7 +26,7 @@ Call:
     - transactionArgs
   properties:
     transactionArgs:
-      title: Call args
+      title: Call arguments
       $ref: '#/components/schemas/GenericTransaction'
     blockOverrides:
       title: Overrides for block metadata
