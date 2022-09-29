@@ -421,7 +421,7 @@ The payload build process is specified as follows:
 
 1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding hashes respecting the order of block hashes in the input array.
 
-1. Client software **MUST** skip the payload body in the response array if the data of this body is missing. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, C.body]`.
+1. Client software **MUST** place responses in the order given in the request, using `nil` for any missing blocks. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, nil, C.body]`.
 
 1. Clients that support `engine_getPayloadBodiesByRangeV1` **MAY NOT** respond to requests for finalized blocks by hash.
 
@@ -445,8 +445,9 @@ The payload build process is specified as follows:
 #### Specification
 
 1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `forkChoiceUpdated` call.
-
-1. Client software **MUST** skip the payload body for any blocks that have been pruned by the execution client or where the request extends past the current latest known block.
+1. Client software **MUST** support `count` values of at least 32 blocks.
+1. Client software **MUST** place `nil` in the response array for any blocks that have been pruned or where the request extends past the current latest known block.
 
 1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange=) in the consensus layer `p2p` specification.
 1. Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to request non-finalized blocks by root in order to avoid race conditions around the current view of the canonical chain.
+1. Callers must be careful to verify the hash of the received blocks when requesting non-finalized parts of the chain since the response is prone to being re-orged.
