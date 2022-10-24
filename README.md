@@ -51,7 +51,7 @@ Next is `speccheck`. This tool validates the test cases in the `tests`
 directory against the specification.
 
 ```console
-$ go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
+$ go install
 $ speccheck -v
 all passing.
 ```
@@ -96,13 +96,10 @@ $ npm run graphql:validate
 This repository is licensed under [CC0](LICENSE).
 
 
-[playground]: https://ethereum.github.io/execution-apis/api-documentation/
 [openrpc]: https://open-rpc.org
-[validator]: https://open-rpc.github.io/schema-utils-js/globals.html#validateopenrpcdocument
+[validator]: d
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
 [making-changes]: docs/making-changes.md
 [json-schema]: https://json-schema.org 
-[hive]: https://github.com/ethereum/hive
-[rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
 [test-gen]: tests/README.md
