@@ -429,7 +429,8 @@ Refer to the response for [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdat
 
 #### Specification
 
-Refer to the specification for [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1).
+This method follows the same specification as [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1) with the exception of the following:
+1. If withdrawal functionality is activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is `null`. Similarly, if the functionality is not activated, client software **MUST** return error -38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is not `null`. Zero withdrawal blocks **MUST** be expressed with an explicit empty list `[]` value.
 
 ### engine_getPayloadV1
 
