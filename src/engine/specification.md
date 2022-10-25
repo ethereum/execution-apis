@@ -362,7 +362,12 @@ Refer to the response for [`engine_newPayloadV1`](#engine_newpayloadv1).
 
 #### Specification
 
-Refer to the specification for [`engine_newPayloadV1`](#engine_newpayloadv1).
+This method follows the same specification as [`engine_newPayloadV1`](#engine_newpayloadv1) with the exception of the following:
+
+1. If withdrawal functionality is activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payload.withdrawals` is `null`.
+   Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
+   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
+   Refer to the validity conditions for [`engine_newPayloadV1`](#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
 
 ### engine_forkchoiceUpdatedV1
 
@@ -431,7 +436,10 @@ Refer to the response for [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdat
 #### Specification
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1) with the exception of the following:
-1. If withdrawal functionality is activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is `null`. Similarly, if the functionality is not activated, client software **MUST** return error -38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is not `null`. Zero withdrawal blocks **MUST** be expressed with an explicit empty list `[]` value.
+
+1. If withdrawal functionality is activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is `null`.
+   Similarly, if the functionality is not activated, client software **MUST** return error -38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is not `null`.
+   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
 
 ### engine_getPayloadV1
 
