@@ -195,6 +195,7 @@ This structure maps onto the validator withdrawal object from the beacon chain s
 The fields are encoded as follows:
 
 - `index`: `QUANTITY`, 64 Bits
+- `validatorIndex`: `QUANTITY`, 64 Bits
 - `address`: `DATA`, 20 Bytes
 - `amount`: `QUANTITY`, 256 Bits
 
