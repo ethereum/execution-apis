@@ -11,6 +11,9 @@ MulticallArgs:
     stateOverrides:
       title: State overrides
       $ref: '#/components/schemas/StateOverrides'
+    blockOverrides:
+      title: Overrides for block metadata
+      $ref: '#/components/schemas/BlockOverrides'
     calls:
       title: List of calls
       $ref: '#/components/schemas/Calls'
@@ -18,19 +21,7 @@ Calls:
   title: List of message calls
   type: array
   items:
-    $ref: '#/components/schemas/Call'
-Call:
-  title: Call + block overrides
-  type: object
-  required:
-    - transactionArgs
-  properties:
-    transactionArgs:
-      title: Call arguments
-      $ref: '#/components/schemas/GenericTransaction'
-    blockOverrides:
-      title: Overrides for block metadata
-      $ref: '#/components/schemas/BlockOverrides'
+    $ref: '#/components/schemas/GenericTransaction'
 StateOverrides:
   title: Accounts in state to be overridden
   type: object
