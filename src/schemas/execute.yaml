@@ -108,5 +108,5 @@ CallResult:
       title: Return data
       $ref: '#/components/schemas/bytes'
     error:
-      title: Errors arising during processing of request
+      title: Execution error
       type: string
