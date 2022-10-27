@@ -1,5 +1,5 @@
-BatchCallArgs:
-  title: Arguments for batch call
+MulticallArgs:
+  title: Arguments for multi call
   type: object
   required:
     - block
@@ -103,7 +103,7 @@ BlockOverrides:
       title: Base fee
       $ref: '#/components/schemas/uint256'
 CallResults:
-  title: Results of batch call
+  title: Results of multi call
   type: array
   items:
     $ref: '#/components/schemas/CallResult'

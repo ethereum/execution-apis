@@ -54,13 +54,13 @@
         gasUsed:
           title: Gas used
           $ref: '#/components/schemas/uint'
-- name: eth_batchCall
+- name: eth_multicall
   summary: Executes a sequence of message calls building on eachother's state immediately without creating transactions on the block chain.
   params:
     - name: Arguments
       required: true
       schema:
-        $ref: '#/components/schemas/BatchCallArgs'
+        $ref: '#/components/schemas/MulticallArgs'
   result:
     name: Result of calls
     schema:
