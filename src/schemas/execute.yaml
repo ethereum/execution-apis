@@ -75,8 +75,8 @@ BlockOverrides:
     number:
       title: Number
       $ref: '#/components/schemas/uint256'
-    difficulty:
-      title: Difficulty
+    prevRandao:
+      title: Randomness beacon
       $ref: '#/components/schemas/uint256'
     time:
       title: Time
