@@ -16,6 +16,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
 - [Timeouts](#timeouts)
 - [Structures](#structures)
   - [ExecutionPayloadV1](#executionpayloadv1)
+  - [ExecutionPayloadHeaderV1](#executionpayloadheaderv1)
   - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
   - [PayloadStatusV1](#payloadstatusv1)
@@ -41,6 +42,11 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
+- [Optional endpoints](#optional-endpoints)
+  - [engine_newPayloadHeaderV1](#engine_newpayloadheaderv1)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -173,6 +179,25 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+
+### ExecutionPayloadHeaderV1
+
+This structure maps on the [`ExecutionPayloadHeader`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#executionpayloadheader) structure of the beacon chain spec. The fields are encoded as follows:
+
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactionsRoot`: `DATA`, 32 Bytes - `hash_tree_root(transactions)`, not the keccak256 hash but instead the Consensus Layer [SSZ merkle root](https://github.com/ethereum/consensus-specs/blob/dev/ssz/simple-serialize.md)
 
 ### ForkchoiceStateV1
 
@@ -396,3 +421,31 @@ The payload build process is specified as follows:
 7. Considering the absence of the `TERMINAL_TOTAL_DIFFICULTY` value (i.e. when a value has not been decided), Consensus Layer and Execution Layer client software **MUST** use `115792089237316195423570985008687907853269984665640564039457584007913129638912` value (equal to`2**256-2**10`) for the `terminalTotalDifficulty` input parameter of this call. 
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
+
+## Optional endpoints
+
+### engine_newPayloadHeaderV1
+
+#### Request
+
+* method: `engine_newPayloadHeaderV1`
+* params:
+  1. [`ExecutionPayloadHeaderV1`](#ExecutionPayloadHeaderV1)
+* timeout: 8s
+
+#### Response
+
+* result: [`PayloadStatusV1`](#PayloadStatusV1)
+* error: code and message set in case an exception happens while processing the payload.
+
+#### Specification
+
+1. Execution Layer client software **MUST** handle calls to this endpoint the same as [`engine_newPayloadV1`](#engine_getpayloadv1) and provide compatible responses. When needed, Execution Layer client software **MUST** obtain the block's transactions autonomously.
+
+2. Consensus Layer client software **SHOULD NOT** use this endpoint for validator duties. Instead, the [`engine_newPayloadV1`](#engine_getpayloadv1) endpoint **SHOULD** be used to reduce sync latency and maximize validator rewards.
+
+3. Consensus Layer client software **MAY** use this endpoint during [optimistic sync](https://github.com/ethereum/consensus-specs/blob/dev/sync/optimistic.md) to inform Execution Layer client software about blocks far in the future. Execution Layer client software **MUST** support switching to this future block if requested to do so with [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1). This allows the Execution Layer client software to sync close to current wall time without having to wait for optimistic sync to catch up.
+
+4. Consensus Layer [light clients](https://github.com/ethereum/consensus-specs/blob/dev/specs/altair/light-client/sync-protocol.md) **MAY** use this endpoint together with [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1) to sync Execution Layer client software. Execution Layer client software **MUST** support syncing with only those two endpoints. Notably, syncing **MUST NOT** require [`engine_newPayloadV1`](#engine_getpayloadv1) calls. Furthermore, Execution Layer client software **MAY** also support syncing with solely `engine_forkchoiceUpdatedV1` calls.
+
+5. Client software **MAY** offer configuration options to limit the sync scope to use case dependent data (e.g., only sync transactions relating to a certain wallet). This enables combined Consensus Layer / Execution Layer light client experiences.
