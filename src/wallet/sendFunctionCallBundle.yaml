@@ -5,7 +5,7 @@
       required: true
       schema:
         type: object
-        title: Transaction object generic to all types
+        title: Send function call bundle request
         required:
           - chainId
           - from
