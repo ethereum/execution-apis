@@ -1,0 +1,64 @@
+- name: eth_newFilter
+  summary: Creates a filter object, based on filter options, to notify when the state changes (logs).
+  params:
+    - name: Filter
+      schema:
+        $ref: '#/components/schemas/Filter'
+  result:
+    name: Filter Identifier
+    schema:
+      $ref: '#/components/schemas/uint'
+- name: eth_newBlockFilter
+  summary: Creates a filter in the node, to notify when a new block arrives.
+  params: []
+  result:
+    name: Filter Identifier
+    schema:
+      $ref: '#/components/schemas/uint'
+- name: eth_newPendingTransactionFilter
+  summary: Creates a filter in the node, to notify when new pending transactions arrive.
+  params: []
+  result:
+    name: Filter Identifier
+    schema:
+      $ref: '#/components/schemas/uint'
+- name: eth_uninstallFilter
+  summary: Uninstalls a filter with given id.
+  params:
+    - name: Filter Identifier
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Success
+    schema:
+      type: boolean
+- name: eth_getFilterChanges
+  summary: Polling method for a filter, which returns an array of logs which occurred since last poll.
+  params:
+    - name: Filter Identifier
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Log objects
+    schema:
+      $ref: '#/components/schemas/FilterResults'
+- name: eth_getFilterLogs
+  summary: Returns an array of all logs matching filter with given id.
+  params:
+    - name: Filter Identifier
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Log objects
+    schema:
+      $ref: '#/components/schemas/FilterResults'
+- name: eth_getLogs
+  summary: Returns an array of all logs matching filter with given id.
+  params:
+    - name: Filter
+      schema:
+        $ref: '#/components/schemas/Filter'
+  result:
+    name: Log objects
+    schema:
+      $ref: '#/components/schemas/FilterResults'

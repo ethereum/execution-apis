@@ -22,7 +22,7 @@ matrix:
         - pre
   - name: json schemas
     sources:
-      - 'src/**/*.json'
+      - 'src/**/*.yaml'
     aspell:
       lang: en
       d: en_US

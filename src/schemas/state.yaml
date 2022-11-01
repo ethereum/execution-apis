@@ -1,0 +1,56 @@
+AccountProof:
+  title: Account proof
+  type: object
+  required:
+    - address
+    - accountProof
+    - balance
+    - codeHash
+    - nonce
+    - storageHash
+    - storageProof
+  properties:
+    address:
+      title: address
+      $ref: '#/components/schemas/address'
+    accountProof:
+      title: accountProof
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    balance:
+      title: balance
+      $ref: '#/components/schemas/uint256'
+    codeHash:
+      title: codeHash
+      $ref: '#/components/schemas/hash32'
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint64'
+    storageHash:
+      title: storageHash
+      $ref: '#/components/schemas/hash32'
+    storageProof:
+      title: storageProof
+      type: array
+      items:
+        $ref: '#/components/schemas/StorageProof'
+StorageProof:
+  title: Storage proof
+  type: object
+  required:
+    - key
+    - value
+    - proof
+  properties:
+    key:
+      title: key
+      $ref: '#/components/schemas/hash32'
+    value:
+      title: value
+      $ref: '#/components/schemas/uint256'
+    proof:
+      title: proof
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'

@@ -1,0 +1,18 @@
+SyncingStatus:
+  title: Syncing status
+  oneOf:
+    - title: Syncing progress
+      type: object
+      properties:
+        startingBlock:
+          title: Starting block
+          $ref: '#/components/schemas/uint'
+        currentBlock:
+          title: Current block
+          $ref: '#/components/schemas/uint'
+        highestBlock:
+          title: Highest block
+          $ref: '#/components/schemas/uint'
+    - title: Not syncing
+      description: Should always return false if not syncing.
+      type: boolean
