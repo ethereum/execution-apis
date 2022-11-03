@@ -1,4 +1,4 @@
-# EIP-4844 Engine API extension
+# Shard Blob Extension
 
 This is an extension specific to [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) to the `core` methods as defined in the [Engine API](./specification.md).
 This extension is backwards-compatible, but not part of the initial Engine API.
