@@ -46,3 +46,5 @@ ssz
 kzg
 besu
 graphql
+gwei
+withdrawalv
