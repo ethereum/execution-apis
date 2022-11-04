@@ -558,7 +558,7 @@ Refer to the response for [`engine_newPayloadV2`](#engine_newpayloadv2).
 
 #### Specification
 
-1. Execution Layer client software **MUST** handle calls to this endpoint the same as [`engine_newPayloadV2`](#engine_getpayloadv2) and provide compatible responses. When needed, Execution Layer client software **MUST** obtain the block's transactions autonomously.
+1. Execution Layer client software **MUST** handle calls to this endpoint the same as [`engine_newPayloadV2`](#engine_getpayloadv2) and provide compatible responses. When needed, Execution Layer client software **MUST** obtain the block's transactions and withdrawals autonomously.
 
 2. Consensus Layer client software **SHOULD NOT** use this endpoint for validator duties. Instead, the [`engine_newPayloadV2`](#engine_getpayloadv2) endpoint **SHOULD** be used to reduce sync latency and maximize validator rewards.
 
