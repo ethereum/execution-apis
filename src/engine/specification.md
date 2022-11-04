@@ -178,7 +178,7 @@ Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string
 
 ### ExecutionPayloadV1
 
-This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
+This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the Bellatrix beacon chain spec. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -211,6 +211,8 @@ The fields are encoded as follows:
 
 This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
 
+This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#ExecutionPayload) structure of the Capella beacon chain spec, extending the `ExecutionPayloadV1` with the fields: `transactionsRoot`, `withdrawals`, and `withdrawalsRoot`. The fields are encoded as follows:
+
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
@@ -225,11 +227,13 @@ This structure has the syntax of `ExecutionPayloadV1` and appends a single field
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash (`transactions_hash` in beacon chain spec)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash (`withdrawals_hash` in beacon chain spec)
 
 ### ExecutionPayloadHeaderV1
 
-This structure maps on the [`ExecutionPayloadHeader`](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#executionpayloadheader) structure of the Capella beacon chain spec. The fields are encoded as follows:
+This structure matches [`ExecutionPayloadV2`](#executionpayloadv2) but omits the `transactions` and `withdrawals` arrays. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -244,8 +248,8 @@ This structure maps on the [`ExecutionPayloadHeader`](https://github.com/ethereu
 - `extraData`: `DATA`, 0 to 32 Bytes
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
-- `transactionsRoot`: `DATA`, 32 Bytes - `hash_tree_root(transactions)`, not the keccak256 hash but instead the Consensus Layer [SSZ merkle root](https://github.com/ethereum/consensus-specs/blob/dev/ssz/simple-serialize.md)
-- `withdrawalsRoot`: `DATA`, 32 Bytes - `hash_tree_root(withdrawals)`, not the keccak256 hash but instead the Consensus Layer [SSZ merkle root](https://github.com/ethereum/consensus-specs/blob/dev/ssz/simple-serialize.md)
+- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash (`transactions_hash` in beacon chain spec)
+- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash (`withdrawals_hash` in beacon chain spec)
 
 ### ForkchoiceStateV1
 
