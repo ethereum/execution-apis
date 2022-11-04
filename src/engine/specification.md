@@ -181,7 +181,7 @@ Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the Bellatrix beacon chain spec. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`:  `DATA`, 20 Bytes
+- `feeRecipient`: `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
@@ -212,7 +212,7 @@ The fields are encoded as follows:
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#ExecutionPayload) structure of the Capella beacon chain spec, extending the [`ExecutionPayloadV1`](#executionpayloadv1) structure with the fields `transactionsRoot`, `withdrawals`, and `withdrawalsRoot`. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`:  `DATA`, 20 Bytes
+- `feeRecipient`: `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
@@ -234,7 +234,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 This structure matches [`ExecutionPayloadV2`](#executionpayloadv2) but omits the `transactions` and `withdrawals` arrays. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`:  `DATA`, 20 Bytes
+- `feeRecipient`: `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
@@ -246,8 +246,8 @@ This structure matches [`ExecutionPayloadV2`](#executionpayloadv2) but omits the
 - `extraData`: `DATA`, 0 to 32 Bytes
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
-- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash (`transactions_hash` in beacon chain spec)
-- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash (`withdrawals_hash` in beacon chain spec)
+- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash; `transactions_hash` in beacon chain spec
+- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash; `withdrawals_hash` in beacon chain spec
 
 ### ForkchoiceStateV1
 
