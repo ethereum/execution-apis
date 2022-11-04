@@ -225,9 +225,9 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash; `transactions_hash` in beacon chain spec
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash; `withdrawals_hash` in beacon chain spec
+- `transactionsRoot`: `DATA|null`, 32 Bytes - RLP hash; `transactions_hash` in beacon chain spec
+- `withdrawals`: `Array of WithdrawalV1|null` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawalsRoot`: `DATA|null`, 32 Bytes - RLP hash; `withdrawals_hash` in beacon chain spec
 
 ### ExecutionPayloadHeaderV1
 
@@ -392,10 +392,11 @@ Refer to the response for [`engine_newPayloadV1`](#engine_newpayloadv1).
 
 This method follows the same specification as [`engine_newPayloadV1`](#engine_newpayloadv1) with the exception of the following:
 
-1. If withdrawal functionality is activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payload.withdrawals` is `null`.
-   Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
-   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
+1. The fields `payload.transactionsRoot`, `payload.withdrawals`, and `payload.withdrawalsRoot` **MUST NOT** be `null` iff withdrawal functionality is activated.
+   Likewise, these fields **MUST** be `null` if withdrawal functionality is not activated.
+   Client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if fields are inappropriately specified/omitted.
    Refer to the validity conditions for [`engine_newPayloadV1`](#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
+   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
 
 ### engine_forkchoiceUpdatedV1
 
