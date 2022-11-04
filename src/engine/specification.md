@@ -209,7 +209,7 @@ The fields are encoded as follows:
 
 ### ExecutionPayloadV2
 
-This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#ExecutionPayload) structure of the Capella beacon chain spec, extending the `ExecutionPayloadV1` with the fields: `transactionsRoot`, `withdrawals`, and `withdrawalsRoot`. The fields are encoded as follows:
+This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#ExecutionPayload) structure of the Capella beacon chain spec, extending the [`ExecutionPayloadV1`](#executionpayloadv1) structure with the fields `transactionsRoot`, `withdrawals`, and `withdrawalsRoot`. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
