@@ -209,8 +209,6 @@ The fields are encoded as follows:
 
 ### ExecutionPayloadV2
 
-This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
-
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#ExecutionPayload) structure of the Capella beacon chain spec, extending the `ExecutionPayloadV1` with the fields: `transactionsRoot`, `withdrawals`, and `withdrawalsRoot`. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
@@ -227,9 +225,9 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash (`transactions_hash` in beacon chain spec)
+- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash; `transactions_hash` in beacon chain spec
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash (`withdrawals_hash` in beacon chain spec)
+- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash; `withdrawals_hash` in beacon chain spec
 
 ### ExecutionPayloadHeaderV1
 
