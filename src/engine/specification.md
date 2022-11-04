@@ -553,8 +553,7 @@ Refer to the specification for [`engine_getPayloadV1`](#engine_getpayloadv1).
 
 #### Response
 
-* result: [`PayloadStatusV1`](#PayloadStatusV1)
-* error: code and message set in case an exception happens while processing the payload.
+Refer to the response for [`engine_newPayloadV2`](#engine_newpayloadv2).
 
 #### Specification
 
