@@ -57,7 +57,7 @@
     - name: Block
       required: false
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Bytecode
     schema:
