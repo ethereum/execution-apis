@@ -54,3 +54,24 @@ StorageProof:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+Account:
+  title: Account
+  type: object
+  required:
+    - root
+    - balance
+    - nonce
+    - codeHash
+  properties:
+    root:
+      title: storage root
+      $ref: '#/components/schemas/hash32'
+    balance:
+      title: balance
+      $ref: '#/components/schemas/uint256'
+    codeHash:
+      title: codeHash
+      $ref: '#/components/schemas/hash32'
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint64'

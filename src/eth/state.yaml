@@ -84,3 +84,18 @@
     name: Account
     schema:
       $ref: '#/components/schemas/AccountProof'
+- name: eth_getAccount
+  summary: Returns the account at given address, or 'null' if the account does not exist in the state.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Account
+    schema:
+      $ref: '#/components/schemas/Account'
