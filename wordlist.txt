@@ -8,13 +8,10 @@ endian
 enum
 eth
 ethereum
-executionpayloadheaderv
 interop
 json
-keccak
 mempool
 merkle
-newpayloadheaderv
 npm
 ommers
 openrpc

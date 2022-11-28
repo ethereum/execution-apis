@@ -18,7 +18,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
   - [ExecutionPayloadV1](#executionpayloadv1)
   - [WithdrawalV1](#withdrawalv1)
   - [ExecutionPayloadV2](#executionpayloadv2)
-  - [ExecutionPayloadHeaderV1](#executionpayloadheaderv1)
+  - [ExecutionPayloadSyncContextV1](#executionpayloadsynccontextv1)
   - [ForkchoiceStateV1](#forkchoicestatev1)
   - [PayloadAttributesV1](#payloadattributesv1)
   - [PayloadAttributesV2](#payloadattributesv2)
@@ -58,7 +58,7 @@ This document specifies the Engine API methods that the Consensus Layer uses to 
     - [Response](#response-6)
     - [Specification](#specification-6)
 - [Optional endpoints](#optional-endpoints)
-  - [engine_newPayloadHeaderV1](#engine_newpayloadheaderv1)
+  - [engine_newPayloadSyncContextV1](#engine_newpayloadsynccontextv1)
     - [Request](#request-7)
     - [Response](#response-7)
     - [Specification](#specification-7)
@@ -178,10 +178,10 @@ Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string
 
 ### ExecutionPayloadV1
 
-This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the Bellatrix beacon chain spec. The fields are encoded as follows:
+This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`: `DATA`, 20 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
@@ -209,10 +209,10 @@ The fields are encoded as follows:
 
 ### ExecutionPayloadV2
 
-This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md#ExecutionPayload) structure of the Capella beacon chain spec, extending the [`ExecutionPayloadV1`](#executionpayloadv1) structure with the fields `transactionsRoot`, `withdrawals`, and `withdrawalsRoot`. The fields are encoded as follows:
+This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
 
 - `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`: `DATA`, 20 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
 - `receiptsRoot`: `DATA`, 32 Bytes
 - `logsBloom`: `DATA`, 256 Bytes
@@ -225,29 +225,16 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `transactionsRoot`: `DATA|null`, 32 Bytes - RLP hash; `transactions_hash` in beacon chain spec
-- `withdrawals`: `Array of WithdrawalV1|null` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `withdrawalsRoot`: `DATA|null`, 32 Bytes - RLP hash; `withdrawals_hash` in beacon chain spec
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
-### ExecutionPayloadHeaderV1
+### ExecutionPayloadSyncContextV1
 
-This structure matches [`ExecutionPayloadV2`](#executionpayloadv2) but omits the `transactions` and `withdrawals` arrays. The fields are encoded as follows:
+This structure provides a subset of `ExecutionPayload` fields to allow triggering sync without supplying the full `ExecutionPayload`. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`: `DATA`, 20 Bytes
 - `stateRoot`: `DATA`, 32 Bytes
-- `receiptsRoot`: `DATA`, 32 Bytes
-- `logsBloom`: `DATA`, 256 Bytes
-- `prevRandao`: `DATA`, 32 Bytes
 - `blockNumber`: `QUANTITY`, 64 Bits
-- `gasLimit`: `QUANTITY`, 64 Bits
-- `gasUsed`: `QUANTITY`, 64 Bits
-- `timestamp`: `QUANTITY`, 64 Bits
-- `extraData`: `DATA`, 0 to 32 Bytes
-- `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
-- `transactionsRoot`: `DATA`, 32 Bytes - RLP hash; `transactions_hash` in beacon chain spec
-- `withdrawalsRoot`: `DATA`, 32 Bytes - RLP hash; `withdrawals_hash` in beacon chain spec
 
 ### ForkchoiceStateV1
 
@@ -392,11 +379,10 @@ Refer to the response for [`engine_newPayloadV1`](#engine_newpayloadv1).
 
 This method follows the same specification as [`engine_newPayloadV1`](#engine_newpayloadv1) with the exception of the following:
 
-1. The fields `payload.transactionsRoot`, `payload.withdrawals`, and `payload.withdrawalsRoot` **MUST NOT** be `null` iff withdrawal functionality is activated.
-   Likewise, these fields **MUST** be `null` if withdrawal functionality is not activated.
-   Client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if fields are inappropriately specified/omitted.
-   Refer to the validity conditions for [`engine_newPayloadV1`](#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
+1. If withdrawal functionality is activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payload.withdrawals` is `null`.
+   Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
    Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
+   Refer to the validity conditions for [`engine_newPayloadV1`](#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
 
 ### engine_forkchoiceUpdatedV1
 
@@ -543,13 +529,13 @@ Refer to the specification for [`engine_getPayloadV1`](#engine_getpayloadv1).
 
 ## Optional endpoints
 
-### engine_newPayloadHeaderV1
+### engine_newPayloadSyncContextV1
 
 #### Request
 
-* method: `engine_newPayloadHeaderV1`
+* method: `engine_newPayloadSyncContextV1`
 * params:
-  1. [`ExecutionPayloadHeaderV1`](#ExecutionPayloadHeaderV1)
+  1. [`ExecutionPayloadSyncContextV1`](#executionpayloadsynccontextv1)
 * timeout: 8s
 
 #### Response
@@ -558,12 +544,15 @@ Refer to the response for [`engine_newPayloadV2`](#engine_newpayloadv2).
 
 #### Specification
 
-1. Execution Layer client software **MUST** handle calls to this endpoint the same as [`engine_newPayloadV2`](#engine_getpayloadv2) and provide compatible responses. When needed, Execution Layer client software **MUST** obtain the block's transactions and withdrawals autonomously.
+1. Execution Layer client software **MUST** handle calls to this endpoint the same as if the corresponding full `ExecutionPayload` were passed to the `engine_newPayload` endpoint, with the exception of the following:
+  * `blockHash` validation is skipped
+  * If the block referred to by the provided `blockHash` is not locally available, Execution Layer client software **MUST** respond to this method call with `{status: SYNCING, latestValidHash: null, validationError: null}`
+  * If the provided data does not match the corresponding data from the locally available block with provided `blockHash`, Execution Layer client software **MUST** respond to this method call with `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}`
 
-2. Consensus Layer client software **SHOULD NOT** use this endpoint for validator duties. Instead, the [`engine_newPayloadV2`](#engine_getpayloadv2) endpoint **SHOULD** be used to reduce sync latency and maximize validator rewards.
+2. Execution Layer client **MUST** support syncing solely based on calls to this endpoint and `engine_forkchoiceUpdated`. Notably, syncing **MUST NOT** require `engine_newPayload` calls.
 
-3. Consensus Layer client software **MAY** use this endpoint during [optimistic sync](https://github.com/ethereum/consensus-specs/blob/dev/sync/optimistic.md) to inform Execution Layer client software about blocks far in the future. Execution Layer client software **MUST** support switching to this future block if requested to do so with `engine_forkchoiceUpdated`. This allows the Execution Layer client software to sync close to current wall time without having to wait for optimistic sync to catch up.
+3. Consensus Layer client software **MUST NOT** use this endpoint for validator duties. Instead, the [`engine_newPayloadV2`](#engine_getpayloadv2) endpoint **MUST** be used to validate the full `ExecutionPayload` structure.
 
-4. Consensus Layer [light clients](https://github.com/ethereum/consensus-specs/blob/dev/specs/altair/light-client/sync-protocol.md) **MAY** use this endpoint together with `engine_forkchoiceUpdated` to sync Execution Layer client software. Execution Layer client software **MUST** support syncing with only those two endpoints. Notably, syncing **MUST NOT** require `engine_newPayload` calls. Furthermore, Execution Layer client software **MAY** also support syncing with solely `engine_forkchoiceUpdated` calls.
+4. Consensus layer client software **MAY** use this endpoint during an ongoing sync to inform Execution Layer client software about blocks far in the future (e.g., by running a [light client](https://github.com/ethereum/consensus-specs/blob/dev/specs/altair/light-client/sync-protocol.md) during [optimistic sync](https://github.com/ethereum/consensus-specs/blob/dev/sync/optimistic.md)). Execution Layer client software **SHOULD** consider interrupting the ongoing sync when requested to switch to the provided `blockHash` using `engine_forkchoiceUpdated`.
 
-5. Client software **MAY** offer configuration options to limit the sync scope to use case dependent data (e.g., only sync transactions relating to a certain wallet). This enables combined Consensus Layer / Execution Layer light client experiences.
+5. Client software **MAY** offer configuration options to limit the sync scope to use case dependent data (e.g., only sync data related to a certain wallet).
