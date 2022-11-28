@@ -1,3 +1,21 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Shard Blob Extension](#shard-blob-extension)
+  - [Structures](#structures)
+    - [ExecutionPayloadV2](#executionpayloadv2)
+    - [BlobsBundleV1](#blobsbundlev1)
+  - [Methods](#methods)
+    - [engine_newPayloadV2](#engine_newpayloadv2)
+    - [engine_getPayloadV2](#engine_getpayloadv2)
+    - [engine_getBlobsBundleV1](#engine_getblobsbundlev1)
+      - [Request](#request)
+      - [Response](#response)
+      - [Specification](#specification)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Shard Blob Extension
 
 This is an extension specific to [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) to the `core` methods as defined in the [Engine API](./specification.md).
@@ -7,7 +25,7 @@ This extension is backwards-compatible, but not part of the initial Engine API.
 
 ### ExecutionPayloadV2
 
-This structure is extended to include a single field: `excessDataGas`.
+This existing structure is extended to include a single field: `excessDataGas`. All APIs referencing the `ExecutionPayloadV2` in the [original Engine API](./specification.md) must use this extended structure instead.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -21,10 +39,10 @@ This structure is extended to include a single field: `excessDataGas`.
 - `timestamp`: `QUANTITY`, 64 Bits
 - `extraData`: `DATA`, 0 to 32 Bytes
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `excessDataGas`: `QUANTITY`, 256 bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `excessDataGas`: `QUANTITY`, 256 bits
 
 ### BlobsBundleV1
 
@@ -35,6 +53,14 @@ The fields are encoded as follows:
 - `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * size_of(BLSFieldElement) = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
 
 ## Methods
+
+### engine_newPayloadV2
+
+This method parameter updated to accept the extended EIP-4844 `ExecutionPayloadV2` structure.
+
+### engine_getPayloadV2
+
+This method is extended to return the extended EIP-4844 `ExecutionPayloadV2` structure.
 
 ### engine_getBlobsBundleV1
 
