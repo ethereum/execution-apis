@@ -99,20 +99,20 @@ func validate(val []byte, baseSchema []byte, url string) error {
 	// Unmarshal value into interface{} so that validator can properly reflect
 	// the contents.
 	var x interface{}
-	if err := json.Unmarshal(val, &x); err != nil {
-		return err
+	if err := json.Unmarshal(val, &x); len(val) != 0 && err != nil {
+		return fmt.Errorf("unable to unmarshal testcase: %w", err)
 	}
 	// Add $schema explicitly to force jsonschema to use draft 07.
 	schema, err := appendDraft07(baseSchema)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to append draft: %w", err)
 	}
 	s, err := jsonschema.CompileString(url, string(schema))
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to compile schema: %w", err)
 	}
 	if err := s.Validate(x); err != nil {
-		return err
+		return fmt.Errorf("validation error: %w", err)
 	}
 	return nil
 }
