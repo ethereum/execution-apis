@@ -1,0 +1,236 @@
+# Engine API -- Payload
+
+## Table of contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Structures](#structures)
+  - [ExecutionPayloadV1](#executionpayloadv1)
+  - [ExecutionPayloadV2](#executionpayloadv2)
+  - [PayloadStatusV1](#payloadstatusv1)
+  - [WithdrawalV1](#withdrawalv1)
+- [Routines](#routines)
+  - [Payload validation](#payload-validation)
+  - [Sync](#sync)
+- [Methods](#methods)
+  - [engine_newPayloadV1](#engine_newpayloadv1)
+    - [Request](#request)
+    - [Response](#response)
+    - [Specification](#specification)
+  - [engine_newPayloadV2](#engine_newpayloadv2)
+    - [Request](#request-1)
+    - [Response](#response-1)
+    - [Specification](#specification-1)
+  - [engine_getPayloadV1](#engine_getpayloadv1)
+    - [Request](#request-2)
+    - [Response](#response-2)
+    - [Specification](#specification-2)
+  - [engine_getPayloadV2](#engine_getpayloadv2)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Structures
+
+### ExecutionPayloadV1
+
+This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
+
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+
+### ExecutionPayloadV2
+
+This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
+
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a [`WithdrawalV1`](#withdrawalv1) structure.
+
+### PayloadStatusV1
+
+This structure contains the result of processing a payload. The fields are encoded as follows:
+
+- `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH"`
+- `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
+- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
+
+### WithdrawalV1
+
+This structure maps onto the validator withdrawal object from the beacon chain spec.
+The fields are encoded as follows:
+
+- `index`: `QUANTITY`, 64 Bits
+- `validatorIndex`: `QUANTITY`, 64 Bits
+- `address`: `DATA`, 20 Bytes
+- `amount`: `QUANTITY`, 256 Bits
+
+*Note*: the `amount` value is represented on the beacon chain as a little-endian value in units of Gwei, whereas the `amount` in this structure *MUST* be converted to a big-endian value in units of Wei.
+
+## Routines
+
+### Payload validation
+
+Payload validation process consists of validating a payload with respect to the block header and execution environment rule sets. The process is specified as follows:
+
+1. Client software **MAY** obtain a parent state by executing ancestors of a payload as a part of the validation process. In this case each ancestor **MUST** also pass payload validation process.
+
+2. Client software **MUST** validate that the most recent PoW block in the chain of a payload ancestors satisfies terminal block conditions according to [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#transition-block-validity). This check maps to the transition block validity section of the EIP. If this validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000}`. Additionally, each block in a tree of descendants of an invalid terminal block **MUST** be deemed `INVALID`.
+
+3. Client software **MUST** validate a payload according to the block header and execution environment rule set with modifications to these rule sets defined in the [Block Validity](https://eips.ethereum.org/EIPS/eip-3675#block-validity) section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#specification):
+  * If validation succeeds, the response **MUST** contain `{status: VALID, latestValidHash: payload.blockHash}`
+  * If validation fails, the response **MUST** contain `{status: INVALID, latestValidHash: validHash}` where `validHash` **MUST** be:
+    - The block hash of the ancestor of the invalid payload satisfying the following two conditions:
+      - It is fully validated and deemed `VALID`
+      - Any other ancestor of the invalid payload with a higher `blockNumber` is `INVALID`
+    - `0x0000000000000000000000000000000000000000000000000000000000000000` if the above conditions are satisfied by a PoW block.
+    - `null` if client software cannot determine the ancestor of the invalid
+      payload satisfying the above conditions.
+  * Client software **MUST NOT** surface an `INVALID` payload over any API endpoint and p2p interface.
+
+4. Client software **MAY** provide additional details on the validation error if a payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
+
+5. The process of validating a payload on the canonical chain **MUST NOT** be affected by an active sync process on a side branch of the block tree. For example, if side branch `B` is `SYNCING` but the requisite data for validating a payload from canonical branch `A` is available, client software **MUST** run full validation of the payload and respond accordingly.
+
+### Sync
+
+In the context of this specification, the sync is understood as the process of obtaining data required to validate a payload. The sync process may consist of the following stages:
+
+1. Pulling data from remote peers in the network.
+2. Passing ancestors of a payload through the [Payload validation](#payload-validation) and obtaining a parent state.
+
+*Note:* Each of these stages is optional. Exact behavior of client software during the sync process is implementation dependent.
+
+## Methods
+
+### engine_newPayloadV1
+
+* status: **`Final`**
+
+#### Request
+
+* method: `engine_newPayloadV1`
+* params:
+  1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+* timeout: 8s
+
+#### Response
+
+* result: [`PayloadStatusV1`](#PayloadStatusV1)
+* error: code and message set in case an exception happens while processing the payload.
+
+#### Specification
+
+1. Client software **MUST** validate `blockHash` value as being equivalent to `Keccak256(RLP(ExecutionBlockHeader))`, where `ExecutionBlockHeader` is the execution layer block header (the former PoW block header structure). Fields of this object are set to the corresponding payload values and constant values according to the Block structure section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#block-structure), extended with the corresponding section of [EIP-4399](https://eips.ethereum.org/EIPS/eip-4399#block-structure). Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process.
+
+2. Client software **MAY** initiate a sync process if requisite data for payload validation is missing. Sync process is specified in the [Sync](#sync) section.
+
+3. Client software **MUST** validate the payload if it extends the canonical chain and requisite data for the validation is locally available. The validation process is specified in the [Payload validation](#payload-validation) section.
+
+4. Client software **MAY NOT** validate the payload if the payload doesn't belong to the canonical chain.
+
+5. Client software **MUST** respond to this method call in the following way:
+  * `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed
+  * `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000, validationError: errorMessage | null}` if terminal block conditions are not satisfied
+  * `{status: SYNCING, latestValidHash: null, validationError: null}` if requisite data for the payload's acceptance or validation is missing
+  * with the payload status obtained from the [Payload validation](#payload-validation) process if the payload has been fully validated while processing the call
+  * `{status: ACCEPTED, latestValidHash: null, validationError: null}` if the following conditions are met:
+    - the `blockHash` of the payload is valid
+    - the payload doesn't extend the canonical chain
+    - the payload hasn't been fully validated
+    - ancestors of a payload are known and comprise a well-formed chain.
+
+6. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
+
+### engine_newPayloadV2
+
+* status: **`Draft`**
+
+#### Request
+
+* method: `engine_newPayloadV2`
+* params:
+  1. [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+
+#### Response
+
+Refer to the response for [`engine_newPayloadV1`](#engine_newpayloadv1).
+
+#### Specification
+
+This method follows the same specification as [`engine_newPayloadV1`](#engine_newpayloadv1) with the exception of the following:
+
+1. If withdrawal functionality is activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payload.withdrawals` is `null`.
+   Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
+   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
+   Refer to the validity conditions for [`engine_newPayloadV1`](#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
+
+### engine_getPayloadV1
+
+* status: **`Final`**
+
+#### Request
+
+* method: `engine_getPayloadV1`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
+
+#### Response
+
+* result: [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+1. Given the `payloadId` client software **MUST** return the most recent version of the payload that is available in the corresponding build process at the time of receiving the call.
+
+2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+
+3. Client software **MAY** stop the corresponding build process after serving this call.
+
+### engine_getPayloadV2
+
+* status: **`Draft`**
+
+#### Request
+
+* method: `engine_getPayloadV2`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+
+#### Response
+
+* result: [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+Refer to the specification for [`engine_getPayloadV1`](#engine_getpayloadv1).
