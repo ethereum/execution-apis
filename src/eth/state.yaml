@@ -98,4 +98,8 @@
   result:
     name: Account
     schema:
-      $ref: '#/components/schemas/Account'
+      oneOf:
+        - $ref: '#/components/schemas/Account'
+        - name: Null
+          type: "null"
+
