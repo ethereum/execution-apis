@@ -4,15 +4,21 @@
 
 - [Shard Blob Extension](#shard-blob-extension)
   - [Structures](#structures)
-    - [ExecutionPayloadV2](#executionpayloadv2)
+    - [ExecutionPayloadV3](#executionpayloadv3)
     - [BlobsBundleV1](#blobsbundlev1)
   - [Methods](#methods)
-    - [engine_newPayloadV2](#engine_newpayloadv2)
-    - [engine_getPayloadV2](#engine_getpayloadv2)
-    - [engine_getBlobsBundleV1](#engine_getblobsbundlev1)
+    - [engine_newPayloadV3](#engine_newpayloadv3)
       - [Request](#request)
-      - [Response](#response)
       - [Specification](#specification)
+      - [Response](#response)
+    - [engine_getPayloadV3](#engine_getpayloadv3)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
+    - [engine_getBlobsBundleV1](#engine_getblobsbundlev1)
+      - [Request](#request-2)
+      - [Response](#response-2)
+      - [Specification](#specification-2)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -23,9 +29,9 @@ This extension is backwards-compatible, but not part of the initial Engine API.
 
 ## Structures
 
-### ExecutionPayloadV2
+### ExecutionPayloadV3
 
-This existing structure is extended to include a single field: `excessDataGas`. All APIs referencing the `ExecutionPayloadV2` in the [original Engine API](./specification.md) must use this extended structure instead.
+This structure has the syntax of `ExecutionPayloadV2` and appends a single field: `excessDataGas`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -54,13 +60,38 @@ The fields are encoded as follows:
 
 ## Methods
 
-### engine_newPayloadV2
+### engine_newPayloadV3
 
-This method parameter updated to accept the extended EIP-4844 `ExecutionPayloadV2` structure.
+#### Request
 
-### engine_getPayloadV2
+* method: `engine_newPayloadV3`
+* params:
+  1. [`ExecutionPayloadV3`](#ExecutionPayloadV3)
 
-This method is extended to return the extended EIP-4844 `ExecutionPayloadV2` structure.
+#### Specification
+
+Refer to the specification for `engine_newPayloadV2`.
+
+#### Response
+
+Refer to the response for `engine_newPayloadV2`.
+
+### engine_getPayloadV3
+
+#### Request
+
+* method: `engine_getPayloadV3`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+
+#### Response
+
+* result: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+Refer to the specification for `engine_getPayloadV2`.
 
 ### engine_getBlobsBundleV1
 
