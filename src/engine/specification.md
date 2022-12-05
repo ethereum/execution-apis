@@ -219,7 +219,7 @@ This structure has the syntax of `ExecutionPayloadV1` and appends a single field
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalV1|null` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
 ### ForkchoiceStateV1
 
@@ -246,7 +246,7 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalV1|null` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
 ### PayloadStatusV1
 
