@@ -548,10 +548,10 @@ Refer to the response for [`engine_newPayloadV2`](#engine_newpayloadv2).
 
 2. Execution Layer client software **MUST** respond to this method call in the following way:
   * `{status: SYNCING, latestValidHash: null, validationError: null}` if the request was processed
-  * With an error object in any error conditions unrelated to the normal processing flow of the method
+  * An error object in any error conditions unrelated to the normal processing flow of the method
 
 3. Consensus Layer client software **MUST NOT** use this endpoint for validator duties. Instead, the [`engine_newPayloadV2`](#engine_getpayloadv2) endpoint **MUST** be used to validate the full `ExecutionPayload` structure.
 
-4. Consensus layer client software **MAY** use this endpoint during an ongoing sync to inform Execution Layer client software about blocks far in the future (e.g., by running a [light client](https://github.com/ethereum/consensus-specs/blob/dev/specs/altair/light-client/sync-protocol.md) during [optimistic sync](https://github.com/ethereum/consensus-specs/blob/dev/sync/optimistic.md)). Execution Layer client software **SHOULD** consider interrupting the ongoing sync when requested to switch to the provided `blockHash` using `engine_forkchoiceUpdated`.
+4. Consensus Layer client software **MAY** use this endpoint during an ongoing sync to inform Execution Layer client software about blocks far in the future (e.g., by running a [light client](https://github.com/ethereum/consensus-specs/blob/dev/specs/altair/light-client/sync-protocol.md) during [optimistic sync](https://github.com/ethereum/consensus-specs/blob/dev/sync/optimistic.md)). Execution Layer client software **SHOULD** consider interrupting the ongoing sync when requested to switch to the provided `blockHash` using `engine_forkchoiceUpdated`.
 
 5. Client software **MAY** offer configuration options to limit the sync scope to use case dependent data (e.g., only sync data related to a certain wallet).
