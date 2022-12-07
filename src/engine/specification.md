@@ -547,7 +547,8 @@ Refer to the response for [`engine_newPayloadV2`](#engine_newpayloadv2).
 1. Execution Layer client software **MAY** initiate a sync process if the described block is not locally available. Sync process is specified in the [Sync](#sync) section. Execution Layer client software **MUST** support syncing solely based on calls to this endpoint and `engine_forkchoiceUpdated`. Notably, syncing **MUST** be possible without `engine_newPayload` calls.
 
 2. Execution Layer client software **MUST** respond to this method call in the following way:
-  * `{status: SYNCING, latestValidHash: null, validationError: null}` in all cases.
+  * `{status: SYNCING, latestValidHash: null, validationError: null}` if the request was processed
+  * With an error object in any error conditions unrelated to the normal processing flow of the method
 
 3. Consensus Layer client software **MUST NOT** use this endpoint for validator duties. Instead, the [`engine_newPayloadV2`](#engine_getpayloadv2) endpoint **MUST** be used to validate the full `ExecutionPayload` structure.
 
