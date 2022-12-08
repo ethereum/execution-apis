@@ -121,12 +121,17 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 * method: `engine_getPayloadV2`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
-* result: [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
 
-Refer to the specification for [`engine_getPayloadV1`](./paris.md#engine_getpayloadv1).
+This method follows the same specification as [`engine_getPayloadV1`](#engine_getpayloadv1) with the addition of the following:
+
+  1. Client software **SHOULD** use the sum of the block's priority fees or any other algorithm to determine `blockValue`.
