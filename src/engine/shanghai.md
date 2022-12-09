@@ -1,4 +1,6 @@
-# Shanghai -- Engine API
+# Engine API -- Shanghai
+
+Engine API changes introduced in Shanghai.
 
 ## Table of contents
 
@@ -80,16 +82,16 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 #### Response
 
-Refer to the response for [`engine_newPayloadV1`](./specification.md#engine_newpayloadv1).
+Refer to the response for [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1).
 
 #### Specification
 
-This method follows the same specification as [`engine_newPayloadV1`](./specification.md#engine_newpayloadv1) with the exception of the following:
+This method follows the same specification as [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1) with the exception of the following:
 
 1. If withdrawal functionality is activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payload.withdrawals` is `null`.
    Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
    Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
-   Refer to the validity conditions for [`engine_newPayloadV1`](./specification.md#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
+   Refer to the validity conditions for [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
 
 ### engine_forkchoiceUpdatedV2
 
@@ -97,16 +99,16 @@ This method follows the same specification as [`engine_newPayloadV1`](./specific
 
 * method: "engine_forkchoiceUpdatedV2"
 * params:
-  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./specification.md#ForkchoiceStateV1)
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`
 
 #### Response
 
-Refer to the response for [`engine_forkchoiceUpdatedV1`](./specification.md#engine_forkchoiceupdatedv1).
+Refer to the response for [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1).
 
 #### Specification
 
-This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./specification.md#engine_forkchoiceupdatedv1) with the exception of the following:
+This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) with the exception of the following:
 
 1. If withdrawal functionality is activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is `null`.
    Similarly, if the functionality is not activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is not `null`.
@@ -127,4 +129,4 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./s
 
 #### Specification
 
-Refer to the specification for [`engine_getPayloadV1`](./specification.md#engine_getpayloadv1).
+Refer to the specification for [`engine_getPayloadV1`](./paris.md#engine_getpayloadv1).
