@@ -1,9 +1,54 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Shard Blob Extension](#shard-blob-extension)
+  - [Structures](#structures)
+    - [ExecutionPayloadV3](#executionpayloadv3)
+    - [BlobsBundleV1](#blobsbundlev1)
+  - [Methods](#methods)
+    - [engine_newPayloadV3](#engine_newpayloadv3)
+      - [Request](#request)
+      - [Specification](#specification)
+      - [Response](#response)
+    - [engine_getPayloadV3](#engine_getpayloadv3)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
+    - [engine_getBlobsBundleV1](#engine_getblobsbundlev1)
+      - [Request](#request-2)
+      - [Response](#response-2)
+      - [Specification](#specification-2)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Shard Blob Extension
 
 This is an extension specific to [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) to the `core` methods as defined in the [Engine API](./specification.md).
 This extension is backwards-compatible, but not part of the initial Engine API.
 
 ## Structures
+
+### ExecutionPayloadV3
+
+This structure has the syntax of `ExecutionPayloadV2` and appends a single field: `excessDataGas`.
+
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `excessDataGas`: `QUANTITY`, 256 bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
 ### BlobsBundleV1
 
@@ -15,12 +60,45 @@ The fields are encoded as follows:
 
 ## Methods
 
+### engine_newPayloadV3
+
+#### Request
+
+* method: `engine_newPayloadV3`
+* params:
+  1. [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+
+#### Specification
+
+Refer to the specification for `engine_newPayloadV2`.
+
+#### Response
+
+Refer to the response for `engine_newPayloadV2`.
+
+### engine_getPayloadV3
+
+#### Request
+
+* method: `engine_getPayloadV3`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+
+#### Response
+
+* result: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+Refer to the specification for `engine_getPayloadV2`.
+
 ### engine_getBlobsBundleV1
 
 This method retrieves the blobs and their respective KZG commitments corresponding to the `versioned_hashes`
 included in the blob transactions of the referenced execution payload.
 
-This method may be combined with `engine_getPayloadV1` into a `engine_getPayloadV2` in a later stage of EIP-4844.
+This method may be combined with `engine_getPayloadV2`.
 The separation of concerns aims to minimize changes during the testing phase of the EIP.
 
 #### Request
@@ -37,7 +115,7 @@ The separation of concerns aims to minimize changes during the testing phase of 
 #### Specification
 
 1. Given the `payloadId` client software **MUST** return the blobs bundle corresponding to the most recent version of the payload that was served with `engine_getPayload`, if any,
-   and halt any further changes to the payload. The `engine_getBlobsBundleV1` and `engine_getPayloadV1` results **MUST** be consistent as outlined in items 3, 4 and 5 below. 
+   and halt any further changes to the payload. The `engine_getBlobsBundleV1` and `engine_getPayloadV2` results **MUST** be consistent as outlined in items 3, 4 and 5 below. 
 
 2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist. Note that a payload without any blobs **MUST** return an empty `blobs` and `kzgs` list, not an error.
 
