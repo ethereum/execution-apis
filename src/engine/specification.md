@@ -355,8 +355,8 @@ The payload build process is specified as follows:
 * method: `engine_newPayloadV2`
 * params:
   1. [`ExecutionPayloadV1`](#ExecutionPayloadV2) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
-      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is *before* Shanghai activation,
-      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is *after* Shanghai activation,
+      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
+      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Response
@@ -426,8 +426,8 @@ This method follows the same specification as [`engine_newPayloadV1`](#engine_ne
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
-      - `PayloadAttributesV1` **MUST** be used to build a payload with `timestamp` value *before* Shanghai activation,
-      - `PayloadAttributesV2` **MUST** be used to build a payload with `timestamp` value *after* Shanghai activation,
+      - `PayloadAttributesV1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
+      - `PayloadAttributesV2` **MUST** be used to build a payload with tge `timestamp` value greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Response
