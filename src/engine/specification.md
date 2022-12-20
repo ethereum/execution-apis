@@ -354,7 +354,10 @@ The payload build process is specified as follows:
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+  1. [`ExecutionPayloadV1`](#ExecutionPayloadV2) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
+    - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is *before* Shanghai activation,
+    - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is *after* Shanghai activation,
+    - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Response
 
@@ -362,12 +365,7 @@ Refer to the response for [`engine_newPayloadV1`](#engine_newpayloadv1).
 
 #### Specification
 
-This method follows the same specification as [`engine_newPayloadV1`](#engine_newpayloadv1) with the exception of the following:
-
-1. If withdrawal functionality is activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payload.withdrawals` is `null`.
-   Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
-   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
-   Refer to the validity conditions for [`engine_newPayloadV1`](#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
+This method follows the same specification as [`engine_newPayloadV1`](#engine_newpayloadv1).
 
 ### engine_forkchoiceUpdatedV1
 
@@ -427,7 +425,10 @@ This method follows the same specification as [`engine_newPayloadV1`](#engine_ne
 * method: "engine_forkchoiceUpdatedV2"
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
+    - `PayloadAttributesV1` **MUST** be used to build a payload with `timestamp` value *before* Shanghai activation,
+    - `PayloadAttributesV2` **MUST** be used to build a payload with `timestamp` value *after* Shanghai activation,
+    - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Response
 
@@ -435,11 +436,7 @@ Refer to the response for [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdat
 
 #### Specification
 
-This method follows the same specification as [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1) with the exception of the following:
-
-1. If withdrawal functionality is activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is `null`.
-   Similarly, if the functionality is not activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is not `null`.
-   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
+This method follows the same specification as [`engine_forkchoiceUpdatedV1`](#engine_forkchoiceupdatedv1).
 
 ### engine_getPayloadV1
 
