@@ -250,6 +250,8 @@ The payload build process is specified as follows:
 
 ### engine_exchangeTransitionConfigurationV1
 
+This method is **DEPRECATED**.
+
 #### Request
 
 * method: `engine_exchangeTransitionConfigurationV1`
