@@ -100,7 +100,7 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](./paris.md#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
       - `PayloadAttributesV1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
-      - `PayloadAttributesV2` **MUST** be used to build a payload with tge `timestamp` value greater or equal to the Shanghai timestamp,
+      - `PayloadAttributesV2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Response
