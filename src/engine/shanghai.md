@@ -79,10 +79,13 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 * method: `engine_newPayloadV2`
 * params:
   1. [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+* timeout: 8s
 
 #### Response
 
-Refer to the response for [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1).
+* result: [`PayloadStatusV1`](./paris.md#payloadstatusv1), values of the `status` field are restricted in the following way:
+  - `INVALID_BLOCK_HASH` status value is supplanted by `INVALID`.
+* error: code and message set in case an exception happens while processing the payload.
 
 #### Specification
 
@@ -92,6 +95,8 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
    Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
    Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
    Refer to the validity conditions for [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
+2. Client software **MAY NOT** validate terminal PoW block conditions during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine).
+3. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed.
 
 ### engine_forkchoiceUpdatedV2
 
@@ -101,6 +106,7 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`
+* timeout: 8s
 
 #### Response
 
@@ -113,6 +119,9 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 1. If withdrawal functionality is activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is `null`.
    Similarly, if the functionality is not activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is not `null`.
    Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
+2. Client software **MAY NOT** validate terminal PoW block conditions in the following places:
+  - during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine specification),
+  - when updating the forkchoice state (point (3) in the [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) method specification).
 
 ### engine_getPayloadV2
 
@@ -121,6 +130,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 * method: `engine_getPayloadV2`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
