@@ -132,6 +132,6 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 
 #### Specification
 
-This method follows the same specification as [`engine_getPayloadV1`](#engine_getpayloadv1) with the addition of the following:
+This method follows the same specification as [`engine_getPayloadV1`](./paris.md#engine_getpayloadv1) with the addition of the following:
 
   1. Client software **SHOULD** use the sum of the block's priority fees or any other algorithm to determine `blockValue`.
