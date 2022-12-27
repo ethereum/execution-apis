@@ -86,7 +86,9 @@ Refer to the response for `engine_newPayloadV2`.
 
 #### Response
 
-* result: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
