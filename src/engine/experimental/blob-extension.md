@@ -83,6 +83,7 @@ Refer to the response for `engine_newPayloadV2`.
 * method: `engine_getPayloadV3`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
@@ -108,6 +109,7 @@ The separation of concerns aims to minimize changes during the testing phase of 
 * method: `engine_getBlobsBundleV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
