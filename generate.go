@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -86,7 +85,7 @@ type chainData struct {
 	bc     *core.BlockChain
 	gspec  *core.Genesis
 	blocks []*types.Block
-	bad    *types.Block
+	// bad    *types.Block
 }
 
 // initChain either attempts to read the chain config from args.ChainDir or it
@@ -95,7 +94,7 @@ func initChain(ctx context.Context, args *Args) (*chainData, error) {
 	var chain chainData
 	if args.ChainDir != "" {
 		chain.gspec = &core.Genesis{}
-		if g, err := ioutil.ReadFile(fmt.Sprintf("%s/genesis.json", args.ChainDir)); err != nil {
+		if g, err := os.ReadFile(fmt.Sprintf("%s/genesis.json", args.ChainDir)); err != nil {
 			return nil, err
 		} else if err := json.Unmarshal(g, chain.gspec); err != nil {
 			return nil, err

@@ -647,13 +647,14 @@ var EthSendRawTransaction = MethodTests{
 			"send-legacy-transaction",
 			"sends a raw legacy transaction",
 			func(ctx context.Context, t *T) error {
+				genesis := t.chain.Genesis()
 				state, _ := t.chain.State()
 				txdata := &types.LegacyTx{
 					Nonce:    state.GetNonce(addr),
 					To:       &common.Address{0xaa},
 					Value:    big.NewInt(10),
 					Gas:      25000,
-					GasPrice: big.NewInt(1),
+					GasPrice: new(big.Int).Add(genesis.BaseFee(), big.NewInt(1)),
 					Data:     common.FromHex("5544"),
 				}
 				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
@@ -716,7 +717,7 @@ var EthFeeHistory = MethodTests{
 				block := t.chain.GetBlockByNumber(2)
 				tip, err := block.Transactions()[0].EffectiveGasTip(block.BaseFee())
 				if err != nil {
-					return fmt.Errorf("unable to get effective tip", err)
+					return fmt.Errorf("unable to get effective tip: %w", err)
 				}
 
 				if len(got.Reward) != 1 {
@@ -778,7 +779,7 @@ var EthGetProof = MethodTests{
 			"gets proof for a certain account",
 			func(ctx context.Context, t *T) error {
 				addr := common.Address{0xaa}
-				result, err := t.geth.GetProof(ctx, addr, nil, big.NewInt(3))
+				result, err := t.geth.GetProof(ctx, addr, []string{}, big.NewInt(3))
 				if err != nil {
 					return err
 				}

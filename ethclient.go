@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -67,14 +66,14 @@ type loggingRoundTrip struct {
 
 func (rt *loggingRoundTrip) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Read and log the request body.
-	reqBytes, err := ioutil.ReadAll(req.Body)
+	reqBytes, err := io.ReadAll(req.Body)
 	req.Body.Close()
 	if err != nil {
 		return nil, err
 	}
 	fmt.Fprintf(rt.w, ">> %s\n", bytes.TrimSpace(reqBytes))
 	reqCopy := *req
-	reqCopy.Body = ioutil.NopCloser(bytes.NewReader(reqBytes))
+	reqCopy.Body = io.NopCloser(bytes.NewReader(reqBytes))
 
 	// Do the round trip.
 	resp, err := rt.inner.RoundTrip(&reqCopy)
@@ -84,12 +83,12 @@ func (rt *loggingRoundTrip) RoundTrip(req *http.Request) (*http.Response, error)
 	defer resp.Body.Close()
 
 	// Read and log the response bytes.
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	respCopy := *resp
-	respCopy.Body = ioutil.NopCloser(bytes.NewReader(respBytes))
+	respCopy.Body = io.NopCloser(bytes.NewReader(respBytes))
 	fmt.Fprintf(rt.w, "<< %s\n", bytes.TrimSpace(respBytes))
 	return &respCopy, nil
 }
