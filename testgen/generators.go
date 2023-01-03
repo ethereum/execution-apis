@@ -717,7 +717,7 @@ var EthFeeHistory = MethodTests{
 				block := t.chain.GetBlockByNumber(2)
 				tip, err := block.Transactions()[0].EffectiveGasTip(block.BaseFee())
 				if err != nil {
-					return fmt.Errorf("unable to get effective tip", err)
+					return fmt.Errorf("unable to get effective tip: %w", err)
 				}
 
 				if len(got.Reward) != 1 {

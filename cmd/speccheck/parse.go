@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -63,7 +62,7 @@ func parseRoundTrips(root string, re *regexp.Regexp) ([]*roundTrip, error) {
 
 // parseTest parses a single test into a slice of HTTP round trips.
 func parseTest(testname string, filename string) ([]*roundTrip, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

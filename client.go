@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -41,10 +40,7 @@ type gethClient struct {
 // The client's data directory is set to a temporary location and it
 // initializes with the genesis and the provided blocks.
 func newGethClient(ctx context.Context, path string, genesis *core.Genesis, blocks []*types.Block, verbose bool) (*gethClient, error) {
-	tmp, err := ioutil.TempDir("", "geth-")
-	if err != nil {
-		return nil, err
-	}
+	tmp := os.TempDir()
 	if err := writeGenesis(fmt.Sprintf("%s/genesis.json", tmp), genesis); err != nil {
 		return nil, err
 	}
@@ -62,7 +58,7 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	// Run geth init.
 	options := []string{datadir, loglevel, "init", fmt.Sprintf("%s/genesis.json", tmp)}
 	options = maybePrepend(isFakepow, options, "--fakepow")
-	err = runCmd(ctx, path, verbose, options...)
+	err := runCmd(ctx, path, verbose, options...)
 	if err != nil {
 		return nil, err
 	}
