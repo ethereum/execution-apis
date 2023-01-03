@@ -779,7 +779,7 @@ var EthGetProof = MethodTests{
 			"gets proof for a certain account",
 			func(ctx context.Context, t *T) error {
 				addr := common.Address{0xaa}
-				result, err := t.geth.GetProof(ctx, addr, nil, big.NewInt(3))
+				result, err := t.geth.GetProof(ctx, addr, []string{}, big.NewInt(3))
 				if err != nil {
 					return err
 				}
