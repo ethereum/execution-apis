@@ -40,7 +40,10 @@ type gethClient struct {
 // The client's data directory is set to a temporary location and it
 // initializes with the genesis and the provided blocks.
 func newGethClient(ctx context.Context, path string, genesis *core.Genesis, blocks []*types.Block, verbose bool) (*gethClient, error) {
-	tmp := os.TempDir()
+	tmp, err := os.MkdirTemp("", "rpctestgen-*")
+	if err != nil {
+		return nil, err
+	}
 	if err := writeGenesis(fmt.Sprintf("%s/genesis.json", tmp), genesis); err != nil {
 		return nil, err
 	}
@@ -52,19 +55,20 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 		args      = ctx.Value(ARGS).(*Args)
 		isFakepow = !args.Ethash
 		datadir   = fmt.Sprintf("--datadir=%s", tmp)
+		gcmode    = "--gcmode=archive"
 		loglevel  = fmt.Sprintf("--verbosity=%d", args.logLevelInt)
 	)
 
 	// Run geth init.
-	options := []string{datadir, loglevel, "init", fmt.Sprintf("%s/genesis.json", tmp)}
+	options := []string{datadir, gcmode, loglevel, "init", fmt.Sprintf("%s/genesis.json", tmp)}
 	options = maybePrepend(isFakepow, options, "--fakepow")
-	err := runCmd(ctx, path, verbose, options...)
+	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	// Run geth import.
-	options = []string{datadir, loglevel, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
+	options = []string{datadir, gcmode, loglevel, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
 	options = maybePrepend(isFakepow, options, "--fakepow")
 	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
@@ -84,6 +88,7 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 			fmt.Sprintf("--datadir=%s", g.workdir),
 			fmt.Sprintf("--verbosity=%d", args.logLevelInt),
 			fmt.Sprintf("--port=%s", NETWORKPORT),
+			"--gcmode=archive",
 			"--nodiscover",
 			"--http",
 			"--http.api=admin,eth,debug",

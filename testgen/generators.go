@@ -269,6 +269,26 @@ var EthGetBalance = MethodTests{
 				return nil
 			},
 		},
+		{
+			"get-balance-blockhash",
+			"retrieves the an account's balance at a specific blockhash",
+			func(ctx context.Context, t *T) error {
+				var (
+					block = t.chain.GetBlockByNumber(1)
+					addr  = common.Address{0xaa}
+					got   hexutil.Big
+				)
+				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", addr, block.Hash()); err != nil {
+					return err
+				}
+				state, _ := t.chain.StateAt(block.Root())
+				want := state.GetBalance(addr)
+				if got.ToInt().Uint64() != want.Uint64() {
+					return fmt.Errorf("unexpect balance (got: %d, want: %d)", got.ToInt(), want)
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -786,6 +806,26 @@ var EthGetProof = MethodTests{
 				state, _ := t.chain.State()
 				balance := state.GetBalance(addr)
 				if result.Balance.Cmp(balance) != 0 {
+					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
+				}
+				return nil
+			},
+		},
+		{
+			"get-account-proof-blockhash",
+			"gets proof for a certain account at the specified blockhash",
+			func(ctx context.Context, t *T) error {
+				addr := common.Address{0xaa}
+				type accountResult struct {
+					Balance *hexutil.Big `json:"balance"`
+				}
+				var result accountResult
+				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", addr, []string{}, t.chain.CurrentHeader().Hash()); err != nil {
+					return err
+				}
+				state, _ := t.chain.State()
+				balance := state.GetBalance(addr)
+				if result.Balance.ToInt().Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
 				return nil
