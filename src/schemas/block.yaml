@@ -99,6 +99,18 @@ BlockTag:
     - latest
     - pending
   description: '`earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `latest`: The most recent block in the canonical chain observed by the client, this block may be re-orged out of the canonical chain even under healthy/normal conditions; `pending`: A sample next block built by the client on top of `latest` and containing the set of transactions usually taken from local mempool. Before the merge transition is finalized, any call querying for `finalized` or `safe` block MUST be responded to with `-39001: Unknown block` error'
+BlockHash:
+  title: Block hash
+  type: object
+  required:
+    - blockHash
+  properties:
+    blockHash:
+      title: Block hash
+      $ref: '#/components/schemas/hash32'
+    requireCanonical:
+      title: Require canonical
+      type: boolean
 BlockNumberOrTag:
   title: Block number or tag
   oneOf:
@@ -106,6 +118,15 @@ BlockNumberOrTag:
       $ref: '#/components/schemas/uint'
     - title: Block tag
       $ref: '#/components/schemas/BlockTag'
+BlockNumberOrTagOrHash:
+  title: Block number or tag, or block hash
+  oneOf:
+    - title: Block number
+      $ref: '#/components/schemas/uint'
+    - title: Block tag
+      $ref: '#/components/schemas/BlockTag'
+    - title: Block hash
+      $ref: '#/components/schemas/BlockHash'
 BadBlock:
   title: Bad block
   type: object
