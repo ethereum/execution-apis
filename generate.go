@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/consensus/beacon"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -38,13 +39,6 @@ func runGenerator(ctx context.Context) error {
 	}
 	defer client.Close()
 
-	// Connect ethclient to Ethereum client.
-	handler, err := newEthclientHandler(client.HttpAddr())
-	if err != nil {
-		return err
-	}
-	defer handler.Close()
-
 	// Generate test fixtures for all methods. Store them in the format:
 	// outputDir/methodName/testName.io
 	fmt.Println("filling tests...")
@@ -62,6 +56,14 @@ func runGenerator(ctx context.Context) error {
 		for _, test := range methodTest.Tests {
 			filename := fmt.Sprintf("%s/%s.io", methodDir, test.Name)
 			fmt.Printf("generating %s", filename)
+
+			// Connect ethclient to Ethereum client. This happens
+			// every test to force the json-rpc id to always be 0.
+			handler, err := newEthclientHandler(client.HttpAddr())
+			if err != nil {
+				return err
+			}
+
 			// Write the exchange for each test in a separte file.
 			handler.RotateLog(filename)
 
@@ -69,13 +71,14 @@ func runGenerator(ctx context.Context) error {
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
 
-			err := test.Run(ctx, testgen.NewT(handler.ethclient, handler.gethclient, handler.rpc, chain.bc))
+			err = test.Run(ctx, testgen.NewT(handler.ethclient, handler.gethclient, handler.rpc, chain.bc))
 			if err != nil {
 				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.Name, test.Name, err)
 				continue
 			}
 			fmt.Println("  done.")
+			handler.Close()
 		}
 	}
 	return nil
@@ -116,7 +119,7 @@ func initChain(ctx context.Context, args *Args) (*chainData, error) {
 		if args.Ethash {
 			config.PowMode = ethash.ModeNormal
 		}
-		engine = ethash.New(config, nil, false)
+		engine = beacon.New(ethash.New(config, nil, false))
 
 		// Generate test chain and write to output directory.
 		var bad *types.Block
@@ -140,7 +143,7 @@ func initChain(ctx context.Context, args *Args) (*chainData, error) {
 	chain.gspec.MustCommit(db)
 
 	var err error
-	chain.bc, err = core.NewBlockChain(db, nil, chain.gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
+	chain.bc, err = core.NewBlockChain(db, nil, chain.gspec, nil, beacon.New(ethash.NewFaker()), vm.Config{}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
