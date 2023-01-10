@@ -108,7 +108,7 @@ BlockNumberOrTag:
       $ref: '#/components/schemas/BlockTag'
 BlockNumberOrTagOrHash:
   title: Block number, tag, or block hash
-  oneOf:
+  anyOf:
     - title: Block number
       $ref: '#/components/schemas/uint'
     - title: Block tag
