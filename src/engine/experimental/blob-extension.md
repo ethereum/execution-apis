@@ -66,7 +66,10 @@ The fields are encoded as follows:
 
 * method: `engine_newPayloadV3`
 * params:
-  1. [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+  1. [`ExecutionPayloadV2`](./shanghai.md#ExecutionPayloadV2) | [`ExecutionPayloadV3`](#ExecutionPayloadV3), where:
+      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is lower than the EIP-4844 activation timestamp,
+      - `ExecutionPayloadV3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
+      - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Specification
 
