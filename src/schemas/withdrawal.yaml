@@ -5,7 +5,7 @@ Withdrawal:
     - index
     - validatorIndex
     - recipient
-    - value
+    - amount
   properties:
     index:
       title: index of withdrawal
@@ -16,6 +16,6 @@ Withdrawal:
     recipient:
       title: recipient for withdrawal value
       $ref: '#/components/schemas/address'
-    value:
+    amount:
       title: value contained in withdrawal
       $ref: '#/components/schemas/uint256'
