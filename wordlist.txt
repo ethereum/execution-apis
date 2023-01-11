@@ -1,5 +1,8 @@
 apis
 attributesv
+bodyv
+bodiesbyrangev
+bodiesbyhashv
 bytecode
 configurationv
 crypto

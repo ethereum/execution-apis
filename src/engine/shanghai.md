@@ -10,6 +10,7 @@ Engine API changes introduced in Shanghai.
 - [Structures](#structures)
   - [WithdrawalV1](#withdrawalv1)
   - [ExecutionPayloadV2](#executionpayloadv2)
+  - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
   - [PayloadAttributesV2](#payloadattributesv2)
 - [Methods](#methods)
   - [engine_newPayloadV2](#engine_newpayloadv2)
@@ -24,6 +25,14 @@ Engine API changes introduced in Shanghai.
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_getPayloadBodiesByHashV1](#engine_getpayloadbodiesbyhashv1)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
+  - [engine_getPayloadBodiesByRangeV1](#engine_getpayloadbodiesbyrangev1)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -58,6 +67,11 @@ This structure has the syntax of `ExecutionPayloadV1` and appends a single field
 - `extraData`: `DATA`, 0 to 32 Bytes
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+
+### ExecutionPayloadBodyV1
+This structure contains a body of an execution payload. The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 
@@ -135,3 +149,56 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 This method follows the same specification as [`engine_getPayloadV1`](./paris.md#engine_getpayloadv1) with the addition of the following:
 
   1. Client software **SHOULD** use the sum of the block's priority fees or any other algorithm to determine `blockValue`.
+
+### engine_getPayloadBodiesByHashV1
+
+#### Request
+
+* method: `engine_getPayloadBodiesByHashV1`
+* params:
+  1. `Array of DATA`, 32 Bytes - Array of `block_hash` field values of the `ExecutionPayload` structure
+* timeout: 10s
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* error: code and message set in case an exception happens while processing the method call.
+
+#### Specification
+
+1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding hashes respecting the order of block hashes in the input array.
+
+1. Client software **MUST** place responses in the order given in the request, using `null` for any missing blocks. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, null, C.body]`.
+
+1. Clients that support `engine_getPayloadBodiesByRangeV1` **MAY NOT** respond to requests for finalized blocks by hash.
+
+1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyroot) in the consensus layer `p2p` specification. Callers must be careful to use the execution block root, instead of the beacon block root.
+
+### engine_getPayloadBodiesByRangeV1
+
+#### Request
+
+* method: `engine_getPayloadBodiesByRangeV1`
+* params:
+  1. `start`: `QUANTITY`, 64 bits - Starting block number
+  1. `count`: `QUANITTY`, 64 bits - Number of blocks to return
+* timeout: 10s
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* error: code and message set in case an exception happens while processing the method call.
+
+#### Specification
+
+1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `engine_forkchoiceUpdated` call.
+
+1. Client software **MUST** support `count` values of at least 32 blocks.
+
+1. Client software **MUST** place `null` in the response array for any blocks that have been pruned or where the request extends past the current latest known block.
+
+1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange) in the consensus layer `p2p` specification.
+
+1. Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to request non-finalized blocks by root in order to avoid race conditions around the current view of the canonical chain.
+
+1. Callers must be careful to verify the hash of the received blocks when requesting non-finalized parts of the chain since the response is prone to being re-orged.
