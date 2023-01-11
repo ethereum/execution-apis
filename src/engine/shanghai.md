@@ -172,7 +172,7 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Clients that support `engine_getPayloadBodiesByRangeV1` **MAY NOT** respond to requests for finalized blocks by hash.
 
-1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyroot) in the consensus layer `p2p` specification. Callers must be careful to use the execution block root, instead of the beacon block root.
+1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyroot) in the consensus layer `p2p` specification. Callers must be careful to use the execution block hash, instead of the beacon block root.
 
 ### engine_getPayloadBodiesByRangeV1
 
@@ -199,6 +199,6 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange) in the consensus layer `p2p` specification.
 
-1. Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to request non-finalized blocks by root in order to avoid race conditions around the current view of the canonical chain.
+1. Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to request non-finalized blocks by hash in order to avoid race conditions around the current view of the canonical chain.
 
 1. Callers must be careful to verify the hash of the received blocks when requesting non-finalized parts of the chain since the response is prone to being re-orged.
