@@ -1,0 +1,19 @@
+- name: txpool_transactions
+  summary: Returns a list of all transactions that match the supplied filter conditions that are either pending for inclusion in the next block(s) or scheduled for future execution.
+  params:
+    - name: Filter
+      schema:
+        $ref: '#/components/schemas/TxPoolFilter'
+  result:
+    name: Result
+    schema:
+      title: Result
+      schema:
+        $ref: '#/components/schemas/TxPoolTransactions'
+- name: txpool_statistics
+  summary: Returns statistics about the node's transaction pool.
+  params: []
+  result:
+    name: Statistics
+    schema:
+      $ref: '#/components/schemas/TxPoolStatistics'
