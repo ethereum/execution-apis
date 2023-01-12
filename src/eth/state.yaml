@@ -8,7 +8,7 @@
     - name: Block
       required: false
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Balance
     schema:
@@ -27,7 +27,7 @@
     - name: Block
       required: false
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Value
     schema:
@@ -42,7 +42,7 @@
     - name: Block
       required: false
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Transaction count
     schema:
@@ -57,7 +57,7 @@
     - name: Block
       required: false
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Bytecode
     schema:
@@ -75,11 +75,11 @@
         title: Storage keys
         type: array
         items:
-          $ref: '#/components/schemas/hash32'
+          $ref: '#/components/schemas/bytesMax32'
     - name: Block
       required: true
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Account
     schema:

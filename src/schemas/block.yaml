@@ -106,6 +106,15 @@ BlockNumberOrTag:
       $ref: '#/components/schemas/uint'
     - title: Block tag
       $ref: '#/components/schemas/BlockTag'
+BlockNumberOrTagOrHash:
+  title: Block number, tag, or block hash
+  anyOf:
+    - title: Block number
+      $ref: '#/components/schemas/uint'
+    - title: Block tag
+      $ref: '#/components/schemas/BlockTag'
+    - title: Block hash
+      $ref: '#/components/schemas/hash32'
 BadBlock:
   title: Bad block
   type: object

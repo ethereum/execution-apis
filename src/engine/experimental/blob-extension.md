@@ -24,7 +24,7 @@
 
 # Shard Blob Extension
 
-This is an extension specific to [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) to the `core` methods as defined in the [Engine API](./specification.md).
+This is an extension specific to [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) to the structures and methods as defined in the [Engine API - Paris](../paris.md) and [Engine API - Shanghai](../shanghai.md).
 This extension is backwards-compatible, but not part of the initial Engine API.
 
 ## Structures
@@ -86,10 +86,13 @@ Refer to the response for `engine_newPayloadV2`.
 * method: `engine_getPayloadV3`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
-* result: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -109,6 +112,7 @@ The separation of concerns aims to minimize changes during the testing phase of 
 * method: `engine_getBlobsBundleV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 

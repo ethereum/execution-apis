@@ -82,14 +82,20 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
       - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
       - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
+* timeout: 8s
 
 #### Response
 
-Refer to the response for [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1).
+* result: [`PayloadStatusV1`](./paris.md#payloadstatusv1), values of the `status` field are restricted in the following way:
+  - `INVALID_BLOCK_HASH` status value is supplanted by `INVALID`.
+* error: code and message set in case an exception happens while processing the payload.
 
 #### Specification
 
-This method follows the same specification as [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1).
+This method follows the same specification as [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1) with the exception of the following:
+
+1. Client software **MAY NOT** validate terminal PoW block conditions during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine).
+2. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed.
 
 ### engine_forkchoiceUpdatedV2
 
@@ -102,6 +108,7 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
       - `PayloadAttributesV1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
       - `PayloadAttributesV2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
+* timeout: 8s
 
 #### Response
 
@@ -109,7 +116,11 @@ Refer to the response for [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkc
 
 #### Specification
 
-This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1).
+This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) with the exception of the following:
+
+1. Client software **MAY NOT** validate terminal PoW block conditions in the following places:
+  - during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine specification),
+  - when updating the forkchoice state (point (3) in the [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) method specification).
 
 ### engine_getPayloadV2
 
@@ -118,12 +129,17 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 * method: `engine_getPayloadV2`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
 
 #### Response
 
-* result: [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
 
-Refer to the specification for [`engine_getPayloadV1`](./paris.md#engine_getpayloadv1).
+This method follows the same specification as [`engine_getPayloadV1`](./paris.md#engine_getpayloadv1) with the addition of the following:
+
+  1. Client software **SHOULD** use the sum of the block's priority fees or any other algorithm to determine `blockValue`.

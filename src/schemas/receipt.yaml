@@ -93,7 +93,7 @@ ReceiptInfo:
     root:
       title: state root
       description: The post-transaction state root. Only specified for transactions included before the Byzantium upgrade.
-      $ref: '#/components/schemas/bytes32'
+      $ref: '#/components/schemas/hash32'
     status:
       title: status
       description: Either 1 (success) or 0 (failure). Only specified for transactions included after the Byzantium upgrade.

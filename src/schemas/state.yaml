@@ -45,7 +45,7 @@ StorageProof:
   properties:
     key:
       title: key
-      $ref: '#/components/schemas/hash32'
+      $ref: '#/components/schemas/bytesMax32'
     value:
       title: value
       $ref: '#/components/schemas/uint256'
