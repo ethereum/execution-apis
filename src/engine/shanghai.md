@@ -78,7 +78,10 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadV2`](#ExecutionPayloadV2)
+  1. [`ExecutionPayloadV1`](#./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
+      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
+      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
+      - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s
 
 #### Response
@@ -91,12 +94,8 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 This method follows the same specification as [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1) with the exception of the following:
 
-1. If withdrawal functionality is activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payload.withdrawals` is `null`.
-   Similarly, if the functionality is not activated, client software **MUST** return an `INVALID` status with the appropriate `latestValidHash` if `payloadAttributes.withdrawals` is not `null`.
-   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
-   Refer to the validity conditions for [`engine_newPayloadV1`](./paris.md#engine_newpayloadv1) to specification of the appropriate `latestValidHash` value.
-2. Client software **MAY NOT** validate terminal PoW block conditions during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine).
-3. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed.
+1. Client software **MAY NOT** validate terminal PoW block conditions during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine).
+2. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed.
 
 ### engine_forkchoiceUpdatedV2
 
@@ -105,7 +104,10 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 * method: "engine_forkchoiceUpdatedV2"
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](./paris.md#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
+      - `PayloadAttributesV1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
+      - `PayloadAttributesV2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
+      - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s
 
 #### Response
@@ -116,10 +118,7 @@ Refer to the response for [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkc
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) with the exception of the following:
 
-1. If withdrawal functionality is activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is `null`.
-   Similarly, if the functionality is not activated, client software **MUST** return error `-38003: Invalid payload attributes` if `payloadAttributes.withdrawals` is not `null`.
-   Blocks without withdrawals **MUST** be expressed with an explicit empty list `[]` value.
-2. Client software **MAY NOT** validate terminal PoW block conditions in the following places:
+1. Client software **MAY NOT** validate terminal PoW block conditions in the following places:
   - during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine specification),
   - when updating the forkchoice state (point (3) in the [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) method specification).
 
