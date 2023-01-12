@@ -92,7 +92,7 @@ Refer to the response for `engine_newPayloadV2`.
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV1`](#../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#../shanghai.md#ExecutionPayloadV2) |  [`ExecutionPayloadV3`](#ExecutionPayloadV3) where:
+  - `executionPayload`: [`ExecutionPayloadV1`](../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](../shanghai.md#ExecutionPayloadV2) |  [`ExecutionPayloadV3`](#ExecutionPayloadV3) where:
     - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
     - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp and lower than the EIP-4844 activation timestamp
     - `ExecutionPayloadV3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp

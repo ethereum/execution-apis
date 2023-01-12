@@ -134,7 +134,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV1`](#./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2) where:
+  - `executionPayload`: [`ExecutionPayloadV1`](./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2) where:
       - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
       - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
