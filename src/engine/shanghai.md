@@ -170,7 +170,9 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Client software **MUST** place responses in the order given in the request, using `null` for any missing blocks. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, null, C.body]`.
 
-1. Clients **MAY NOT** respond to requests for finalized blocks by hash.
+1. Client software **MAY NOT** respond to requests for finalized blocks by hash.
+
+1. Client software **MUST** set `withdrawals` field to `null` for bodies of pre-Shanghai blocks.
 
 1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyroot) in the consensus layer `p2p` specification. Callers must be careful to use the execution block hash, instead of the beacon block root.
 
@@ -196,6 +198,8 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 1. Client software **MUST** support `count` values of at least 32 blocks.
 
 1. Client software **MUST** place `null` in the response array for any blocks that have been pruned or where the request extends past the current latest known block.
+
+1. Client software **MUST** set `withdrawals` field to `null` for bodies of pre-Shanghai blocks.
 
 1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange) in the consensus layer `p2p` specification.
 
