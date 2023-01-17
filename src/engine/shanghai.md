@@ -37,9 +37,10 @@ The fields are encoded as follows:
 - `index`: `QUANTITY`, 64 Bits
 - `validatorIndex`: `QUANTITY`, 64 Bits
 - `address`: `DATA`, 20 Bytes
-- `amount`: `QUANTITY`, 256 Bits
+- `amount`: `QUANTITY`, 64 Bits
 
-*Note*: the `amount` value is represented on the beacon chain as a little-endian value in units of Gwei, whereas the `amount` in this structure *MUST* be converted to a big-endian value in units of Wei.
+*Note*: the `amount` value is represented on the beacon chain as a little-endian value in units of Gwei, whereas the
+`amount` in this structure *MUST* be converted to a big-endian value in units of Gwei.
 
 ### ExecutionPayloadV2
 
