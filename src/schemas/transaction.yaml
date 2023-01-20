@@ -280,6 +280,6 @@ GenericTransaction:
       $ref: '#/components/schemas/uint'
 Nonce:
   title: nonce
-  title: Only Used Once
+  description: Only Used Once
   $ref: '#/components/schemas/uint'
 
