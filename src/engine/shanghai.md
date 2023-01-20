@@ -208,7 +208,10 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Client software **MUST** support `count` values of at least 32 blocks.
 
-1. Client software **MUST** place `null` in the response array for any blocks that have been pruned or where the request extends past the current latest known block.
+1. Client software **MUST**:
+    * Place `null` in the response array for pruned blocks.
+    * Omit `null` values where the request extends past the current latest known block, i.e. no trailing `nulls` are allowed in this case.
+    * Return array of `null` values if all blocks from requested range are pruned and the range is behind the latest known block.
 
 1. Client software **MUST** set `withdrawals` field to `null` for bodies of pre-Shanghai blocks.
 
