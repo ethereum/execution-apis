@@ -208,7 +208,7 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Client software **MUST** support `count` values of at least 32 blocks.
 
-1. Client software **MUST** place `null` in the response array for unavailable blocks which numbers are lower than a number of the latest known block. Client software **MUST NOT** return trailing `null` values if the request extends past the current latest known block. Consider the following response examples:
+1. Client software **MUST** place `null` in the response array for unavailable blocks which numbers are lower than a number of the latest known block. Client software **MUST NOT** return trailing `null` values if the request extends past the current latest known block. Execution Layer client software is expected to download and carry the full block history until EIP-4444 or a similar proposal takes into effect. Consider the following response examples:
     * `[B1.body, B2.body, ..., Bn.body]` -- entire requested range is filled with block bodies,
     * `[null, null, B3.body, ..., Bn.body]` -- first two blocks are unavailable (either pruned or not yet downloaded),
     * `[null, null, ..., null]` -- requested range is behind the latest known block and all blocks are unavailable,
