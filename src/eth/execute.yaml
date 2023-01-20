@@ -27,7 +27,7 @@
   result:
     name: Gas used
     schema:
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/GasUsed'
 - name: eth_createAccessList
   summary: Generates an access list for a transaction.
   params:
@@ -52,5 +52,4 @@
           title: "error"
           type: string
         gasUsed:
-          title: Gas used
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/GasUsed'

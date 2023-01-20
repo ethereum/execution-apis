@@ -26,8 +26,7 @@
           $ref: '#/components/schemas/bytes32'
         - title: seed hash
           $ref: '#/components/schemas/bytes32'
-        - title: difficulty
-          $ref: '#/components/schemas/bytes32'
+        - $ref: '#/components/schemas/Difficulty'
 - name: eth_submitWork
   summary: Used for submitting a proof-of-work solution.
   params:

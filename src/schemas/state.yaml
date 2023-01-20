@@ -14,7 +14,7 @@ AccountProof:
       title: address
       $ref: '#/components/schemas/address'
     accountProof:
-      title: accountProof
+      title: Account proofs
       type: array
       items:
         $ref: '#/components/schemas/bytes'

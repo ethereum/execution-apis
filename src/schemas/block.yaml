@@ -30,8 +30,7 @@ Block:
       title: Coinbase
       $ref: '#/components/schemas/address'
     stateRoot:
-      title: State root
-      $ref: '#/components/schemas/hash32'
+      $ref: '#/components/schemas/StateRoot'
     transactionsRoot:
       title: Transactions root
       $ref: '#/components/schemas/hash32'
@@ -42,17 +41,14 @@ Block:
       title: Bloom filter
       $ref: '#/components/schemas/bytes256'
     difficulty:
-      title: Difficulty
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/Difficulty'
     number:
       title: Number
       $ref: '#/components/schemas/uint'
     gasLimit:
-      title: Gas limit
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/GasLimit'
     gasUsed:
-      title: Gas used
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/GasUsed'
     timestamp:
       title: Timestamp
       $ref: '#/components/schemas/uint'
@@ -63,10 +59,9 @@ Block:
       title: Mix hash
       $ref: '#/components/schemas/hash32'
     nonce:
-      title: Nonce
-      $ref: '#/components/schemas/bytes8'
+      $ref: '#/components/schemas/Nonce'
     totalDifficulty:
-      title: Total difficult
+      title: Total difficulty
       $ref: '#/components/schemas/uint'
     baseFeePerGas:
       title: Base fee per gas
@@ -102,17 +97,13 @@ BlockTag:
 BlockNumberOrTag:
   title: Block number or tag
   oneOf:
-    - title: Block number
-      $ref: '#/components/schemas/uint'
-    - title: Block tag
-      $ref: '#/components/schemas/BlockTag'
+    - $ref: '#/components/schemas/BlockNumber'
+    - $ref: '#/components/schemas/BlockTag'
 BlockNumberOrTagOrHash:
   title: Block number, tag, or block hash
   anyOf:
-    - title: Block number
-      $ref: '#/components/schemas/uint'
-    - title: Block tag
-      $ref: '#/components/schemas/BlockTag'
+    - $ref: '#/components/schemas/BlockNumber'
+    - $ref: '#/components/schemas/BlockTag'
     - title: Block hash
       $ref: '#/components/schemas/hash32'
 BadBlock:
@@ -132,3 +123,13 @@ BadBlock:
     rlp:
       title: RLP
       $ref: '#/components/schemas/bytes'
+Difficulty:
+  title: Difficulty
+  $ref: '#/components/schemas/bytes'
+GasUsed:
+  title: Gas used
+  description: The amount of gas used for this specific transaction alone.
+  $ref: '#/components/schemas/uint'
+StateRoot:
+  title: State root
+  $ref: '#/components/schemas/hash32'

@@ -17,11 +17,9 @@ Log:
       title: transaction hash
       $ref: '#/components/schemas/hash32'
     blockHash:
-      title: block hash
-      $ref: '#/components/schemas/hash32'
+      $ref: '#/components/schemas/BlockHash'
     blockNumber:
-      title: block number
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/BlockNumber'
     address:
       title: address
       $ref: '#/components/schemas/address'
@@ -33,6 +31,11 @@ Log:
       type: array
       items:
         $ref: '#/components/schemas/bytes32'
+BlockNumber:
+  title: block number
+  $ref: '#/components/schemas/uint'
+BlockHash:
+  $ref: '#/components/schemas/hash32'
 ReceiptInfo:
   type: object
   title: Receipt info
@@ -55,11 +58,9 @@ ReceiptInfo:
       title: transaction index
       $ref: '#/components/schemas/uint'
     blockHash:
-      title: block hash
-      $ref: '#/components/schemas/hash32'
+      $ref: '#/components/schemas/BlockHash'
     blockNumber:
-      title: block number
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/BlockNumber'
     from:
       title: from
       $ref: '#/components/schemas/address'
@@ -72,9 +73,7 @@ ReceiptInfo:
       description: The sum of gas used by this transaction and all preceding transactions in the same block.
       $ref: '#/components/schemas/uint'
     gasUsed:
-      title: gas used
-      description: The amount of gas used for this specific transaction alone.
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/GasUsed'
     contractAddress:
       title: contract address
       description: The contract address created, if the transaction was a contract creation, otherwise null.
@@ -91,9 +90,7 @@ ReceiptInfo:
       title: logs bloom
       $ref: '#/components/schemas/bytes256'
     root:
-      title: state root
-      description: The post-transaction state root. Only specified for transactions included before the Byzantium upgrade.
-      $ref: '#/components/schemas/hash32'
+      $ref: '#/components/schemas/StateRoot'
     status:
       title: status
       description: Either 1 (success) or 0 (failure). Only specified for transactions included after the Byzantium upgrade.

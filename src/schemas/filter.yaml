@@ -26,12 +26,9 @@ Filter:
     address:
       title: Address(es)
       oneOf:
-        - title: Address
-          $ref: '#/components/schemas/address'
-        - title: Addresses
-          $ref: '#/components/schemas/addresses'
+        - $ref: '#/components/schemas/address'
+        - $ref: '#/components/schemas/addresses'
     topics:
-      title: Topics
       $ref: '#/components/schemas/FilterTopics'
 FilterTopics:
   title: Filter Topics

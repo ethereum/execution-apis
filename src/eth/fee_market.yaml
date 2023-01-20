@@ -4,16 +4,14 @@
   result:
     name: Gas price
     schema:
-      title: Gas price
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/GasPrice'
 - name: eth_maxPriorityFeePerGas
   summary: Returns the current maxPriorityFeePerGas per gas in wei.
   params: []
   result:
     name: Max priority fee per gas
     schema:
-      title: Max priority fee per gas
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/MaxPriorityFeePerGas'
 - name: eth_feeHistory
   summary: Transaction fee history
   description: Returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range.
