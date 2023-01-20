@@ -31,7 +31,7 @@ AccountProof:
       title: storageHash
       $ref: '#/components/schemas/hash32'
     storageProof:
-      title: storageProof
+      title: Storage proofs
       type: array
       items:
         $ref: '#/components/schemas/StorageProof'

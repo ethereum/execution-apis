@@ -66,7 +66,11 @@ The fields are encoded as follows:
 
 * method: `engine_newPayloadV3`
 * params:
-  1. [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+  1. [`ExecutionPayloadV1`](../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](../shanghai.md#ExecutionPayloadV2) | [`ExecutionPayloadV3`](#ExecutionPayloadV3), where:
+      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
+      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai and lower than the EIP-4844 activation timestamp,
+      - `ExecutionPayloadV3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
+      - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Specification
 
@@ -88,7 +92,10 @@ Refer to the response for `engine_newPayloadV2`.
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
+  - `executionPayload`: [`ExecutionPayloadV1`](../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](../shanghai.md#ExecutionPayloadV2) |  [`ExecutionPayloadV3`](#ExecutionPayloadV3) where:
+    - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
+    - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp and lower than the EIP-4844 activation timestamp
+    - `ExecutionPayloadV3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
