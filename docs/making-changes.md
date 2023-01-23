@@ -43,7 +43,7 @@ there can be a huge variance in actual design decisions.
 
 As an example, a proposal for a method such as `eth_totalSupply` seems
 reasonable. This is a quantity that users are often interested in and it would
-nice to have it available. However, tracking the total supply is tricky. There
+be nice to have it available. However, tracking the total supply is tricky. There
 are several avenues where ether can enter and leave supply. This method would
 need to either i) compute the value on demand or ii) store value for each block
 height.
@@ -64,13 +64,13 @@ method be created.
 
 ## Standardization
 
-There is not a formal process for standardization of API changes. However, the
-outline below should given proposal authors and champions a rough process to
+There is no formal process for standardization of API changes. However, the
+outline below should give proposal authors and champions a rough process to
 follow.
 
 ### Idea
 
-An often overlooked aspect on the standardization journey is the idea phase.
+An often overlooked aspect of the standardization journey is the idea phase.
 This is an important period of time, because some focused effort at this point
 in time can save time and make the rest of the process much smoother.
 
@@ -109,7 +109,7 @@ clients. This should be expected and not discourage authors.
 After client teams acknowledge and accept the change, it is usually on them to
 implement the method in their client. Due to the lack of versioning of the API,
 it is preferable that clients release the method roughly at the same time so
-that there is not much time where some clients support a certain methods and
+that there is not much time when some clients support certain methods and
 others don't.
 
 
