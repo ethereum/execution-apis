@@ -181,6 +181,8 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Client software **MUST** place responses in the order given in the request, using `null` for any missing blocks. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, null, C.body]`.
 
+1. Client software **MUST** support request sizes of at least 32 block hashes. The call **MUST** return `-38004: Too large request` error if the number of requested payload bodies is too large.
+
 1. Client software **MAY NOT** respond to requests for finalized blocks by hash.
 
 1. Client software **MUST** set `withdrawals` field to `null` for bodies of pre-Shanghai blocks.
@@ -208,7 +210,7 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `engine_forkchoiceUpdated` call.
 
-1. Client software **MUST** support `count` values of at least 32 blocks.
+1. Client software **MUST** support `count` values of at least 32 blocks. The call **MUST** return `-38004: Too large request` error if the requested range is too large.
 
 1. Client software **MUST** place `null` in the response array for unavailable blocks which numbers are lower than a number of the latest known block. Client software **MUST NOT** return trailing `null` values if the request extends past the current latest known block. Execution Layer client software is expected to download and carry the full block history until EIP-4444 or a similar proposal takes into effect. Consider the following response examples:
     * `[B1.body, B2.body, ..., Bn.body]` -- entire requested range is filled with block bodies,
