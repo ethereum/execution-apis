@@ -92,6 +92,7 @@ The list of error codes introduced by this specification can be found below.
 | -38001 | Unknown payload | Payload does not exist / is not available. |
 | -38002 | Invalid forkchoice state | Forkchoice state is invalid / inconsistent. |
 | -38003 | Invalid payload attributes | Payload attributes are invalid / inconsistent. |
+| -38004 | Too large request | Number of requested entities is too large. |
 
 Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
 
