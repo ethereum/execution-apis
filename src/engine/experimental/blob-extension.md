@@ -50,7 +50,6 @@ This structure has the syntax of `ExecutionPayloadV2` and appends a single field
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `excessDataGas`: `QUANTITY`, 256 bits
 
-
 ### BlobsBundleV1
 
 The fields are encoded as follows:
