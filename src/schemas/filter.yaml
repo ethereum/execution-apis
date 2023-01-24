@@ -52,10 +52,10 @@ FilterTopic:
 FilterOperators:
   title: operator
   type: object
-  oneOf:
-    - title: eq
+  properties:
+    eq:
       $ref: '#/components/schemas/uint'
-    - title: gt
+    gt:
       $ref: '#/components/schemas/uint'
-    - title: lt
+    lt:
       $ref: '#/components/schemas/uint'
