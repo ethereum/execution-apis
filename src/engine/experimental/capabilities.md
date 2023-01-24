@@ -30,7 +30,7 @@ The proposed method should become a part of [`common.md`](../common.md) document
     * `V1` method has been deprecated and `V3` method has been introduced on execution layer side since the last call:
         * params: `["engine_newPayloadV1", "engine_newPayloadV2", ...]`,
         * response: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`.
-    * The same capabilities modification has happened in clonsensus layer client, so, both clients have the same capability set again:
+    * The same capabilities modification has happened in consensus layer client, so, both clients have the same capability set again:
         * params: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`,
         * response: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`.
 
