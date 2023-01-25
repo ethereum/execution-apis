@@ -118,7 +118,7 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 
 * method: "engine_forkchoiceUpdatedV2"
 * params:
-  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateType1`](./paris.md#ForkchoiceStateType1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](./paris.md#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
       - `PayloadAttributesV1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
       - `PayloadAttributesV2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,

@@ -11,7 +11,7 @@ Engine API structures and methods specified for Paris.
   - [Table of contents](#table-of-contents)
   - [Structures](#structures)
     - [ExecutionPayloadType1](#executionpayloadtype1)
-    - [ForkchoiceStateV1](#forkchoicestatev1)
+    - [ForkchoiceStateType1](#forkchoicestatetype1)
     - [PayloadAttributesV1](#payloadattributesv1)
     - [PayloadStatusV1](#payloadstatusv1)
     - [TransitionConfigurationV1](#transitionconfigurationv1)
@@ -59,7 +59,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
-### ForkchoiceStateV1
+### ForkchoiceStateType1
 
 This structure encapsulates the fork choice state. The fields are encoded as follows:
 
@@ -183,7 +183,7 @@ The payload build process is specified as follows:
 
 * method: "engine_forkchoiceUpdatedV1"
 * params:
-  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateType1`](#ForkchoiceStateType1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
 * timeout: 8s
 
