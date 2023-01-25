@@ -23,7 +23,9 @@ The proposed method should become a part of [`common.md`](../common.md) document
 
 #### Specification
 
-1. Consensus and execution layer client software **MUST** exchange with a list of currently supported Engine API methods down to a version of each method. Consider the following examples:
+1. Consensus and execution layer client software **MAY** exchange with a list of currently supported Engine API methods. Execution layer client software **MUST NOT** log any error messages if this method has either never been called or haven't been called for a significant amount of time.
+
+2. Request and response lists **MUST** contain Engine API methods that are currently supported by consensus and execution client software respectively. Name of each method in both lists **MUST** include suffixed version. Consider the following examples:
     * Client software of both layers currently supports `V1` and `V2` versions of `engine_newPayload` method:
         * params: `["engine_newPayloadV1", "engine_newPayloadV2", ...]`,
         * response: `["engine_newPayloadV1", "engine_newPayloadV2", ...]`.
@@ -34,4 +36,4 @@ The proposed method should become a part of [`common.md`](../common.md) document
         * params: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`,
         * response: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`.
 
-2. The `engine_getCapabilities` method **MUST NOT** be returned in the response list.
+3. The `engine_exchangeCapabilities` method **MUST NOT** be returned in the response list.
