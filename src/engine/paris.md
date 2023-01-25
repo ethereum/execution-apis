@@ -13,7 +13,7 @@ Engine API structures and methods specified for Paris.
     - [ExecutionPayloadType1](#executionpayloadtype1)
     - [ForkchoiceStateType1](#forkchoicestatetype1)
     - [PayloadAttributesType1](#payloadattributestype1)
-    - [PayloadStatusV1](#payloadstatusv1)
+    - [PayloadStatusType1](#payloadstatustype1)
     - [TransitionConfigurationV1](#transitionconfigurationv1)
   - [Routines](#routines)
     - [Payload validation](#payload-validation)
@@ -77,7 +77,7 @@ This structure contains the attributes required to initiate a payload build proc
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
-### PayloadStatusV1
+### PayloadStatusType1
 
 This structure contains the result of processing a payload. The fields are encoded as follows:
 
@@ -151,7 +151,7 @@ The payload build process is specified as follows:
 
 #### Response
 
-* result: [`PayloadStatusV1`](#PayloadStatusV1)
+* result: [`PayloadStatusType1`](#PayloadStatusType1)
 * error: code and message set in case an exception happens while processing the payload.
 
 #### Specification
@@ -190,7 +190,7 @@ The payload build process is specified as follows:
 #### Response
 
 * result: `object`
-  - `payloadStatus`: [`PayloadStatusV1`](#PayloadStatusV1); values of the `status` field in the context of this method are restricted to the following subset:
+  - `payloadStatus`: [`PayloadStatusType1`](#PayloadStatusType1); values of the `status` field in the context of this method are restricted to the following subset:
     * `"VALID"`
     * `"INVALID"`
     * `"SYNCING"`

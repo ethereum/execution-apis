@@ -101,7 +101,7 @@ This structure has the syntax of `PayloadAttributesType1` and appends a single f
 
 #### Response
 
-* result: [`PayloadStatusV1`](./paris.md#payloadstatusv1), values of the `status` field are restricted in the following way:
+* result: [`PayloadStatusType1`](./paris.md#payloadstatusv1), values of the `status` field are restricted in the following way:
   - `INVALID_BLOCK_HASH` status value is supplanted by `INVALID`.
 * error: code and message set in case an exception happens while processing the payload.
 
