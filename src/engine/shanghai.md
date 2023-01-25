@@ -13,7 +13,7 @@ Engine API changes introduced in Shanghai.
     - [WithdrawalType1](#withdrawaltype1)
     - [ExecutionPayloadType2](#executionpayloadtype2)
     - [ExecutionPayloadBodyType1](#executionpayloadbodytype1)
-    - [PayloadAttributesV2](#payloadattributesv2)
+    - [PayloadAttributesType2](#payloadattributestype2)
   - [Methods](#methods)
     - [engine\_newPayloadV2](#engine_newpayloadv2)
       - [Request](#request)
@@ -78,7 +78,7 @@ This structure contains a body of an execution payload. The fields are encoded a
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
-### PayloadAttributesV2
+### PayloadAttributesType2
 
 This structure has the syntax of `PayloadAttributesType1` and appends a single field: `withdrawals`.
 
@@ -121,9 +121,9 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 * method: "engine_forkchoiceUpdatedV2"
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateType1`](./paris.md#ForkchoiceStateType1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesType1`](./paris.md#PayloadAttributesType1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesType1`](./paris.md#PayloadAttributesType1) | [`PayloadAttributesType2`](#PayloadAttributesType2) or `null`, where:
       - `PayloadAttributesType1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
-      - `PayloadAttributesV2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
+      - `PayloadAttributesType2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s
 
