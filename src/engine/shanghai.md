@@ -11,7 +11,7 @@ Engine API changes introduced in Shanghai.
   - [Table of contents](#table-of-contents)
   - [Structures](#structures)
     - [WithdrawalType1](#withdrawaltype1)
-    - [ExecutionPayloadV2](#executionpayloadv2)
+    - [ExecutionPayloadType2](#executionpayloadtype2)
     - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
     - [PayloadAttributesV2](#payloadattributesv2)
   - [Methods](#methods)
@@ -53,7 +53,7 @@ The fields are encoded as follows:
 *Note*: the `amount` value is represented on the beacon chain as a little-endian value in units of Gwei, whereas the
 `amount` in this structure *MUST* be converted to a big-endian value in units of Gwei.
 
-### ExecutionPayloadV2
+### ExecutionPayloadType2
 
 This structure has the syntax of `ExecutionPayloadType1` and appends a single field: `withdrawals`.
 
@@ -95,9 +95,9 @@ This structure has the syntax of `PayloadAttributesType1` and appends a single f
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadType1`](#./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
+  1. [`ExecutionPayloadType1`](#./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](#ExecutionPayloadType2), where:
       - `ExecutionPayloadType1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
-      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
+      - `ExecutionPayloadType2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s
 
@@ -151,9 +151,9 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadType1`](./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2) where:
+  - `executionPayload`: [`ExecutionPayloadType1`](./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](#ExecutionPayloadType2) where:
       - `ExecutionPayloadType1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
-      - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp
+      - `ExecutionPayloadType2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
