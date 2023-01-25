@@ -78,7 +78,7 @@ This structure contains a body of an execution payload. The fields are encoded a
 
 ### PayloadAttributesV2
 
-This structure has the syntax of `PayloadAttributesV1` and appends a single field: `withdrawals`.
+This structure has the syntax of `PayloadAttributesType1` and appends a single field: `withdrawals`.
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
@@ -119,8 +119,8 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 * method: "engine_forkchoiceUpdatedV2"
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateType1`](./paris.md#ForkchoiceStateType1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](./paris.md#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
-      - `PayloadAttributesV1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesType1`](./paris.md#PayloadAttributesType1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
+      - `PayloadAttributesType1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
       - `PayloadAttributesV2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s

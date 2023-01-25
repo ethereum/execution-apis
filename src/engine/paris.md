@@ -12,7 +12,7 @@ Engine API structures and methods specified for Paris.
   - [Structures](#structures)
     - [ExecutionPayloadType1](#executionpayloadtype1)
     - [ForkchoiceStateType1](#forkchoicestatetype1)
-    - [PayloadAttributesV1](#payloadattributesv1)
+    - [PayloadAttributesType1](#payloadattributestype1)
     - [PayloadStatusV1](#payloadstatusv1)
     - [TransitionConfigurationV1](#transitionconfigurationv1)
   - [Routines](#routines)
@@ -69,7 +69,7 @@ This structure encapsulates the fork choice state. The fields are encoded as fol
 
 *Note:* `safeBlockHash` and `finalizedBlockHash` fields are allowed to have `0x0000000000000000000000000000000000000000000000000000000000000000` value unless transition block is finalized.
 
-### PayloadAttributesV1
+### PayloadAttributesType1
 
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 
@@ -184,7 +184,7 @@ The payload build process is specified as follows:
 * method: "engine_forkchoiceUpdatedV1"
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateType1`](#ForkchoiceStateType1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesType1`](#PayloadAttributesType1) or `null`
 * timeout: 8s
 
 #### Response
