@@ -14,7 +14,7 @@ Engine API structures and methods specified for Paris.
     - [ForkchoiceStateType1](#forkchoicestatetype1)
     - [PayloadAttributesType1](#payloadattributestype1)
     - [PayloadStatusType1](#payloadstatustype1)
-    - [TransitionConfigurationV1](#transitionconfigurationv1)
+    - [TransitionConfigurationType1](#transitionconfigurationtype1)
   - [Routines](#routines)
     - [Payload validation](#payload-validation)
     - [Sync](#sync)
@@ -32,7 +32,7 @@ Engine API structures and methods specified for Paris.
       - [Request](#request-2)
       - [Response](#response-2)
       - [Specification](#specification-2)
-    - [engine\_exchangeTransitionConfigurationV1](#engine_exchangetransitionconfigurationv1)
+    - [engine\_exchangeTransitionConfigurationType1](#engine_exchangetransitionconfigurationtype1)
       - [Request](#request-3)
       - [Response](#response-3)
       - [Specification](#specification-3)
@@ -85,7 +85,7 @@ This structure contains the result of processing a payload. The fields are encod
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
 
-### TransitionConfigurationV1
+### TransitionConfigurationType1
 
 This structure contains configurable settings of the transition process. The fields are encoded as follows:
 - `terminalTotalDifficulty`: `QUANTITY`, 256 Bits - maps on the `TERMINAL_TOTAL_DIFFICULTY` parameter of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration)
@@ -250,18 +250,18 @@ The payload build process is specified as follows:
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
 
-### engine_exchangeTransitionConfigurationV1
+### engine_exchangeTransitionConfigurationType1
 
 #### Request
 
-* method: `engine_exchangeTransitionConfigurationV1`
+* method: `engine_exchangeTransitionConfigurationType1`
 * params:
-  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1)
+  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationType1`](#TransitionConfigurationType1)
 * timeout: 1s
 
 #### Response
 
-* result: [`TransitionConfigurationV1`](#TransitionConfigurationV1)
+* result: [`TransitionConfigurationType1`](#TransitionConfigurationType1)
 * error: code and message set in case an exception happens while getting a transition configuration.
 
 #### Specification
