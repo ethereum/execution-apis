@@ -7,38 +7,40 @@ Engine API changes introduced in Shanghai.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Structures](#structures)
-  - [WithdrawalV1](#withdrawalv1)
-  - [ExecutionPayloadV2](#executionpayloadv2)
-  - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
-  - [PayloadAttributesV2](#payloadattributesv2)
-- [Methods](#methods)
-  - [engine_newPayloadV2](#engine_newpayloadv2)
-    - [Request](#request)
-    - [Response](#response)
-    - [Specification](#specification)
-  - [engine_forkchoiceUpdatedV2](#engine_forkchoiceupdatedv2)
-    - [Request](#request-1)
-    - [Response](#response-1)
-    - [Specification](#specification-1)
-  - [engine_getPayloadV2](#engine_getpayloadv2)
-    - [Request](#request-2)
-    - [Response](#response-2)
-    - [Specification](#specification-2)
-  - [engine_getPayloadBodiesByHashV1](#engine_getpayloadbodiesbyhashv1)
-    - [Request](#request-3)
-    - [Response](#response-3)
-    - [Specification](#specification-3)
-  - [engine_getPayloadBodiesByRangeV1](#engine_getpayloadbodiesbyrangev1)
-    - [Request](#request-4)
-    - [Response](#response-4)
-    - [Specification](#specification-4)
+- [Engine API -- Shanghai](#engine-api----shanghai)
+  - [Table of contents](#table-of-contents)
+  - [Structures](#structures)
+    - [WithdrawalType1](#withdrawaltype1)
+    - [ExecutionPayloadType2](#executionpayloadtype2)
+    - [ExecutionPayloadBodyType1](#executionpayloadbodytype1)
+    - [PayloadAttributesType2](#payloadattributestype2)
+  - [Methods](#methods)
+    - [engine\_newPayloadV2](#engine_newpayloadv2)
+      - [Request](#request)
+      - [Response](#response)
+      - [Specification](#specification)
+    - [engine\_forkchoiceUpdatedV2](#engine_forkchoiceupdatedv2)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
+    - [engine\_getPayloadV2](#engine_getpayloadv2)
+      - [Request](#request-2)
+      - [Response](#response-2)
+      - [Specification](#specification-2)
+    - [engine\_getPayloadBodiesByHashV1](#engine_getpayloadbodiesbyhashv1)
+      - [Request](#request-3)
+      - [Response](#response-3)
+      - [Specification](#specification-3)
+    - [engine\_getPayloadBodiesByRangeV1](#engine_getpayloadbodiesbyrangev1)
+      - [Request](#request-4)
+      - [Response](#response-4)
+      - [Specification](#specification-4)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Structures
 
-### WithdrawalV1
+### WithdrawalType1
 
 This structure maps onto the validator withdrawal object from the beacon chain spec.
 The fields are encoded as follows:
@@ -51,9 +53,9 @@ The fields are encoded as follows:
 *Note*: the `amount` value is represented on the beacon chain as a little-endian value in units of Gwei, whereas the
 `amount` in this structure *MUST* be converted to a big-endian value in units of Gwei.
 
-### ExecutionPayloadV2
+### ExecutionPayloadType2
 
-This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
+This structure has the syntax of `ExecutionPayloadType1` and appends a single field: `withdrawals`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -69,21 +71,21 @@ This structure has the syntax of `ExecutionPayloadV1` and appends a single field
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
-### ExecutionPayloadBodyV1
+### ExecutionPayloadBodyType1
 This structure contains a body of an execution payload. The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
-### PayloadAttributesV2
+### PayloadAttributesType2
 
-This structure has the syntax of `PayloadAttributesV1` and appends a single field: `withdrawals`.
+This structure has the syntax of `PayloadAttributesType1` and appends a single field: `withdrawals`.
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
 ## Methods
 
@@ -93,15 +95,15 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadV1`](#./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
-      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
-      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
+  1. [`ExecutionPayloadType1`](#./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](#ExecutionPayloadType2), where:
+      - `ExecutionPayloadType1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
+      - `ExecutionPayloadType2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s
 
 #### Response
 
-* result: [`PayloadStatusV1`](./paris.md#payloadstatusv1), values of the `status` field are restricted in the following way:
+* result: [`PayloadStatusType1`](./paris.md#payloadstatusv1), values of the `status` field are restricted in the following way:
   - `INVALID_BLOCK_HASH` status value is supplanted by `INVALID`.
 * error: code and message set in case an exception happens while processing the payload.
 
@@ -118,10 +120,10 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 
 * method: "engine_forkchoiceUpdatedV2"
 * params:
-  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](./paris.md#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:
-      - `PayloadAttributesV1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
-      - `PayloadAttributesV2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateType1`](./paris.md#ForkchoiceStateType1)
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesType1`](./paris.md#PayloadAttributesType1) | [`PayloadAttributesType2`](#PayloadAttributesType2) or `null`, where:
+      - `PayloadAttributesType1` **MUST** be used to build a payload with the `timestamp` value lower than the Shanghai timestamp,
+      - `PayloadAttributesType2` **MUST** be used to build a payload with the `timestamp` value greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s
 
@@ -149,9 +151,9 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV1`](./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2) where:
-      - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
-      - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp
+  - `executionPayload`: [`ExecutionPayloadType1`](./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](#ExecutionPayloadType2) where:
+      - `ExecutionPayloadType1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
+      - `ExecutionPayloadType2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
@@ -172,12 +174,12 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 #### Response
 
-* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* result: `Array of ExecutionPayloadBodyType1` - Array of [`ExecutionPayloadBodyType1`](#ExecutionPayloadBodyType1) objects.
 * error: code and message set in case an exception happens while processing the method call.
 
 #### Specification
 
-1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding hashes respecting the order of block hashes in the input array.
+1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyType1` objects with the corresponding hashes respecting the order of block hashes in the input array.
 
 1. Client software **MUST** place responses in the order given in the request, using `null` for any missing blocks. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, null, C.body]`.
 
@@ -203,12 +205,12 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 #### Response
 
-* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* result: `Array of ExecutionPayloadBodyType1` - Array of [`ExecutionPayloadBodyType1`](#ExecutionPayloadBodyType1) objects.
 * error: code and message set in case an exception happens while processing the method call.
 
 #### Specification
 
-1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `engine_forkchoiceUpdated` call.
+1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyType1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `engine_forkchoiceUpdated` call.
 
 1. Client software **MUST** support `count` values of at least 32 blocks. The call **MUST** return `-38004: Too large request` error if the requested range is too large.
 

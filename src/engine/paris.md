@@ -7,38 +7,40 @@ Engine API structures and methods specified for Paris.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Structures](#structures)
-  - [ExecutionPayloadV1](#executionpayloadv1)
-  - [ForkchoiceStateV1](#forkchoicestatev1)
-  - [PayloadAttributesV1](#payloadattributesv1)
-  - [PayloadStatusV1](#payloadstatusv1)
-  - [TransitionConfigurationV1](#transitionconfigurationv1)
-- [Routines](#routines)
-  - [Payload validation](#payload-validation)
-  - [Sync](#sync)
-  - [Payload building](#payload-building)
-- [Methods](#methods)
-  - [engine_newPayloadV1](#engine_newpayloadv1)
-    - [Request](#request)
-    - [Response](#response)
-    - [Specification](#specification)
-  - [engine_forkchoiceUpdatedV1](#engine_forkchoiceupdatedv1)
-    - [Request](#request-1)
-    - [Response](#response-1)
-    - [Specification](#specification-1)
-  - [engine_getPayloadV1](#engine_getpayloadv1)
-    - [Request](#request-2)
-    - [Response](#response-2)
-    - [Specification](#specification-2)
-  - [engine_exchangeTransitionConfigurationV1](#engine_exchangetransitionconfigurationv1)
-    - [Request](#request-3)
-    - [Response](#response-3)
-    - [Specification](#specification-3)
+- [Engine API -- Paris](#engine-api----paris)
+  - [Table of contents](#table-of-contents)
+  - [Structures](#structures)
+    - [ExecutionPayloadType1](#executionpayloadtype1)
+    - [ForkchoiceStateType1](#forkchoicestatetype1)
+    - [PayloadAttributesType1](#payloadattributestype1)
+    - [PayloadStatusType1](#payloadstatustype1)
+    - [TransitionConfigurationType1](#transitionconfigurationtype1)
+  - [Routines](#routines)
+    - [Payload validation](#payload-validation)
+    - [Sync](#sync)
+    - [Payload building](#payload-building)
+  - [Methods](#methods)
+    - [engine\_newPayloadV1](#engine_newpayloadv1)
+      - [Request](#request)
+      - [Response](#response)
+      - [Specification](#specification)
+    - [engine\_forkchoiceUpdatedV1](#engine_forkchoiceupdatedv1)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
+    - [engine\_getPayloadV1](#engine_getpayloadv1)
+      - [Request](#request-2)
+      - [Response](#response-2)
+      - [Specification](#specification-2)
+    - [engine\_exchangeTransitionConfigurationType1](#engine_exchangetransitionconfigurationtype1)
+      - [Request](#request-3)
+      - [Response](#response-3)
+      - [Specification](#specification-3)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 ## Structures
 
-### ExecutionPayloadV1
+### ExecutionPayloadType1
 
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
 
@@ -57,7 +59,7 @@ This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/cons
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
-### ForkchoiceStateV1
+### ForkchoiceStateType1
 
 This structure encapsulates the fork choice state. The fields are encoded as follows:
 
@@ -67,7 +69,7 @@ This structure encapsulates the fork choice state. The fields are encoded as fol
 
 *Note:* `safeBlockHash` and `finalizedBlockHash` fields are allowed to have `0x0000000000000000000000000000000000000000000000000000000000000000` value unless transition block is finalized.
 
-### PayloadAttributesV1
+### PayloadAttributesType1
 
 This structure contains the attributes required to initiate a payload build process in the context of an `engine_forkchoiceUpdated` call. The fields are encoded as follows:
 
@@ -75,7 +77,7 @@ This structure contains the attributes required to initiate a payload build proc
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 
-### PayloadStatusV1
+### PayloadStatusType1
 
 This structure contains the result of processing a payload. The fields are encoded as follows:
 
@@ -83,7 +85,7 @@ This structure contains the result of processing a payload. The fields are encod
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
 
-### TransitionConfigurationV1
+### TransitionConfigurationType1
 
 This structure contains configurable settings of the transition process. The fields are encoded as follows:
 - `terminalTotalDifficulty`: `QUANTITY`, 256 Bits - maps on the `TERMINAL_TOTAL_DIFFICULTY` parameter of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#client-software-configuration)
@@ -144,12 +146,12 @@ The payload build process is specified as follows:
 
 * method: `engine_newPayloadV1`
 * params:
-  1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+  1. [`ExecutionPayloadType1`](#ExecutionPayloadType1)
 * timeout: 8s
 
 #### Response
 
-* result: [`PayloadStatusV1`](#PayloadStatusV1)
+* result: [`PayloadStatusType1`](#PayloadStatusType1)
 * error: code and message set in case an exception happens while processing the payload.
 
 #### Specification
@@ -181,14 +183,14 @@ The payload build process is specified as follows:
 
 * method: "engine_forkchoiceUpdatedV1"
 * params:
-  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateType1`](#ForkchoiceStateType1)
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesType1`](#PayloadAttributesType1) or `null`
 * timeout: 8s
 
 #### Response
 
 * result: `object`
-  - `payloadStatus`: [`PayloadStatusV1`](#PayloadStatusV1); values of the `status` field in the context of this method are restricted to the following subset:
+  - `payloadStatus`: [`PayloadStatusType1`](#PayloadStatusType1); values of the `status` field in the context of this method are restricted to the following subset:
     * `"VALID"`
     * `"INVALID"`
     * `"SYNCING"`
@@ -237,7 +239,7 @@ The payload build process is specified as follows:
 
 #### Response
 
-* result: [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+* result: [`ExecutionPayloadType1`](#ExecutionPayloadType1)
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -248,18 +250,18 @@ The payload build process is specified as follows:
 
 3. Client software **MAY** stop the corresponding build process after serving this call.
 
-### engine_exchangeTransitionConfigurationV1
+### engine_exchangeTransitionConfigurationType1
 
 #### Request
 
-* method: `engine_exchangeTransitionConfigurationV1`
+* method: `engine_exchangeTransitionConfigurationType1`
 * params:
-  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationV1`](#TransitionConfigurationV1)
+  1. `transitionConfiguration`: `Object` - instance of [`TransitionConfigurationType1`](#TransitionConfigurationType1)
 * timeout: 1s
 
 #### Response
 
-* result: [`TransitionConfigurationV1`](#TransitionConfigurationV1)
+* result: [`TransitionConfigurationType1`](#TransitionConfigurationType1)
 * error: code and message set in case an exception happens while getting a transition configuration.
 
 #### Specification

@@ -7,14 +7,17 @@ This document specifies common definitions and requirements affecting Engine API
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Underlying protocol](#underlying-protocol)
-  - [Authentication](#authentication)
-- [Versioning](#versioning)
-- [Message ordering](#message-ordering)
-- [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
-- [Errors](#errors)
-- [Timeouts](#timeouts)
-- [Encoding](#encoding)
+- [Engine API -- Common Definitions](#engine-api----common-definitions)
+  - [Table of contents](#table-of-contents)
+  - [Underlying protocol](#underlying-protocol)
+    - [Authentication](#authentication)
+  - [Method Versioning](#method-versioning)
+  - [Structure Types](#structure-types)
+  - [Message ordering](#message-ordering)
+  - [Load-balancing and advanced configurations](#load-balancing-and-advanced-configurations)
+  - [Errors](#errors)
+  - [Timeouts](#timeouts)
+  - [Encoding](#encoding)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -46,18 +49,28 @@ These methods are described in [Ethereum JSON-RPC Specification][json-rpc-spec].
 Engine API uses JWT authentication enabled by default.
 JWT authentication is specified in [Authentication](./authentication.md) document.
 
-## Versioning
+## Method Versioning
 
 The versioning of the Engine API is defined as follows:
 
-* The version of each method and structure is independent from versions of other methods and structures.
-* The `VX`, where the `X` is the number of the version, is suffixed to the name of each method and structure.
-* The version of a method or a structure **MUST** be incremented by one if any of the following is changed:
+* The version of each method is independent from versions of other methods or numbers of structural types.
+* The `VX`, where the `X` is the number of the version, is suffixed to the name of each method.
+* The version of a method **MUST** be incremented by one if any of the following is changed:
   * a set of method parameters
   * a method response value
   * a method behavior
+* The specification **MAY** reference a method without the version suffix e.g. `engine_newPayload`. These statements should be read as related to all versions of the referenced method.
+
+## Structure Types
+
+Structural types of the Engine API are defined as follows:
+
+* Types for a structure are numbered for differentiation
+* The type number of each structure is independent from numbers of other structural types or versions of methods.
+* The `TypeX`, where the `X` is the number of the type, is suffixed to the name of each structure.
+* The type of a a structure **MUST** be incremented by one if any of the following is changed:
   * a set of structure fields
-* The specification **MAY** reference a method or a structure without the version suffix e.g. `engine_newPayload`. These statements should be read as related to all versions of the referenced method or structure.
+* The specification **MAY** reference a structure without the type suffix e.g. `ExecutionPayload`. These statements should be read as related to all available types of the referenced structure.
 
 ## Message ordering
 

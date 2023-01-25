@@ -4,18 +4,18 @@
 
 - [Shard Blob Extension](#shard-blob-extension)
   - [Structures](#structures)
-    - [ExecutionPayloadV3](#executionpayloadv3)
-    - [BlobsBundleV1](#blobsbundlev1)
+    - [ExecutionPayloadType3](#executionpayloadtype3)
+    - [BlobsBundleType1](#blobsbundletype1)
   - [Methods](#methods)
-    - [engine_newPayloadV3](#engine_newpayloadv3)
+    - [engine\_newPayloadV3](#engine_newpayloadv3)
       - [Request](#request)
       - [Specification](#specification)
       - [Response](#response)
-    - [engine_getPayloadV3](#engine_getpayloadv3)
+    - [engine\_getPayloadV3](#engine_getpayloadv3)
       - [Request](#request-1)
       - [Response](#response-1)
       - [Specification](#specification-1)
-    - [engine_getBlobsBundleV1](#engine_getblobsbundlev1)
+    - [engine\_getBlobsBundleType1](#engine_getblobsbundletype1)
       - [Request](#request-2)
       - [Response](#response-2)
       - [Specification](#specification-2)
@@ -29,9 +29,9 @@ This extension is backwards-compatible, but not part of the initial Engine API.
 
 ## Structures
 
-### ExecutionPayloadV3
+### ExecutionPayloadType3
 
-This structure has the syntax of `ExecutionPayloadV2` and appends a single field: `excessDataGas`.
+This structure has the syntax of `ExecutionPayloadType2` and appends a single field: `excessDataGas`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -48,9 +48,9 @@ This structure has the syntax of `ExecutionPayloadV2` and appends a single field
 - `excessDataGas`: `QUANTITY`, 256 bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
-### BlobsBundleV1
+### BlobsBundleType1
 
 The fields are encoded as follows:
 
@@ -66,10 +66,10 @@ The fields are encoded as follows:
 
 * method: `engine_newPayloadV3`
 * params:
-  1. [`ExecutionPayloadV1`](../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](../shanghai.md#ExecutionPayloadV2) | [`ExecutionPayloadV3`](#ExecutionPayloadV3), where:
-      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
-      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai and lower than the EIP-4844 activation timestamp,
-      - `ExecutionPayloadV3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
+  1. [`ExecutionPayloadType1`](../paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](../shanghai.md#ExecutionPayloadType2) | [`ExecutionPayloadType3`](#ExecutionPayloadType3), where:
+      - `ExecutionPayloadType1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
+      - `ExecutionPayloadType2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai and lower than the EIP-4844 activation timestamp,
+      - `ExecutionPayloadType3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Specification
@@ -92,10 +92,10 @@ Refer to the response for `engine_newPayloadV2`.
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV1`](../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](../shanghai.md#ExecutionPayloadV2) |  [`ExecutionPayloadV3`](#ExecutionPayloadV3) where:
-    - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
-    - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp and lower than the EIP-4844 activation timestamp
-    - `ExecutionPayloadV3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp
+  - `executionPayload`: [`ExecutionPayloadType1`](../paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](../shanghai.md#ExecutionPayloadType2) |  [`ExecutionPayloadType3`](#ExecutionPayloadType3) where:
+    - `ExecutionPayloadType1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
+    - `ExecutionPayloadType2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp and lower than the EIP-4844 activation timestamp
+    - `ExecutionPayloadType3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
@@ -103,7 +103,7 @@ Refer to the response for `engine_newPayloadV2`.
 
 Refer to the specification for `engine_getPayloadV2`.
 
-### engine_getBlobsBundleV1
+### engine_getBlobsBundleType1
 
 This method retrieves the blobs and their respective KZG commitments corresponding to the `versioned_hashes`
 included in the blob transactions of the referenced execution payload.
@@ -113,20 +113,20 @@ The separation of concerns aims to minimize changes during the testing phase of 
 
 #### Request
 
-* method: `engine_getBlobsBundleV1`
+* method: `engine_getBlobsBundleType1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
 * timeout: 1s
 
 #### Response
 
-* result: [`BlobsBundleV1`](#BlobsBundleV1)
+* result: [`BlobsBundleType1`](#BlobsBundleType1)
 * error: code and message set in case an exception happens while getting the blobs bundle.
 
 #### Specification
 
 1. Given the `payloadId` client software **MUST** return the blobs bundle corresponding to the most recent version of the payload that was served with `engine_getPayload`, if any,
-   and halt any further changes to the payload. The `engine_getBlobsBundleV1` and `engine_getPayloadV2` results **MUST** be consistent as outlined in items 3, 4 and 5 below. 
+   and halt any further changes to the payload. The `engine_getBlobsBundleType1` and `engine_getPayloadV2` results **MUST** be consistent as outlined in items 3, 4 and 5 below. 
 
 2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist. Note that a payload without any blobs **MUST** return an empty `blobs` and `kzgs` list, not an error.
 
