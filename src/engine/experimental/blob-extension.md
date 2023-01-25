@@ -4,18 +4,18 @@
 
 - [Shard Blob Extension](#shard-blob-extension)
   - [Structures](#structures)
-    - [ExecutionPayloadV3](#executionpayloadv3)
+    - [ExecutionPayloadType3](#executionpayloadtype3)
     - [BlobsBundleV1](#blobsbundlev1)
   - [Methods](#methods)
-    - [engine_newPayloadV3](#engine_newpayloadv3)
+    - [engine\_newPayloadV3](#engine_newpayloadv3)
       - [Request](#request)
       - [Specification](#specification)
       - [Response](#response)
-    - [engine_getPayloadV3](#engine_getpayloadv3)
+    - [engine\_getPayloadV3](#engine_getpayloadv3)
       - [Request](#request-1)
       - [Response](#response-1)
       - [Specification](#specification-1)
-    - [engine_getBlobsBundleV1](#engine_getblobsbundlev1)
+    - [engine\_getBlobsBundleV1](#engine_getblobsbundlev1)
       - [Request](#request-2)
       - [Response](#response-2)
       - [Specification](#specification-2)
@@ -29,7 +29,7 @@ This extension is backwards-compatible, but not part of the initial Engine API.
 
 ## Structures
 
-### ExecutionPayloadV3
+### ExecutionPayloadType3
 
 This structure has the syntax of `ExecutionPayloadType2` and appends a single field: `excessDataGas`.
 
@@ -66,10 +66,10 @@ The fields are encoded as follows:
 
 * method: `engine_newPayloadV3`
 * params:
-  1. [`ExecutionPayloadType1`](../paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](../shanghai.md#ExecutionPayloadType2) | [`ExecutionPayloadV3`](#ExecutionPayloadV3), where:
+  1. [`ExecutionPayloadType1`](../paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](../shanghai.md#ExecutionPayloadType2) | [`ExecutionPayloadType3`](#ExecutionPayloadType3), where:
       - `ExecutionPayloadType1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
       - `ExecutionPayloadType2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai and lower than the EIP-4844 activation timestamp,
-      - `ExecutionPayloadV3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
+      - `ExecutionPayloadType3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 
 #### Specification
@@ -92,10 +92,10 @@ Refer to the response for `engine_newPayloadV2`.
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadType1`](../paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](../shanghai.md#ExecutionPayloadType2) |  [`ExecutionPayloadV3`](#ExecutionPayloadV3) where:
+  - `executionPayload`: [`ExecutionPayloadType1`](../paris.md#ExecutionPayloadType1) | [`ExecutionPayloadType2`](../shanghai.md#ExecutionPayloadType2) |  [`ExecutionPayloadType3`](#ExecutionPayloadType3) where:
     - `ExecutionPayloadType1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
     - `ExecutionPayloadType2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp and lower than the EIP-4844 activation timestamp
-    - `ExecutionPayloadV3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp
+    - `ExecutionPayloadType3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.
 
