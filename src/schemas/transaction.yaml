@@ -281,5 +281,5 @@ GenericTransaction:
 Nonce:
   title: nonce
   description: Only Used Once
-  $ref: '#/components/schemas/bytes8'
+  $ref: '#/components/schemas/uint64'
 
