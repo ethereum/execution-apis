@@ -7,38 +7,40 @@ Engine API changes introduced in Shanghai.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Structures](#structures)
-  - [WithdrawalV1](#withdrawalv1)
-  - [ExecutionPayloadV2](#executionpayloadv2)
-  - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
-  - [PayloadAttributesV2](#payloadattributesv2)
-- [Methods](#methods)
-  - [engine_newPayloadV2](#engine_newpayloadv2)
-    - [Request](#request)
-    - [Response](#response)
-    - [Specification](#specification)
-  - [engine_forkchoiceUpdatedV2](#engine_forkchoiceupdatedv2)
-    - [Request](#request-1)
-    - [Response](#response-1)
-    - [Specification](#specification-1)
-  - [engine_getPayloadV2](#engine_getpayloadv2)
-    - [Request](#request-2)
-    - [Response](#response-2)
-    - [Specification](#specification-2)
-  - [engine_getPayloadBodiesByHashV1](#engine_getpayloadbodiesbyhashv1)
-    - [Request](#request-3)
-    - [Response](#response-3)
-    - [Specification](#specification-3)
-  - [engine_getPayloadBodiesByRangeV1](#engine_getpayloadbodiesbyrangev1)
-    - [Request](#request-4)
-    - [Response](#response-4)
-    - [Specification](#specification-4)
+- [Engine API -- Shanghai](#engine-api----shanghai)
+  - [Table of contents](#table-of-contents)
+  - [Structures](#structures)
+    - [WithdrawalType1](#withdrawaltype1)
+    - [ExecutionPayloadV2](#executionpayloadv2)
+    - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
+    - [PayloadAttributesV2](#payloadattributesv2)
+  - [Methods](#methods)
+    - [engine\_newPayloadV2](#engine_newpayloadv2)
+      - [Request](#request)
+      - [Response](#response)
+      - [Specification](#specification)
+    - [engine\_forkchoiceUpdatedV2](#engine_forkchoiceupdatedv2)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
+    - [engine\_getPayloadV2](#engine_getpayloadv2)
+      - [Request](#request-2)
+      - [Response](#response-2)
+      - [Specification](#specification-2)
+    - [engine\_getPayloadBodiesByHashV1](#engine_getpayloadbodiesbyhashv1)
+      - [Request](#request-3)
+      - [Response](#response-3)
+      - [Specification](#specification-3)
+    - [engine\_getPayloadBodiesByRangeV1](#engine_getpayloadbodiesbyrangev1)
+      - [Request](#request-4)
+      - [Response](#response-4)
+      - [Specification](#specification-4)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Structures
 
-### WithdrawalV1
+### WithdrawalType1
 
 This structure maps onto the validator withdrawal object from the beacon chain spec.
 The fields are encoded as follows:
@@ -69,12 +71,12 @@ This structure has the syntax of `ExecutionPayloadType1` and appends a single fi
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
 ### ExecutionPayloadBodyV1
 This structure contains a body of an execution payload. The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
 ### PayloadAttributesV2
 
@@ -83,7 +85,7 @@ This structure has the syntax of `PayloadAttributesType1` and appends a single f
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
 ## Methods
 
