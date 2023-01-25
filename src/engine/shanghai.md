@@ -12,7 +12,7 @@ Engine API changes introduced in Shanghai.
   - [Structures](#structures)
     - [WithdrawalType1](#withdrawaltype1)
     - [ExecutionPayloadType2](#executionpayloadtype2)
-    - [ExecutionPayloadBodyV1](#executionpayloadbodyv1)
+    - [ExecutionPayloadBodyType1](#executionpayloadbodytype1)
     - [PayloadAttributesV2](#payloadattributesv2)
   - [Methods](#methods)
     - [engine\_newPayloadV2](#engine_newpayloadv2)
@@ -73,7 +73,7 @@ This structure has the syntax of `ExecutionPayloadType1` and appends a single fi
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
 
-### ExecutionPayloadBodyV1
+### ExecutionPayloadBodyType1
 This structure contains a body of an execution payload. The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalType1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalType1` structure.
@@ -174,12 +174,12 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 #### Response
 
-* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* result: `Array of ExecutionPayloadBodyType1` - Array of [`ExecutionPayloadBodyType1`](#ExecutionPayloadBodyType1) objects.
 * error: code and message set in case an exception happens while processing the method call.
 
 #### Specification
 
-1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding hashes respecting the order of block hashes in the input array.
+1. Given array of block hashes client software **MUST** respond with array of `ExecutionPayloadBodyType1` objects with the corresponding hashes respecting the order of block hashes in the input array.
 
 1. Client software **MUST** place responses in the order given in the request, using `null` for any missing blocks. For instance, if the request is `[A.block_hash, B.block_hash, C.block_hash]` and client software has data of payloads `A` and `C`, but doesn't have data of `B`, the response **MUST** be `[A.body, null, C.body]`.
 
@@ -205,12 +205,12 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 #### Response
 
-* result: `Array of ExecutionPayloadBodyV1` - Array of [`ExecutionPayloadBodyV1`](#ExecutionPayloadBodyV1) objects.
+* result: `Array of ExecutionPayloadBodyType1` - Array of [`ExecutionPayloadBodyType1`](#ExecutionPayloadBodyType1) objects.
 * error: code and message set in case an exception happens while processing the method call.
 
 #### Specification
 
-1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `engine_forkchoiceUpdated` call.
+1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyType1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `engine_forkchoiceUpdated` call.
 
 1. Client software **MUST** support `count` values of at least 32 blocks. The call **MUST** return `-38004: Too large request` error if the requested range is too large.
 
