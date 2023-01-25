@@ -21,7 +21,6 @@ Log:
     blockNumber:
       $ref: '#/components/schemas/BlockNumber'
     address:
-      title: address
       $ref: '#/components/schemas/address'
     data:
       title: data
