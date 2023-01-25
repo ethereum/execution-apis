@@ -53,7 +53,7 @@ The fields are encoded as follows:
 
 ### ExecutionPayloadV2
 
-This structure has the syntax of `ExecutionPayloadV1` and appends a single field: `withdrawals`.
+This structure has the syntax of `ExecutionPayloadType1` and appends a single field: `withdrawals`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -93,8 +93,8 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadV1`](#./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
-      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
+  1. [`ExecutionPayloadType1`](#./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
+      - `ExecutionPayloadType1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
       - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
 * timeout: 8s
@@ -149,8 +149,8 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV1`](./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2) where:
-      - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
+  - `executionPayload`: [`ExecutionPayloadType1`](./paris.md#ExecutionPayloadType1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2) where:
+      - `ExecutionPayloadType1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
       - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
 * error: code and message set in case an exception happens while getting the payload.

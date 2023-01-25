@@ -7,38 +7,40 @@ Engine API structures and methods specified for Paris.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Structures](#structures)
-  - [ExecutionPayloadV1](#executionpayloadv1)
-  - [ForkchoiceStateV1](#forkchoicestatev1)
-  - [PayloadAttributesV1](#payloadattributesv1)
-  - [PayloadStatusV1](#payloadstatusv1)
-  - [TransitionConfigurationV1](#transitionconfigurationv1)
-- [Routines](#routines)
-  - [Payload validation](#payload-validation)
-  - [Sync](#sync)
-  - [Payload building](#payload-building)
-- [Methods](#methods)
-  - [engine_newPayloadV1](#engine_newpayloadv1)
-    - [Request](#request)
-    - [Response](#response)
-    - [Specification](#specification)
-  - [engine_forkchoiceUpdatedV1](#engine_forkchoiceupdatedv1)
-    - [Request](#request-1)
-    - [Response](#response-1)
-    - [Specification](#specification-1)
-  - [engine_getPayloadV1](#engine_getpayloadv1)
-    - [Request](#request-2)
-    - [Response](#response-2)
-    - [Specification](#specification-2)
-  - [engine_exchangeTransitionConfigurationV1](#engine_exchangetransitionconfigurationv1)
-    - [Request](#request-3)
-    - [Response](#response-3)
-    - [Specification](#specification-3)
+- [Engine API -- Paris](#engine-api----paris)
+  - [Table of contents](#table-of-contents)
+  - [Structures](#structures)
+    - [ExecutionPayloadType1](#executionpayloadtype1)
+    - [ForkchoiceStateV1](#forkchoicestatev1)
+    - [PayloadAttributesV1](#payloadattributesv1)
+    - [PayloadStatusV1](#payloadstatusv1)
+    - [TransitionConfigurationV1](#transitionconfigurationv1)
+  - [Routines](#routines)
+    - [Payload validation](#payload-validation)
+    - [Sync](#sync)
+    - [Payload building](#payload-building)
+  - [Methods](#methods)
+    - [engine\_newPayloadV1](#engine_newpayloadv1)
+      - [Request](#request)
+      - [Response](#response)
+      - [Specification](#specification)
+    - [engine\_forkchoiceUpdatedV1](#engine_forkchoiceupdatedv1)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
+    - [engine\_getPayloadV1](#engine_getpayloadv1)
+      - [Request](#request-2)
+      - [Response](#response-2)
+      - [Specification](#specification-2)
+    - [engine\_exchangeTransitionConfigurationV1](#engine_exchangetransitionconfigurationv1)
+      - [Request](#request-3)
+      - [Response](#response-3)
+      - [Specification](#specification-3)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 ## Structures
 
-### ExecutionPayloadV1
+### ExecutionPayloadType1
 
 This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
 
@@ -144,7 +146,7 @@ The payload build process is specified as follows:
 
 * method: `engine_newPayloadV1`
 * params:
-  1. [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+  1. [`ExecutionPayloadType1`](#ExecutionPayloadType1)
 * timeout: 8s
 
 #### Response
@@ -237,7 +239,7 @@ The payload build process is specified as follows:
 
 #### Response
 
-* result: [`ExecutionPayloadV1`](#ExecutionPayloadV1)
+* result: [`ExecutionPayloadType1`](#ExecutionPayloadType1)
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
