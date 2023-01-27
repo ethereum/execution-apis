@@ -71,6 +71,9 @@ Block:
     baseFeePerGas:
       title: Base fee per gas
       $ref: '#/components/schemas/uint'
+    withdrawalsRoot:
+      title: Withdrawals root
+      $ref: '#/components/schemas/hash32'
     size:
       title: Block size
       $ref: '#/components/schemas/uint'
@@ -84,6 +87,11 @@ Block:
           type: array
           items:
             $ref: '#/components/schemas/TransactionSigned'
+    withdrawals:
+      title: Withdrawals
+      type: array
+      items:
+        $ref: '#/components/schemas/Withdrawal'
     uncles:
       title: Uncles
       type: array
