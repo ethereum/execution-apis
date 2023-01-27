@@ -272,7 +272,7 @@ The payload build process is specified as follows:
 
 4. Consensus Layer client software **SHOULD** poll this endpoint every 60 seconds.
 
-5. Execution Layer client software **SHOULD** surface an error to the user if it does not recieve a request on this endpoint at least once every 120 seconds.
+5. Execution Layer client software **SHOULD** surface an error to the user if it does not receive a request on this endpoint at least once every 120 seconds.
 
 6. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
 

@@ -73,7 +73,7 @@ information.
 
 [View the spec][graphql-schema]
 
-[EIP-1767][eip-1767] proposed a GraphQL schema for interacting with Ethereum clients. Since then Besu and Geth have implemented the interface. This repo contains a live specification to integrate changes to the protocol as well as other improvements into the GraphQL shema.
+[EIP-1767][eip-1767] proposed a GraphQL schema for interacting with Ethereum clients. Since then Besu and Geth have implemented the interface. This repo contains a live specification to integrate changes to the protocol as well as other improvements into the GraphQL schema.
 
 ### Generation
 
