@@ -17,9 +17,8 @@ Authentication is performed as follows:
 - For `HTTP` dialogue, each `jsonrpc` request is individually authenticated by supplying `JWT` token in the HTTP header.
 - For a WebSocket dialogue, only the initial handshake is authenticated, after which the message dialogue proceeds without further use of JWT.
   - Clarification: The websocket handshake starts with the consensus layer client performing a websocket upgrade request. This is a regular http GET request, and the actual
-parameters for the WS-handshake are carried in the http headers.
+    parameters for the WS-handshake are carried in the http headers.
 - For `inproc`, a.k.a raw ipc communication, no authentication is required, under the assumption that a process able to access `ipc` channels for the process, which usually means local file access, is already sufficiently permissioned that further authentication requirements do not add security.
-
 
 ## JWT specifications
 
@@ -28,14 +27,13 @@ parameters for the WS-handshake are carried in the http headers.
 - The execution layer client **MUST** support at least the following `alg` `HMAC + SHA256` (`HS256`)
 - The execution layer client **MUST** reject the `alg` `none`.
 
-
 The HMAC algorithm implies that several consensus layer clients will be able to use the same key, and from an authentication perspective, be able to impersonate each other. From a deployment perspective, it means that an EL does not need to be provisioned with individual keys for each consensus layer client.
 
 ## Key distribution
 
 The execution layer and consensus layer clients **SHOULD** accept a configuration parameter: `jwt-secret`, which designates a file containing the hex-encoded 256 bit secret key to be used for verifying/generating JWT tokens.
 
-If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and **SHOULD** store the hex-encoded secret as a `jwt.hex` file on the filesystem.  This file can then be used to provision the counterpart client.
+If such a parameter is not given, the client **SHOULD** generate such a token, valid for the duration of the execution, and **SHOULD** store the hex-encoded secret as a `jwt.hex` file on the filesystem. This file can then be used to provision the counterpart client.
 
 If such a parameter _is_ given, but the file cannot be read, or does not contain a hex-encoded key of `256` bits, the client **SHOULD** treat this as an error: either abort the startup, or show error and continue without exposing the authenticated port.
 
@@ -51,4 +49,60 @@ Other claims **MAY** be included in the JWT payload. If the execution layer clie
 
 ## Examples
 
-Todo, add some examples of JWT authentication here.
+You can use the following script to test Authentication:
+
+```bash
+#!/bin/bash
+
+# This script is used to test the JWT authentication scheme.
+# It takes two arguments:
+# 1. The file containing the JWT secret key
+# 2. The URL to send the request to
+#
+# Examples:
+# ./jwt.sh jwt.hex http://localhost:8551
+# ./jwt.sh $DATA_DIR/geth/jwtsecret http://localhost:8551
+
+set -e -u -o pipefail
+
+# Get the JWT secret and URL from the command line
+jwtsecretfile=$1
+url=$2
+
+# Construct the JWT header
+JWT_HEADER=$(echo -n '{"typ":"JWT","alg":"HS256"}' | openssl base64 -e -A | tr '+' '-' | tr '/' '_' | tr -d '=')
+
+# Read the secret key and convert to bytes
+secret=$(cat $jwtsecretfile | cut -c 3-)
+secretBytes=$(printf $secret | xxd -r -p)
+
+# Construct the JWT payload with the iat claim and encode as base64
+jwt_payload=$(echo -n "{\"iat\":$(date +%s)}" | openssl base64 -e -A | tr '+' '-' | tr '/' '_' | tr -d '=')
+
+# Create the JWT claims
+jwt_claims="$JWT_HEADER.$jwt_payload"
+
+# Create the JWT signature
+jwt_signature=$(echo -n "$jwt_claims" \
+    | openssl dgst -sha256 -hmac "$secretBytes" -binary \
+    | openssl base64 -e -A | tr '+' '-' | tr '/' '_' | tr -d '=')
+
+# Create the JWT
+jwt="$jwt_claims.$jwt_signature"
+
+# Make the RPC request
+data='{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+curl -s \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $jwt" \
+    -d "$data" \
+    $url
+```
+
+Run as:
+
+```bash
+./jwt.sh jwt.hex http://localhost:8551
+```
+
+where `jwt.hex` is the file containing the secret key. (e.g. $DATA_DIR/geth/jwtsecret)
