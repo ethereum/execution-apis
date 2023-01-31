@@ -48,7 +48,6 @@ ReceiptInfo:
     - transactionHash
     - transactionIndex
     - effectiveGasPrice
-    - dataGasUsed
   additionalProperties: false
   properties:
     type:
@@ -87,11 +86,8 @@ ReceiptInfo:
       $ref: '#/components/schemas/uint'
     dataGasUsed:
       title: data gas used
-      description: The amount of data gas used for this specification transaction alone
-      oneOf:
-        - $ref: '#/components/schemas/uint'
-        - name: Null
-          type: "null"
+      description: The amount of data gas used for this specification transaction
+      $ref: '#/components/schemas/uint'  
     contractAddress:
       title: contract address
       description: The contract address created, if the transaction was a contract creation, otherwise null.
