@@ -63,7 +63,7 @@ Account:
     - nonce
     - codeHash
   properties:
-    root:
+    storageRoot:
       title: storage root
       $ref: '#/components/schemas/hash32'
     balance:
