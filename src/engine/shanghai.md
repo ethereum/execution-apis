@@ -231,3 +231,9 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 1. Callers must be careful to verify the hash of the received blocks when requesting non-finalized parts of the chain since the response is prone to being re-orged.
 
 1. Callers must consider that syncing execution layer client may not serve any block bodies, including those that were supplied by `engine_newPayload` calls.
+
+### Deprecate `engine_exchangeTransitionConfigurationV1`
+
+#### Specification
+
+1. Consensus layer client software **MUST NOT** surface an error to the user if this method call fails with any error including `-32601: Method not found`.
