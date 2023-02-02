@@ -58,7 +58,7 @@ Account:
   title: Account
   type: object
   required:
-    - root
+    - storageRoot
     - balance
     - nonce
     - codeHash
