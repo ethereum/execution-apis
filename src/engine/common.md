@@ -164,13 +164,13 @@ Execution layer clients **MUST** support `engine_exchangeCapabilities` method, w
 
 2. Request and response lists **MUST** contain Engine API methods that are currently supported by consensus and execution client software respectively. Name of each method in both lists **MUST** include suffixed version. Consider the following examples:
     * Client software of both layers currently supports `V1` and `V2` versions of `engine_newPayload` method:
-        * params: `["engine_newPayloadV1", "engine_newPayloadV2", ...]`,
+        * params: `[["engine_newPayloadV1", "engine_newPayloadV2", ...]]`,
         * response: `["engine_newPayloadV1", "engine_newPayloadV2", ...]`.
     * `V1` method has been deprecated and `V3` method has been introduced on execution layer side since the last call:
-        * params: `["engine_newPayloadV1", "engine_newPayloadV2", ...]`,
+        * params: `[["engine_newPayloadV1", "engine_newPayloadV2", ...]]`,
         * response: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`.
     * The same capabilities modification has happened in consensus layer client, so, both clients have the same capability set again:
-        * params: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`,
+        * params: `[["engine_newPayloadV2", "engine_newPayloadV3", ...]]`,
         * response: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`.
 
 3. The `engine_exchangeCapabilities` method **MUST NOT** be returned in the response list.
