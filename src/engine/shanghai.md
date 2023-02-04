@@ -236,6 +236,6 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 #### Specification
 
-1. Consensus layer client software **MUST NOT** surface an error to the user if this method call fails with any error including `-32601: Method not found`.
+1. Consensus layer client software **MUST NOT** surface an error to the user if this method call fails with any error including `-32601: Method not found`. Consensus layer client software **MUST** still call this method.
 
 1. Execution layer client software **MUST NOT** surface an error to the user if this method is not called.
