@@ -1,5 +1,5 @@
 ForkchoiceStateV1:
-  title: Forkchoice state object
+  title: Forkchoice state object V1
   type: object
   required:
     - headBlockHash
@@ -16,7 +16,7 @@ ForkchoiceStateV1:
       title: Finalized block hash
       $ref: '#/components/schemas/hash32'
 PayloadAttributesV1:
-  title: Payload attributes object
+  title: Payload attributes object V1
   type: object
   required:
     - timestamp
@@ -32,23 +32,23 @@ PayloadAttributesV1:
     suggestedFeeRecipient:
       title: Suggested fee recipient
       $ref: '#/components/schemas/address'
-PayloadStatusForkchoiceUpdatedV1:
-  title: Payload status object
+PayloadAttributesV2:
+  title: Payload attributes object V2
   type: object
   required:
-    - status
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+    - withdrawals
   properties:
-    status:
-      title: Payload validation status
-      description: Set of possible values is restricted to VALID, INVALID, SYNCING
-      type: string
-      enum:
-        - VALID
-        - INVALID
-        - SYNCING
-    latestValidHash:
-      title: The hash of the most recent valid block
-      $ref: '#/components/schemas/hash32'
-    validationError:
-      title: Validation error message
-      type: string
+    timestamp:
+      $ref: '#/components/schemas/PayloadAttributesV1/properties/timestamp'
+    prevRandao:
+      $ref: '#/components/schemas/PayloadAttributesV1/properties/prevRandao'
+    suggestedFeeRecipient:
+      $ref: '#/components/schemas/PayloadAttributesV1/properties/suggestedFeeRecipient'
+    withdrawals:
+      title: Withdrawals
+      type: array
+      items:
+        $ref: '#/components/schemas/WithdrawalV1'

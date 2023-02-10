@@ -1,0 +1,187 @@
+PayloadStatusV1:
+  title: Payload status object V1
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      title: Payload validation status
+      type: string
+      enum:
+        - VALID
+        - INVALID
+        - SYNCING
+        - ACCEPTED
+        - INVALID_BLOCK_HASH
+    latestValidHash:
+      title: The hash of the most recent valid block
+      $ref: '#/components/schemas/hash32'
+    validationError:
+      title: Validation error message
+      type: string
+RestrictedPayloadStatusV1:
+  $ref: '#/components/schemas/PayloadStatusV1'
+  properties:
+    status:
+      $ref: '#/components/schemas/PayloadStatusV1/properties/status'
+      description: Set of possible values is restricted to VALID, INVALID, SYNCING
+      enum:
+        - VALID
+        - INVALID
+        - SYNCING        
+    latestValidHash:
+      $ref: '#/components/schemas/PayloadStatusV1/properties/latestValidHash'
+    validationError:
+      $ref: '#/components/schemas/PayloadStatusV1/properties/validationError'
+PayloadStatusV2:
+  $ref: '#/components/schemas/PayloadStatusV1'
+  title: Payload status object V2
+  properties:
+    status:
+      $ref: '#/components/schemas/PayloadStatusV1/properties/status'
+      enum:
+        - VALID
+        - INVALID
+        - SYNCING
+        - ACCEPTED        
+    latestValidHash:
+      $ref: '#/components/schemas/PayloadStatusV1/properties/latestValidHash'
+    validationError:
+      $ref: '#/components/schemas/PayloadStatusV1/properties/validationError'
+ExecutionPayloadV1:
+  title: Execution payload object V1
+  type: object
+  required:
+    - parentHash
+    - feeRecipient
+    - stateRoot
+    - receiptsRoot
+    - logsBloom
+    - prevRandao
+    - blockNumber
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - baseFeePerGas
+    - blockHash
+    - transactions
+  properties:
+    parentHash:
+      title: Parent block hash
+      $ref: '#/components/schemas/hash32'
+    feeRecipient:
+      title: Recipient of transaction priority fees
+      $ref: '#/components/schemas/address'
+    stateRoot:
+      title: State root
+      $ref: '#/components/schemas/hash32'
+    receiptsRoot:
+      title: Receipts root
+      $ref: '#/components/schemas/hash32'
+    logsBloom:
+      title: Bloom filter
+      $ref: '#/components/schemas/bytes256'
+    prevRandao:
+      title: Previous randao value
+      $ref: '#/components/schemas/bytes'
+    blockNumber:
+      title: Block number
+      $ref: '#/components/schemas/uint64'
+    gasLimit:
+      title: Gas limit
+      $ref: '#/components/schemas/uint64'
+    gasUsed:
+      title: Gas used
+      $ref: '#/components/schemas/uint64'
+    timestamp:
+      title: Timestamp
+      $ref: '#/components/schemas/uint64'
+    extraData:
+      title: Extra data
+      $ref: '#/components/schemas/bytes'
+    baseFeePerGas:
+      title: Base fee per gas
+      $ref: '#/components/schemas/uint256'
+    blockHash:
+      title: Block hash
+      $ref: '#/components/schemas/hash32'
+    transactions:
+      title: Transactions
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+WithdrawalV1:
+  title: Withdrawal object V1
+  type: object
+  required:
+    - index
+    - validatorIndex
+    - address
+    - amount
+  properties:
+    index:
+      title: Withdrawal index
+      $ref: '#/components/schemas/uint64'
+    validatorIndex:
+      title: Validator index
+      $ref: '#/components/schemas/uint64'
+    address:
+      title: Withdrawal address
+      $ref: '#/components/schemas/address'
+    amount:
+      title: Withdrawal amount
+      $ref: '#/components/schemas/uint64'
+ExecutionPayloadV2:
+  title: Execution payload object V2
+  type: object
+  required:
+    - parentHash
+    - feeRecipient
+    - stateRoot
+    - receiptsRoot
+    - logsBloom
+    - prevRandao
+    - blockNumber
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - baseFeePerGas
+    - blockHash
+    - transactions
+    - withdrawals
+  properties:
+    parentHash:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/parentHash'
+    feeRecipient:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/feeRecipient'
+    stateRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/stateRoot'
+    receiptsRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/receiptsRoot'
+    logsBloom:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/logsBloom'
+    prevRandao:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/prevRandao'
+    blockNumber:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/blockNumber'
+    gasLimit:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/gasLimit'
+    gasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/gasUsed'
+    timestamp:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/timestamp'
+    extraData:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/extraData'
+    baseFeePerGas:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/baseFeePerGas'
+    blockHash:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/blockHash'
+    transactions:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/transactions'
+    withdrawals:
+      title: Withdrawals
+      type: array
+      items:
+        $ref: '#/components/schemas/WithdrawalV1'
