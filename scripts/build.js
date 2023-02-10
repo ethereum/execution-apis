@@ -30,7 +30,7 @@ methodFiles.forEach(file => {
   ];
 });
 
-methodsBase = "src/engine/methods/";
+methodsBase = "src/engine/openrpc/methods/";
 methodFiles = fs.readdirSync(methodsBase);
 methodFiles.forEach(file => {
   console.log(file);
@@ -55,7 +55,7 @@ schemaFiles.forEach(file => {
   };
 });
 
-schemasBase = "src/engine/schemas/"
+schemasBase = "src/engine/openrpc/schemas/"
 schemaFiles = fs.readdirSync(schemasBase);
 schemaFiles.forEach(file => {
   console.log(file);
