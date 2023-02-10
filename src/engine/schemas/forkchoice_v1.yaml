@@ -1,0 +1,54 @@
+ForkchoiceStateV1:
+  title: Forkchoice state object
+  type: object
+  required:
+    - headBlockHash
+    - safeBlockHash
+    - finalizedBlockHash
+  properties:
+    headBlockHash:
+      title: Head block hash
+      $ref: '#/components/schemas/hash32'
+    safeBlockHash:
+      title: Safe block hash
+      $ref: '#/components/schemas/hash32'
+    finalizedBlockHash:
+      title: Finalized block hash
+      $ref: '#/components/schemas/hash32'
+PayloadAttributesV1:
+  title: Payload attributes object
+  type: object
+  required:
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+  properties:
+    timestamp:
+      title: Timestamp
+      $ref: '#/components/schemas/uint64'
+    prevRandao:
+      title: Previous randao value
+      $ref: '#/components/schemas/bytes32'
+    suggestedFeeRecipient:
+      title: Suggested fee recipient
+      $ref: '#/components/schemas/address'
+PayloadStatusForkchoiceUpdatedV1:
+  title: Payload status object
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      title: Payload validation status
+      description: Set of possible values is restricted to VALID, INVALID, SYNCING
+      type: string
+      enum:
+        - VALID
+        - INVALID
+        - SYNCING
+    latestValidHash:
+      title: The hash of the most recent valid block
+      $ref: '#/components/schemas/hash32'
+    validationError:
+      title: Validation error message
+      type: string

@@ -1,0 +1,31 @@
+- name: engine_newPayloadV1
+  summary: Runs execution payload validation
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#engine_newpayloadv1
+  params:
+    - name: Execution payload
+      required: true
+      schema:
+        $ref: '#/components/schemas/ExecutionPayloadV1'
+  result:
+    name: Payload status
+    schema:
+      $ref: '#/components/schemas/PayloadStatusV1'
+- name: engine_getPayloadV1
+  summary: Obtains execution payload from payload build process
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#engine_getpayloadv1
+  params:
+    - name: Payload id
+      required: true
+      schema:
+        $ref: '#/components/schemas/bytes8'
+  result:
+    name: Execution payload
+    schema:
+      $ref: '#/components/schemas/ExecutionPayloadV1'
+  errors:
+    - code: -38001
+      message: Unknown payload

@@ -1,0 +1,32 @@
+- name: engine_forkchoiceUpdatedV1
+  summary: Updates the forkchoice state
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#engine_forkchoiceupdatedv1
+  params:
+    - name: Forkchoice state
+      required: true
+      schema:
+        $ref: '#/components/schemas/ForkchoiceStateV1'
+    - name: Payload attributes
+      required: false
+      schema:
+        $ref: '#/components/schemas/PayloadAttributesV1'
+  result:
+    name: Response object
+    schema:
+      type: object
+      required:
+        - payloadStatus
+      properties:
+        payloadStatus:
+          title: Payload status
+          $ref: '#/components/schemas/PayloadStatusForkchoiceUpdatedV1'
+        payloadId:
+          title: Payload id
+          $ref: '#/components/schemas/bytes8'
+  errors:
+    - code: -38002
+      message: Invalid forkchoice state
+    - code: -38003
+      message: Invalid payload attributes
