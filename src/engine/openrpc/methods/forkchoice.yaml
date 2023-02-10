@@ -15,16 +15,7 @@
   result:
     name: Response object
     schema:
-      type: object
-      required:
-        - payloadStatus
-      properties:
-        payloadStatus:
-          title: Payload status
-          $ref: '#/components/schemas/RestrictedPayloadStatusV1'
-        payloadId:
-          title: Payload id
-          $ref: '#/components/schemas/bytes8'
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
   errors:
     - code: -38002
       message: Invalid forkchoice state
@@ -47,16 +38,7 @@
   result:
     name: Response object
     schema:
-      type: object
-      required:
-        - payloadStatus
-      properties:
-        payloadStatus:
-          title: Payload status
-          $ref: '#/components/schemas/RestrictedPayloadStatusV1'
-        payloadId:
-          title: Payload id
-          $ref: '#/components/schemas/bytes8'
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
   errors:
     - code: -38002
       message: Invalid forkchoice state

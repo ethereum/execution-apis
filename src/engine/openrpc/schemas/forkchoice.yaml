@@ -15,6 +15,18 @@ ForkchoiceStateV1:
     finalizedBlockHash:
       title: Finalized block hash
       $ref: '#/components/schemas/hash32'
+ForkchoiceUpdatedResponseV1:
+  title: Forkchoice updated response
+  type: object
+  required:
+    - payloadStatus
+  properties:
+    payloadStatus:
+      title: Payload status
+      $ref: '#/components/schemas/RestrictedPayloadStatusV1'
+    payloadId:
+      title: Payload id
+      $ref: '#/components/schemas/bytes8'
 PayloadAttributesV1:
   title: Payload attributes object V1
   type: object
