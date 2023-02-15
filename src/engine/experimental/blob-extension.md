@@ -45,10 +45,10 @@ This structure has the syntax of `ExecutionPayloadV2` and appends a single field
 - `timestamp`: `QUANTITY`, 64 Bits
 - `extraData`: `DATA`, 0 to 32 Bytes
 - `baseFeePerGas`: `QUANTITY`, 256 Bits
-- `excessDataGas`: `QUANTITY`, 256 bits
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `excessDataGas`: `QUANTITY`, 256 bits
 
 ### BlobsBundleV1
 
