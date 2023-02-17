@@ -13,8 +13,8 @@ Withdrawal:
     validatorIndex:
       title: index of validator that generated withdrawal
       $ref: '#/components/schemas/uint64'
-    recipient:
-      title: recipient for withdrawal value
+    address:
+      title: recipient address for withdrawal value
       $ref: '#/components/schemas/address'
     amount:
       title: value contained in withdrawal
