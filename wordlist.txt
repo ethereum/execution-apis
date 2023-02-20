@@ -52,3 +52,5 @@ graphql
 gwei
 withdrawalv
 DocToc
+feeRecipient
+prevRandao

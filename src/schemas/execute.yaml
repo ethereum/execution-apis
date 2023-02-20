@@ -1,0 +1,196 @@
+BlockStateCalls:
+  title: Array of calls to be executed at specific, optional block/state
+  properties:
+    blockOverride:
+      title: Block override
+      $ref: '#/components/schemas/BlockOverride'
+    stateOverrides:
+      title: State overrides
+      $ref: '#/components/schemas/StateOverrides'
+    calls:
+      type: array
+      title: List of transactions to execute at this block/state
+      items:
+        $ref: '#/components/schemas/GenericTransaction'
+StateOverrides:
+  title: Accounts in state to be overridden
+  schema:
+    title: Arguments for multi call
+    type: array
+    items:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/AccountOverride'
+AccountOverride:
+  title: Details of an account to be overridden
+  type: object
+  oneOf:
+    - $ref: '#/components/schemas/AccountOverrideState'
+    - $ref: '#/components/schemas/AccountOverrideStateDiff'
+AccountOverrideState:
+  title: Account override with whole storage replacement
+  properties:
+    nonce:
+      title: Nonce
+      $ref: '#/components/schemas/uint64'
+    balance:
+      title: Balance
+      $ref: '#/components/schemas/uint256'
+    code:
+      title: Code
+      $ref: '#/components/schemas/bytes'
+    state:
+      title: Storage
+      $ref: '#/components/schemas/AccountStorage'
+AccountOverrideStateDiff:
+  title: Account override with partial storage modification
+  properties:
+    nonce:
+      title: Nonce
+      $ref: '#/components/schemas/uint64'
+    balance:
+      title: Balance
+      $ref: '#/components/schemas/uint256'
+    code:
+      title: Code
+      $ref: '#/components/schemas/bytes'
+    stateDiff:
+      title: Storage difference
+      $ref: '#/components/schemas/AccountStorage'
+AccountStorage:
+  title: Storage slots for an account
+  type: object
+  additionalProperties:
+    - $ref: '#/components/schemas/hash32'
+BlockOverride:
+  title: Context fields related to the block being executed
+  type: object
+  properties:
+    number:
+      title: Number
+      $ref: '#/components/schemas/uint256'
+    prevRandao:
+      title: Randomness beacon
+      $ref: '#/components/schemas/uint256'
+    time:
+      title: Time
+      $ref: '#/components/schemas/uint256'
+    gasLimit:
+      title: Gas limit
+      $ref: '#/components/schemas/uint64'
+    feeRecipient:
+      title: feeRecipient
+      $ref: '#/components/schemas/address'
+    baseFee:
+      title: Base fee
+      $ref: '#/components/schemas/uint256'
+CallResults:
+  title: Results of multi call
+  type: array
+  items:
+    anyOf:
+      - $ref: '#/components/schemas/CallResultFailure'
+      - $ref: '#/components/schemas/CallResultSuccess'
+      - $ref: '#/components/schemas/CallResultInvalid'
+CallResultFailure:
+  title: Result of call failure
+  type: object
+  required:
+    - status
+    - return
+    - error
+    - gasUsed
+  properties:
+    status:
+      title: Call Status Failure
+      type: string
+      pattern: ^0x0$
+    return:
+      title: Return data
+      $ref: '#/components/schemas/bytes'
+    gasUsed:
+      title: Return gasUsed
+      $ref: '#/components/schemas/uint'
+    error:
+      title: Error Object
+      type: object
+      properties:
+        code:
+          title: Error code
+          type: number
+          $ref: '#/components/schemas/int'
+        message:
+          title: Error Message (execution reverted, out of gas, etc)
+          type: string
+        data:
+          title: Reverted, with optional message
+          type: string
+CallResultSuccess:
+  title: Result of call success
+  type: object
+  required:
+    - status
+    - return
+    - gasUsed
+    - logs
+  properties:
+    status:
+      title: Call Status Success
+      type: string
+      pattern: ^0x1$
+    return:
+      title: Return data
+      $ref: '#/components/schemas/bytes'
+    gasUsed:
+      title: Return gasUsed
+      $ref: '#/components/schemas/uint'
+    logs:
+      title: Return logs
+      type: array
+      items:
+        $ref: '#/components/schemas/CallResultLog'
+CallResultInvalid:
+  title: Result of call not being valid (nonce, baseFee, etc)
+  type: object
+  required:
+    - status
+    - error
+  properties:
+    status:
+      title: Call Status Invalid
+      type: string
+      pattern: ^0x2$
+    error:
+      title: Error Object
+      type: object
+      properties:
+        message:
+          title: Reason the transaction could not be included on-chain (baseFee, nonce too high, etc)
+          type: string
+        code:
+          type: number
+          $ref: '#/components/schemas/int'
+CallResultLog:
+  title: log
+  type: object
+  properties:
+    logIndex:
+      title: log index
+      $ref: '#/components/schemas/uint'
+    blockHash:
+      title: block hash
+      $ref: '#/components/schemas/hash32'
+    blockNumber:
+      title: block number
+      $ref: '#/components/schemas/uint'
+    address:
+      title: address
+      $ref: '#/components/schemas/address'
+    data:
+      title: data
+      $ref: '#/components/schemas/bytes'
+    topics:
+      title: topics
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes32'
