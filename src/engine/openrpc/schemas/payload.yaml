@@ -185,3 +185,18 @@ ExecutionPayloadV2:
       type: array
       items:
         $ref: '#/components/schemas/WithdrawalV1'
+ExecutionPayloadBodyV1:
+  title: Execution payload body object V1
+  type: object
+  required:
+    - transactions
+  properties:
+    transactions:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/transactions'
+    withdrawals:
+      title: Withdrawals
+      type:
+        - array
+        - 'null'
+      items:
+        $ref: '#/components/schemas/WithdrawalV1'

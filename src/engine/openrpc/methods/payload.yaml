@@ -77,3 +77,47 @@
   errors:
     - code: -38001
       message: Unknown payload
+- name: engine_getPayloadBodiesByHashV1
+  summary: Given block hashes returns bodies of the corresponding execution payloads
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/shanghai.md#engine_getpayloadbodiesbyhashv1
+  params:
+    - name: Array of block hashes
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/hash32'
+  result:
+    name: Execution payload bodies
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/ExecutionPayloadBodyV1'
+  errors:
+    - code: -38004
+      message: Too large request
+- name: engine_getPayloadBodiesByRangeV1
+  summary: Given a range of block numbers returns bodies of the corresponding execution payloads
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/shanghai.md#engine_getpayloadbodiesbyrangev1
+  params:
+    - name: Starting block number
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint64'
+    - name: Number of blocks to return
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint64'
+  result:
+    name: Execution payload bodies
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/ExecutionPayloadBodyV1'
+  errors:
+    - code: -38004
+      message: Too large request
