@@ -27,7 +27,7 @@
   result:
     name: Payload status
     schema:
-      $ref: '#/components/schemas/PayloadStatusV2'
+      $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash'
   errors:
     - code: -32602
       message: Invalid params
