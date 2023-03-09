@@ -84,7 +84,7 @@ ExecutionPayloadV1:
       $ref: '#/components/schemas/bytes256'
     prevRandao:
       title: Previous randao value
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/bytes32'
     blockNumber:
       title: Block number
       $ref: '#/components/schemas/uint64'
