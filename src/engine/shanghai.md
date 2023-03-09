@@ -157,6 +157,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
       - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
       - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
+  - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the EL to use this `executionPayload` instead of an externally provided one
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -164,6 +165,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 This method follows the same specification as [`engine_getPayloadV1`](./paris.md#engine_getpayloadv1) with the addition of the following:
 
   1. Client software **SHOULD** use the sum of the block's priority fees or any other algorithm to determine `blockValue`.
+  2. Client software **MAY** use any heuristics to decide `shouldOverrideBuilder`.
 
 ### engine_getPayloadBodiesByHashV1
 
