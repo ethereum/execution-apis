@@ -1226,7 +1226,7 @@
       {
         "kind": "SCALAR",
         "name": "Long",
-        "description": "Long is a 64 bit unsigned integer.",
+        "description": "Long is a 64 bit unsigned integer. Input is accepted as either a JSON number or as a string.\nStrings may be either decimal or 0x-prefixed hexadecimal. Output values are all\n0x-prefixed hexadecimal.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
