@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/beacon"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
@@ -109,17 +108,7 @@ func initChain(ctx context.Context, args *Args) (*chainData, error) {
 		chain.blocks = b
 	} else {
 		// Make consensus engine.
-		var engine consensus.Engine
-		config := ethash.Config{
-			PowMode:        ethash.ModeFake,
-			CachesInMem:    2,
-			DatasetsOnDisk: 2,
-			DatasetDir:     args.EthashDir,
-		}
-		if args.Ethash {
-			config.PowMode = ethash.ModeNormal
-		}
-		engine = beacon.New(ethash.New(config, nil, false))
+		engine := beacon.NewFaker()
 
 		// Generate test chain and write to output directory.
 		var bad *types.Block
