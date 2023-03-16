@@ -1,14 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
@@ -33,6 +31,9 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 		gendb  = rawdb.NewMemoryDatabase()
 		signer = types.LatestSigner(gspec.Config)
 	)
+	gspec.Config.TerminalTotalDifficultyPassed = true
+	gspec.Config.TerminalTotalDifficulty = common.Big0
+	gspec.Config.ShanghaiTime = uintptr(0)
 
 	// init 0xaa with some storage elements
 	storage := make(map[common.Hash]common.Hash)
@@ -55,10 +56,23 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 
 	genesis := gspec.MustCommit(gendb)
 
-	sealingEngine := sealingEngine{engine}
-	chain, _ := core.GenerateChain(gspec.Config, genesis, sealingEngine, gendb, 4, func(i int, gen *core.BlockGen) {
+	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, gendb, 4, func(i int, gen *core.BlockGen) {
 		tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(address), address, big.NewInt(1000), params.TxGas, new(big.Int).Add(gen.BaseFee(), common.Big1), nil), signer, key)
 		gen.AddTx(tx)
+		if i == 1 {
+			gen.AddWithdrawal(&types.Withdrawal{
+				Index:     123,
+				Validator: 42,
+				Address:   common.Address{0xee},
+				Amount:    1337,
+			})
+			gen.AddWithdrawal(&types.Withdrawal{
+				Index:     124,
+				Validator: 13,
+				Address:   common.Address{0xee},
+				Amount:    1,
+			})
+		}
 	})
 
 	// Modify block so that recorded gas used does not equal actual.
@@ -75,18 +89,6 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 	return gspec, chain, bad
 }
 
-// sealingEngine overrides FinalizeAndAssemble and performs sealing in-place.
-type sealingEngine struct{ consensus.Engine }
-
-func (e sealingEngine) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-	block, err := e.Engine.FinalizeAndAssemble(chain, header, state, txs, uncles, receipts)
-	if err != nil {
-		return nil, err
-	}
-	sealedBlock := make(chan *types.Block, 1)
-	if err = e.Engine.Seal(nil, block, sealedBlock, nil); err != nil {
-		return nil, err
-	}
-	fmt.Printf("sealing block %d\n", header.Number.Uint64())
-	return <-sealedBlock, nil
+func uintptr(x uint64) *uint64 {
+	return &x
 }

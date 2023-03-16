@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,8 +25,9 @@ func newEthclientHandler(addr string) (*ethclientHandler, error) {
 	rt := &loggingRoundTrip{
 		inner: http.DefaultTransport,
 	}
-	httpClient := &http.Client{Transport: rt}
-	rpcClient, err := rpc.DialHTTPWithClient(addr, httpClient)
+	httpClient := rpc.WithHTTPClient(&http.Client{Transport: rt})
+	ctx := context.Background()
+	rpcClient, err := rpc.DialOptions(ctx, addr, httpClient)
 	if err != nil {
 		return nil, err
 	}

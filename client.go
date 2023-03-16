@@ -52,16 +52,14 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	}
 
 	var (
-		args      = ctx.Value(ARGS).(*Args)
-		isFakepow = !args.Ethash
-		datadir   = fmt.Sprintf("--datadir=%s", tmp)
-		gcmode    = "--gcmode=archive"
-		loglevel  = fmt.Sprintf("--verbosity=%d", args.logLevelInt)
+		args     = ctx.Value(ARGS).(*Args)
+		datadir  = fmt.Sprintf("--datadir=%s", tmp)
+		gcmode   = "--gcmode=archive"
+		loglevel = fmt.Sprintf("--verbosity=%d", args.logLevelInt)
 	)
 
 	// Run geth init.
 	options := []string{datadir, gcmode, loglevel, "init", fmt.Sprintf("%s/genesis.json", tmp)}
-	options = maybePrepend(isFakepow, options, "--fakepow")
 	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
 		return nil, err
@@ -69,7 +67,6 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 
 	// Run geth import.
 	options = []string{datadir, gcmode, loglevel, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
-	options = maybePrepend(isFakepow, options, "--fakepow")
 	err = runCmd(ctx, path, verbose, options...)
 	if err != nil {
 		return nil, err
@@ -82,9 +79,8 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 	fmt.Println("starting client")
 	var (
-		args      = ctx.Value(ARGS).(*Args)
-		isFakepow = !args.Ethash
-		options   = []string{
+		args    = ctx.Value(ARGS).(*Args)
+		options = []string{
 			fmt.Sprintf("--datadir=%s", g.workdir),
 			fmt.Sprintf("--verbosity=%d", args.logLevelInt),
 			fmt.Sprintf("--port=%s", NETWORKPORT),
@@ -96,7 +92,6 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 			fmt.Sprintf("--http.port=%s", PORT),
 		}
 	)
-	options = maybePrepend(isFakepow, options, "--fakepow")
 	g.cmd = exec.CommandContext(
 		ctx,
 		g.path,
@@ -188,11 +183,4 @@ func readChain(filename string) ([]*types.Block, error) {
 		i++
 	}
 	return blocks, nil
-}
-
-func maybePrepend(shouldAdd bool, options []string, maybe ...string) []string {
-	if shouldAdd {
-		options = append(maybe, options...)
-	}
-	return options
 }
