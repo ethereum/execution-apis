@@ -184,10 +184,3 @@ func readChain(filename string) ([]*types.Block, error) {
 	}
 	return blocks, nil
 }
-
-func maybePrepend(shouldAdd bool, options []string, maybe ...string) []string {
-	if shouldAdd {
-		options = append(maybe, options...)
-	}
-	return options
-}
