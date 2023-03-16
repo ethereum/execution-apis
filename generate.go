@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
@@ -188,7 +187,7 @@ func mkdir(path string) error {
 
 // tryConnection checks if a client's JSON-RPC API is accepting requests.
 func tryConnection(ctx context.Context, addr string, waitTime time.Duration) error {
-	c, err := rpc.DialHTTPWithClient(addr, http.DefaultClient)
+	c, err := rpc.DialOptions(ctx, addr)
 	if err != nil {
 		return err
 	}
