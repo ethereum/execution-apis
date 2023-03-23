@@ -106,7 +106,7 @@ Refer to the specification for `engine_getPayloadV2`.
 
 ### engine_getBlobsBundleV1
 
-This method retrieves the blobs and their respective KZG commitments corresponding to the `versioned_hashes`
+This method retrieves the blobs and their respective KZG commitments and proofs corresponding to the `versioned_hashes`
 included in the blob transactions of the referenced execution payload.
 
 This method may be combined with `engine_getPayloadV2`.
@@ -134,6 +134,7 @@ The separation of concerns aims to minimize changes during the testing phase of 
 3. The call **MUST** return `kzgs` matching the versioned hashes of the transactions list of the execution payload, in the same order,
    i.e. `assert verify_kzgs_against_transactions(payload.transactions, bundle.kzgs)` (see EIP-4844 consensus-specs).
 
-4. The call **MUST** return `blobs` that match the `kzgs` list, i.e. `assert len(kzgs) == len(blobs) and all(blob_to_kzg(blob) == kzg for kzg, blob in zip(bundle.kzgs, bundle.blobs))`
+4. The call **MUST** return `blobs` and `proofs` that match the `kzgs` list, i.e. `assert len(kzgs) == len(blobs) == len(proofs)` and `assert verify_blob_kzg_proof_batch(bundle.blobs, bundle.kzgs, bundle.proofs)`
+
 
 5. The call **MUST** return `blockHash` to reference the `blockHash` of the corresponding execution payload, intended for the caller to sanity-check the consistency with the `engine_getPayload` call.
