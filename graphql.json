@@ -272,7 +272,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,
@@ -495,7 +495,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,
@@ -529,7 +529,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "SCALAR",
-                    "name": "Int",
+                    "name": "Long",
                     "ofType": null
                   }
                 },
@@ -592,7 +592,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "SCALAR",
-                    "name": "Int",
+                    "name": "Long",
                     "ofType": null
                   }
                 },
@@ -1127,7 +1127,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "Int",
+                "name": "Long",
                 "ofType": null
               }
             },
@@ -1289,7 +1289,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "Int",
+                "name": "Long",
                 "ofType": null
               }
             },
@@ -1754,7 +1754,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,
@@ -2067,7 +2067,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,

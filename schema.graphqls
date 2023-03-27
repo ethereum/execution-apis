@@ -67,7 +67,7 @@ type Block {
   TransactionCount is the number of transactions in this block. if
   transactions are not available for this block, this field will be null.
   """
-  transactionCount: Int
+  transactionCount: Long
 
   """
   StateRoot is the keccak256 hash of the state trie after this block was processed.
@@ -130,7 +130,7 @@ type Block {
   OmmerCount is the number of ommers (AKA uncles) associated with this
   block. If ommers are unavailable, this field will be null.
   """
-  ommerCount: Int
+  ommerCount: Long
 
   """
   Ommers is a list of ommer (AKA uncle) blocks associated with this block.
@@ -144,7 +144,7 @@ type Block {
   OmmerAt returns the ommer (AKA uncle) at the specified index. If ommers
   are unavailable, or the index is out of bounds, this field will be null.
   """
-  ommerAt(index: Int!): Block
+  ommerAt(index: Long!): Block
 
   """
   OmmerHash is the keccak256 hash of all the ommers (AKA uncles)
@@ -163,7 +163,7 @@ type Block {
   transactions are unavailable for this block, or if the index is out of
   bounds, this field will be null.
   """
-  transactionAt(index: Int!): Transaction
+  transactionAt(index: Long!): Transaction
 
   """Logs returns a filtered set of logs from this block."""
   logs(filter: BlockFilterCriteria!): [Log!]!
@@ -306,7 +306,7 @@ input FilterCriteria {
 """Log is an Ethereum event log."""
 type Log {
   """Index is the index of this log in the block."""
-  index: Int!
+  index: Long!
 
   """
   Account is the account which generated this log - this will always
@@ -339,7 +339,7 @@ type Mutation {
 """Pending represents the current pending state."""
 type Pending {
   """TransactionCount is the number of transactions in the pending state."""
-  transactionCount: Int!
+  transactionCount: Long!
 
   """Transactions is a list of transactions in the current pending state."""
   transactions: [Transaction!]
@@ -426,7 +426,7 @@ type Transaction {
   Index is the index of this transaction in the parent block. This will
   be null if the transaction has not yet been mined.
   """
-  index: Int
+  index: Long
 
   """
   From is the account that sent this transaction - this will always be
@@ -521,7 +521,7 @@ type Transaction {
   v: BigInt!
 
   """Envelope transaction support"""
-  type: Int
+  type: Long
   accessList: [AccessTuple!]
 
   """
