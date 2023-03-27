@@ -93,7 +93,7 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadV1`](#./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
+  1. [`ExecutionPayloadV1`](./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
       - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
       - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
@@ -111,6 +111,7 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 
 1. Client software **MAY NOT** validate terminal PoW block conditions during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine).
 2. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed.
+3. Consensus layer client **MUST** call this method instead of `engine_newPayloadV1` if `timestamp` value of a payload is greater or equal to the Shanghai timestamp.
 
 ### engine_forkchoiceUpdatedV2
 
@@ -134,8 +135,11 @@ Refer to the response for [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkc
 This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) with the exception of the following:
 
 1. Client software **MAY NOT** validate terminal PoW block conditions in the following places:
-  - during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine specification),
-  - when updating the forkchoice state (point (3) in the [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) method specification).
+    - during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine specification),
+    - when updating the forkchoice state (point (3) in the [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) method specification).
+2. Consensus layer client **MUST** call this method instead of `engine_forkchoiceUpdatedV1` under any of the following conditions:
+    - `headBlockHash` references a block which `timestamp` is greater or equal to the Shanghai timestamp,
+    - `payloadAttributes` is not `null` and `payloadAttributes.timestamp` is greater or equal to the Shanghai timestamp.
 
 ### engine_getPayloadV2
 

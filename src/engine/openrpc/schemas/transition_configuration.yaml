@@ -1,0 +1,17 @@
+TransitionConfigurationV1:
+  title: Transition configuration object
+  type: object
+  required:
+    - terminalTotalDifficulty
+    - terminalBlockHash
+    - terminalBlockNumber
+  properties:
+    terminalTotalDifficulty:
+      title: Terminal total difficulty
+      $ref: '#/components/schemas/uint256'
+    terminalBlockHash:
+      title: Terminal block hash
+      $ref: '#/components/schemas/hash32'
+    terminalBlockNumber:
+      title: Terminal block number
+      $ref: '#/components/schemas/uint64'

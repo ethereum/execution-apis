@@ -30,6 +30,18 @@ methodFiles.forEach(file => {
   ];
 });
 
+methodsBase = "src/engine/openrpc/methods/";
+methodFiles = fs.readdirSync(methodsBase);
+methodFiles.forEach(file => {
+  console.log(file);
+  let raw = fs.readFileSync(methodsBase + file);
+  let parsed = yaml.load(raw);
+  methods = [
+    ...methods,
+    ...parsed,
+  ];
+});
+
 let schemas = {};
 let schemasBase = "src/schemas/"
 let schemaFiles = fs.readdirSync(schemasBase);
@@ -42,6 +54,19 @@ schemaFiles.forEach(file => {
     ...parsed,
   };
 });
+
+schemasBase = "src/engine/openrpc/schemas/"
+schemaFiles = fs.readdirSync(schemasBase);
+schemaFiles.forEach(file => {
+  console.log(file);
+  let raw = fs.readFileSync(schemasBase + file);
+  let parsed = yaml.load(raw);
+  schemas = {
+    ...schemas,
+    ...parsed,
+  };
+});
+
 const doc = {
   openrpc: "1.2.4",
   info: {
