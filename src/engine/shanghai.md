@@ -93,7 +93,7 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadV1`](#./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
+  1. [`ExecutionPayloadV1`](./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
       - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
       - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
