@@ -32,7 +32,7 @@
     - code: -32602
       message: Invalid params
 - name: engine_getPayloadV1
-  summary: Obtains execution payload from payload build process
+  summary: Obtains execution payload from payload build process, V1
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#engine_getpayloadv1
@@ -49,7 +49,7 @@
     - code: -38001
       message: Unknown payload
 - name: engine_getPayloadV2
-  summary: Obtains execution payload from payload build process
+  summary: Obtains execution payload from payload build process, V2
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/shanghai.md#engine_getpayloadv2
@@ -74,6 +74,38 @@
         blockValue:
           title: Expected fee value
           $ref: '#/components/schemas/uint256'
+  errors:
+    - code: -38001
+      message: Unknown payload
+- name: engine_getPayloadV3
+  summary: Obtains execution payload from payload build process, V3
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/builder-override.md#engine_getpayloadv3
+  params:
+    - name: Payload id
+      required: true
+      schema:
+        $ref: '#/components/schemas/bytes8'
+  result:
+    name: Response object
+    schema:
+      type: object
+      required:
+        - executionPayload
+        - blockValue
+      properties:
+        executionPayload:
+          title: Execution payload
+          oneOf:
+            - $ref: '#/components/schemas/ExecutionPayloadV1'
+            - $ref: '#/components/schemas/ExecutionPayloadV2'
+        blockValue:
+          title: Expected fee value
+          $ref: '#/components/schemas/uint256'
+        shouldOverrideBuilder:
+          title: Should override builder flag
+          type: boolean
   errors:
     - code: -38001
       message: Unknown payload
