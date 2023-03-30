@@ -14,13 +14,9 @@ BlockStateCalls:
         $ref: '#/components/schemas/GenericCallTransaction'
 StateOverrides:
   title: Accounts in state to be overridden
-  schema:
-    title: Arguments for multi call
-    type: array
-    items:
-      type: object
-      additionalProperties:
-        $ref: '#/components/schemas/AccountOverride'
+  type: array
+  items:
+    $ref: '#/components/schemas/AccountOverride'
 AccountOverride:
   title: Details of an account to be overridden
   type: object
@@ -29,7 +25,12 @@ AccountOverride:
     - $ref: '#/components/schemas/AccountOverrideStateDiff'
 AccountOverrideState:
   title: Account override with whole storage replacement
+  required:
+    - state
   properties:
+    address:
+      title: Address
+      $ref: '#/components/schemas/address'
     nonce:
       title: Nonce
       $ref: '#/components/schemas/uint64'
@@ -44,7 +45,12 @@ AccountOverrideState:
       $ref: '#/components/schemas/AccountStorage'
 AccountOverrideStateDiff:
   title: Account override with partial storage modification
+  required:
+    - stateDiff
   properties:
+    address:
+      title: Address
+      $ref: '#/components/schemas/address'
     nonce:
       title: Nonce
       $ref: '#/components/schemas/uint64'
