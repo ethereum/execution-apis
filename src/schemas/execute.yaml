@@ -138,7 +138,6 @@ CallResultSuccess:
     - status
     - return
     - gasUsed
-    - logs
   properties:
     status:
       title: Call Status Success
@@ -179,6 +178,9 @@ CallResultInvalid:
 CallResultLog:
   title: log
   type: object
+  required:
+    - logIndex
+    - address
   properties:
     logIndex:
       title: log index
