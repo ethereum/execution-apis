@@ -86,7 +86,7 @@ ReceiptInfo:
       $ref: '#/components/schemas/uint'
     dataGasUsed:
       title: data gas used
-      description: The amount of data gas used for this specification transaction
+      description: The amount of data gas used for this specification transaction. Only specified for blob transactions as defined by EIP-4844.
       $ref: '#/components/schemas/uint'  
     contractAddress:
       title: contract address
@@ -115,3 +115,7 @@ ReceiptInfo:
       title: effective gas price
       description: The actual value per gas deducted from the senders account. Before EIP-1559, this is equal to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas).
       $ref: '#/components/schemas/uint'
+    dataGasPrice:
+      title: data gas price
+      description: The actual value per gas deducted from the senders account for data gas. Only specified for blob transactions as defined by EIP-4844.
+      $ref: '#/components/schemas/uint'      
