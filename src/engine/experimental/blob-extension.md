@@ -128,7 +128,7 @@ The separation of concerns aims to minimize changes during the testing phase of 
 1. Given the `payloadId` client software **MUST** return the blobs bundle corresponding to the most recent version of the payload that was served with `engine_getPayload`, if any,
    and halt any further changes to the payload. The `engine_getBlobsBundleV1` and `engine_getPayloadV2` results **MUST** be consistent as outlined in items 3, 4 and 5 below. 
 
-2. The call **MUST** return `-32001: Unknown payload` error if the build process identified by the `payloadId` does not exist. Note that a payload without any blobs **MUST** return an empty `blobs` and `kzgs` list, not an error.
+2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist. Note that a payload without any blobs **MUST** return an empty `blobs` and `kzgs` list, not an error.
 
 3. The call **MUST** return `kzgs` matching the versioned hashes of the transactions list of the execution payload, in the same order,
    i.e. `assert verify_kzgs_against_transactions(payload.transactions, bundle.kzgs)` (see EIP-4844 consensus-specs).
