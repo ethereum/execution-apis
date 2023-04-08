@@ -32,7 +32,9 @@ type Account {
   storage(slot: Bytes32!): Bytes32!
 }
 
-"""Address is a 20 byte Ethereum address, represented as 0x-prefixed hexadecimal."""
+"""
+Address is a 20 byte Ethereum address, represented as 0x-prefixed hexadecimal.
+"""
 scalar Address
 
 """
@@ -185,6 +187,18 @@ type Block {
 
   """Raw is the RLP encoding of the block."""
   raw: Bytes!
+
+  """
+  WithdrawalsRoot is the keccak256 hash of the root of the trie of withdrawals in this block.
+  If withdrawals are unavailable for this block, this field will be null.
+  """
+  withdrawalsRoot: Bytes32
+
+  """
+  Withdrawals is a list of withdrawals associated with this block. If
+  withdrawals are unavailable for this block, this field will be null.
+  """
+  withdrawals: [Withdrawal!]
 }
 
 """
@@ -220,7 +234,9 @@ An empty byte string is represented as '0x'. Byte strings must have an even numb
 """
 scalar Bytes
 
-"""Bytes32 is a 32 byte binary string, represented as 0x-prefixed hexadecimal."""
+"""
+Bytes32 is a 32 byte binary string, represented as 0x-prefixed hexadecimal.
+"""
 scalar Bytes32
 
 """
@@ -536,4 +552,24 @@ type Transaction {
   this is equivalent to TxType || ReceiptEncoding.
   """
   rawReceipt: Bytes!
+}
+
+"""EIP-4895"""
+type Withdrawal {
+  """
+  Index is a monotonically increasing identifier issued by consensus layer.
+  """
+  index: Long!
+
+  """Validator is index of the validator associated with withdrawal."""
+  validator: Long!
+
+  """Address recipient of the withdrawn amount."""
+  address: Address!
+
+  """Amount is the withdrawal value in Gwei."""
+  amount: Long!
+
+  """Block is the block this withdrawal was included in."""
+  block: Block!
 }
