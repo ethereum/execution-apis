@@ -136,7 +136,7 @@ The payload build process is specified as follows:
 
 4. Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (12s in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
 
-5. A `payloadId` value returned by the client software **SHOULD** uniquely identify an instance of `PayloadAttributes` passed into the build process, i.e. `payloadId` values for two distinct `PayloadAttributes` objects **SHOULD** be different.
+5. A `payloadId` value returned by the client software **MUST** uniquely identify an instance of `PayloadAttributes` passed into the build process, i.e. `payloadId` values for two distinct `PayloadAttributes` objects ** MUST** be different.
 
 ## Methods
 
