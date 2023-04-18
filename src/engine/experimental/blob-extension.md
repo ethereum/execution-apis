@@ -54,7 +54,6 @@ This structure has the syntax of `ExecutionPayloadV2` and appends a single field
 
 The fields are encoded as follows:
 
-- `blockHash`: `DATA`, 32 Bytes
 - `kzgs`: `Array of DATA` - Array of `KZGCommitment` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 - `proofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 - `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
@@ -83,6 +82,9 @@ Refer to the response for `engine_newPayloadV2`.
 
 ### engine_getPayloadV3
 
+The response of this method is extended with [`BlobsBundleV1`](#blobsbundlev1) containing the blobs, their respective KZG commitments
+and proofs corresponding to the `versioned_hashes` included in the blob transactions of the execution payload.
+
 #### Request
 
 * method: `engine_getPayloadV3`
@@ -98,43 +100,16 @@ Refer to the response for `engine_newPayloadV2`.
     - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp and lower than the EIP-4844 activation timestamp
     - `ExecutionPayloadV3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
+  - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
 
-Refer to the specification for `engine_getPayloadV2`.
+Refer to the specification for `engine_getPayloadV2` with addition of the following:
 
-### engine_getBlobsBundleV1
+1. The call **MUST** return empty `blobs`, `kzgs` and `proofs` if the paylaod doesn't contain any blob transactions.
 
-This method retrieves the blobs and their respective KZG commitments and proofs corresponding to the `versioned_hashes`
-included in the blob transactions of the referenced execution payload.
-
-This method may be combined with `engine_getPayloadV2`.
-The separation of concerns aims to minimize changes during the testing phase of the EIP.
-
-#### Request
-
-* method: `engine_getBlobsBundleV1`
-* params:
-  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
-
-#### Response
-
-* result: [`BlobsBundleV1`](#BlobsBundleV1)
-* error: code and message set in case an exception happens while getting the blobs bundle.
-
-#### Specification
-
-1. Given the `payloadId` client software **MUST** return the blobs bundle corresponding to the most recent version of the payload that was served with `engine_getPayload`, if any,
-   and halt any further changes to the payload. The `engine_getBlobsBundleV1` and `engine_getPayloadV2` results **MUST** be consistent as outlined in items 3, 4 and 5 below. 
-
-2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist. Note that a payload without any blobs **MUST** return an empty `blobs` and `kzgs` list, not an error.
-
-3. The call **MUST** return `kzgs` matching the versioned hashes of the transactions list of the execution payload, in the same order,
+2. The call **MUST** return `kzgs` matching the versioned hashes of the transactions list of the execution payload, in the same order,
    i.e. `assert verify_kzgs_against_transactions(payload.transactions, bundle.kzgs)` (see EIP-4844 consensus-specs).
 
-4. The call **MUST** return `blobs` and `proofs` that match the `kzgs` list, i.e. `assert len(kzgs) == len(blobs) == len(proofs)` and `assert verify_blob_kzg_proof_batch(bundle.blobs, bundle.kzgs, bundle.proofs)`
-
-
-5. The call **MUST** return `blockHash` to reference the `blockHash` of the corresponding execution payload, intended for the caller to sanity-check the consistency with the `engine_getPayload` call.
+3. The call **MUST** return `blobs` and `proofs` that match the `kzgs` list, i.e. `assert len(kzgs) == len(blobs) == len(proofs)` and `assert verify_blob_kzg_proof_batch(bundle.blobs, bundle.kzgs, bundle.proofs)`.
