@@ -107,9 +107,9 @@ and proofs corresponding to the `versioned_hashes` included in the blob transact
 
 Refer to the specification for `engine_getPayloadV2` with addition of the following:
 
-1. The call **MUST** return empty `blobs`, `kzgs` and `proofs` if the paylaod doesn't contain any blob transactions.
+1. The call **MUST** return empty `blobs`, `commitments` and `proofs` if the paylaod doesn't contain any blob transactions.
 
-2. The call **MUST** return `kzgs` matching the versioned hashes of the transactions list of the execution payload, in the same order,
-   i.e. `assert verify_kzgs_against_transactions(payload.transactions, bundle.kzgs)` (see EIP-4844 consensus-specs).
+2. The call **MUST** return `commitments` matching the versioned hashes of the transactions list of the execution payload, in the same order,
+   i.e. `assert verify_kzgs_against_transactions(payload.transactions, bundle.commitments)` (see EIP-4844 consensus-specs).
 
-3. The call **MUST** return `blobs` and `proofs` that match the `kzgs` list, i.e. `assert len(kzgs) == len(blobs) == len(proofs)` and `assert verify_blob_kzg_proof_batch(bundle.blobs, bundle.kzgs, bundle.proofs)`.
+3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(commitments) == len(blobs) == len(proofs)` and `assert verify_blob_kzg_proof_batch(bundle.blobs, bundle.commitments, bundle.proofs)`.
