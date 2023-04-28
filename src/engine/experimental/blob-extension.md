@@ -15,10 +15,6 @@
       - [Request](#request-1)
       - [Response](#response-1)
       - [Specification](#specification-1)
-    - [engine_getBlobsBundleV1](#engine_getblobsbundlev1)
-      - [Request](#request-2)
-      - [Response](#response-2)
-      - [Specification](#specification-2)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
