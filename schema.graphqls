@@ -569,7 +569,4 @@ type Withdrawal {
 
   """Amount is the withdrawal value in Gwei."""
   amount: Long!
-
-  """Block is the block this withdrawal was included in."""
-  block: Block!
 }
