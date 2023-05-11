@@ -90,8 +90,40 @@ BlockOverride:
     baseFee:
       title: Base fee
       $ref: '#/components/schemas/uint256'
+MultiCallResult:
+  title: Full results of multi call
+  type: array
+  items:
+    $ref: '#/components/schemas/MultiCallBlockResult'
+MultiCallBlockResult:
+  title: Result of multicall block-level, with array of calls
+  type: object
+  properties:
+    number:
+      title: Number
+      $ref: '#/components/schemas/uint256'
+    hash:
+      title: block hash
+      $ref: '#/components/schemas/hash32'
+    timestamp:
+      title: Time
+      $ref: '#/components/schemas/uint256'
+    gasLimit:
+      title: Gas limit
+      $ref: '#/components/schemas/uint64'
+    gasUsed:
+      title: Gas used
+      $ref: '#/components/schemas/uint64'
+    feeRecipient:
+      title: feeRecipient
+      $ref: '#/components/schemas/address'
+    baseFeePerGas:
+      title: Base fee
+      $ref: '#/components/schemas/uint256'
+    calls:
+      $ref: '#/components/schemas/CallResults'
 CallResults:
-  title: Results of multi call
+  title: Results of multi call within block
   type: array
   items:
     anyOf:
