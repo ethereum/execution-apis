@@ -9,8 +9,8 @@
   - [Methods](#methods)
     - [engine_newPayloadV3](#engine_newpayloadv3)
       - [Request](#request)
-      - [Specification](#specification)
       - [Response](#response)
+      - [Specification](#specification)
     - [engine_getPayloadV3](#engine_getpayloadv3)
       - [Request](#request-1)
       - [Response](#response-1)
@@ -67,14 +67,17 @@ The fields are encoded as follows:
       - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai and lower than the EIP-4844 activation timestamp,
       - `ExecutionPayloadV3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
-
-#### Specification
-
-Refer to the specification for `engine_newPayloadV2`.
+  2. `Array of DATA`, 32 Bytes - Array of blob versioned hashes to validate.
 
 #### Response
 
 Refer to the response for `engine_newPayloadV2`.
+
+#### Specification
+
+This method follows the same specification as `engine_newPayloadV2` with the addition of the following:
+
+1. Client software **MUST** validate blob versioned hashes array as being equal to the corresponding array obtained from transactions of the [`BLOB_TX_TYPE`](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) type contained by the payload respecting the order of their inclusion. Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process and return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if it fails.
 
 ### engine_getPayloadV3
 
