@@ -77,7 +77,11 @@ Refer to the response for `engine_newPayloadV2`.
 
 This method follows the same specification as `engine_newPayloadV2` with the addition of the following:
 
-1. Client software **MUST** validate blob versioned hashes array as being equal to the corresponding array obtained by concatenating versioned hashes from transactions of the [`BLOB_TX_TYPE`](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) type contained by the payload respecting the order of their block and transaction inclusion. Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process and return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if it fails.
+1. Given array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
+    1. Obtain an expected array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
+    1. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the given and the expected arrays don't match.
+
+    This validation **MUST** be instantly run in all cases even during active sync process.
 
 ### engine_getPayloadV3
 
