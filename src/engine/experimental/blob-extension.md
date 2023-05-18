@@ -79,7 +79,7 @@ This method follows the same specification as `engine_newPayloadV2` with the add
 
 1. Given the expected array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
     1. Obtain an actual array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
-    1. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the expected and the actual arrays don't match.
+    2. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the expected and the actual arrays don't match.
 
     This validation **MUST** be instantly run in all cases even during active sync process.
 
