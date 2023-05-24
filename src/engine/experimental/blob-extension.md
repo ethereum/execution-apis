@@ -9,8 +9,8 @@
   - [Methods](#methods)
     - [engine_newPayloadV3](#engine_newpayloadv3)
       - [Request](#request)
-      - [Specification](#specification)
       - [Response](#response)
+      - [Specification](#specification)
     - [engine_getPayloadV3](#engine_getpayloadv3)
       - [Request](#request-1)
       - [Response](#response-1)
@@ -67,14 +67,21 @@ The fields are encoded as follows:
       - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai and lower than the EIP-4844 activation timestamp,
       - `ExecutionPayloadV3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
-
-#### Specification
-
-Refer to the specification for `engine_newPayloadV2`.
+  2. `Array of DATA`, 32 Bytes - Array of blob versioned hashes to validate.
 
 #### Response
 
 Refer to the response for `engine_newPayloadV2`.
+
+#### Specification
+
+This method follows the same specification as `engine_newPayloadV2` with the addition of the following:
+
+1. Given the expected array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
+    1. Obtain an actual array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
+    2. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the expected and the actual arrays don't match.
+
+    This validation **MUST** be instantly run in all cases even during active sync process.
 
 ### engine_getPayloadV3
 
