@@ -769,7 +769,7 @@
           },
           {
             "name": "withdrawalsRoot",
-            "description": "WithdrawalsRoot is the keccak256 hash of the root of the trie of withdrawals in this block.\nIf withdrawals are unavailable for this block, this field will be null.",
+            "description": "WithdrawalsRoot is withdrawals trie root in this block.\nIf withdrawals are unavailable for this block, this field will be null.",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -2202,7 +2202,7 @@
           },
           {
             "name": "address",
-            "description": "Address recipient of the withdrawn amount.",
+            "description": "Recipient address of the withdrawn amount.",
             "args": [],
             "type": {
               "kind": "NON_NULL",
