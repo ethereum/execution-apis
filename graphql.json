@@ -769,7 +769,7 @@
           },
           {
             "name": "withdrawalsRoot",
-            "description": "WithdrawalsRoot is withdrawals trie root in this block.\nIf withdrawals are unavailable for this block, this field will be null.",
+            "description": "WithdrawalsRoot is the withdrawals trie root in this block.\nIf withdrawals are unavailable for this block, this field will be null.",
             "args": [],
             "type": {
               "kind": "SCALAR",
