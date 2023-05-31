@@ -27,7 +27,7 @@ This extension is backwards-compatible, but not part of the initial Engine API.
 
 ### ExecutionPayloadV3
 
-This structure has the syntax of `ExecutionPayloadV2` and appends a single field: `excessDataGas`.
+This structure has the syntax of `ExecutionPayloadV2` and append two new fields: `excessDataGas` and `dataGasUsed`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -44,7 +44,8 @@ This structure has the syntax of `ExecutionPayloadV2` and appends a single field
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `excessDataGas`: `QUANTITY`, 256 bits
+- `excessDataGas`: `QUANTITY`, 64 Bits
+- `dataGasUsed`: `QUANTITY`, 256 bits
 
 ### BlobsBundleV1
 
