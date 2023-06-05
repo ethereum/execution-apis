@@ -27,7 +27,7 @@ This extension is backwards-compatible, but not part of the initial Engine API.
 
 ### ExecutionPayloadV3
 
-This structure has the syntax of `ExecutionPayloadV2` and append two new fields: `excessDataGas` and `dataGasUsed`.
+This structure has the syntax of `ExecutionPayloadV2` and append two new fields: `dataGasUsed` and `excessDataGas`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
