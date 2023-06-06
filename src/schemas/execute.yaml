@@ -88,7 +88,7 @@ BlockOverride:
       title: feeRecipient
       $ref: '#/components/schemas/address'
     baseFeePerGas:
-      title: Base fee
+      title: Base fee per gas
       $ref: '#/components/schemas/uint256'
 MultiCallResult:
   title: Full results of multi call
