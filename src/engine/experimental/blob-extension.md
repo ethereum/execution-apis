@@ -63,12 +63,12 @@ The fields are encoded as follows:
 
 * method: `engine_newPayloadV3`
 * params:
-  1. [`ExecutionPayloadV1`](../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](../shanghai.md#ExecutionPayloadV2) | [`ExecutionPayloadV3`](#ExecutionPayloadV3), where:
-      - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
-      - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai and lower than the EIP-4844 activation timestamp,
-      - `ExecutionPayloadV3` **MUST** be used if the `timestamp` value is greater or equal to the EIP-4844 activation timestamp,
-      - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
+  1. [`ExecutionPayloadV3`](#ExecutionPayloadV3).
   2. `Array of DATA`, 32 Bytes - Array of blob versioned hashes to validate.
+
+Client software **MUST** enforce the following checks on the parameter set of this call and return `-32602: Invalid params` error if any of them fails:
+* All parameters and their fields are provided with non-`null` values.
+* The payload `timestamp` is greater or equal to the EIP-4844 activation timestamp.
 
 #### Response
 
@@ -99,10 +99,7 @@ and proofs corresponding to the `versioned_hashes` included in the blob transact
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV1`](../paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](../shanghai.md#ExecutionPayloadV2) |  [`ExecutionPayloadV3`](#ExecutionPayloadV3) where:
-    - `ExecutionPayloadV1` **MUST** be returned if the payload `timestamp` is lower than the Shanghai timestamp
-    - `ExecutionPayloadV2` **MUST** be returned if the payload `timestamp` is greater or equal to the Shanghai timestamp and lower than the EIP-4844 activation timestamp
-    - `ExecutionPayloadV3` **MUST** be returned if the payload `timestamp` is greater or equal to the EIP-4844 activation timestamp
+  - `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
 * error: code and message set in case an exception happens while getting the payload.
@@ -117,3 +114,5 @@ Refer to the specification for `engine_getPayloadV2` with addition of the follow
    i.e. `assert verify_kzg_commitments_against_transactions(payload.transactions, bundle.commitments)` (see EIP-4844 consensus-specs).
 
 3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(commitments) == len(blobs) == len(proofs)` and `assert verify_blob_kzg_proof_batch(bundle.blobs, bundle.commitments, bundle.proofs)`.
+
+4. Client software **MUST** return `-32602: Invalid params` error if the `timestamp` of the built payload is less than the EIP-4844 activation timestamp.
