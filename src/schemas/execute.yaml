@@ -148,7 +148,7 @@ CallResultFailure:
       $ref: '#/components/schemas/bytes'
     gasUsed:
       title: Return gasUsed
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint64'
     error:
       title: Error Object
       type: object
