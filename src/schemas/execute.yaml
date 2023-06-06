@@ -243,7 +243,7 @@ GenericCallTransaction:
       $ref: '#/components/schemas/byte'
     nonce:
       title: nonce
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint64'
     to:
       title: to address
       $ref: '#/components/schemas/address'
