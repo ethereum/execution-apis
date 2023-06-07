@@ -66,9 +66,7 @@ The fields are encoded as follows:
   1. [`ExecutionPayloadV3`](#ExecutionPayloadV3).
   2. `Array of DATA`, 32 Bytes - Array of blob versioned hashes to validate.
 
-Client software **MUST** enforce the following checks on the parameter set of this call and return `-32602: Invalid params` error if any of them fails:
-* All parameters and their fields are provided with non-`null` values.
-* The payload `timestamp` is greater or equal to the EIP-4844 activation timestamp.
+Client software **MUST** return `-32602: Invalid params` error unless all parameters and their fields are provided with non-`null` values.
 
 #### Response
 
@@ -83,6 +81,8 @@ This method follows the same specification as `engine_newPayloadV2` with the add
     2. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the expected and the actual arrays don't match.
 
     This validation **MUST** be instantly run in all cases even during active sync process.
+
+2. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload is less than the EIP-4844 activation timestamp.
 
 ### engine_getPayloadV3
 
@@ -115,4 +115,4 @@ Refer to the specification for `engine_getPayloadV2` with addition of the follow
 
 3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(commitments) == len(blobs) == len(proofs)` and `assert verify_blob_kzg_proof_batch(bundle.blobs, bundle.commitments, bundle.proofs)`.
 
-4. Client software **MUST** return `-32602: Invalid params` error if the `timestamp` of the built payload is less than the EIP-4844 activation timestamp.
+4. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload is less than the EIP-4844 activation timestamp.
