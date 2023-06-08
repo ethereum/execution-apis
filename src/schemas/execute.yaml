@@ -1,9 +1,9 @@
 BlockStateCalls:
   title: Array of calls to be executed at specific, optional block/state
   properties:
-    blockOverride:
+    blockOverrides:
       title: Block override
-      $ref: '#/components/schemas/BlockOverride'
+      $ref: '#/components/schemas/BlockOverrides'
     stateOverrides:
       title: State overrides
       $ref: '#/components/schemas/StateOverrides'
@@ -68,7 +68,7 @@ AccountStorage:
   type: object
   additionalProperties:
     - $ref: '#/components/schemas/hash32'
-BlockOverride:
+BlockOverrides:
   title: Context fields related to the block being executed
   type: object
   properties:
