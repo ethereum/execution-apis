@@ -57,7 +57,7 @@
 - name: eth_multicall
   summary: Executes a sequence of message calls building on each other's state without creating transactions on the block chain, optionally overriding block and state data
   params:
-    - name: BlockCalls
+    - name: Block state calls
       schema:
         title: Arguments for multi call
         type: array
