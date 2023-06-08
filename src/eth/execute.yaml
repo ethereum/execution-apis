@@ -63,7 +63,7 @@
         type: array
         items:
           $ref: '#/components/schemas/BlockStateCalls'
-    - name: Block
+    - name: Block tag
       required: false
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
