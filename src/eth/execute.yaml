@@ -57,10 +57,6 @@
 - name: eth_multicall
   summary: Executes a sequence of message calls building on each other's state without creating transactions on the block chain, optionally overriding block and state data
   params:
-    - name: Version
-      schema:
-        title: Version
-        $ref: '#/components/schemas/uint'
     - name: BlockCalls
       schema:
         title: Arguments for multi call
