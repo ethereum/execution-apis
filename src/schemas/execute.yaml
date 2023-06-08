@@ -135,7 +135,7 @@ CallResultFailure:
   type: object
   required:
     - status
-    - return
+    - returnData
     - error
     - gasUsed
   properties:
@@ -143,7 +143,7 @@ CallResultFailure:
       title: Call Status Failure
       type: string
       pattern: ^0x0$
-    return:
+    returnData:
       title: Return data
       $ref: '#/components/schemas/bytes'
     gasUsed:
@@ -168,14 +168,14 @@ CallResultSuccess:
   type: object
   required:
     - status
-    - return
+    - returnData
     - gasUsed
   properties:
     status:
       title: Call Status Success
       type: string
       pattern: ^0x1$
-    return:
+    returnData:
       title: Return data
       $ref: '#/components/schemas/bytes'
     gasUsed:
