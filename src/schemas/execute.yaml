@@ -181,7 +181,7 @@ CallResultSuccess:
       $ref: '#/components/schemas/bytes'
     gasUsed:
       title: Return gasUsed
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint64'
     logs:
       title: Return logs
       type: array
@@ -217,7 +217,7 @@ CallResultLog:
   properties:
     logIndex:
       title: log index
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint256'
     blockHash:
       title: block hash
       $ref: '#/components/schemas/hash32'
@@ -256,22 +256,22 @@ GenericCallTransaction:
       $ref: '#/components/schemas/uint64'
     value:
       title: value
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint256'
     input:
       title: input data
       $ref: '#/components/schemas/bytes'
     gasPrice:
       title: gas price
       description: The gas price willing to be paid by the sender in wei
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint256'
     maxPriorityFeePerGas:
       title: max priority fee per gas
       description: Maximum fee per gas the sender is willing to pay to miners in wei
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint256'
     maxFeePerGas:
       title: max fee per gas
       description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint256'
     accessList:
       title: accessList
       description: EIP-2930 access list
