@@ -170,6 +170,7 @@ CallResultSuccess:
     - status
     - returnData
     - gasUsed
+    - logs
   properties:
     status:
       title: Call Status Success
