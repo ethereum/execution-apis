@@ -223,7 +223,7 @@ CallResultLog:
       $ref: '#/components/schemas/hash32'
     blockNumber:
       title: block number
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint64'
     address:
       title: address
       $ref: '#/components/schemas/address'
