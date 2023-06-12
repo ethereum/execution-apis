@@ -15,4 +15,4 @@ lint:
 	staticcheck ./...
 
 fill: build
-	./rpctestgen  --ethash --ethashdir=ethash
+	./rpctestgen
