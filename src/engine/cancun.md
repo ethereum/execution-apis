@@ -13,7 +13,7 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
 
 ### ExecutionPayloadV3
 
-This structure has the syntax of `ExecutionPayloadV2` and append two new fields: `dataGasUsed` and `excessDataGas`.
+This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and append two new fields: `dataGasUsed` and `excessDataGas`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -96,7 +96,7 @@ and proofs corresponding to the `versioned_hashes` included in the blob transact
 
 Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getpayloadv2) with addition of the following:
 
-1. The call **MUST** return empty `blobs`, `commitments` and `proofs` if the payload doesn't contain any blob transactions.
+1. The call **MUST** return `blobsBundle` with empty `blobs`, `commitments` and `proofs` if the payload doesn't contain any blob transactions.
 
 2. The call **MUST** return `commitments` matching the versioned hashes of the transactions list of the execution payload, in the same order,
    i.e. `assert verify_kzg_commitments_against_transactions(payload.transactions, blobsBundle.commitments)` (see EIP-4844 consensus-specs).
