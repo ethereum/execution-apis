@@ -50,4 +50,4 @@ client's response.
 ```
 
 [retesteth]: https://github.com/ethereum/retesteth
-[execution-apis]: https:github.com/ethereum/execution-apis
+[execution-apis]: https://github.com/ethereum/execution-apis
