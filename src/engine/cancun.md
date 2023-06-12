@@ -9,7 +9,22 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [Structures](#structures)
+  - [ExecutionPayloadV3](#executionpayloadv3)
+  - [BlobsBundleV1](#blobsbundlev1)
+- [Methods](#methods)
+  - [engine_newPayloadV3](#engine_newpayloadv3)
+    - [Request](#request)
+    - [Response](#response)
+    - [Specification](#specification)
+  - [engine_getPayloadV3](#engine_getpayloadv3)
+    - [Request](#request-1)
+    - [Response](#response-1)
+    - [Specification](#specification-1)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Structures
 
 ### ExecutionPayloadV3
 
