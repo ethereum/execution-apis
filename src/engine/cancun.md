@@ -21,6 +21,7 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
+  - [Deprecate `engine_exchangeTransitionConfigurationV1`](#deprecate-engine_exchangetransitionconfigurationv1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -119,3 +120,13 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
 
 4. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload is less than the Cancun activation timestamp.
+
+### Deprecate `engine_exchangeTransitionConfigurationV1`
+
+This document introduces deprecation of [`engine_exchangeTransitionConfigurationV1`](./paris.md#engine_exchangetransitionconfigurationv1). The deprecation is specified as follows:
+
+1. Consensus layer clients **MUST NOT** call this method.
+
+2. Execution layer clients **MUST NOT** surface an error message to the user if this method is not called.
+
+3. Consensus and execution layer clients **MAY** remove support of this method after Cancun. If no longer supported, this method **MUST** be removed from the [`engine_exchangeCapabilities`](./common.md#engine_exchangecapabilities) request or response list depending on whether it is consensus or execution layer client.
