@@ -48,6 +48,7 @@ This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionp
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `dataGasUsed`: `QUANTITY`, 64 bits
 - `excessDataGas`: `QUANTITY`, 64 Bits
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes
 
 ### BlobsBundleV1
 
