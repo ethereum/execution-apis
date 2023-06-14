@@ -34,7 +34,7 @@ bytes256:
 bytes65:
   title: 65 hex encoded bytes
   type: string
-  pattern: ^0x[0-9a-f]{65}$
+  pattern: ^0x[0-9a-f]{130}$
 uint:
   title: hex encoded unsigned integer
   type: string
