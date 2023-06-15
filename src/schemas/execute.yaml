@@ -1,8 +1,8 @@
 BlockStateCalls:
-  title: Array of calls to be executed at specific, optional block/state
+  title: Array of calls to be executed at specific, optional block/state.
   properties:
     blockOverrides:
-      title: Block override
+      title: Block override. When overriding block number across multiple blocks, block number not decrease or remain the same between block overrides, but skipping block numbers is acceptable.
       $ref: '#/components/schemas/BlockOverrides'
     stateOverrides:
       title: State overrides
