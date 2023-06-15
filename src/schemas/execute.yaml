@@ -40,6 +40,9 @@ AccountOverrideState:
     code:
       title: Code
       $ref: '#/components/schemas/bytes'
+    moveToAddress:
+      title: MoveToAddress
+      $ref: '#/components/schemas/address'
     state:
       title: Storage
       $ref: '#/components/schemas/AccountStorage'
@@ -60,6 +63,9 @@ AccountOverrideStateDiff:
     code:
       title: Code
       $ref: '#/components/schemas/bytes'
+    moveToAddress:
+      title: MoveToAddress
+      $ref: '#/components/schemas/address'
     stateDiff:
       title: Storage difference
       $ref: '#/components/schemas/AccountStorage'
