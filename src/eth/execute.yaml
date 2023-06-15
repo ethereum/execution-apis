@@ -66,6 +66,10 @@
     - name: Block tag
       required: false
       schema:
+        type: boolean
+    - name: Trace Transfers - Add ETH transfers as fake events to the event log response
+      required: false
+      schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Result of calls
