@@ -86,7 +86,7 @@ ReceiptInfo:
       $ref: '#/components/schemas/uint'
     dataGasUsed:
       title: data gas used
-      description: The amount of data gas used for this specification transaction. Only specified for blob transactions as defined by EIP-4844.
+      description: The amount of data gas used for this specific transaction. Only specified for blob transactions as defined by EIP-4844.
       $ref: '#/components/schemas/uint'  
     contractAddress:
       title: contract address
