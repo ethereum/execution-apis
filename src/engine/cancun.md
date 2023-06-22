@@ -12,15 +12,20 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
 - [Structures](#structures)
   - [ExecutionPayloadV3](#executionpayloadv3)
   - [BlobsBundleV1](#blobsbundlev1)
+  - [PayloadAttributesV3](#payloadattributesv3)
 - [Methods](#methods)
   - [engine_newPayloadV3](#engine_newpayloadv3)
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
-  - [engine_getPayloadV3](#engine_getpayloadv3)
+  - [engine_forkchoiceUpdatedV3](#engine_forkchoiceupdatedv3)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
+  - [engine_getPayloadV3](#engine_getpayloadv3)
+    - [Request](#request-2)
+    - [Response](#response-2)
+    - [Specification](#specification-2)
   - [Deprecate `engine_exchangeTransitionConfigurationV1`](#deprecate-engine_exchangetransitionconfigurationv1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -29,7 +34,7 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
 
 ### ExecutionPayloadV3
 
-This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and appends two new fields: `dataGasUsed` and `excessDataGas`.
+This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and appends three new fields: `dataGasUsed`, `excessDataGas` and `parentBeaconBlockRoot`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -60,6 +65,16 @@ The fields are encoded as follows:
 
 All of the above three arrays **MUST** be of same length.
 
+### PayloadAttributesV3
+
+This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadattributesv2) and appends a single field: `parentBeaconBlockRoot`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of a parent beacon block.
+
 ## Methods
 
 ### engine_newPayloadV3
@@ -88,6 +103,30 @@ This method follows the same specification as [`engine_newPayloadV2`](./shanghai
     This validation **MUST** be instantly run in all cases even during active sync process.
 
 2. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload is less than the Cancun activation timestamp.
+
+### engine_forkchoiceUpdatedV3
+
+#### Request
+
+* method: "engine_forkchoiceUpdatedV3"
+* params:
+  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
+  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV3`](#payloadattributesv3) or `null`
+* timeout: 8s
+
+Client software **MUST** return `-32602: Invalid params` error unless:
+* every field of `forkchoiceState` is provided with non-`null` value,
+* every field of `payloadAttributes` is provided with non-`null` values when `payloadAttributes` is not `null`.
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2) with addition of the following:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes.timestamp` is less than the Cancun activation timestamp.
 
 ### engine_getPayloadV3
 
