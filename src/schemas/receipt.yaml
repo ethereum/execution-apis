@@ -113,7 +113,7 @@ ReceiptInfo:
       $ref: '#/components/schemas/uint'
     effectiveGasPrice:
       title: effective gas price
-      description: The actual value per gas deducted from the senders account. Before EIP-1559, this is equal to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas).
+      description: The actual value per gas deducted from the sender's account. Before EIP-1559, this is equal to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas).
       $ref: '#/components/schemas/uint'
     dataGasPrice:
       title: data gas price
