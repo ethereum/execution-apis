@@ -29,7 +29,7 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
 
 ### ExecutionPayloadV3
 
-This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and append two new fields: `dataGasUsed` and `excessDataGas`.
+This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and appends two new fields: `dataGasUsed` and `excessDataGas`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -69,7 +69,7 @@ All of the above three arrays **MUST** be of same length.
 * method: `engine_newPayloadV3`
 * params:
   1. [`ExecutionPayloadV3`](#ExecutionPayloadV3).
-  2. `Array of DATA`, 32 Bytes - Array of blob versioned hashes to validate.
+  2. `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
 
 Client software **MUST** return `-32602: Invalid params` error unless all parameters and their fields are provided with non-`null` values.
 
@@ -82,7 +82,7 @@ Refer to the response for [`engine_newPayloadV2`](./shanghai.md#engine_newpayloa
 This method follows the same specification as [`engine_newPayloadV2`](./shanghai.md#engine_newpayloadv2) with the addition of the following:
 
 1. Given the expected array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
-    1. Obtain an actual array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
+    1. Obtain the actual array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
     2. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the expected and the actual arrays don't match.
 
     This validation **MUST** be instantly run in all cases even during active sync process.
