@@ -34,7 +34,7 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
 
 ### ExecutionPayloadV3
 
-This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and appends three new fields: `dataGasUsed`, `excessDataGas` and `parentBeaconBlockRoot`.
+This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and appends the new fields: `dataGasUsed` and `excessDataGas`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -53,7 +53,6 @@ This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionp
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `dataGasUsed`: `QUANTITY`, 64 bits
 - `excessDataGas`: `QUANTITY`, 64 Bits
-- `parentBeaconBlockRoot`: `DATA`, 32 Bytes
 
 ### BlobsBundleV1
 
@@ -73,7 +72,7 @@ This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadat
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of a parent beacon block.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 
 ## Methods
 
@@ -85,6 +84,7 @@ This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadat
 * params:
   1. [`ExecutionPayloadV3`](#ExecutionPayloadV3).
   2. `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
+  3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 
 Client software **MUST** return `-32602: Invalid params` error unless all parameters and their fields are provided with non-`null` values.
 
