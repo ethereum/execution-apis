@@ -82,7 +82,7 @@ This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadat
 
 * method: `engine_newPayloadV3`
 * params:
-  1. `executionPayload`: `Object` - Instance of [`ExecutionPayloadV3`](#ExecutionPayloadV3).
+  1. `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 
@@ -108,10 +108,10 @@ This method follows the same specification as [`engine_newPayloadV2`](./shanghai
 
 #### Request
 
-* method: "engine_forkchoiceUpdatedV3"
+* method: `engine_forkchoiceUpdatedV3`
 * params:
-  1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
-  2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV3`](#payloadattributesv3) or `null`
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV3`](#payloadattributesv3) or `null`.
 * timeout: 8s
 
 Client software **MUST** return `-32602: Invalid params` error unless:
