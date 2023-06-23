@@ -41,7 +41,7 @@
       required: true
       schema:
         $ref: '#/components/schemas/ExecutionPayloadV3'
-    - name: Blob versioned hashes
+    - name: Expected blob versioned hashes
       required: true
       schema:
         type: array
