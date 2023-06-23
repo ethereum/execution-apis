@@ -47,6 +47,10 @@
         type: array
         items:
           $ref: '#/components/schemas/hash32'
+    - name: Root of the parent beacon block
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
   result:
     name: Payload status
     schema:

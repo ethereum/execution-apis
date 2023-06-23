@@ -206,7 +206,6 @@ ExecutionPayloadV3:
     - withdrawals
     - dataGasUsed
     - excessDataGas
-    - parentBeaconBlockRoot
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV2/properties/parentHash'
