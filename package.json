@@ -28,7 +28,7 @@
     "@graphql-inspector/core": "~3.3.0",
     "@open-rpc/generator": "1.18.6",
     "@open-rpc/schema-utils-js": "1.15.0",
-    "gatsby": "~4.16.0",
+    "gatsby": "~4.25.7",
     "gh-pages": "~4.0.0",
     "graphql": "~16.3.0",
     "graphql-request": "~4.1.0",
