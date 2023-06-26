@@ -64,3 +64,24 @@ PayloadAttributesV2:
       type: array
       items:
         $ref: '#/components/schemas/WithdrawalV1'
+PayloadAttributesV3:
+  title: Payload attributes object V3
+  type: object
+  required:
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+    - withdrawals
+    - parentBeaconBlockRoot
+  properties:
+    timestamp:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/timestamp'
+    prevRandao:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/prevRandao'
+    suggestedFeeRecipient:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/suggestedFeeRecipient'
+    withdrawals:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/withdrawals'
+    parentBeaconBlockRoot:
+      title: Parent beacon block root
+      $ref: '#/components/schemas/hash32'

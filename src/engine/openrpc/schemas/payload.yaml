@@ -185,6 +185,64 @@ ExecutionPayloadV2:
       type: array
       items:
         $ref: '#/components/schemas/WithdrawalV1'
+ExecutionPayloadV3:
+  title: Execution payload object V3
+  type: object
+  required:
+    - parentHash
+    - feeRecipient
+    - stateRoot
+    - receiptsRoot
+    - logsBloom
+    - prevRandao
+    - blockNumber
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - baseFeePerGas
+    - blockHash
+    - transactions
+    - withdrawals
+    - dataGasUsed
+    - excessDataGas
+  properties:
+    parentHash:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/parentHash'
+    feeRecipient:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/feeRecipient'
+    stateRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/stateRoot'
+    receiptsRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/receiptsRoot'
+    logsBloom:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/logsBloom'
+    prevRandao:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/prevRandao'
+    blockNumber:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/blockNumber'
+    gasLimit:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/gasLimit'
+    gasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/gasUsed'
+    timestamp:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/timestamp'
+    extraData:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/extraData'
+    baseFeePerGas:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/baseFeePerGas'
+    blockHash:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/blockHash'
+    transactions:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/transactions'
+    withdrawals:
+      $ref: '#/components/schemas/ExecutionPayloadV2/properties/withdrawals'
+    dataGasUsed:
+      title: Data gas used
+      $ref: '#/components/schemas/uint64'
+    excessDataGas:
+      title: Excess data gas
+      $ref: '#/components/schemas/uint64'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object
@@ -200,3 +258,26 @@ ExecutionPayloadBodyV1:
         - 'null'
       items:
         $ref: '#/components/schemas/WithdrawalV1'
+BlobsBundleV1:
+  title: Blobs bundle object V1
+  type: object
+  required:
+    - commitments
+    - proofs
+    - blobs
+  properties:
+    commitments:
+      title: Commitments
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes48'
+    proofs:
+      title: Proofs
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes48'
+    blobs:
+      title: Blobs
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
