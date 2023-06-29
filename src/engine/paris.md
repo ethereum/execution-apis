@@ -159,18 +159,15 @@ The payload build process is specified as follows:
 
 #### Specification
 
+1. Client software **MUST** validate `blockHash` value as being equivalent to `Keccak256(RLP(ExecutionBlockHeader))`, where `ExecutionBlockHeader` is the execution layer block header (the former PoW block header structure). Fields of this object are set to the corresponding payload values and constant values according to the Block structure section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#block-structure), extended with the corresponding section of [EIP-4399](https://eips.ethereum.org/EIPS/eip-4399#block-structure). Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process.
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload is greater or equal to the Cancun activation timestamp.
+2. Client software **MAY** initiate a sync process if requisite data for payload validation is missing. Sync process is specified in the [Sync](#sync) section.
 
-2. Client software **MUST** validate `blockHash` value as being equivalent to `Keccak256(RLP(ExecutionBlockHeader))`, where `ExecutionBlockHeader` is the execution layer block header (the former PoW block header structure). Fields of this object are set to the corresponding payload values and constant values according to the Block structure section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#block-structure), extended with the corresponding section of [EIP-4399](https://eips.ethereum.org/EIPS/eip-4399#block-structure). Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process.
+3. Client software **MUST** validate the payload if it extends the canonical chain and requisite data for the validation is locally available. The validation process is specified in the [Payload validation](#payload-validation) section.
 
-3. Client software **MAY** initiate a sync process if requisite data for payload validation is missing. Sync process is specified in the [Sync](#sync) section.
+4. Client software **MAY NOT** validate the payload if the payload doesn't belong to the canonical chain.
 
-4. Client software **MUST** validate the payload if it extends the canonical chain and requisite data for the validation is locally available. The validation process is specified in the [Payload validation](#payload-validation) section.
-
-5. Client software **MAY NOT** validate the payload if the payload doesn't belong to the canonical chain.
-
-6. Client software **MUST** respond to this method call in the following way:
+5. Client software **MUST** respond to this method call in the following way:
   * `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed
   * `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000, validationError: errorMessage | null}` if terminal block conditions are not satisfied
   * `{status: SYNCING, latestValidHash: null, validationError: null}` if requisite data for the payload's acceptance or validation is missing
@@ -181,7 +178,7 @@ The payload build process is specified as follows:
     - the payload hasn't been fully validated
     - ancestors of a payload are known and comprise a well-formed chain.
 
-7. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
+6. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
 
 ### engine_forkchoiceUpdatedV1
 
@@ -254,9 +251,7 @@ The payload build process is specified as follows:
 
 2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
-3. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload is greater or equal to the Cancun activation timestamp.
-
-4. Client software **MAY** stop the corresponding build process after serving this call.
+3. Client software **MAY** stop the corresponding build process after serving this call.
 
 ### engine_exchangeTransitionConfigurationV1
 
