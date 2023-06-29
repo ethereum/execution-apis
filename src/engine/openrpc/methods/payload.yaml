@@ -124,6 +124,7 @@
         - executionPayload
         - blockValue
         - blobsBundle
+        - shouldOverrideBuilder
       properties:
         executionPayload:
           title: Execution payload
@@ -134,6 +135,9 @@
         blobsBundle:
           title: Blobs bundle
           $ref: '#/components/schemas/BlobsBundleV1'
+        shouldOverrideBuilder:
+          title: Should override builder flag
+          type: boolean
   errors:
     - code: -38001
       message: Unknown payload
