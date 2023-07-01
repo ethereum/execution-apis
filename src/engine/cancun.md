@@ -162,7 +162,7 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 
 4. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload is less than the Cancun activation timestamp.
 
-5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `False`.
+5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
 
 ### Deprecate `engine_exchangeTransitionConfigurationV1`
 
