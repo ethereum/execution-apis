@@ -101,6 +101,13 @@ MultiCallResult:
   type: array
   items:
     $ref: '#/components/schemas/MultiCallBlockResult'
+  errors:
+    - code: -38020
+      message: Block number in sequence did not increase
+    - code: -38021
+      message: Block timestamp in sequence did not increase
+    - code: -38021
+      message: MoveToAddress referenced itself in replacement
 MultiCallBlockResult:
   title: Result of multicall block-level, with array of calls
   type: object
@@ -155,7 +162,7 @@ CallResultFailure:
     gasUsed:
       title: Return gasUsed
       $ref: '#/components/schemas/uint64'
-    error:
+    errors:
       title: Error Object
       type: object
       properties:
@@ -204,16 +211,17 @@ CallResultInvalid:
       title: Call Status Invalid
       type: string
       pattern: ^0x2$
-    error:
-      title: Error Object
-      type: object
-      properties:
-        message:
-          title: Reason the transaction could not be included on-chain (baseFee, nonce too high, etc)
-          type: string
-        code:
-          type: number
-          $ref: '#/components/schemas/int'
+    errors:
+      - code: -38010
+        message: Nonce too low
+      - code: -38011
+        message: Nonce too high
+      - code: -38012
+        message: BaseFee too low
+      - code: -38013
+        message: Not enough gas provided to pay for intrinsic gas
+      - code: -38014
+        message: Insufficient funds to pay for gas fees and value
 CallResultLog:
   title: log
   type: object
