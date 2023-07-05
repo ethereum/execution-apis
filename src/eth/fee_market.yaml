@@ -65,7 +65,7 @@
           description: An array of block gas used ratios. These are calculated as the ratio of gasUsed and gasLimit.
           type: array
           items:
-            $ref: '#/components/schemas/uint'
+            $ref: '#/components/schemas/ratio'
         reward:
           title: rewardArray
           description: A two-dimensional array of effective priority fees per gas at the requested block percentiles.
