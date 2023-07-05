@@ -39,6 +39,11 @@ bytes65:
   title: 65 hex encoded bytes
   type: string
   pattern: ^0x[0-9a-f]{130}$
+ratio:
+  title: normalized ratio
+  type: number
+  minimum: 0
+  maximum: 1
 uint:
   title: hex encoded unsigned integer
   type: string
