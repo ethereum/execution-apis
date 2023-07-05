@@ -54,7 +54,7 @@
         gasUsed:
           title: Gas used
           $ref: '#/components/schemas/uint'
-- name: eth_multicall
+- name: eth_multicallV1
   summary: Executes a sequence of message calls building on each other's state without creating transactions on the block chain, optionally overriding block and state data
   params:
     - name: Block state calls
