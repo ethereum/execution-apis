@@ -31,6 +31,35 @@
   errors:
     - code: -32602
       message: Invalid params
+- name: engine_newPayloadV3
+  summary: Runs execution payload validation
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/cancun.md#engine_newpayloadv3
+  params:
+    - name: Execution payload
+      required: true
+      schema:
+        $ref: '#/components/schemas/ExecutionPayloadV3'
+    - name: Expected blob versioned hashes
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/hash32'
+    - name: Root of the parent beacon block
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Payload status
+    schema:
+      $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash'
+  errors:
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork
 - name: engine_getPayloadV1
   summary: Obtains execution payload from payload build process
   externalDocs:
@@ -77,6 +106,39 @@
   errors:
     - code: -38001
       message: Unknown payload
+- name: engine_getPayloadV3
+  summary: Obtains execution payload from payload build process
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/cancun.md#engine_getpayloadv3
+  params:
+    - name: Payload id
+      required: true
+      schema:
+        $ref: '#/components/schemas/bytes8'
+  result:
+    name: Response object
+    schema:
+      type: object
+      required:
+        - executionPayload
+        - blockValue
+        - blobsBundle
+      properties:
+        executionPayload:
+          title: Execution payload
+          $ref: '#/components/schemas/ExecutionPayloadV3'
+        blockValue:
+          title: Expected fee value
+          $ref: '#/components/schemas/uint256'
+        blobsBundle:
+          title: Blobs bundle
+          $ref: '#/components/schemas/BlobsBundleV1'
+  errors:
+    - code: -38001
+      message: Unknown payload
+    - code: -38005
+      message: Unsupported fork
 - name: engine_getPayloadBodiesByHashV1
   summary: Given block hashes returns bodies of the corresponding execution payloads
   externalDocs:
