@@ -2,6 +2,7 @@ import fs from "fs";
 import yaml from "js-yaml";
 import merger from "json-schema-merge-allof";
 import { dereferenceDocument } from "@open-rpc/schema-utils-js";
+import traverse from "@json-schema-tools/traverse";
 
 function sortByMethodName(methods) {
   return methods.slice().sort((a, b) => {
@@ -102,6 +103,7 @@ let spec = await dereferenceDocument(doc);
 
 spec.components = {};
 
+// Merge instances of `allOf` in methods.
 function recursiveMerge(schema) {
   schema = merger(schema);
 
@@ -116,12 +118,21 @@ function recursiveMerge(schema) {
   return schema;
 }
 
-// Merge instances of `allOf` in methods.
+// Set additionalProperties: false for all objects
+function setAdditionalProperties(schema) {
+  if (schema.type === "object") {
+    schema.additionalProperties = false;
+  }
+  return schema;
+}
+
 for (var i=0; i < spec.methods.length; i++) {
   for (var j=0; j < spec.methods[i].params.length; j++) {
     spec.methods[i].params[j].schema = recursiveMerge(spec.methods[i].params[j].schema);
+    spec.methods[i].params[j].schema = traverse.default(spec.methods[i].params[j].schema, setAdditionalProperties);
   }
   spec.methods[i].result.schema = recursiveMerge(spec.methods[i].result.schema);
+  spec.methods[i].result.schema = traverse.default(spec.methods[i].result.schema, setAdditionalProperties);
 }
 
 let data = JSON.stringify(spec, null, '\t');
