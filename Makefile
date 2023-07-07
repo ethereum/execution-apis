@@ -4,7 +4,7 @@ build:
 	go build . 
 
 clean:
-	rm -rf rpctestgen ethash tests
+	rm -rf rpctestgen tests
 
 test:
 	go test ./...

@@ -2,31 +2,27 @@
 
 `rpctestgen` is a test fixture generator for the execution layer JSON-RPC API. 
 
-Conceptually, it is similar to [`retesteth`][retesteth], which generates
-consensus tests, in that it takes test definitions (in rpctestgen's case, go
-functions), executes them against a client, and outputs the exchange.
+Conceptually, it is similar to [`retesteth`][retesteth], in that it 1) takes
+test definitions, 2) executes them against a client, and 3) outputs the
+exchange.
 
 The full API specification can be found in
 [`ethereum/exeuction-apis`][execution-apis].
 
 ## Usage
 
-rpctestgen runs with sane defaults. The tests will be filled with whatever
-binary `geth` matches in the `$PATH`. By default, tests are not sealed. To seal
-with ethash, run with the `--ethash` flag. For a full list of options, see
+`rpctestgen` runs with sane defaults. The tests will be filled with whatever
+binary `geth` matches in the `$PATH`. For a full list of options, see
 `rpctestgen --help`.
 
 ### Quick Start
 
-To fill all tests with ethash seal, simply run `make fill`.
+To fill all tests, simply run `make fill`.
 
 ```console
 $ make fill
 go build .
-./rpctestgen  --ethash
-sealing block 1
-sealing block 2
-sealing block 3
+./rpctestgen
 starting client
 filling tests...
 generating tests/eth_blockNumber/simple-test.io  done.
