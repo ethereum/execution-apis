@@ -102,26 +102,12 @@ let spec = await dereferenceDocument(doc);
 
 spec.components = {};
 
-function recursiveMerge(schema) {
-  schema = merger(schema);
-
-  if("items" in schema && "oneOf" in schema.items) {
-      schema.items.oneOf = recursiveMerge(schema.items.oneOf);
-  }
-  if("oneOf" in schema) {
-    for(var k=0; k < schema.oneOf.length; k++) {
-      schema.oneOf[k] = recursiveMerge(schema.oneOf[k]);
-    }
-  }
-  return schema;
-}
-
 // Merge instances of `allOf` in methods.
 for (var i=0; i < spec.methods.length; i++) {
   for (var j=0; j < spec.methods[i].params.length; j++) {
-    spec.methods[i].params[j].schema = recursiveMerge(spec.methods[i].params[j].schema);
+    spec.methods[i].params[j].schema = merger(spec.methods[i].params[j].schema);
   }
-  spec.methods[i].result.schema = recursiveMerge(spec.methods[i].result.schema);
+  spec.methods[i].result.schema = merger(spec.methods[i].result.schema);
 }
 
 let data = JSON.stringify(spec, null, '\t');
