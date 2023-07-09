@@ -27,7 +27,6 @@ Transaction1559Unsigned:
     - maxPriorityFeePerGas
     - chainId
     - accessList
-  additionalProperties: false
   properties:
     type:
       title: type
@@ -75,7 +74,6 @@ Transaction2930Unsigned:
     - gasPrice
     - chainId
     - accessList
-  additionalProperties: false
   properties:
     type:
       title: type
@@ -117,7 +115,6 @@ TransactionLegacyUnsigned:
     - value
     - input
     - gasPrice
-  additionalProperties: false
   properties:
     type:
       title: type
@@ -160,7 +157,6 @@ Transaction1559Signed:
         - yParity
         - r
         - s
-      additionalProperties: false
       properties:
         yParity:
           title: yParity
@@ -182,7 +178,6 @@ Transaction2930Signed:
         - yParity
         - r
         - s
-      additionalProperties: false
       properties:
         yParity:
           title: yParity
@@ -204,7 +199,6 @@ TransactionLegacySigned:
         - v
         - r
         - s
-      additionalProperties: false
       properties:
         v:
           title: v
@@ -231,7 +225,7 @@ TransactionInfo:
         - from
         - hash
         - transactionIndex
-      additionalProperties: false
+      unevaluatedProperties: false
       properties:
         blockHash:
           title: block hash
