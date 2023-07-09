@@ -1,6 +1,6 @@
 import fs from "fs";
 import yaml from "js-yaml";
-import merger from "json-schema-merge-allof";
+import mergeAllOf from "json-schema-merge-allof";
 import { dereferenceDocument } from "@open-rpc/schema-utils-js";
 
 function sortByMethodName(methods) {
@@ -105,9 +105,9 @@ spec.components = {};
 // Merge instances of `allOf` in methods.
 for (var i=0; i < spec.methods.length; i++) {
   for (var j=0; j < spec.methods[i].params.length; j++) {
-    spec.methods[i].params[j].schema = merger(spec.methods[i].params[j].schema);
+    spec.methods[i].params[j].schema = mergeAllOf(spec.methods[i].params[j].schema);
   }
-  spec.methods[i].result.schema = merger(spec.methods[i].result.schema);
+  spec.methods[i].result.schema = mergeAllOf(spec.methods[i].result.schema);
 }
 
 let data = JSON.stringify(spec, null, '\t');
