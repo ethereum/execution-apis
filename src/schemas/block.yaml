@@ -2,6 +2,7 @@ Block:
   title: Block object
   type: object
   required:
+    - hash
     - parentHash
     - sha3Uncles
     - miner
@@ -21,6 +22,9 @@ Block:
     - uncles
   additionalProperties: false
   properties:
+    hash:
+      title: Hash
+      $ref: '#/components/schemas/hash32'
     parentHash:
       title: Parent block hash
       $ref: '#/components/schemas/hash32'
