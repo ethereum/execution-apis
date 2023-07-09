@@ -50,6 +50,9 @@ ReceiptInfo:
     - effectiveGasPrice
   additionalProperties: false
   properties:
+    type:
+      title: type
+      $ref: '#/components/schemas/byte'
     transactionHash:
       title: transaction hash
       $ref: '#/components/schemas/hash32'
