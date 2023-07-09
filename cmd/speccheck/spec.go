@@ -102,8 +102,8 @@ func validate(val []byte, baseSchema []byte, url string) error {
 	if err := json.Unmarshal(val, &x); len(val) != 0 && err != nil {
 		return fmt.Errorf("unable to unmarshal testcase: %w", err)
 	}
-	// Add $schema explicitly to force jsonschema to use draft 07.
-	schema, err := appendDraft07(baseSchema)
+	// Add $schema explicitly to force jsonschema to use draft 2019-09.
+	schema, err := appendDraft201909(baseSchema)
 	if err != nil {
 		return fmt.Errorf("unable to append draft: %w", err)
 	}
@@ -117,12 +117,12 @@ func validate(val []byte, baseSchema []byte, url string) error {
 	return nil
 }
 
-// appendDraft07 adds $schema = draft-07 to the schema.
-func appendDraft07(schema []byte) ([]byte, error) {
+// appendDraft201909 adds $schema = draft 2019-09 to the schema.
+func appendDraft201909(schema []byte) ([]byte, error) {
 	var out map[string]interface{}
 	if err := json.Unmarshal(schema, &out); err != nil {
 		return nil, err
 	}
-	out["$schema"] = "http://json-schema.org/draft-07/schema#"
+	out["$schema"] = "https://json-schema.org/draft/2019-09/schema"
 	return json.Marshal(out)
 }
