@@ -87,7 +87,7 @@ Block:
         - title: Full transactions
           type: array
           items:
-            $ref: '#/components/schemas/TransactionSigned'
+            $ref: '#/components/schemas/TransactionInfo'
     withdrawals:
       title: Withdrawals
       type: array
