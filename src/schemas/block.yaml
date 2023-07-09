@@ -19,6 +19,7 @@ Block:
     - size
     - transactions
     - uncles
+  additionalProperties: false
   properties:
     parentHash:
       title: Parent block hash
@@ -130,6 +131,7 @@ BadBlock:
     - block
     - hash
     - rlp
+  additionalProperties: false
   properties:
     block:
       title: Block

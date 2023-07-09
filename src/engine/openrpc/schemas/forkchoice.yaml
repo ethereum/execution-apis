@@ -5,6 +5,7 @@ ForkchoiceStateV1:
     - headBlockHash
     - safeBlockHash
     - finalizedBlockHash
+  additionalProperties: false
   properties:
     headBlockHash:
       title: Head block hash
@@ -20,6 +21,7 @@ ForkchoiceUpdatedResponseV1:
   type: object
   required:
     - payloadStatus
+  additionalProperties: false
   properties:
     payloadStatus:
       title: Payload status
@@ -34,6 +36,7 @@ PayloadAttributesV1:
     - timestamp
     - prevRandao
     - suggestedFeeRecipient
+  additionalProperties: false
   properties:
     timestamp:
       title: Timestamp
@@ -52,6 +55,7 @@ PayloadAttributesV2:
     - prevRandao
     - suggestedFeeRecipient
     - withdrawals
+  additionalProperties: false
   properties:
     timestamp:
       $ref: '#/components/schemas/PayloadAttributesV1/properties/timestamp'
@@ -73,6 +77,7 @@ PayloadAttributesV3:
     - suggestedFeeRecipient
     - withdrawals
     - parentBeaconBlockRoot
+  additionalProperties: false
   properties:
     timestamp:
       $ref: '#/components/schemas/PayloadAttributesV2/properties/timestamp'

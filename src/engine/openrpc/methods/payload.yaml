@@ -94,6 +94,7 @@
       required:
         - executionPayload
         - blockValue
+      additionalProperties: false
       properties:
         executionPayload:
           title: Execution payload
@@ -124,6 +125,7 @@
         - executionPayload
         - blockValue
         - blobsBundle
+      additionalProperties: false
       properties:
         executionPayload:
           title: Execution payload

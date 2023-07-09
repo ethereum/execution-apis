@@ -3,6 +3,7 @@ Log:
   type: object
   required:
     - transactionHash
+  additionalProperties: false
   properties:
     removed:
       title: removed
@@ -47,6 +48,7 @@ ReceiptInfo:
     - transactionHash
     - transactionIndex
     - effectiveGasPrice
+  additionalProperties: false
   properties:
     transactionHash:
       title: transaction hash
