@@ -96,7 +96,7 @@ This method follows the same specification as [`engine_newPayloadV2`](./shanghai
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Cancun fork.
 
-2. Client software **MUST** return `-32602: Invalid params` error unless all parameters and their fields are provided with non-`null` values.
+2. Client software **MUST** check that provided set of parameters and their fields strictly matches the expected one and return `-32602: Invalid params` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
 
 3. Given the expected array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
     1. Obtain the actual array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
@@ -124,9 +124,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./s
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork.
 
-2. Client software **MUST** return `-32602: Invalid params` error unless:
-   * every field of `forkchoiceState` is provided with non-`null` value,
-   * every field of `payloadAttributes` is provided with non-`null` values when `payloadAttributes` is not `null`.
+2. Client software **MUST** check that provided set of parameters and their fields strictly matches the expected one and return `-32602: Invalid params` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
 
 ### engine_getPayloadV3
 
@@ -173,22 +171,14 @@ This document introduces deprecation of [`engine_exchangeTransitionConfiguration
 
 ### Update the methods of previous forks
 
-For the following methods:
-
-- `engine_getPayloadV1`
-- `engine_newPayloadV1`
-- `engine_forkchoiceUpdatedV1`
-
-an early **MUST** be added:
-
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload or payloadAttributes does not fall within the time frame of the Paris fork.
+This document defines how Cancun payload should be handled by the [`Shanghai API`](./shanghai.md).
 
 For the following methods:
 
-- `engine_getPayloadV2`
-- `engine_newPayloadV2`
-- `engine_forkchoiceUpdatedV2`
+- [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2)
+- [`engine_newPayloadV2`](./shanghai.md#engine_newpayloadV2)
+- [`engine_getPayloadV2`](./shanghai.md#engine_getpayloadv2)
 
-an early **MUST** be added:
+an early validation **MUST** be added:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload or payloadAttributes does not fall within the time frame of the Shanghai fork.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload or payloadAttributes greater or equal to the Cancun activation timestamp.
