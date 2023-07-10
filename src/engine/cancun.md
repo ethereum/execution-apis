@@ -146,6 +146,7 @@ and proofs corresponding to the `versioned_hashes` included in the blob transact
   - `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -160,6 +161,8 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
 
 4. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload is less than the Cancun activation timestamp.
+
+5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
 
 ### Deprecate `engine_exchangeTransitionConfigurationV1`
 
