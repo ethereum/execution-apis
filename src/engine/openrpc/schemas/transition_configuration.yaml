@@ -5,7 +5,6 @@ TransitionConfigurationV1:
     - terminalTotalDifficulty
     - terminalBlockHash
     - terminalBlockNumber
-  additionalProperties: false
   properties:
     terminalTotalDifficulty:
       title: Terminal total difficulty

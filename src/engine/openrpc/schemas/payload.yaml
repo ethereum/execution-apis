@@ -3,7 +3,6 @@ PayloadStatusV1:
   type: object
   required:
     - status
-  additionalProperties: false
   properties:
     status:
       title: Payload validation status
@@ -22,7 +21,6 @@ PayloadStatusV1:
       type: string
 RestrictedPayloadStatusV1:
   $ref: '#/components/schemas/PayloadStatusV1'
-  additionalProperties: false
   properties:
     status:
       $ref: '#/components/schemas/PayloadStatusV1/properties/status'
@@ -38,7 +36,6 @@ RestrictedPayloadStatusV1:
 PayloadStatusNoInvalidBlockHash:
   $ref: '#/components/schemas/PayloadStatusV1'
   title: Payload status object deprecating INVALID_BLOCK_HASH status
-  additionalProperties: false
   properties:
     status:
       $ref: '#/components/schemas/PayloadStatusV1/properties/status'
@@ -69,7 +66,6 @@ ExecutionPayloadV1:
     - baseFeePerGas
     - blockHash
     - transactions
-  additionalProperties: false
   properties:
     parentHash:
       title: Parent block hash
@@ -123,7 +119,6 @@ WithdrawalV1:
     - validatorIndex
     - address
     - amount
-  additionalProperties: false
   properties:
     index:
       title: Withdrawal index
@@ -156,7 +151,6 @@ ExecutionPayloadV2:
     - blockHash
     - transactions
     - withdrawals
-  additionalProperties: false
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV1/properties/parentHash'
@@ -212,7 +206,6 @@ ExecutionPayloadV3:
     - withdrawals
     - dataGasUsed
     - excessDataGas
-  additionalProperties: false
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV2/properties/parentHash'
@@ -255,7 +248,6 @@ ExecutionPayloadBodyV1:
   type: object
   required:
     - transactions
-  additionalProperties: false
   properties:
     transactions:
       $ref: '#/components/schemas/ExecutionPayloadV1/properties/transactions'
@@ -273,7 +265,6 @@ BlobsBundleV1:
     - commitments
     - proofs
     - blobs
-  additionalProperties: false
   properties:
     commitments:
       title: Commitments
