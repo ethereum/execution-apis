@@ -86,3 +86,14 @@
         - $ref: '#/components/schemas/notFound'
         - title: Uncle count
           $ref: '#/components/schemas/uint'
+- name: eth_getBlockReceipts
+  summary: Returns the receipts of a block by number or hash.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+  result:
+    name: Receipts information
+    schema:
+      $ref: '#/components/schemas/ReceiptsInfo'
