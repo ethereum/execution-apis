@@ -73,7 +73,7 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 
 	genesis := gspec.MustCommit(gendb)
 
-	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, gendb, 10, func(i int, gen *core.BlockGen) {
+	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, gendb, 15, func(i int, gen *core.BlockGen) {
 		var (
 			tx  *types.Transaction
 			err error
