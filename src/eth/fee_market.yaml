@@ -49,6 +49,7 @@
         - oldestBlock
         - baseFeePerGas
         - gasUsedRatio
+      additionalProperties: false
       properties:
         oldestBlock:
           title: oldestBlock

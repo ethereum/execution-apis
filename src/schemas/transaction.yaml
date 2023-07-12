@@ -1,6 +1,7 @@
 AccessListEntry:
   title: Access list entry
   type: object
+  additionalProperties: false
   properties:
     address:
       $ref: '#/components/schemas/address'
@@ -224,6 +225,7 @@ TransactionInfo:
         - from
         - hash
         - transactionIndex
+      unevaluatedProperties: false
       properties:
         blockHash:
           title: block hash
@@ -244,6 +246,7 @@ TransactionInfo:
 GenericTransaction:
   type: object
   title: Transaction object generic to all types
+  additionalProperties: false
   properties:
     type:
       title: type
