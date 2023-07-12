@@ -633,7 +633,7 @@ var EthGetTransactionByHash = MethodTests{
 			"get-legacy-create",
 			"gets a legacy contract create transaction",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(7).Transactions()[0]
+				want := t.chain.GetBlockByNumber(3).Transactions()[0]
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -648,7 +648,7 @@ var EthGetTransactionByHash = MethodTests{
 			"get-legacy-input",
 			"gets a legacy transaction with input data",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(8).Transactions()[0]
+				want := t.chain.GetBlockByNumber(4).Transactions()[0]
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -663,7 +663,7 @@ var EthGetTransactionByHash = MethodTests{
 			"get-dynamic-fee",
 			"gets a dynamic fee transaction",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(9).Transactions()[0]
+				want := t.chain.GetBlockByNumber(5).Transactions()[0]
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -678,7 +678,7 @@ var EthGetTransactionByHash = MethodTests{
 			"get-access-list",
 			"gets a access list transaction",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(10).Transactions()[0]
+				want := t.chain.GetBlockByNumber(6).Transactions()[0]
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -693,7 +693,6 @@ var EthGetTransactionByHash = MethodTests{
 }
 
 // EthGetTransactionReceipt stores a list of all tests against the method.
-// TODO: do legacy, al, and dynamic txs
 var EthGetTransactionReceipt = MethodTests{
 	"eth_getTransactionReceipt",
 	[]Test{
@@ -702,6 +701,74 @@ var EthGetTransactionReceipt = MethodTests{
 			"gets a receipt for a legacy transaction",
 			func(ctx context.Context, t *T) error {
 				block := t.chain.GetBlockByNumber(2)
+				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				if err != nil {
+					return err
+				}
+				got, _ := receipt.MarshalBinary()
+				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				}
+				return nil
+			},
+		},
+		{
+			"get-legacy-contract",
+			"gets a legacy contract create transaction",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(3)
+				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				if err != nil {
+					return err
+				}
+				got, _ := receipt.MarshalBinary()
+				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				}
+				return nil
+			},
+		},
+		{
+			"get-legacy-input",
+			"gets a legacy transaction with input data",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(4)
+				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				if err != nil {
+					return err
+				}
+				got, _ := receipt.MarshalBinary()
+				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				}
+				return nil
+			},
+		},
+		{
+			"get-dynamic-fee",
+			"gets a dynamic fee transaction",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(5)
+				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				if err != nil {
+					return err
+				}
+				got, _ := receipt.MarshalBinary()
+				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				}
+				return nil
+			},
+		},
+		{
+			"get-access-list",
+			"gets a access list transaction",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(6)
 				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
 				if err != nil {
 					return err
