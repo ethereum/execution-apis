@@ -95,5 +95,6 @@
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Receipts information
-    schema:
-      $ref: '#/components/schemas/ReceiptsInfo'
+    type: array
+    items:
+      $ref: '#/components/schemas/ReceiptInfo'
