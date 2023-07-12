@@ -79,25 +79,25 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 			err error
 		)
 		switch i {
-		case 0:
+		case 5:
 			// transfer 1000wei
 			tx, err = types.SignTx(types.NewTx(&types.LegacyTx{Nonce: uint64(i), To: &address, Value: big.NewInt(1000), Gas: params.TxGas, GasPrice: gen.BaseFee(), Data: nil}), types.HomesteadSigner{}, key)
-		case 1:
+		case 6:
 			// create contract
 			tx, err = types.SignTx(types.NewTx(&types.LegacyTx{Nonce: uint64(i), To: nil, Gas: 53100, GasPrice: gen.BaseFee(), Data: common.FromHex("0x60806040")}), signer, key)
-		case 2:
+		case 7:
 			// with logs
 			// transfer(address to, uint256 value)
 			data := fmt.Sprintf("0xa9059cbb%s%s", common.HexToHash(common.BigToAddress(big.NewInt(int64(i + 1))).Hex()).String()[2:], common.BytesToHash([]byte{byte(i + 11)}).String()[2:])
 			tx, err = types.SignTx(types.NewTx(&types.LegacyTx{Nonce: uint64(i), To: &contract, Gas: 60000, GasPrice: gen.BaseFee(), Data: common.FromHex(data)}), signer, key)
-		case 3:
+		case 8:
 			// dynamic fee with logs
 			// transfer(address to, uint256 value)
 			data := fmt.Sprintf("0xa9059cbb%s%s", common.HexToHash(common.BigToAddress(big.NewInt(int64(i + 1))).Hex()).String()[2:], common.BytesToHash([]byte{byte(i + 11)}).String()[2:])
 			fee := big.NewInt(500)
 			fee.Add(fee, gen.BaseFee())
 			tx, err = types.SignTx(types.NewTx(&types.DynamicFeeTx{Nonce: uint64(i), To: &contract, Gas: 60000, Value: big.NewInt(1), GasTipCap: big.NewInt(500), GasFeeCap: fee, Data: common.FromHex(data)}), signer, key)
-		case 4:
+		case 9:
 			// access list with contract create
 			accessList := types.AccessList{{
 				Address:     contract,
