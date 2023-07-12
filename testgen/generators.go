@@ -611,7 +611,6 @@ var EthGetTransactionCount = MethodTests{
 }
 
 // EthGetTransactionByHash stores a list of all tests against the method.
-// TODO: do legacy, al, and dynamic txs
 var EthGetTransactionByHash = MethodTests{
 	"eth_getTransactionByHash",
 	[]Test{
@@ -620,6 +619,66 @@ var EthGetTransactionByHash = MethodTests{
 			"gets a legacy transaction",
 			func(ctx context.Context, t *T) error {
 				want := t.chain.GetBlockByNumber(2).Transactions()[0]
+				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			"get-legacy-create",
+			"gets a legacy contract create transaction",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlockByNumber(7).Transactions()[0]
+				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			"get-legacy-input",
+			"gets a legacy transaction with input data",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlockByNumber(8).Transactions()[0]
+				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			"get-dynamic-fee",
+			"gets a dynamic fee transaction",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlockByNumber(9).Transactions()[0]
+				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			"get-access-list",
+			"gets a access list transaction",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlockByNumber(10).Transactions()[0]
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
