@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -60,12 +61,12 @@ type Test struct {
 var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
+	EthGetBlockByHash,
+	// EthGetHeaderByNumber,
+	// EthGetHeaderByHash,
 	EthGetProof,
 	EthChainID,
 	EthGetBalance,
-	// EthGetHeaderByNumber,
-	// EthGetHeaderByHash,
-	EthGetBlockByHash,
 	EthGetCode,
 	EthGetStorage,
 	EthCall,
@@ -245,6 +246,28 @@ var EthGetBlockByHash = MethodTests{
 				return nil
 			},
 		},
+		{
+			"get-block-by-empty-hash",
+			"gets block empty hash",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByHash(ctx, common.Hash{})
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-by-notfound-hash",
+			"gets block not found hash",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByHash(ctx, common.HexToHash("deadbeef"))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -320,6 +343,17 @@ var EthGetBlockByNumber = MethodTests{
 				}
 				if n := block.Number().Uint64(); n != 2 {
 					return fmt.Errorf("expected block 2, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-notfound",
+			"gets block notfound",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByNumber(ctx, big.NewInt(1000))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("get a non-existent block should return notfound")
 				}
 				return nil
 			},
@@ -676,7 +710,7 @@ var EthGetTransactionByHash = MethodTests{
 		},
 		{
 			"get-access-list",
-			"gets a access list transaction",
+			"gets an access list transaction",
 			func(ctx context.Context, t *T) error {
 				want := t.chain.GetBlockByNumber(6).Transactions()[0]
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
@@ -685,6 +719,28 @@ var EthGetTransactionByHash = MethodTests{
 				}
 				if got.Hash() != want.Hash() {
 					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			"get-empty-tx",
+			"gets an empty transaction",
+			func(ctx context.Context, t *T) error {
+				_, _, err := t.eth.TransactionByHash(ctx, common.Hash{})
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-notfound-tx",
+			"gets a not exist transaction",
+			func(ctx context.Context, t *T) error {
+				_, _, err := t.eth.TransactionByHash(ctx, common.HexToHash("deadbeef"))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
 				}
 				return nil
 			},
@@ -766,7 +822,7 @@ var EthGetTransactionReceipt = MethodTests{
 		},
 		{
 			"get-access-list",
-			"gets a access list transaction",
+			"gets an access list transaction",
 			func(ctx context.Context, t *T) error {
 				block := t.chain.GetBlockByNumber(6)
 				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
@@ -777,6 +833,28 @@ var EthGetTransactionReceipt = MethodTests{
 				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
 				if !bytes.Equal(got, want) {
 					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				}
+				return nil
+			},
+		},
+		{
+			"get-empty-tx",
+			"gets an empty transaction",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.TransactionReceipt(ctx, common.Hash{})
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-notfound-tx",
+			"gets a not exist transaction",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.TransactionReceipt(ctx, common.HexToHash("deadbeef"))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
 				}
 				return nil
 			},
