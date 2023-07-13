@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -60,12 +61,12 @@ type Test struct {
 var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
+	EthGetBlockByHash,
+	// EthGetHeaderByNumber,
+	// EthGetHeaderByHash,
 	EthGetProof,
 	EthChainID,
 	EthGetBalance,
-	// EthGetHeaderByNumber,
-	// EthGetHeaderByHash,
-	EthGetBlockByHash,
 	EthGetCode,
 	EthGetStorage,
 	EthCall,
@@ -103,6 +104,96 @@ var EthBlockNumber = MethodTests{
 					return err
 				} else if want := t.chain.CurrentHeader().Number.Uint64(); got != want {
 					return fmt.Errorf("unexpect current block number (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetBlockByNumber stores a list of all tests against the method.
+var EthGetBlockByNumber = MethodTests{
+	"eth_getBlockByNumber",
+	[]Test{
+		{
+			"get-genesis",
+			"gets block 0",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, common.Big0)
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 0 {
+					return fmt.Errorf("expected block 0, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-n",
+			"gets block 2",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, common.Big2)
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 2 {
+					return fmt.Errorf("expected block 2, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-notfound",
+			"gets block notfound",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByNumber(ctx, big.NewInt(1000))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("get a non-existent block should return notfound")
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetBlockByHash stores a list of all tests against the method.
+var EthGetBlockByHash = MethodTests{
+	"eth_getBlockByHash",
+	[]Test{
+		{
+			"get-block-by-hash",
+			"gets block 1",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetHeaderByNumber(1)
+				got, err := t.eth.BlockByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("unexpected block (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-by-empty-hash",
+			"gets block empty hash",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByHash(ctx, common.Hash{})
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-by-notfound-hash",
+			"gets block not found hash",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByHash(ctx, common.HexToHash("deadbeef"))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
 				}
 				return nil
 			},
@@ -226,28 +317,6 @@ var EthGetStorage = MethodTests{
 	},
 }
 
-// EthGetBlockByHash stores a list of all tests against the method.
-var EthGetBlockByHash = MethodTests{
-	"eth_getBlockByHash",
-	[]Test{
-		{
-			"get-block-by-hash",
-			"gets block 1",
-			func(ctx context.Context, t *T) error {
-				want := t.chain.GetHeaderByNumber(1)
-				got, err := t.eth.BlockByHash(ctx, want.Hash())
-				if err != nil {
-					return err
-				}
-				if got.Hash() != want.Hash() {
-					return fmt.Errorf("unexpected block (got: %s, want: %s)", got.Hash(), want.Hash())
-				}
-				return nil
-			},
-		},
-	},
-}
-
 // EthChainID stores a list of all tests against the method.
 var EthGetBalance = MethodTests{
 	"eth_getBalance",
@@ -285,41 +354,6 @@ var EthGetBalance = MethodTests{
 				want := state.GetBalance(addr)
 				if got.ToInt().Uint64() != want.Uint64() {
 					return fmt.Errorf("unexpect balance (got: %d, want: %d)", got.ToInt(), want)
-				}
-				return nil
-			},
-		},
-	},
-}
-
-// EthGetBlockByNumber stores a list of all tests against the method.
-var EthGetBlockByNumber = MethodTests{
-	"eth_getBlockByNumber",
-	[]Test{
-		{
-			"get-genesis",
-			"gets block 0",
-			func(ctx context.Context, t *T) error {
-				block, err := t.eth.BlockByNumber(ctx, common.Big0)
-				if err != nil {
-					return err
-				}
-				if n := block.Number().Uint64(); n != 0 {
-					return fmt.Errorf("expected block 0, got block %d", n)
-				}
-				return nil
-			},
-		},
-		{
-			"get-block-n",
-			"gets block 2",
-			func(ctx context.Context, t *T) error {
-				block, err := t.eth.BlockByNumber(ctx, common.Big2)
-				if err != nil {
-					return err
-				}
-				if n := block.Number().Uint64(); n != 2 {
-					return fmt.Errorf("expected block 2, got block %d", n)
 				}
 				return nil
 			},
