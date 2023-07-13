@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -245,6 +246,28 @@ var EthGetBlockByHash = MethodTests{
 				return nil
 			},
 		},
+		{
+			"get-block-by-empty-hash",
+			"gets block empty hash",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByHash(ctx, common.Hash{})
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-by-notfound-hash",
+			"gets block not found hash",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByHash(ctx, common.HexToHash("deadbeef"))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -320,6 +343,17 @@ var EthGetBlockByNumber = MethodTests{
 				}
 				if n := block.Number().Uint64(); n != 2 {
 					return fmt.Errorf("expected block 2, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-notfound",
+			"gets block notfound",
+			func(ctx context.Context, t *T) error {
+				_, err := t.eth.BlockByNumber(ctx, big.NewInt(1000))
+				if !errors.Is(err, ethereum.NotFound) {
+					return errors.New("get a non-existent block should return notfound")
 				}
 				return nil
 			},
