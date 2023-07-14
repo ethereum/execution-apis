@@ -906,6 +906,13 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
+			"get-block-empty",
+			"gets receipts for empty block hash",
+			func(ctx context.Context, t *T) error {
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", (common.Hash{}).Hex())
+			},
+		},
+		{
 			"get-block-notfound",
 			"gets receipts for notfound hash",
 			func(ctx context.Context, t *T) error {
