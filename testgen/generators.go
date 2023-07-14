@@ -79,6 +79,7 @@ var AllMethods = []MethodTests{
 	EthGetTransactionCount,
 	EthGetTransactionByHash,
 	EthGetTransactionReceipt,
+	EthGetBlockReceipts,
 	EthSendRawTransaction,
 	EthGasPrice,
 	EthMaxPriorityFeePerGas,
@@ -857,6 +858,69 @@ var EthGetTransactionReceipt = MethodTests{
 					return errors.New("expected not found error")
 				}
 				return nil
+			},
+		},
+	},
+}
+
+var EthGetBlockReceipts = MethodTests{
+	"eth_getBlockReceipts",
+	[]Test{
+		{
+			"get-block-0",
+			"gets receipts for block 0",
+			func(ctx context.Context, t *T) error {
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "0x0")
+			},
+		},
+		{
+			"get-block-n",
+			"gets receipts non-zero block",
+			func(ctx context.Context, t *T) error {
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "0x3")
+			},
+		},
+		{
+			"get-block-future",
+			"gets receipts of future block",
+			func(ctx context.Context, t *T) error {
+				blknum, err := t.eth.BlockNumber(ctx)
+				if err != nil {
+					return err
+				}
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", fmt.Sprintf("0x%x", blknum+1))
+			},
+		},
+		{
+			"get-block-earliest",
+			"gets receipts for block earliest",
+			func(ctx context.Context, t *T) error {
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "earliest")
+			},
+		},
+		{
+			"get-block-latest",
+			"gets receipts for block latest",
+			func(ctx context.Context, t *T) error {
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "latest")
+			},
+		},
+		{
+			"get-block-notfound",
+			"gets receipts for notfound hash",
+			func(ctx context.Context, t *T) error {
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", common.HexToHash("deadbeef").Hex())
+			},
+		},
+		{
+			"get-block-hash-n",
+			"gets receipts for notfound hash",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, big.NewInt(5))
+				if err != nil {
+					return err
+				}
+				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", block.Hash().Hex())
 			},
 		},
 	},
