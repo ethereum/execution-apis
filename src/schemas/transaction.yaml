@@ -30,7 +30,8 @@ Transaction1559Unsigned:
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x2$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
@@ -77,7 +78,8 @@ Transaction2930Unsigned:
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x1$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
@@ -118,7 +120,8 @@ TransactionLegacyUnsigned:
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x0$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
