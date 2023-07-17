@@ -65,7 +65,7 @@
     name: Receipt Result
     schema:
       oneOf:
-        - title: not found (null)
+        - title: Not Found (null)
           type: 'null'
         - title: Receipt Information
           $ref: '#/components/schemas/ReceiptInfo'
