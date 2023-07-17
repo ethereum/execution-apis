@@ -25,6 +25,7 @@ Transaction1559Unsigned:
     - input
     - maxFeePerGas
     - maxPriorityFeePerGas
+    - gasPrice
     - chainId
     - accessList
   properties:
@@ -55,6 +56,9 @@ Transaction1559Unsigned:
       title: max fee per gas
       description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
       $ref: '#/components/schemas/uint'
+    gasPrice:
+      title: gas price
+      description: The effective gas price paid by the sender in wei. For transactions not yet mined, this value should be set equal to the max fee cap per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
     accessList:
       title: accessList
       description: EIP-2930 access list
