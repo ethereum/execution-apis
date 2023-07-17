@@ -43,6 +43,7 @@
   summary: Returns the receipt of a transaction by transaction hash.
   params:
     - name: Transaction hash
+      required: true
       schema:
         $ref: '#/components/schemas/hash32'
   result:
