@@ -50,3 +50,14 @@
     name: Receipt Information
     schema:
       $ref: '#/components/schemas/ReceiptInfo'
+- name: eth_getReceiptProof
+  summary: Returns the merkle proof for a given transaction receipt.
+  params:
+    - name: Transaction hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Receipt proof
+    schema:
+      $ref: '#/components/schemas/ReceiptProof'
