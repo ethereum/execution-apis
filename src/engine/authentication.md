@@ -37,7 +37,7 @@ The execution layer and consensus layer clients **SHOULD** accept a configuratio
 
 If such a parameter _is_ given, but the file cannot be read, or does not contain a hex-encoded key of `256` bits, the client **SHOULD** treat this as an error: either abort the startup, or show error and continue without exposing the authenticated port.
 
-If such a parameter _is not_ given, the client **MUST** attempt to read the secret from the default paths defined below, in the order they are listed. If a secret is found, but the file cannot be read, does not contain a hex-encoded key of `256` bit, or is rejected by the other client, the client **MUST** continue searching until all default paths are exhausted. Clients **MAY** search other locations beyond the default locations.
+If such a parameter _is not_ given, the client **MUST** attempt to read the secret from the default paths defined below, in the order they are listed. If a secret is found, but the file cannot be read, does not contain a hex-encoded key of `256` bit, or is rejected by the other client, the client **MUST** continue searching until all default paths are exhausted. Consensus layer clients **MAY** search other locations, such as execution layer client data directories.
 
 If no existing JWT is located, the client **SHOULD** generate such a token, valid for the duration of the execution, and store the hex-encoded secret on the filesystem. The exact path is dependant on the host OS, see the default paths below. If the client is unable to write the secret to an OS-specific path, it **MUST** fallback to writing to its own data directory.
 
