@@ -50,23 +50,3 @@
     name: Transaction count
     schema:
       $ref: '#/components/schemas/uint'
-- name: eth_getUncleCountByBlockHash
-  summary: Returns the number of uncles in a block from a block matching the given block hash.
-  params:
-    - name: Block hash
-      schema:
-        $ref: '#/components/schemas/hash32'
-  result:
-    name: Uncle count
-    schema:
-      $ref: '#/components/schemas/uint'
-- name: eth_getUncleCountByBlockNumber
-  summary: Returns the number of transactions in a block matching the given block number.
-  params:
-    - name: Block
-      schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
-  result:
-    name: Uncle count
-    schema:
-      $ref: '#/components/schemas/uint'
