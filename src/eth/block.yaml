@@ -11,11 +11,11 @@
         title: hydrated
         type: boolean
   result:
-    oneOf:
-      - title: not found (null)
-        type: 'null'
-      - name: Block information
-        schema:
+    schema:
+      oneOf:
+        - title: Not Found (null)
+          type: 'null'
+        - title: Block information
           $ref: '#/components/schemas/Block'
 
 - name: eth_getBlockByNumber
@@ -31,11 +31,11 @@
         title: hydrated
         type: boolean
   result:
-    oneOf:
-      - title: not found (null)
-        type: 'null'
-      - name: Block information
-        schema:
+    schema:
+      oneOf:
+        - title: Not Found (null)
+          type: 'null'
+        - name: Block information
           $ref: '#/components/schemas/Block'
 
 - name: eth_getBlockTransactionCountByHash
@@ -45,12 +45,12 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    oneOf:
-      - title: not found (null)
+    schema:
+      oneOf:
+      - title: Not Found (null)
         type: 'null'
-      - name: Transaction count
-        schema:
-          $ref: '#/components/schemas/uint'
+      - title: Transaction count
+        $ref: '#/components/schemas/uint'
 
 - name: eth_getBlockTransactionCountByNumber
   summary: Returns the number of transactions in a block matching the given block number.
@@ -59,12 +59,12 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
-    oneOf:
-      - title: not found (null)
+    schema:
+      oneOf:
+      - title: Not Found (null)
         type: 'null'
-      - name: Transaction count
-        schema:
-          $ref: '#/components/schemas/uint'
+      - title: Transaction count
+        $ref: '#/components/schemas/uint'
 
 - name: eth_getUncleCountByBlockHash
   summary: Returns the number of uncles in a block from a block matching the given block hash.
@@ -73,12 +73,12 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    oneOf:
-      - title: not found (null)
+    schema:
+      oneOf:
+      - title: Not Found (null)
         type: 'null'
-      - name: Uncle count
-        schema:
-          $ref: '#/components/schemas/uint'
+      - title: Uncle count
+        $ref: '#/components/schemas/uint'
 
 - name: eth_getUncleCountByBlockNumber
   summary: Returns the number of transactions in a block matching the given block number.
@@ -87,9 +87,9 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
-    oneOf:
-      - title: not found (null)
+    schema:
+      oneOf:
+      - title: Not Found (null)
         type: 'null'
-      - name: Uncle count
-        schema:
-          $ref: '#/components/schemas/uint'
+      - title: Uncle count
+        $ref: '#/components/schemas/uint'

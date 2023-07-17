@@ -6,11 +6,11 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    oneOf:
-      - title: not found (null)
-        type: 'null'
-      - name: Transaction information
-        schema:
+    schema:
+      oneOf:
+        - title: Not Found (null)
+          type: 'null'
+        - title: Transaction information
           $ref: '#/components/schemas/TransactionInfo'
 
 - name: eth_getTransactionByBlockHashAndIndex
@@ -25,11 +25,11 @@
       schema:
         $ref: '#/components/schemas/uint'
   result:
-    oneOf:
-      - title: not found (null)
-        type: 'null'
-      - name: Transaction information
-        schema:
+    schema:
+      oneOf:
+        - title: Not Found (null)
+          type: 'null'
+        - title: Transaction Information
           $ref: '#/components/schemas/TransactionInfo'
 
 - name: eth_getTransactionByBlockNumberAndIndex
@@ -44,11 +44,11 @@
       schema:
         $ref: '#/components/schemas/uint'
   result:
-    oneOf:
-      - title: not found (null)
-        type: 'null'
-      - name: Transaction information
-        schema:
+    schema:
+      oneOf:
+        - title: Not Found (null)
+          type: 'null'
+        - title: Transaction Information
           $ref: '#/components/schemas/TransactionInfo'
 
 - name: eth_getTransactionReceipt
@@ -59,9 +59,9 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    oneOf:
-      - title: not found (null)
-        type: 'null'
-      - name: Receipt Information
-        schema:
+    schema:
+      oneOf:
+        - title: not found (null)
+          type: 'null'
+        - title: Receipt Information
           $ref: '#/components/schemas/ReceiptInfo'
