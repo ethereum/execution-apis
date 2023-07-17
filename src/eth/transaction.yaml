@@ -11,7 +11,7 @@
       oneOf:
         - title: Not Found (null)
           type: 'null'
-        - title: Transaction information
+        - title: Transaction Information
           $ref: '#/components/schemas/TransactionInfo'
 
 - name: eth_getTransactionByBlockHashAndIndex
