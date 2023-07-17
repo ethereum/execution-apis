@@ -48,7 +48,7 @@ Block:
       $ref: '#/components/schemas/bytes256'
     difficulty:
       title: Difficulty
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/uint'
     number:
       title: Number
       $ref: '#/components/schemas/uint'
