@@ -863,6 +863,62 @@ var EthGetTransactionReceipt = MethodTests{
 	},
 }
 
+func checkBlockReceipts(t *T, hash common.Hash, receipts []*types.Receipt) error {
+	blockReceipts := t.chain.GetReceiptsByHash(hash)
+	if len(receipts) != len(blockReceipts) {
+		return fmt.Errorf("receipts length notmatch(got: %d, want: %d)", len(receipts), len(blockReceipts))
+	}
+	for i := range receipts {
+		got, _ := receipts[i].MarshalBinary()
+		want, _ := blockReceipts[i].MarshalBinary()
+		if !bytes.Equal(got, want) {
+			return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+		}
+	}
+	return nil
+}
+
+func testBlockReceiptsByNumber(ctx context.Context, t *T, number uint64) error {
+	var receipts []*types.Receipt
+	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", fmt.Sprintf("0x%x", number)); err != nil {
+		return err
+	}
+
+	block := t.chain.GetBlockByNumber(number)
+	if block == nil {
+		return fmt.Errorf("block not found (number: %d)", number)
+	}
+	hash := block.Hash()
+	return checkBlockReceipts(t, hash, receipts)
+}
+
+func testBlockReceiptsByHash(ctx context.Context, t *T, hash common.Hash) error {
+	var receipts []*types.Receipt
+	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hash); err != nil {
+		return err
+	}
+	return checkBlockReceipts(t, hash, receipts)
+}
+
+func testBlockReceiptsByTag(ctx context.Context, t *T, tag string) error {
+	var receipts []*types.Receipt
+	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", tag); err != nil {
+		return err
+	}
+	var hash common.Hash
+	switch tag {
+	case "earliest":
+		block := t.chain.GetBlockByNumber(0)
+		hash = block.Hash()
+	case "latest":
+		block := t.chain.CurrentBlock()
+		hash = block.Hash()
+	default:
+		return fmt.Errorf("unsupported tag: %s", tag)
+	}
+	return checkBlockReceipts(t, hash, receipts)
+}
+
 var EthGetBlockReceipts = MethodTests{
 	"eth_getBlockReceipts",
 	[]Test{
@@ -870,14 +926,14 @@ var EthGetBlockReceipts = MethodTests{
 			"get-block-0",
 			"gets receipts for block 0",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "0x0")
+				return testBlockReceiptsByNumber(ctx, t, 0)
 			},
 		},
 		{
 			"get-block-n",
 			"gets receipts non-zero block",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "0x3")
+				return testBlockReceiptsByNumber(ctx, t, 3)
 			},
 		},
 		{
@@ -888,46 +944,53 @@ var EthGetBlockReceipts = MethodTests{
 				if err != nil {
 					return err
 				}
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", fmt.Sprintf("0x%x", blknum+1))
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", fmt.Sprintf("0x%x", blknum+1)); err != nil {
+					return err
+				}
+				if len(receipts) != 0 {
+					return fmt.Errorf("receipts length notmatch(got: %d, want: %d)", len(receipts), 0)
+				}
+				return nil
 			},
 		},
 		{
 			"get-block-earliest",
 			"gets receipts for block earliest",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "earliest")
+				return testBlockReceiptsByTag(ctx, t, "earliest")
 			},
 		},
 		{
 			"get-block-latest",
 			"gets receipts for block latest",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", "latest")
+				return testBlockReceiptsByTag(ctx, t, "latest")
 			},
 		},
 		{
 			"get-block-empty",
 			"gets receipts for empty block hash",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", (common.Hash{}).Hex())
+				return testBlockReceiptsByHash(ctx, t, common.Hash{})
 			},
 		},
 		{
 			"get-block-notfound",
 			"gets receipts for notfound hash",
 			func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", common.HexToHash("deadbeef").Hex())
+				return testBlockReceiptsByHash(ctx, t, common.HexToHash("deadbeef"))
 			},
 		},
 		{
 			"get-block-hash-n",
-			"gets receipts for notfound hash",
+			"gets receipts for normal block hash",
 			func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(5))
 				if err != nil {
 					return err
 				}
-				return t.rpc.CallContext(ctx, nil, "eth_getBlockReceipts", block.Hash().Hex())
+				return testBlockReceiptsByHash(ctx, t, block.Hash())
 			},
 		},
 	},
