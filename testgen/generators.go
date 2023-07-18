@@ -940,12 +940,13 @@ var EthGetBlockReceipts = MethodTests{
 			"get-block-future",
 			"gets receipts of future block",
 			func(ctx context.Context, t *T) error {
-				blknum, err := t.eth.BlockNumber(ctx)
-				if err != nil {
-					return err
+				block := t.chain.CurrentBlock()
+				if block == nil {
+					return errors.New("current block notfound")
 				}
+				number := block.Number.Int64()
 				var receipts []*types.Receipt
-				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", fmt.Sprintf("0x%x", blknum+1)); err != nil {
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", fmt.Sprintf("0x%x", number+1)); err != nil {
 					return err
 				}
 				if len(receipts) != 0 {
@@ -986,9 +987,9 @@ var EthGetBlockReceipts = MethodTests{
 			"get-block-hash-n",
 			"gets receipts for normal block hash",
 			func(ctx context.Context, t *T) error {
-				block, err := t.eth.BlockByNumber(ctx, big.NewInt(5))
-				if err != nil {
-					return err
+				block := t.chain.GetBlockByNumber(5)
+				if block == nil {
+					return errors.New("block(5) notfound")
 				}
 				return testBlockReceiptsByHash(ctx, t, block.Hash())
 			},
