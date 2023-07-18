@@ -165,6 +165,10 @@ Transaction1559Signed:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
           $ref: '#/components/schemas/uint'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is also optionally provided. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          $ref: '#/components/schemas/uint'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -185,6 +189,10 @@ Transaction2930Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+          $ref: '#/components/schemas/uint'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is also optionally provided. This field is DEPRECATED and all use of it should migrate to `yParity`.
           $ref: '#/components/schemas/uint'
         r:
           title: r
