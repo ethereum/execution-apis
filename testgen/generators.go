@@ -939,6 +939,33 @@ var EthSendRawTransaction = MethodTests{
 				return nil
 			},
 		},
+		{
+			"send-dynamic-fee-access-list-transaction",
+			"sends a transaction with dynamic fee and access list",
+			func(ctx context.Context, t *T) error {
+				genesis := t.chain.Genesis()
+				state, _ := t.chain.State()
+				fee := big.NewInt(500)
+				fee.Add(fee, genesis.BaseFee())
+				txdata := &types.DynamicFeeTx{
+					Nonce:     state.GetNonce(addr) + 3,
+					To:        &contract,
+					Gas:       80000,
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: fee,
+					Data:      common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
+					AccessList: types.AccessList{
+						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
+					},
+				}
+				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				tx, _ := types.SignNewTx(pk, s, txdata)
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	},
 }
 
