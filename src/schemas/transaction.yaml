@@ -9,13 +9,11 @@ AccessListEntry:
       type: array
       items:
         $ref: '#/components/schemas/hash32'
-
 AccessList:
   title: Access list
   type: array
   items:
     $ref: '#/components/schemas/AccessListEntry'
-
 Transaction1559Unsigned:
   type: object
   title: EIP-1559 transaction.
@@ -69,7 +67,6 @@ Transaction1559Unsigned:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
-
 Transaction2930Unsigned:
   type: object
   title: EIP-2930 transaction.
@@ -118,7 +115,6 @@ Transaction2930Unsigned:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
-
 TransactionLegacyUnsigned:
   type: object
   title: Legacy transaction.
@@ -161,13 +157,11 @@ TransactionLegacyUnsigned:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
-
 TransactionUnsigned:
   oneOf:
     - $ref: '#/components/schemas/Transaction1559Unsigned'
     - $ref: '#/components/schemas/Transaction2930Unsigned'
     - $ref: '#/components/schemas/TransactionLegacyUnsigned'
-
 Transaction1559Signed:
   title: Signed 1559 Transaction
   type: object
@@ -189,7 +183,6 @@ Transaction1559Signed:
         s:
           title: s
           $ref: '#/components/schemas/uint'
-
 Transaction2930Signed:
   title: Signed 2930 Transaction
   type: object
@@ -211,7 +204,6 @@ Transaction2930Signed:
         s:
           title: s
           $ref: '#/components/schemas/uint'
-
 TransactionLegacySigned:
   title: Signed Legacy Transaction
   type: object
@@ -232,13 +224,11 @@ TransactionLegacySigned:
         s:
           title: s
           $ref: '#/components/schemas/uint'
-
 TransactionSigned:
   oneOf:
     - $ref: '#/components/schemas/Transaction1559Signed'
     - $ref: '#/components/schemas/Transaction2930Signed'
     - $ref: '#/components/schemas/TransactionLegacySigned'
-
 TransactionInfo:
   type: object
   title: Transaction information
@@ -268,7 +258,6 @@ TransactionInfo:
           title: transaction index
           $ref: '#/components/schemas/uint'
     - $ref: '#/components/schemas/TransactionSigned'
-
 GenericTransaction:
   type: object
   title: Transaction object generic to all types
