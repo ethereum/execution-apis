@@ -11,7 +11,6 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
-
 - name: eth_getTransactionByBlockHashAndIndex
   summary: Returns information about a transaction by block hash and transaction index position.
   params:
@@ -29,7 +28,6 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
-
 - name: eth_getTransactionByBlockNumberAndIndex
   summary: Returns information about a transaction by block number and transaction index position.
   params:
@@ -47,7 +45,6 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
-
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
   params:

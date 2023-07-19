@@ -16,7 +16,6 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/Block'
-
 - name: eth_getBlockByNumber
   summary: Returns information about a block by number.
   params:
@@ -35,7 +34,6 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/Block'
-
 - name: eth_getBlockTransactionCountByHash
   summary: Returns the number of transactions in a block from a block matching the given block hash.
   params:
@@ -49,7 +47,6 @@
         - $ref: '#/components/schemas/notFound'
         - title: Transaction count
           $ref: '#/components/schemas/uint'
-
 - name: eth_getBlockTransactionCountByNumber
   summary: Returns the number of transactions in a block matching the given block number.
   params:
@@ -63,7 +60,6 @@
         - $ref: '#/components/schemas/notFound'
         - title: Transaction count
           $ref: '#/components/schemas/uint'
-
 - name: eth_getUncleCountByBlockHash
   summary: Returns the number of uncles in a block from a block matching the given block hash.
   params:
@@ -77,7 +73,6 @@
         - $ref: '#/components/schemas/notFound'
         - title: Uncle count
           $ref: '#/components/schemas/uint'
-
 - name: eth_getUncleCountByBlockNumber
   summary: Returns the number of transactions in a block matching the given block number.
   params:
