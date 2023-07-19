@@ -46,9 +46,9 @@
     name: Transaction Count Result
     schema:
       oneOf:
-      - $ref: '#/components/schemas/notFound'
-      - title: Transaction count
-        $ref: '#/components/schemas/uint'
+        - $ref: '#/components/schemas/notFound'
+        - title: Transaction count
+          $ref: '#/components/schemas/uint'
 
 - name: eth_getBlockTransactionCountByNumber
   summary: Returns the number of transactions in a block matching the given block number.
@@ -60,9 +60,9 @@
     name: Transaction Count Result
     schema:
       oneOf:
-      - $ref: '#/components/schemas/notFound'
-      - title: Transaction count
-        $ref: '#/components/schemas/uint'
+        - $ref: '#/components/schemas/notFound'
+        - title: Transaction count
+          $ref: '#/components/schemas/uint'
 
 - name: eth_getUncleCountByBlockHash
   summary: Returns the number of uncles in a block from a block matching the given block hash.
@@ -74,9 +74,9 @@
     name: Uncle Count Result
     schema:
       oneOf:
-      - $ref: '#/components/schemas/notFound'
-      - title: Uncle count
-        $ref: '#/components/schemas/uint'
+        - $ref: '#/components/schemas/notFound'
+        - title: Uncle count
+          $ref: '#/components/schemas/uint'
 
 - name: eth_getUncleCountByBlockNumber
   summary: Returns the number of transactions in a block matching the given block number.
@@ -88,6 +88,6 @@
     name: Uncle Count Result
     schema:
       oneOf:
-      - $ref: '#/components/schemas/notFound'
-      - title: Uncle count
-        $ref: '#/components/schemas/uint'
+        - $ref: '#/components/schemas/notFound'
+        - title: Uncle count
+          $ref: '#/components/schemas/uint'
