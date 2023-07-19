@@ -41,7 +41,7 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    name: Transaction Count
+    name: Transaction count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -54,7 +54,7 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
-    name: Transaction Count
+    name: Transaction count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -67,7 +67,7 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    name: Uncle Count
+    name: Uncle count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -80,7 +80,7 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
-    name: Uncle Count
+    name: Uncle count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
