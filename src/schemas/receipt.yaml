@@ -36,7 +36,7 @@ Log:
         $ref: '#/components/schemas/bytes32'
 ReceiptInfo:
   type: object
-  title: Receipt info
+  title: Receipt information
   required:
     - blockHash
     - blockNumber
@@ -71,7 +71,11 @@ ReceiptInfo:
     to:
       title: to
       description: Address of the receiver or null in a contract creation transaction.
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Recipient Address
+          $ref: '#/components/schemas/address'
     cumulativeGasUsed:
       title: cumulative gas used
       description: The sum of gas used by this transaction and all preceding transactions in the same block.
