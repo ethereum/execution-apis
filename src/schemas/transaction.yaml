@@ -37,7 +37,11 @@ Transaction1559Unsigned:
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
@@ -85,7 +89,11 @@ Transaction2930Unsigned:
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
@@ -127,7 +135,11 @@ TransactionLegacyUnsigned:
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
@@ -259,7 +271,11 @@ GenericTransaction:
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     from:
       title: from address
       $ref: '#/components/schemas/address'
@@ -292,4 +308,3 @@ GenericTransaction:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
-
