@@ -62,4 +62,4 @@ hash32:
   pattern: ^0x[0-9a-f]{64}$
 notFound:
   title: 'Not Found (null)'
-  type: null
+  type: 'null'
