@@ -34,6 +34,7 @@ Log:
       type: array
       items:
         $ref: '#/components/schemas/bytes32'
+
 ReceiptInfo:
   type: object
   title: Receipt info
