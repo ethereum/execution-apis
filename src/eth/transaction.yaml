@@ -9,10 +9,8 @@
     name: Transaction Result
     schema:
       oneOf:
-        - title: Not Found (null)
-          type: 'null'
-        - title: Transaction Information
-          $ref: '#/components/schemas/TransactionInfo'
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/TransactionInfo'
 
 - name: eth_getTransactionByBlockHashAndIndex
   summary: Returns information about a transaction by block hash and transaction index position.
@@ -29,10 +27,8 @@
     name: Transaction Result
     schema:
       oneOf:
-        - title: Not Found (null)
-          type: 'null'
-        - title: Transaction Information
-          $ref: '#/components/schemas/TransactionInfo'
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/TransactionInfo'
 
 - name: eth_getTransactionByBlockNumberAndIndex
   summary: Returns information about a transaction by block number and transaction index position.
@@ -49,10 +45,8 @@
     name: Transaction Result
     schema:
       oneOf:
-        - title: Not Found (null)
-          type: 'null'
-        - title: Transaction Information
-          $ref: '#/components/schemas/TransactionInfo'
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/TransactionInfo'
 
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
@@ -65,7 +59,5 @@
     name: Receipt Result
     schema:
       oneOf:
-        - title: Not Found (null)
-          type: 'null'
-        - title: Receipt Information
-          $ref: '#/components/schemas/ReceiptInfo'
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/ReceiptInfo'
