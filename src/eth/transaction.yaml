@@ -6,7 +6,7 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    name: Transaction Result
+    name: Transaction information
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -23,7 +23,7 @@
       schema:
         $ref: '#/components/schemas/uint'
   result:
-    name: Transaction Result
+    name: Transaction information
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -40,7 +40,7 @@
       schema:
         $ref: '#/components/schemas/uint'
   result:
-    name: Transaction Result
+    name: Transaction information
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -53,7 +53,7 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    name: Receipt Result
+    name: Receipt information
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'

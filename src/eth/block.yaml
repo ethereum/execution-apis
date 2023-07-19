@@ -11,7 +11,7 @@
         title: hydrated
         type: boolean
   result:
-    name: Block Result
+    name: Block information
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -29,7 +29,7 @@
         title: hydrated
         type: boolean
   result:
-    name: Block Result
+    name: Block information
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -41,7 +41,7 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    name: Transaction Count Result
+    name: Transaction Count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -54,7 +54,7 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
-    name: Transaction Count Result
+    name: Transaction Count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -67,7 +67,7 @@
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    name: Uncle Count Result
+    name: Uncle Count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
@@ -80,7 +80,7 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
-    name: Uncle Count Result
+    name: Uncle Count
     schema:
       oneOf:
         - $ref: '#/components/schemas/notFound'
