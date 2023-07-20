@@ -106,7 +106,7 @@ MultiCallResult:
       message: Block number in sequence did not increase
     - code: -38021
       message: Block timestamp in sequence did not increase
-    - code: -38021
+    - code: -38022
       message: MoveToAddress referenced itself in replacement
 MultiCallBlockResult:
   title: Result of multicall block-level, with array of calls
