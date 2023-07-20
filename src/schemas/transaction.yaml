@@ -63,6 +63,7 @@ Transaction1559Unsigned:
     gasPrice:
       title: gas price
       description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
+      $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
       description: EIP-2930 access list
