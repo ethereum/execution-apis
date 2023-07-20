@@ -167,7 +167,7 @@ Transaction1559Signed:
           $ref: '#/components/schemas/uint'
         v:
           title: v
-          description: For backwards compatibility, `v` is also optionally provided. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
           $ref: '#/components/schemas/uint'
         r:
           title: r
@@ -192,7 +192,7 @@ Transaction2930Signed:
           $ref: '#/components/schemas/uint'
         v:
           title: v
-          description: For backwards compatibility, `v` is also optionally provided. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
           $ref: '#/components/schemas/uint'
         r:
           title: r
