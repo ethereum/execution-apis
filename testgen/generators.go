@@ -25,6 +25,8 @@ import (
 var (
 	addr common.Address
 	pk   *ecdsa.PrivateKey
+
+	contract = common.HexToAddress("0000000000000000000000000000000000031ec7")
 )
 
 func init() {
@@ -863,7 +865,6 @@ var EthGetTransactionReceipt = MethodTests{
 }
 
 // EthSendRawTransaction stores a list of all tests against the method.
-// TODO: do legacy, al, and dynamic txs
 var EthSendRawTransaction = MethodTests{
 	"eth_sendRawTransaction",
 	[]Test{
@@ -880,6 +881,82 @@ var EthSendRawTransaction = MethodTests{
 					Gas:      25000,
 					GasPrice: new(big.Int).Add(genesis.BaseFee(), big.NewInt(1)),
 					Data:     common.FromHex("5544"),
+				}
+				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				tx, _ := types.SignNewTx(pk, s, txdata)
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			"send-dynamic-fee-transaction",
+			"sends a transaction with dynamic fee",
+			func(ctx context.Context, t *T) error {
+				genesis := t.chain.Genesis()
+				state, _ := t.chain.State()
+				fee := big.NewInt(500)
+				fee.Add(fee, genesis.BaseFee())
+				txdata := &types.DynamicFeeTx{
+					Nonce:     state.GetNonce(addr) + 1,
+					To:        nil,
+					Gas:       60000,
+					Value:     big.NewInt(42),
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: fee,
+					Data:      common.FromHex("0x3d602d80600a3d3981f3363d3d373d3d3d363d734d11c446473105a02b5c1ab9ebe9b03f33902a295af43d82803e903d91602b57fd5bf3"), // eip1167.minimal.proxy
+				}
+				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				tx, _ := types.SignNewTx(pk, s, txdata)
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			"send-access-list-transaction",
+			"sends a transaction with access list",
+			func(ctx context.Context, t *T) error {
+				genesis := t.chain.Genesis()
+				state, _ := t.chain.State()
+				txdata := &types.AccessListTx{
+					Nonce:    state.GetNonce(addr) + 2,
+					To:       &contract,
+					Gas:      90000,
+					GasPrice: genesis.BaseFee(),
+					Data:     common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
+					AccessList: types.AccessList{
+						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
+					},
+				}
+				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				tx, _ := types.SignNewTx(pk, s, txdata)
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			"send-dynamic-fee-access-list-transaction",
+			"sends a transaction with dynamic fee and access list",
+			func(ctx context.Context, t *T) error {
+				genesis := t.chain.Genesis()
+				state, _ := t.chain.State()
+				fee := big.NewInt(500)
+				fee.Add(fee, genesis.BaseFee())
+				txdata := &types.DynamicFeeTx{
+					Nonce:     state.GetNonce(addr) + 3,
+					To:        &contract,
+					Gas:       80000,
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: fee,
+					Data:      common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
+					AccessList: types.AccessList{
+						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
+					},
 				}
 				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
 				tx, _ := types.SignNewTx(pk, s, txdata)
