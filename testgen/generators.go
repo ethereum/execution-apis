@@ -946,7 +946,7 @@ var EthGetBlockReceipts = MethodTests{
 				}
 				number := block.Number.Int64()
 				var receipts []*types.Receipt
-				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", fmt.Sprintf("0x%x", number+1)); err != nil {
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint(number+1)); err != nil {
 					return err
 				}
 				if len(receipts) != 0 {
