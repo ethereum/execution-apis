@@ -872,7 +872,7 @@ func checkBlockReceipts(t *T, hash common.Hash, receipts []*types.Receipt) error
 		got, _ := receipts[i].MarshalBinary()
 		want, _ := blockReceipts[i].MarshalBinary()
 		if !bytes.Equal(got, want) {
-			return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+			return fmt.Errorf("receipt mismatch (got: %x, want: %x)", got, want)
 		}
 	}
 	return nil
