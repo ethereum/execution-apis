@@ -227,7 +227,11 @@ CallResultLog:
   type: object
   required:
     - logIndex
+    - blockhash
+    - blockNumber
     - address
+    - data
+    - topics
   properties:
     logIndex:
       title: log index
