@@ -12,26 +12,8 @@ import (
 
 // checkSpec reads the schemas from the spec and test files, then validates
 // them against each other.
-func checkSpec(args *Args) error {
-	re, err := regexp.Compile(args.TestsRegex)
-	if err != nil {
-		return err
-	}
-
-	// Read all method schemas (params+result) from the OpenRPC spec.
-	methods, err := parseSpec(args.SpecPath)
-	if err != nil {
-		return err
-	}
-
-	// Read all tests and parse out roundtrip HTTP exchanges so they can be validated.
-	rts, err := readRtts(args.TestsRoot, re)
-	if err != nil {
-		return err
-	}
-
+func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Regexp) error {
 	for _, rt := range rts {
-		fmt.Println(rt.name)
 		method, ok := methods[rt.method]
 		if !ok {
 			return fmt.Errorf("undefined method: %s", rt.method)
@@ -63,7 +45,8 @@ func checkSpec(args *Args) error {
 			buf, _ := json.Marshal(method.result.schema)
 			fmt.Println(string(buf))
 			fmt.Println(string(rt.response))
-			return fmt.Errorf("invalid result %s: %w", rt.name, err)
+			fmt.Println()
+			return fmt.Errorf("invalid result %s\n%#v", rt.name, err)
 		}
 	}
 
@@ -82,18 +65,16 @@ func validate(schema *openrpc.JSONSchemaObject, val []byte, url string) error {
 	if err != nil {
 		return fmt.Errorf("unable to marshal schema to json")
 	}
-	fmt.Println(string(b))
 	s, err := jsonschema.CompileString(url, string(b))
 	if err != nil {
-		return fmt.Errorf("unable to compile schema: %w", err)
+		return err
 	}
 
 	// Validate value
 	var x interface{}
 	json.Unmarshal(val, &x)
-	fmt.Println(x)
 	if err := s.Validate(x); err != nil {
-		return fmt.Errorf("validation error: %w", err)
+		return err
 	}
 	return nil
 }
