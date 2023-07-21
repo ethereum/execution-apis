@@ -880,7 +880,7 @@ func checkBlockReceipts(t *T, hash common.Hash, receipts []*types.Receipt) error
 
 func testBlockReceiptsByNumber(ctx context.Context, t *T, number uint64) error {
 	var receipts []*types.Receipt
-	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", fmt.Sprintf("0x%x", number)); err != nil {
+	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint(number)); err != nil {
 		return err
 	}
 
