@@ -79,6 +79,9 @@ Block:
     withdrawalsRoot:
       title: Withdrawals root
       $ref: '#/components/schemas/hash32'
+    parentBeaconBlockRoot:
+      title: Parent Beacon Block Root
+      $ref: '#/components/schemas/hash32'
     size:
       title: Block size
       $ref: '#/components/schemas/uint'
