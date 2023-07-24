@@ -27,7 +27,7 @@ type Client interface {
 	Start(ctx context.Context, verbose bool) error
 
 	// PostStart is called after the client has been fully started.
-	PostStart(ctx context.Context, verbose bool) error
+	PostStart(ctx context.Context) error
 
 	// HttpAddr returns the address where the client is servering its
 	// JSON-RPC.
@@ -133,7 +133,7 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 
 // PostStart is called after the client has been fully started.
 // We send a forkchoiceUpdatedV2 request to the engine to trigger a post-merge forkchoice.
-func (g *gethClient) PostStart(ctx context.Context, verbose bool) error {
+func (g *gethClient) PostStart(ctx context.Context) error {
 	auth := node.NewJWTAuth(g.jwtauth)
 	endpoint := fmt.Sprintf("http://%s:%s", HOST, AUTHPORT)
 	cl, err := rpc.DialOptions(ctx, endpoint, rpc.WithHTTPAuth(auth))

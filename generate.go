@@ -37,7 +37,7 @@ func runGenerator(ctx context.Context) error {
 	}
 	defer client.Close()
 
-	err = client.PostStart(ctx, args.Verbose)
+	err = client.PostStart(ctx)
 	if err != nil {
 		return err
 	}
