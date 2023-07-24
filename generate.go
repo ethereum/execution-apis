@@ -37,6 +37,11 @@ func runGenerator(ctx context.Context) error {
 	}
 	defer client.Close()
 
+	err = client.PostStart(ctx, args.Verbose)
+	if err != nil {
+		return err
+	}
+
 	// Generate test fixtures for all methods. Store them in the format:
 	// outputDir/methodName/testName.io
 	fmt.Println("filling tests...")

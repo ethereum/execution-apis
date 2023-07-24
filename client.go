@@ -8,17 +8,26 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"time"
 
+	"github.com/ethereum/go-ethereum/beacon/engine"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // Client is an interface for generically interacting with Ethereum clients.
 type Client interface {
 	// Start starts client, but does not wait for the command to exit.
 	Start(ctx context.Context, verbose bool) error
+
+	// PostStart is called after the client has been fully started.
+	PostStart(ctx context.Context, verbose bool) error
 
 	// HttpAddr returns the address where the client is servering its
 	// JSON-RPC.
@@ -35,6 +44,7 @@ type gethClient struct {
 	workdir string
 	blocks  []*types.Block
 	genesis *core.Genesis
+	jwtauth [32]byte
 }
 
 // newGethClient instantiates a new GethClient.
@@ -80,12 +90,16 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 		return nil, err
 	}
 
-	return &gethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp}, nil
+	var jwtAuth [32]byte
+	copy(jwtAuth[:], jwtSecret)
+
+	return &gethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp, jwtauth: jwtAuth}, nil
 }
 
 // Start starts geth, but does not wait for the command to exit.
 func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 	fmt.Println("starting client")
+
 	var (
 		args    = ctx.Value(ARGS).(*Args)
 		options = []string{
@@ -115,6 +129,42 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 		return err
 	}
 	return nil
+}
+
+// PostStart is called after the client has been fully started.
+// We send a forkchoiceUpdatedV2 request to the engine to trigger a post-merge forkchoice.
+func (g *gethClient) PostStart(ctx context.Context, verbose bool) error {
+	auth := node.NewJWTAuth(g.jwtauth)
+	endpoint := fmt.Sprintf("http://%s:%s", HOST, AUTHPORT)
+	cl, err := rpc.DialOptions(ctx, endpoint, rpc.WithHTTPAuth(auth))
+	if err != nil {
+		return err
+	}
+	defer cl.Close()
+
+	geth := ethclient.NewClient(cl)
+
+	block, err := geth.BlockByNumber(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var (
+		tstamp       = uint64(time.Now().Unix())
+		feeRecipient = common.HexToAddress("fee")
+		fcResponse   engine.ForkChoiceResponse
+	)
+	fmt.Println("called forkchoiceUpdatedV2 with block hash:", block.Hash().String(), "and timestamp:", tstamp, "and feeRecipient:", feeRecipient.String())
+	err = cl.CallContext(ctx, &fcResponse, "engine_forkchoiceUpdatedV2", &engine.ForkchoiceStateV1{
+		HeadBlockHash:      block.Hash(),
+		SafeBlockHash:      block.Hash(),
+		FinalizedBlockHash: block.Hash(),
+	}, &engine.PayloadAttributes{
+		Timestamp:             tstamp,
+		SuggestedFeeRecipient: feeRecipient,
+		Withdrawals:           []*types.Withdrawal{},
+	})
+	return err
 }
 
 // HttpAddr returns the address where the client is servering its JSON-RPC.
