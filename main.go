@@ -13,6 +13,7 @@ const (
 	HOST        string = "127.0.0.1"
 	PORT        string = "13375"
 	NETWORKPORT string = "13376"
+	AUTHPORT    string = "13377"
 )
 
 type Args struct {

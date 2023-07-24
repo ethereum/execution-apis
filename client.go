@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -72,6 +74,12 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 		return nil, err
 	}
 
+	jwtSecret := make([]byte, 32)
+	rand.Read(jwtSecret)
+	if err := os.WriteFile(fmt.Sprintf("%s/jwt.hex", tmp), []byte(hexutil.Encode(jwtSecret)), 0600); err != nil {
+		return nil, err
+	}
+
 	return &gethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp}, nil
 }
 
@@ -87,9 +95,11 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 			"--gcmode=archive",
 			"--nodiscover",
 			"--http",
-			"--http.api=admin,eth,debug",
+			"--http.api=admin,eth,debug,engine",
 			fmt.Sprintf("--http.addr=%s", HOST),
 			fmt.Sprintf("--http.port=%s", PORT),
+			fmt.Sprintf("--authrpc.port=%s", AUTHPORT),
+			fmt.Sprintf("--authrpc.jwtsecret=%s", fmt.Sprintf("%s/jwt.hex", g.workdir)),
 		}
 	)
 	g.cmd = exec.CommandContext(
