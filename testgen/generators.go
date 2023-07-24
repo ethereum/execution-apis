@@ -336,6 +336,48 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
+			"get-latest",
+			"gets block latest",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, nil)
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 9 {
+					return fmt.Errorf("expected block 9, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-safe",
+			"gets block safe",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.SafeBlockNumber)))
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 9 {
+					return fmt.Errorf("expected block 9, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-finalized",
+			"gets block finalized",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 9 {
+					return fmt.Errorf("expected block 9, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
 			"get-block-n",
 			"gets block 2",
 			func(ctx context.Context, t *T) error {
