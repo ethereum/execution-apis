@@ -211,7 +211,7 @@ CallResultInvalid:
       title: Call Status Invalid
       type: string
       pattern: ^0x2$
-    errors:
+    error:
       - code: -38010
         message: Nonce too low
       - code: -38011
