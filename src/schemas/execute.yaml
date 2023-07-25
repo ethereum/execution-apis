@@ -163,8 +163,6 @@ CallResultFailure:
       title: Return gasUsed
       $ref: '#/components/schemas/uint64'
     error:
-      title: Error Object
-      type: object
       - code: -33000
         message: TODO
         data: TODO
