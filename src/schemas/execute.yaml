@@ -86,7 +86,7 @@ BlockOverrides:
       $ref: '#/components/schemas/uint256'
     time:
       title: Time
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint64'
     gasLimit:
       title: Gas limit
       $ref: '#/components/schemas/uint64'
