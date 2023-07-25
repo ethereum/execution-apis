@@ -80,7 +80,7 @@ BlockOverrides:
   properties:
     number:
       title: Number
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint64'
     prevRandao:
       title: Randomness beacon
       $ref: '#/components/schemas/uint256'
