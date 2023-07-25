@@ -57,20 +57,15 @@
 - name: eth_multicallV1
   summary: Executes a sequence of message calls building on each other's state without creating transactions on the block chain, optionally overriding block and state data
   params:
-    - name: Block state calls
+    - name: Payload
+      required: true
       schema:
-        title: Arguments for multi call
-        type: array
-        items:
-          $ref: '#/components/schemas/BlockStateCalls'
+        type: '#/components/schemas/MultiCallPayload'
     - name: Block tag
       required: false
+      description: "default: 'latest'"
       schema:
-        type: boolean
-    - name: Trace Transfers - Add ETH transfers as fake events to the event log response
-      required: false
-      schema:
-        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+        type: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Result of calls
     schema:
