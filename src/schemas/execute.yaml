@@ -114,7 +114,7 @@ MultiCallBlockResult:
   properties:
     number:
       title: Number
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint64'
     hash:
       title: block hash
       $ref: '#/components/schemas/hash32'
