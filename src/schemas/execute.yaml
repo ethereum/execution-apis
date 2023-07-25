@@ -119,12 +119,13 @@ MultiCallResult:
   items:
     $ref: '#/components/schemas/MultiCallBlockResult'
   error:
-    - code: -38020
-      message: Block number in sequence did not increase
-    - code: -38021
-      message: Block timestamp in sequence did not increase
-    - code: -38022
-      message: MoveToAddress referenced itself in replacement
+    oneOf:
+      - code: -38020
+        message: Block number in sequence did not increase
+      - code: -38021
+        message: Block timestamp in sequence did not increase
+      - code: -38022
+        message: MoveToAddress referenced itself in replacement
 MultiCallBlockResult:
   title: Result of multicall block-level, with array of calls
   type: object
@@ -166,8 +167,8 @@ CallResultFailure:
   required:
     - status
     - returnData
-    - error
     - gasUsed
+    - error
   properties:
     status:
       title: Call Status Failure
@@ -180,12 +181,13 @@ CallResultFailure:
       title: Return gasUsed
       $ref: '#/components/schemas/uint64'
     error:
-      - code: -33000
-        message: TODO
-        data: TODO
-      - code: -33001
-        message: TODO
-        data: TODO
+      oneOf:
+        - code: -33000
+          message: TODO
+          data: TODO
+        - code: -33001
+          message: TODO
+          data: TODO
 CallResultSuccess:
   title: Result of call success
   type: object
@@ -222,16 +224,17 @@ CallResultInvalid:
       type: string
       pattern: ^0x2$
     error:
-      - code: -38010
-        message: Nonce too low
-      - code: -38011
-        message: Nonce too high
-      - code: -38012
-        message: BaseFee too low
-      - code: -38013
-        message: Not enough gas provided to pay for intrinsic gas
-      - code: -38014
-        message: Insufficient funds to pay for gas fees and value
+      oneOf:
+        - code: -38010
+          message: Nonce too low
+        - code: -38011
+          message: Nonce too high
+        - code: -38012
+          message: BaseFee too low
+        - code: -38013
+          message: Not enough gas provided to pay for intrinsic gas
+        - code: -38014
+          message: Insufficient funds to pay for gas fees and value
 CallResultLog:
   title: log
   type: object
