@@ -51,10 +51,6 @@ uint256:
   title: hex encoded 256 bit unsigned integer
   type: string
   pattern: ^0x([1-9a-f]+[0-9a-f]{0,31})|0$
-int:
-  title: decimal signed integer
-  type: string
-  pattern: ^-?[0-9]+$
 hash32:
   title: 32 byte hex value
   type: string
