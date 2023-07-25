@@ -162,20 +162,15 @@ CallResultFailure:
     gasUsed:
       title: Return gasUsed
       $ref: '#/components/schemas/uint64'
-    errors:
+    error:
       title: Error Object
       type: object
-      properties:
-        code:
-          title: Error code
-          type: number
-          $ref: '#/components/schemas/int'
-        message:
-          title: Error Message (execution reverted, out of gas, etc)
-          type: string
-        data:
-          title: Reverted, with optional message
-          type: string
+      - code: -33000
+        message: TODO
+        data: TODO
+      - code: -33001
+        message: TODO
+        data: TODO
 CallResultSuccess:
   title: Result of call success
   type: object
