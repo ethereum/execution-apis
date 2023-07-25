@@ -1,10 +1,11 @@
 MultiCallPayload:
   title: Arguments for multi call
   required:
-    - calls
+    - blockStateCalls
   properties:
-    calls:
-      title: Calls
+    blockStateCalls:
+      title: Block State Calls
+      description: Definition of blocks that can contain calls and overrides
       $ref: '#/components/schemas/BlockStateCalls'
     traceTransfers:
       title: Trace ETH Transfers
