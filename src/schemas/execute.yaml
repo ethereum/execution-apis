@@ -8,25 +8,44 @@ MultiCallPayload:
       $ref: '#/components/schemas/BlockStateCalls'
     traceTransfers:
       title: Trace ETH Transfers
-      description: "Adds ETH transfers as ERC20 transfer events to the logs. These transfers have emitter contract parameter set as address(0x0). Default: false."
+      description: "
+        Adds ETH transfers as ERC20 transfer events to the logs. These transfers have emitter contract parameter set as address(0x0).
+        Default: false.
+      "
       $ref: boolean
     validation:
       title: Validation
-      description: "When true, the multicall does all validations that a normal EVM would do, except contract sender and signature checks. When false, multicall behaves like eth_call. Default: false."
+      description: "
+        When true, the multicall does all validations that a normal EVM would do, except contract sender and signature checks. When false, multicall behaves like eth_call.
+        Default: false.
+      "
       $ref: boolean
-
 BlockStateCalls:
-  title: Array of calls to be executed at specific, optional block/state.
+  title: Array of block state calls to be executed at specific, optional block/state.
+  description: "The size of this array may be limited depending on the client as a DOS protection. 256 is a common/recommended limit as it is the same limit used by BLOCKHASH opcode."
+  type: array
   properties:
     blockOverrides:
       title: Block override. When overriding block number across multiple blocks, block number not decrease or remain the same between block overrides, but skipping block numbers is acceptable.
+      description: "
+        Block overrides can be used to replace fields in a block.
+        default: no block override.
+      "
       $ref: '#/components/schemas/BlockOverrides'
     stateOverrides:
       title: State overrides
+      description: "
+        State overrides can be used to replace existing blockchain state with new state.
+        default: no state overrides
+      "
       $ref: '#/components/schemas/StateOverrides'
     calls:
       type: array
-      title: List of transactions to execute at this block/state
+      title: calls
+      description: "
+        List of transactions to execute at this block/state.
+        default: []
+      "
       items:
         $ref: '#/components/schemas/GenericCallTransaction'
 StateOverrides:
@@ -59,6 +78,7 @@ AccountOverrideState:
       $ref: '#/components/schemas/bytes'
     moveToAddress:
       title: MoveToAddress
+      description: address where the current address contents are moved into
       $ref: '#/components/schemas/address'
     state:
       title: Storage
@@ -83,6 +103,7 @@ AccountOverrideStateDiff:
     moveToAddress:
       title: MoveToAddress
       $ref: '#/components/schemas/address'
+      description: address where the current address contents are moved into
     stateDiff:
       title: Storage difference
       $ref: '#/components/schemas/AccountStorage'
@@ -115,6 +136,7 @@ BlockOverrides:
       $ref: '#/components/schemas/uint256'
 MultiCallResult:
   title: Full results of multi call
+  description: The error messages are suggestions, and clients might implement different error messages. However, the error codes are enforced by the spec.
   type: array
   items:
     $ref: '#/components/schemas/MultiCallBlockResult'
@@ -163,6 +185,7 @@ CallResults:
       - $ref: '#/components/schemas/CallResultInvalid'
 CallResultFailure:
   title: Result of call failure
+  description: The error messages are suggestions, and clients might implement different error messages. However, the error codes are enforced by the spec.
   type: object
   required:
     - status
@@ -214,6 +237,7 @@ CallResultSuccess:
         $ref: '#/components/schemas/CallResultLog'
 CallResultInvalid:
   title: Result of call not being valid (nonce, baseFee, etc)
+  description: The error messages are suggestions, and clients might implement different error messages. However, the error codes are enforced by the spec.
   type: object
   required:
     - status
