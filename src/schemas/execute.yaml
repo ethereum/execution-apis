@@ -101,7 +101,7 @@ MultiCallResult:
   type: array
   items:
     $ref: '#/components/schemas/MultiCallBlockResult'
-  errors:
+  error:
     - code: -38020
       message: Block number in sequence did not increase
     - code: -38021
