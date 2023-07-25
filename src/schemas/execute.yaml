@@ -110,8 +110,9 @@ AccountOverrideStateDiff:
 AccountStorage:
   title: Storage slots for an account
   type: object
-  additionalProperties:
-    - $ref: '#/components/schemas/hash32'
+  patternProperties:
+    '^0x[a-fA-F0-9]{64}$': $ref: '#/components/schemas/hash32'
+  additionalProperties: false
 BlockOverrides:
   title: Context fields related to the block being executed
   type: object
@@ -179,7 +180,7 @@ CallResults:
   title: Results of multi call within block
   type: array
   items:
-    anyOf:
+    oneOf:
       - $ref: '#/components/schemas/CallResultFailure'
       - $ref: '#/components/schemas/CallResultSuccess'
       - $ref: '#/components/schemas/CallResultInvalid'
@@ -281,6 +282,7 @@ CallResultLog:
       $ref: '#/components/schemas/uint64'
     address:
       title: address
+      description: When trace transfers is enabled, this field is address(0x0) for ETH transfers.
       $ref: '#/components/schemas/address'
     data:
       title: data
