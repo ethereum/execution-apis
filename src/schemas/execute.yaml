@@ -146,6 +146,8 @@ MultiCallResult:
         message: Block timestamp in sequence did not increase
       - code: -38022
         message: MoveToAddress referenced itself in replacement
+      - code: -38023
+        message: Multiple MoveToAddress referencing the same address to replace
 MultiCallBlockResult:
   title: Result of multicall block-level, with array of calls
   type: object
@@ -257,8 +259,8 @@ CallResultInvalid:
           message: Not enough gas provided to pay for intrinsic gas
         - code: -38014
           message: Insufficient funds to pay for gas fees and value
-        # - code: -38015
-        #   message: 
+        - code: -38015
+        message: Block gas limit exceeded by the block's transactions
 CallResultLog:
   title: log
   type: object
@@ -331,4 +333,4 @@ GenericCallTransaction:
     accessList:
       title: accessList
       description: EIP-2930 access list
-      # $ref: '#/components/schemas/AccessList'
+      $ref: '#/components/schemas/AccessList'
