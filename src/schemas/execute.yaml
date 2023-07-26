@@ -9,18 +9,16 @@ MultiCallPayload:
       $ref: '#/components/schemas/BlockStateCalls'
     traceTransfers:
       title: Trace ETH Transfers
-      description: "
+      description: |-
         Adds ETH transfers as ERC20 transfer events to the logs. These transfers have emitter contract parameter set as address(0x0).
         Default: false.
-      "
-      $ref: boolean
+      type: boolean
     validation:
       title: Validation
-      description: "
+      description: |-
         When true, the multicall does all validations that a normal EVM would do, except contract sender and signature checks. When false, multicall behaves like eth_call.
         Default: false.
-      "
-      $ref: boolean
+      type: boolean
 BlockStateCalls:
   title: Array of block state calls to be executed at specific, optional block/state.
   description: "The size of this array may be limited depending on the client as a DOS protection. 256 is a common/recommended limit as it is the same limit used by BLOCKHASH opcode."
@@ -28,25 +26,22 @@ BlockStateCalls:
   properties:
     blockOverrides:
       title: Block override. When overriding block number across multiple blocks, block number not decrease or remain the same between block overrides, but skipping block numbers is acceptable.
-      description: "
+      description: |-
         Block overrides can be used to replace fields in a block.
         default: no block override.
-      "
       $ref: '#/components/schemas/BlockOverrides'
     stateOverrides:
       title: State overrides
-      description: "
+      description: |-
         State overrides can be used to replace existing blockchain state with new state.
-        default: no state overrides
-      "
+        Default: no state overrides
       $ref: '#/components/schemas/StateOverrides'
     calls:
       type: array
       title: calls
-      description: "
+      description: |-
         List of transactions to execute at this block/state.
-        default: []
-      "
+        Default: []
       items:
         $ref: '#/components/schemas/GenericCallTransaction'
 StateOverrides:
@@ -112,7 +107,8 @@ AccountStorage:
   title: Storage slots for an account
   type: object
   patternProperties:
-    '^0x[a-fA-F0-9]{64}$': $ref: '#/components/schemas/hash32'
+    '^0x[a-fA-F0-9]{64}$':
+      $ref: '#/components/schemas/hash32'
   additionalProperties: false
 BlockOverrides:
   title: Context fields related to the block being executed
@@ -261,6 +257,8 @@ CallResultInvalid:
           message: Not enough gas provided to pay for intrinsic gas
         - code: -38014
           message: Insufficient funds to pay for gas fees and value
+        # - code: -38015
+        #   message: 
 CallResultLog:
   title: log
   type: object
@@ -333,4 +331,4 @@ GenericCallTransaction:
     accessList:
       title: accessList
       description: EIP-2930 access list
-      $ref: '#/components/schemas/AccessList'
+      # $ref: '#/components/schemas/AccessList'
