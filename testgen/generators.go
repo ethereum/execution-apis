@@ -863,135 +863,107 @@ var EthGetTransactionReceipt = MethodTests{
 	},
 }
 
-func checkBlockReceipts(t *T, hash common.Hash, receipts []*types.Receipt) error {
-	blockReceipts := t.chain.GetReceiptsByHash(hash)
-	if len(receipts) != len(blockReceipts) {
-		return fmt.Errorf("receipts length notmatch(got: %d, want: %d)", len(receipts), len(blockReceipts))
-	}
-	for i := range receipts {
-		got, _ := receipts[i].MarshalBinary()
-		want, _ := blockReceipts[i].MarshalBinary()
-		if !bytes.Equal(got, want) {
-			return fmt.Errorf("receipt mismatch (got: %x, want: %x)", got, want)
-		}
-	}
-	return nil
-}
-
-func testBlockReceiptsByNumber(ctx context.Context, t *T, number uint64) error {
-	var receipts []*types.Receipt
-	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint(number)); err != nil {
-		return err
-	}
-
-	block := t.chain.GetBlockByNumber(number)
-	if block == nil {
-		return fmt.Errorf("block not found (number: %d)", number)
-	}
-	hash := block.Hash()
-	return checkBlockReceipts(t, hash, receipts)
-}
-
-func testBlockReceiptsByHash(ctx context.Context, t *T, hash common.Hash) error {
-	var receipts []*types.Receipt
-	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hash); err != nil {
-		return err
-	}
-	return checkBlockReceipts(t, hash, receipts)
-}
-
-func testBlockReceiptsByTag(ctx context.Context, t *T, tag string) error {
-	var receipts []*types.Receipt
-	if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", tag); err != nil {
-		return err
-	}
-	var hash common.Hash
-	switch tag {
-	case "earliest":
-		block := t.chain.GetBlockByNumber(0)
-		hash = block.Hash()
-	case "latest":
-		block := t.chain.CurrentBlock()
-		hash = block.Hash()
-	default:
-		return fmt.Errorf("unsupported tag: %s", tag)
-	}
-	return checkBlockReceipts(t, hash, receipts)
-}
-
 var EthGetBlockReceipts = MethodTests{
 	"eth_getBlockReceipts",
 	[]Test{
 		{
-			"get-block-0",
+			"get-block-receipts-0",
 			"gets receipts for block 0",
 			func(ctx context.Context, t *T) error {
-				return testBlockReceiptsByNumber(ctx, t, 0)
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(0)); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, 0, receipts)
 			},
 		},
 		{
-			"get-block-n",
+			"get-block-receipts-n",
 			"gets receipts non-zero block",
 			func(ctx context.Context, t *T) error {
-				return testBlockReceiptsByNumber(ctx, t, 3)
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(3)); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, 3, receipts)
 			},
 		},
 		{
-			"get-block-future",
+			"get-block-receipts-future",
 			"gets receipts of future block",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.CurrentBlock()
-				if block == nil {
-					return errors.New("current block notfound")
-				}
-				number := block.Number.Int64()
-				var receipts []*types.Receipt
-				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint(number+1)); err != nil {
+				var (
+					receipts []*types.Receipt
+					future   = t.chain.CurrentHeader().Number.Uint64() + 1
+				)
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(future)); err != nil {
 					return err
 				}
 				if len(receipts) != 0 {
-					return fmt.Errorf("receipts length notmatch(got: %d, want: %d)", len(receipts), 0)
+					return fmt.Errorf("expected not found, got: %d receipts)", len(receipts))
 				}
 				return nil
 			},
 		},
 		{
-			"get-block-earliest",
+			"get-block-receipts-earliest",
 			"gets receipts for block earliest",
 			func(ctx context.Context, t *T) error {
-				return testBlockReceiptsByTag(ctx, t, "earliest")
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "earliest"); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, 0, receipts)
 			},
 		},
 		{
-			"get-block-latest",
+			"get-block-receipts-latest",
 			"gets receipts for block latest",
 			func(ctx context.Context, t *T) error {
-				return testBlockReceiptsByTag(ctx, t, "latest")
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "latest"); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, t.chain.CurrentHeader().Number.Uint64(), receipts)
 			},
 		},
 		{
-			"get-block-empty",
+			"get-block-receipts-empty",
 			"gets receipts for empty block hash",
 			func(ctx context.Context, t *T) error {
-				return testBlockReceiptsByHash(ctx, t, common.Hash{})
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", common.Hash{}); err != nil {
+					return err
+				}
+				if len(receipts) != 0 {
+					return fmt.Errorf("expected not found, got: %d receipts)", len(receipts))
+				}
+				return nil
 			},
 		},
 		{
-			"get-block-notfound",
+			"get-block-receipts-not-found",
 			"gets receipts for notfound hash",
 			func(ctx context.Context, t *T) error {
-				return testBlockReceiptsByHash(ctx, t, common.HexToHash("deadbeef"))
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", common.HexToHash("deadbeef")); err != nil {
+					return err
+				}
+				if len(receipts) != 0 {
+					return fmt.Errorf("expected not found, got: %d receipts)", len(receipts))
+				}
+				return nil
 			},
 		},
 		{
-			"get-block-hash-n",
+			"get-block-receipts-by-hash",
 			"gets receipts for normal block hash",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(5)
-				if block == nil {
-					return errors.New("block(5) notfound")
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", t.chain.GetCanonicalHash(5)); err != nil {
+					return err
 				}
-				return testBlockReceiptsByHash(ctx, t, block.Hash())
+				return checkBlockReceipts(t, 5, receipts)
 			},
 		},
 	},
