@@ -1,0 +1,22 @@
+AddressAppearances:
+  title: Transaction identifiers relevant to an address
+  type: array
+  additionalProperties: false
+  $ref: '#/components/schemas/RelevantTransaction'
+RelevantTransaction:
+  title: Relevant Transaction
+  type: object
+  description: Identifier of a transaction relevant to an address
+  required:
+    - blockNumber
+    - transactionIndex
+  additionalProperties: false
+  properties:
+    blockNumber:
+      title: Block number
+      description: Block containing the relevant transactions
+      $ref: '#/components/schemas/uint'
+    transactionIndex:
+      title: Transaction index
+      description: Index of a transaction that an address appears in
+      $ref: '#/components/schemas/uint'
