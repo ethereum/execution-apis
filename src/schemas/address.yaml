@@ -1,0 +1,37 @@
+BlockAddresses:
+  type: object
+  title: Block addresses
+  description: Addresses that appear in a single block
+  required:
+    - addresses
+    - blockNumber
+  additionalProperties: false
+  properties:
+    addresses:
+      title: Block addresses
+      type: array
+      $ref: '#/components/schemas/AddressBlockAppearances'
+    blockNumber:
+      title: Block number
+      $ref: '#/components/schemas/uint'
+AddressBlockAppearances:
+  type: object
+  title: Address appearances in a single block
+  description: An address that appears in one or more locations in a block
+  required:
+    - address
+    - indices
+  additionalProperties: false
+  properties:
+    address:
+      title: Address
+      $ref: '#/components/schemas/address'
+    indices:
+      title: Transaction indices
+      $ref: '#/components/schemas/TransactionIndices'
+TransactionIndices:
+  title: Transaction index list
+  type: array
+  description: Indices of transactions an address appears in within a block
+  items:
+    $ref: '#/components/schemas/uint64'
