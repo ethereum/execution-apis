@@ -52,7 +52,7 @@ func checkBlockReceipts(t *T, n uint64, got []*types.Receipt) error {
 		got, _ := got[i].MarshalBinary()
 		want, _ := want[i].MarshalBinary()
 		if !bytes.Equal(got, want) {
-			return fmt.Errorf("receipt mismatch (got: %x, want: %x)", got, want)
+			return fmt.Errorf("receipt %d mismatch (got: %x, want: %x)", i, got, want)
 		}
 	}
 	return nil
