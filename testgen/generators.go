@@ -81,6 +81,7 @@ var AllMethods = []MethodTests{
 	EthGetTransactionCount,
 	EthGetTransactionByHash,
 	EthGetTransactionReceipt,
+	EthGetBlockReceipts,
 	EthSendRawTransaction,
 	EthGasPrice,
 	EthMaxPriorityFeePerGas,
@@ -859,6 +860,112 @@ var EthGetTransactionReceipt = MethodTests{
 					return errors.New("expected not found error")
 				}
 				return nil
+			},
+		},
+	},
+}
+
+var EthGetBlockReceipts = MethodTests{
+	"eth_getBlockReceipts",
+	[]Test{
+		{
+			"get-block-receipts-0",
+			"gets receipts for block 0",
+			func(ctx context.Context, t *T) error {
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(0)); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, 0, receipts)
+			},
+		},
+		{
+			"get-block-receipts-n",
+			"gets receipts non-zero block",
+			func(ctx context.Context, t *T) error {
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(3)); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, 3, receipts)
+			},
+		},
+		{
+			"get-block-receipts-future",
+			"gets receipts of future block",
+			func(ctx context.Context, t *T) error {
+				var (
+					receipts []*types.Receipt
+					future   = t.chain.CurrentHeader().Number.Uint64() + 1
+				)
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(future)); err != nil {
+					return err
+				}
+				if len(receipts) != 0 {
+					return fmt.Errorf("expected not found, got: %d receipts)", len(receipts))
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-receipts-earliest",
+			"gets receipts for block earliest",
+			func(ctx context.Context, t *T) error {
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "earliest"); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, 0, receipts)
+			},
+		},
+		{
+			"get-block-receipts-latest",
+			"gets receipts for block latest",
+			func(ctx context.Context, t *T) error {
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "latest"); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, t.chain.CurrentHeader().Number.Uint64(), receipts)
+			},
+		},
+		{
+			"get-block-receipts-empty",
+			"gets receipts for empty block hash",
+			func(ctx context.Context, t *T) error {
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", common.Hash{}); err != nil {
+					return err
+				}
+				if len(receipts) != 0 {
+					return fmt.Errorf("expected not found, got: %d receipts)", len(receipts))
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-receipts-not-found",
+			"gets receipts for notfound hash",
+			func(ctx context.Context, t *T) error {
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", common.HexToHash("deadbeef")); err != nil {
+					return err
+				}
+				if len(receipts) != 0 {
+					return fmt.Errorf("expected not found, got: %d receipts)", len(receipts))
+				}
+				return nil
+			},
+		},
+		{
+			"get-block-receipts-by-hash",
+			"gets receipts for normal block hash",
+			func(ctx context.Context, t *T) error {
+				var receipts []*types.Receipt
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", t.chain.GetCanonicalHash(5)); err != nil {
+					return err
+				}
+				return checkBlockReceipts(t, 5, receipts)
 			},
 		},
 	},
