@@ -175,6 +175,9 @@ MultiCallBlockResult:
       $ref: '#/components/schemas/uint256'
     calls:
       $ref: '#/components/schemas/CallResults'
+    prevRandao:
+      title: Randomness beacon
+      $ref: '#/components/schemas/uint256'
 CallResults:
   title: Results of multi call within block
   type: array
