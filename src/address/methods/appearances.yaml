@@ -1,4 +1,4 @@
-- name: eth_getAddressAppearances
+- name: address_getAppearances
   summary: Returns transaction identifiers relevant to an address.
   params:
     - name: Address
