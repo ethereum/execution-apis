@@ -25,7 +25,7 @@ BlockStateCalls:
   type: array
   properties:
     blockOverrides:
-      title: Block override. When overriding block number across multiple blocks, block number not decrease or remain the same between block overrides, but skipping block numbers is acceptable.
+      title: Block overrides. When overriding block numbers across multiple blocks, block number not decrease or remain the same between block overrides, but skipping block numbers is acceptable.
       description: |-
         Block overrides can be used to replace fields in a block.
         default: no block override.
@@ -57,6 +57,7 @@ AccountOverride:
     - $ref: '#/components/schemas/AccountOverrideStateDiff'
 AccountOverrideState:
   title: Account override with whole storage replacement
+  description: It is possible to override any kind of address (EOA's, contracts and precompiles)
   required:
     - state
   properties:
@@ -74,7 +75,7 @@ AccountOverrideState:
       $ref: '#/components/schemas/bytes'
     moveToAddress:
       title: MoveToAddress
-      description: address where the current address contents are moved into
+      description: address where the current address contents are moved into (includes nonce, balance and code)
       $ref: '#/components/schemas/address'
     state:
       title: Storage
@@ -134,20 +135,9 @@ BlockOverrides:
       $ref: '#/components/schemas/uint256'
 MultiCallResult:
   title: Full results of multi call
-  description: The error messages are suggestions, and clients might implement different error messages. However, the error codes are enforced by the spec.
   type: array
   items:
     $ref: '#/components/schemas/MultiCallBlockResult'
-  error:
-    oneOf:
-      - code: -38020
-        message: Block number in sequence did not increase
-      - code: -38021
-        message: Block timestamp in sequence did not increase
-      - code: -38022
-        message: MoveToAddress referenced itself in replacement
-      - code: -38023
-        message: Multiple MoveToAddress referencing the same address to replace
 MultiCallBlockResult:
   title: Result of multicall block-level, with array of calls
   type: object
@@ -208,12 +198,10 @@ CallResultFailure:
       $ref: '#/components/schemas/uint64'
     error:
       oneOf:
-        - code: -33000
-          message: TODO
-          data: TODO
-        - code: -33001
-          message: TODO
-          data: TODO
+        - code: -32000
+          message: 'Execution reverted'
+        - code: -32015
+          message: 'VM execution error'
 CallResultSuccess:
   title: Result of call success
   type: object
@@ -252,18 +240,38 @@ CallResultInvalid:
       pattern: ^0x2$
     error:
       oneOf:
+        - code: -32000
+          message: Missing or invalid parameters
+        - code: -32005
+          message: Limit exceeded
+        - code: -32015
+          messagE: Execution error
+        - code: -32016
+          message: Timeout
+        - code: -32602
+          message: Invalid params
+        - code: -32603
+          message: The Ethereum node encountered an internal error
         - code: -38010
-          message: Nonce too low
+          message: Transactions nonce is too low
         - code: -38011
-          message: Nonce too high
+          message: Transactions nonce is too high
         - code: -38012
-          message: BaseFee too low
+          message: Transactions baseFee is too low
         - code: -38013
-          message: Not enough gas provided to pay for intrinsic gas
+          message: Not enough gas provided to pay for intrinsic gas for a transaction
         - code: -38014
-          message: Insufficient funds to pay for gas fees and value
+          message: Insufficient funds to pay for gas fees and value fo a transaction
         - code: -38015
-        message: Block gas limit exceeded by the block's transactions
+          message: Block gas limit exceeded by the block's transactions
+        - code: -38020
+          message: Block number in sequence did not increase
+        - code: -38021
+          message: Block timestamp in sequence did not increase
+        - code: -38022
+          message: MoveToAddress referenced itself in replacement
+        - code: -38023
+          message: Multiple MoveToAddress referencing the same address to replace
 CallResultLog:
   title: log
   type: object
