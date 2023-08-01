@@ -75,10 +75,11 @@ AccountOverrideState:
       $ref: '#/components/schemas/bytes'
     moveToAddress:
       title: MoveToAddress
-      description: address where the current address contents are moved into (includes nonce, balance and code)
+      description: An Address where the current address contents are moved into (includes nonce, state, balance and code). This move is done before the other overrides take an action.
       $ref: '#/components/schemas/address'
     state:
       title: Storage
+      description: Key-value mapping to override all slots in the account storage before executing the call. This functions similar to eth_call's state parameter.
       $ref: '#/components/schemas/AccountStorage'
 AccountOverrideStateDiff:
   title: Account override with partial storage modification
@@ -100,9 +101,10 @@ AccountOverrideStateDiff:
     moveToAddress:
       title: MoveToAddress
       $ref: '#/components/schemas/address'
-      description: address where the current address contents are moved into
+      description: An Address where the current address contents are moved into (includes nonce, state, balance and code). This move is done before the other overrides take an action.
     stateDiff:
       title: Storage difference
+      description: Key-value mapping to override individual slots in the account storage before executing the call. This functions similar to eth_call's state parameter.
       $ref: '#/components/schemas/AccountStorage'
 AccountStorage:
   title: Storage slots for an account
