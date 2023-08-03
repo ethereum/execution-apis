@@ -1,2 +1,2 @@
->> {"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["0x2d7C6B69175c2939173F2fd470538835336Df92b",[17190873, 17190873]]}
+>> {"jsonrpc":"2.0","id":1,"method":"address_getAppearances","params":["0x2d7C6B69175c2939173F2fd470538835336Df92b",["0x1064fd9", "0x1064fd9"]]}
 << {"id":1,"jsonrpc":"2.0","result":[{"blockNumber":17190873,"transactionIndex":103},{"blockNumber":17190873,"transactionIndex":163},{"blockNumber":17190873,"transactionIndex":169},{"blockNumber":17190873,"transactionIndex":179},{"blockNumber":17190873,"transactionIndex":182}]}
