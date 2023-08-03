@@ -45,10 +45,12 @@ BlockStateCalls:
       items:
         $ref: '#/components/schemas/GenericCallTransaction'
 StateOverrides:
-  title: Accounts in state to be overridden
-  type: array
-  items:
-    $ref: '#/components/schemas/AccountOverride'
+  title: Dictionary of addresses in the state to be overridden
+  type: object
+  patternProperties:
+    '^0x[a-fA-F0-9]{40}$':
+      $ref: '#/components/schemas/AccountOverride'
+  additionalProperties: false
 AccountOverride:
   title: Details of an account to be overridden
   type: object
@@ -61,9 +63,6 @@ AccountOverrideState:
   required:
     - state
   properties:
-    address:
-      title: Address
-      $ref: '#/components/schemas/address'
     nonce:
       title: Nonce
       $ref: '#/components/schemas/uint64'
@@ -86,9 +85,6 @@ AccountOverrideStateDiff:
   required:
     - stateDiff
   properties:
-    address:
-      title: Address
-      $ref: '#/components/schemas/address'
     nonce:
       title: Nonce
       $ref: '#/components/schemas/uint64'
