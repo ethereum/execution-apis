@@ -116,8 +116,8 @@ BlockOverrides:
     number:
       title: Number
       $ref: '#/components/schemas/uint64'
-    prevRandao:
-      title: Randomness beacon
+    random:
+      title: The Previous value of randomness beacon
       $ref: '#/components/schemas/uint256'
     time:
       title: Time
@@ -125,11 +125,11 @@ BlockOverrides:
     gasLimit:
       title: Gas limit
       $ref: '#/components/schemas/uint64'
-    feeRecipient:
-      title: feeRecipient
+    coinbase:
+      title: coinbase, feeRecipient
       $ref: '#/components/schemas/address'
-    baseFeePerGas:
-      title: Base fee per gas
+    baseFee:
+      title: Base fee per unit of gas
       $ref: '#/components/schemas/uint256'
 MultiCallResult:
   title: Full results of multi call
@@ -155,16 +155,16 @@ MultiCallBlockResult:
     gasUsed:
       title: Gas used
       $ref: '#/components/schemas/uint64'
-    feeRecipient:
-      title: feeRecipient
+    coinbase:
+      title: coinbase, feeRecipient
       $ref: '#/components/schemas/address'
-    baseFeePerGas:
-      title: Base fee
+    baseFee:
+      title: Base fee per unit of gas
       $ref: '#/components/schemas/uint256'
     calls:
       $ref: '#/components/schemas/CallResults'
-    prevRandao:
-      title: Randomness beacon
+    random:
+      title: The Previous value of randomness beacon
       $ref: '#/components/schemas/uint256'
 CallResults:
   title: Results of multi call within block
