@@ -51,7 +51,7 @@ This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionp
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `dataGasUsed`: `QUANTITY`, 64 bits
+- `dataGasUsed`: `QUANTITY`, 64 Bits
 - `excessDataGas`: `QUANTITY`, 64 Bits
 
 ### BlobsBundleV1
@@ -86,8 +86,6 @@ This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadat
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 
-Client software **MUST** return `-32602: Invalid params` error unless all parameters and their fields are provided with non-`null` values.
-
 #### Response
 
 Refer to the response for [`engine_newPayloadV2`](./shanghai.md#engine_newpayloadv2).
@@ -96,13 +94,15 @@ Refer to the response for [`engine_newPayloadV2`](./shanghai.md#engine_newpayloa
 
 This method follows the same specification as [`engine_newPayloadV2`](./shanghai.md#engine_newpayloadv2) with the addition of the following:
 
-1. Given the expected array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
+1. Client software **MUST** check that provided set of parameters and their fields strictly matches the expected one and return `-32602: Invalid params` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
+
+2. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Cancun fork.
+
+3. Given the expected array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
     1. Obtain the actual array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
     2. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the expected and the actual arrays don't match.
 
     This validation **MUST** be instantly run in all cases even during active sync process.
-
-2. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload is less than the Cancun activation timestamp.
 
 ### engine_forkchoiceUpdatedV3
 
@@ -114,10 +114,6 @@ This method follows the same specification as [`engine_newPayloadV2`](./shanghai
   2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV3`](#payloadattributesv3) or `null`.
 * timeout: 8s
 
-Client software **MUST** return `-32602: Invalid params` error unless:
-* every field of `forkchoiceState` is provided with non-`null` value,
-* every field of `payloadAttributes` is provided with non-`null` values when `payloadAttributes` is not `null`.
-
 #### Response
 
 Refer to the response for [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2).
@@ -126,7 +122,9 @@ Refer to the response for [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_fo
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2) with addition of the following:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes.timestamp` is less than the Cancun activation timestamp.
+1. Client software **MUST** check that provided set of parameters and their fields strictly matches the expected one and return `-32602: Invalid params` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
+
+2. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes` is set and the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork.
 
 ### engine_getPayloadV3
 
@@ -153,14 +151,14 @@ and proofs corresponding to the `versioned_hashes` included in the blob transact
 
 Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getpayloadv2) with addition of the following:
 
-1. The call **MUST** return `blobsBundle` with empty `blobs`, `commitments` and `proofs` if the payload doesn't contain any blob transactions.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Cancun fork.
 
-2. The call **MUST** return `commitments` matching the versioned hashes of the transactions list of the execution payload, in the same order,
+2. The call **MUST** return `blobsBundle` with empty `blobs`, `commitments` and `proofs` if the payload doesn't contain any blob transactions.
+
+3. The call **MUST** return `commitments` matching the versioned hashes of the transactions list of the execution payload, in the same order,
    i.e. `assert verify_kzg_commitments_against_transactions(payload.transactions, blobsBundle.commitments)` (see EIP-4844 consensus-specs).
 
-3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
-
-4. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload is less than the Cancun activation timestamp.
+4. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
 
 5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
 
@@ -173,3 +171,17 @@ This document introduces deprecation of [`engine_exchangeTransitionConfiguration
 2. Execution layer clients **MUST NOT** surface an error message to the user if this method is not called.
 
 3. Consensus and execution layer clients **MAY** remove support of this method after Cancun. If no longer supported, this method **MUST** be removed from the [`engine_exchangeCapabilities`](./common.md#engine_exchangecapabilities) request or response list depending on whether it is consensus or execution layer client.
+
+### Update the methods of previous forks
+
+This document defines how Cancun payload should be handled by the [`Shanghai API`](./shanghai.md).
+
+For the following methods:
+
+- [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2)
+- [`engine_newPayloadV2`](./shanghai.md#engine_newpayloadV2)
+- [`engine_getPayloadV2`](./shanghai.md#engine_getpayloadv2)
+
+a validation **MUST** be added:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload or payloadAttributes greater or equal to the Cancun activation timestamp.
