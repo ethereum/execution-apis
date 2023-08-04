@@ -124,7 +124,9 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./s
 
 1. Client software **MUST** check that provided set of parameters and their fields strictly matches the expected one and return `-32602: Invalid params` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
 
-2. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork.
+2. Client software **MUST** return `-38005: Unsupported fork` error 
+  * if the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork or 
+  * if the `forkchoiceState.headBlockHash` refers to a pre-Cancun block (if resolvable by EL) when forkchoice update issued without `payloadAttributes`
 
 ### engine_getPayloadV3
 
