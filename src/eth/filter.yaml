@@ -27,7 +27,7 @@
   params:
     - name: Filter Identifier
       schema:
-        $ref: '#/components/schemas/uint'
+        $ref: '#/components/schemas/uintParam'
   result:
     name: Success
     schema:
@@ -37,7 +37,7 @@
   params:
     - name: Filter Identifier
       schema:
-        $ref: '#/components/schemas/uint'
+        $ref: '#/components/schemas/uintParam'
   result:
     name: Log objects
     schema:
@@ -47,7 +47,7 @@
   params:
     - name: Filter Identifier
       schema:
-        $ref: '#/components/schemas/uint'
+        $ref: '#/components/schemas/uintParam'
   result:
     name: Log objects
     schema:

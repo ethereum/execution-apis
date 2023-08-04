@@ -116,14 +116,14 @@ BlockNumberOrTag:
   title: Block number or tag
   oneOf:
     - title: Block number
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uintParam'
     - title: Block tag
       $ref: '#/components/schemas/BlockTag'
 BlockNumberOrTagOrHash:
   title: Block number, tag, or block hash
   anyOf:
     - title: Block number
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uintParam'
     - title: Block tag
       $ref: '#/components/schemas/BlockTag'
     - title: Block hash
