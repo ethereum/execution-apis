@@ -25,7 +25,7 @@ BlockStateCalls:
   type: array
   properties:
     blockOverrides:
-      title: Block overrides. When overriding block numbers across multiple blocks, block number not decrease or remain the same between block overrides, but skipping block numbers is acceptable.
+      title: Block overrides
       description: |-
         Block overrides can be used to replace fields in a block.
         default: no block override.
@@ -116,19 +116,21 @@ BlockOverrides:
     number:
       title: Number
       $ref: '#/components/schemas/uint64'
-    random:
+      description: When overriding block numbers across multiple blocks, block number need to be increasing. Skipping over blocks numbers is possible. If block number is not specified, it's incremented by one for each block.
+    prevRandao:
       title: The Previous value of randomness beacon
       $ref: '#/components/schemas/uint256'
     time:
       title: Time
       $ref: '#/components/schemas/uint64'
+      description: When overriding Time across multiple blocks, Time need to be increasing. If time is not specified, it's incremented by one for each block.
     gasLimit:
       title: Gas limit
       $ref: '#/components/schemas/uint64'
-    coinbase:
-      title: coinbase, feeRecipient
+    feeRecipient:
+      title: Fee Recipient (also known as coinbase)
       $ref: '#/components/schemas/address'
-    baseFee:
+    baseFeePerGas:
       title: Base fee per unit of gas
       $ref: '#/components/schemas/uint256'
 MultiCallResult:
@@ -144,10 +146,10 @@ MultiCallBlockResult:
       title: Number
       $ref: '#/components/schemas/uint64'
     hash:
-      title: block hash
+      title: Block Hash
       $ref: '#/components/schemas/hash32'
     timestamp:
-      title: Time
+      title: Timestamp
       $ref: '#/components/schemas/uint64'
     gasLimit:
       title: Gas limit
@@ -155,15 +157,15 @@ MultiCallBlockResult:
     gasUsed:
       title: Gas used
       $ref: '#/components/schemas/uint64'
-    coinbase:
-      title: coinbase, feeRecipient
+    feeRecipient:
+      title: Fee Recipient (also known as coinbase)
       $ref: '#/components/schemas/address'
-    baseFee:
+    baseFeePerGas:
       title: Base fee per unit of gas
       $ref: '#/components/schemas/uint256'
     calls:
       $ref: '#/components/schemas/CallResults'
-    random:
+    prevRandao:
       title: The Previous value of randomness beacon
       $ref: '#/components/schemas/uint256'
 CallResults:
@@ -225,7 +227,7 @@ CallResultSuccess:
       items:
         $ref: '#/components/schemas/CallResultLog'
 CallResultInvalid:
-  title: Result of call not being valid (nonce, baseFee, etc)
+  title: Result of call not being valid (nonce, baseFeePerGas, etc)
   description: The error messages are suggestions, and clients might implement different error messages. However, the error codes are enforced by the spec.
   type: object
   required:
@@ -255,7 +257,7 @@ CallResultInvalid:
         - code: -38011
           message: Transactions nonce is too high
         - code: -38012
-          message: Transactions baseFee is too low
+          message: Transactions baseFeePerGas is too low
         - code: -38013
           message: Not enough gas provided to pay for intrinsic gas for a transaction
         - code: -38014
