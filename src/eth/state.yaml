@@ -92,11 +92,6 @@
       required: true
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
-    - name: Hydrated transactions
-      required: true
-      schema:
-        title: hydrated
-        type: boolean
   result:
     name: Required block state
     description: The RequiredBlockState (SSZ- and snappy-encoded) which contains block prestate and proof data.

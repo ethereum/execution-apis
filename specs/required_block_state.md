@@ -92,7 +92,7 @@ The `RequiredBlockState` consists of account state values as Merkle proofs, cont
 and recent block hashes.
 
 ### Notation
-Code snippets appearing in `this style` are to be interpreted as Python 3 psuedocode. The
+Code snippets appearing in `this style` are to be interpreted as Python 3 pseudocode. The
 style of the document is intended to be readable by those familiar with the
 Ethereum consensus [https://github.com/ethereum/consensus-specs](https://github.com/ethereum/consensus-specs)
 and Simple Serialize (SSZ) ([https://github.com/ethereum/consensus-specs/blob/dev/ssz/simple-serialize.md](https://github.com/ethereum/consensus-specs/blob/dev/ssz/simple-serialize.md))
@@ -190,7 +190,7 @@ Contract = List[uint8,  MAX_BYTES_PER_CONTRACT]
 
 An alias for a node in a merkle patricia proof.
 
-Merkle Patricia Trie (MPT) proofs consist of a list of witness nodes that correspond to each trie node that consists of various data elements depending on the type of node (e.g. blank, branch, extension, leaf).  When serialized, each witness node is represented as an RLP serialized list of the component elements.
+Merkle Patricia Trie proofs consist of a list of witness nodes that correspond to each trie node that consists of various data elements depending on the type of node (e.g. blank, branch, extension, leaf).  When serialized, each witness node is represented as an RLP serialized list of the component elements.
 
 ```python
 TrieNode = List[uint8,  MAX_BYTES_PER_NODE]
@@ -293,7 +293,7 @@ of stack in the subsequent step).
 ### `verify_required_block_state`
 
 Check block hashes are canonical such as a node or against an accumulator of canonical
-block hashes. Check merkle proofs in the requied block state.
+block hashes. Check merkle proofs in the required block state.
 
 ### `trace_block_locally`
 
