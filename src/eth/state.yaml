@@ -84,3 +84,23 @@
     name: Account
     schema:
       $ref: '#/components/schemas/AccountProof'
+- name: eth_getRequiredBlockState
+  summary: Returns state required to re-execute a block.
+  description: Returns the RequiredBlockState (SSZ- and snappy-encoded) which contains block prestate and proof data.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+    - name: Hydrated transactions
+      required: true
+      schema:
+        title: hydrated
+        type: boolean
+  result:
+    name: Required block state
+    description: The RequiredBlockState (SSZ- and snappy-encoded) which contains block prestate and proof data.
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/bytes'
