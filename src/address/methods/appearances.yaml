@@ -8,10 +8,7 @@
     - name: Block range
       required: false
       schema:
-        title: Inclusive block number range with two values [low, high]
-        type: array
-        items:
-          $ref: '#/components/schemas/uint'
+        $ref: '#/components/schemas/BlockRange'
   result:
     name: Address appearances
     schema:

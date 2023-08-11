@@ -66,11 +66,11 @@ that makes inclusion inside the node an immediate utility for every user and pro
 `address_getAppearances` is the basic method to discover which transactions are relevant to a given address.
 
 For a given address, this method returns an array of transaction identifiers in which the
-address "appears". An "address appearance" is defined in [../../specs/appearances](../../specs/appearances.md)
+address "appears". An "address appearance" is defined in [../../specs/appearance](../../specs/appearance.md)
 
 ## Security considerations
 
-See [../../specs/appearances](../../specs/appearances.md) for additional security
+See [../../specs/appearance](../../specs/appearance.md) for additional security
 considerations.
 
 ### Increased resource use

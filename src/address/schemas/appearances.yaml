@@ -20,3 +20,20 @@ RelevantTransaction:
       title: Transaction index
       description: Index of a transaction that an address appears in
       $ref: '#/components/schemas/uint'
+BlockRange:
+  title: Block range
+  type: object
+  description: Inclusive range of blocks
+  required:
+    - firstBlock
+    - lastBlock
+  additionalProperties: false
+  properties:
+    firstBlock:
+      title: First block
+      description: Lowest block in the range
+      $ref: '#/components/schemas/BlockNumberOrTag'
+    lastBlock:
+      title: Last block
+      description: Highest block in the range
+      $ref: '#/components/schemas/BlockNumberOrTag'
