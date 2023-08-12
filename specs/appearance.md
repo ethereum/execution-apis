@@ -154,6 +154,7 @@ conditions are met. Conditions are divided into different sections for clarity.
 An address MAY appear in any of the following:
 |Short description|Description|Access Comment|
 |-|-|-|
+|Access list|Transaction "accessList" field object "address" key| Transaction body|
 |Sender|Transaction "from" field|Transaction body|
 |Target|Transaction "to" field|Transaction body|
 |Calldata|Transaction "input" field|Transaction body. Transaction. 32 byte aligned, modulo 32 bytes|
