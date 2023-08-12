@@ -1,8 +1,9 @@
 # Eth API - Address `Appearance` specification
 
-Specification for defining if a transaction is relevant to a particular address.
+Specification for defining if a transaction or block field is relevant to a particular address.
 
-An transaction is an `Appearance` for an address if that address is involved in a way that meets specific criteria. This specification defines those criteria.
+A transaction or block field is an `Appearance` for an address if that address is involved in a way that
+meets specific criteria. This specification defines those criteria.
 
 ## Introduction
 
@@ -14,7 +15,7 @@ way) makes that transaction meaningful in an examination of the historical balan
 address.
 
 A collection of address `Appearance`s (defined in subsequent section) consistutes a set of transactions
-that are sufficient to form a complete historical analysis of "activity" for that address.
+and block field that are sufficient to form a complete historical analysis of "activity" for that address.
 This "activity" may take many meanings (programs in the Ethereum may do arbitrary things), but can
 be identified structurally as will be shown.
 
@@ -141,7 +142,7 @@ Result:
 ```
 ## `Appearance` definition
 
-An address `Appearance` is informally defined as the transaction identifier for a transaction
+An address `Appearance` is informally defined as a transaction identifier or block field
 that contains that particular address. That is, transaction "A" is an `Appearance` of address "B"
 if address "B" is part of transaction "A" in an important way, E.g., One of sender, recipient,
 code address, etc..
@@ -183,12 +184,20 @@ An address MAY appear in any of the following:
 An address `Appearance` is defined as having the following components:
 - Block number
     - MUST be included for any `Appearance`
-- Transaction index
-    - MUST be included for any intra-transaction `Appearance`.
-    - MUST be `0` for any extra-transaction `Appearance`.
+    - Type: Hex-number
+- Location, one of
+    - Transaction index
+        - MUST be used for an intra-transaction `Appearance`.
+        - Type: Hex-number
+    - Block field
+        - MUST be used for an extra-transaction `Appearance`.
+        - Type: String, one of: "withdrawals", "uncles" or "miner"
 
-Therfore, for an `Appearance` with transaction index of `0`, the address may be an extra-transaction
-or an intra-transaction `Appearance`.
+An address MAY have multiple `Appearance`s in one block. For example, the set of "0x12", "0x3c" and
+"withdrawals" is valid.
+
+`Appearance`s MUST NOT be duplicated. This applies to an address that appears multiple times in a
+single transaction, or multiple times in a block field. For example, the set of "0x12", "0x3c", "withdrawals" and "withdrawals" is not valid.
 
 ## Algorithm
 
@@ -349,22 +358,6 @@ This will be missed by the algorithm, which constitutes an `Appearance` of the a
 (its balance was checked) that will be absent in semantic analysis. This impact is
 limited a the subset of opcodes (BALANCE, EXTCODESIZE, ...) and any analysis should take
 this into account.
-
-### Multiple `Appearance`s
-
-An address may appear multiple times within a block, as any combination of intra-transaction
-and extra-transaction `Appearance`s.
-
-For example a method that returns `Appearance`s for an address for a single block, the following may
-be returned:
-- Index 0. This indicates that the address appears as one or (or both):
-    - An intra-transaction appearance in transaction index 0.
-    - An extra-transaction appearance.
-- Index 20. This indicates that the address appears in that transaction.
-
-For example, a user may receive a withdrawal and perform a transaction in the same block.
-Accounting for a single address must take this into consideration when examining
-the nature of `Appearance`s returned by specific methods.
 
 ### Precompiles
 
