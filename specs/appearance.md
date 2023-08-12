@@ -178,6 +178,7 @@ An address MAY appear in any of the following:
 |Block reward|An address in the "miner" field of a block header|-|
 |Uncle reward|An address in the "miner" field of a block header within the block "uncles" field array|-|
 |Withdrawal|An address in the "address" field of a block "withdrawals" field array object|-|
+|Alloc|An address in the "alloc" field of the genesis block (a key in that object)|-|
 
 ## `Appearance` components
 
@@ -191,7 +192,7 @@ An address `Appearance` is defined as having the following components:
         - Type: Hex-number
     - Block field
         - MUST be used for an extra-transaction `Appearance`.
-        - Type: String, one of: "withdrawals", "uncles" or "miner"
+        - Type: String, one of: "alloc", "withdrawals", "uncles" or "miner"
 
 An address MAY have multiple `Appearance`s in one block. For example, the set of "0x12", "0x3c" and
 "withdrawals" is valid.
@@ -250,7 +251,7 @@ the following procedure can be performed by use of existing JSON-RPC endpoints (
 on the client used).
 
 1. Call `eth_getBlockByNumber` with params `[block_number, true]` to include transactions.
-Extract addresses from block header (e.g., miner, uncles, withdrawals)
+Extract addresses from block header (e.g., miner, uncles, withdrawal, alloc)
 2. Get the call tracer via the command below. Extract addresses from fields as described in the
 `Appearance`s table in the prior section.
 3. For each address found, record the transaction(s) it appeared in (if appropriate).
