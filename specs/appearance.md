@@ -83,28 +83,29 @@ Result:
 ["0x00000000219ab540356cbb839cbe05303d7705fa"]
 ```
 
-Deposit contract address bytes, but shifted left. A valid address is detected,
-but is not the deposit contract address:
+Deposit contract address bytes, but shifted left by 7 hex characters.
+A valid address is detected, but is not the deposit contract address.
+Shifting 8 characters would be invalid.
 ```command
-"0x00000000000000000000219ab540356cbb839cbe05303d7705fa000000000000"
+"0x0000000000000000000000000219ab540356cbb839cbe05303d7705fa0000000"
 ```
 Result:
 ```console
-["0x219ab540356cbb839cbe05303d7705fa00000000"]
+["0x0219ab540356cbb839cbe05303d7705fa0000000"]
 ```
 
 Data from the two examples above, concatenated:
 ```command
-"0x00000000000000000000000000000000219ab540356cbb839cbe05303d7705fa00000000000000000000219ab540356cbb839cbe05303d7705fa000000000000"
+"0x00000000000000000000000000000000219ab540356cbb839cbe05303d7705fa0000000000000000000000000219ab540356cbb839cbe05303d7705fa0000000"
 ```
 Result:
 ```console
-["0x219ab540356cbb839cbe05303d7705fa00000000", "0x00000000219ab540356cbb839cbe05303d7705fa]
+["0x0219ab540356cbb839cbe05303d7705fa0000000", "0x00000000219ab540356cbb839cbe05303d7705fa]
 ```
 
 Data from the example above, with additional bytes that are truncated as modulo 32 bytes:
 ```
-"0x00000000000000000000000000000000219ab540356cbb839cbe05303d7705fa00000000000000000000219ab540356cbb839cbe05303d7705fa000000000000"
+"0x00000000000000000000000000000000219ab540356cbb839cbe05303d7705fa0000000000000000000000000219ab540356cbb839cbe05303d7705fa000000000000000"
 ```
 Result:
 ```console
@@ -116,6 +117,14 @@ Result:
 Deposit contract address in a 32 byte hex string with right padding. No address is detected because the leftmost 24 characters (12 bytes) must all be zeros:
 ```command
 "0x00000000219ab540356cbb839cbe05303d7705fa000000000000000000000000"
+```
+Result:
+```console
+[]
+```
+Deposit address shifted right to have 8 zeros (not allowed):
+```command
+"0x000000000000000000000000219ab540356cbb839cbe05303d7705fa00000000"
 ```
 Result:
 ```console
