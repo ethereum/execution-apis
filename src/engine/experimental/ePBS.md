@@ -9,15 +9,22 @@ Engine API changes introduced in ePBS, based on [Cancun](../cancun.md).
 
 - [Structures](#structures)
   - [InclusionListV1](#inclusionlistv1)
+  - [PayloadStatusVePBS](#payloadstatusvepbs)
+  - [InclusionListStatusV1](#inclusionliststatusv1)
+
 - [Methods](#methods)
   - [`engine_newPayloadVePBS`](#engine_newpayloadvepbs)
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
-  - [`engine_getInclusionListVePBS`](#engine_getinclusionlistvepbs)
+  - [`engine_getInclusionListV1`](#engine_getinclusionlistv1)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
+  - [`engine_newInclusionListV1`](#engine_newinclusionlistv1)
+    - [Request](#request-2)
+    - [Response](#response-2)
+    - [Specification](#specification-2)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -96,7 +103,7 @@ This method follows the same specification as [`engine_newPayloadV3`](../cancun.
 
 #### Response
 
-* result: [`InclusionListStatusV1`](#inclsionliststatusv1) 
+* result: [`InclusionListStatusV1`](#inclusionliststatusv1) 
 * error: code and message set in case an exception happens while processing the inclusion list.
 
 #### Specification
