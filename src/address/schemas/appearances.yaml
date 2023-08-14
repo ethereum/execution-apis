@@ -9,17 +9,16 @@ RelevantTransaction:
   description: Identifier of a transaction relevant to an address
   required:
     - blockNumber
-    - transactionIndex
+    - location
   additionalProperties: false
   properties:
     blockNumber:
       title: Block number
       description: Block containing the relevant transactions
       $ref: '#/components/schemas/uint'
-    transactionIndex:
-      title: Transaction index
-      description: Index of a transaction that an address appears in
-      $ref: '#/components/schemas/uint'
+    location:
+      title: Location in block
+      $ref: '#/components/schemas/Location'
 BlockRange:
   title: Block range
   type: object
