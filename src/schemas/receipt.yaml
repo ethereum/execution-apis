@@ -111,3 +111,11 @@ ReceiptInfo:
       title: effective gas price
       description: The actual value per gas deducted from the senders account. Before EIP-1559, this is equal to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas).
       $ref: '#/components/schemas/uint'
+    blobGasUsed:
+      title: blob transaction gas used
+      description: The amount of gas used for this blob transaction.
+      $ref: '#/components/schemas/uint'
+    blobGasPrice:
+      title: blob transaction gas price
+      description: The actual value per blob gas deducted from the senders account.
+      $ref: '#/components/schemas/uint'
