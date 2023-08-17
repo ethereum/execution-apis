@@ -204,8 +204,8 @@ ExecutionPayloadV3:
     - blockHash
     - transactions
     - withdrawals
-    - dataGasUsed
-    - excessDataGas
+    - blobGasUsed
+    - excessBlobGas
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV2/properties/parentHash'
@@ -237,11 +237,11 @@ ExecutionPayloadV3:
       $ref: '#/components/schemas/ExecutionPayloadV2/properties/transactions'
     withdrawals:
       $ref: '#/components/schemas/ExecutionPayloadV2/properties/withdrawals'
-    dataGasUsed:
-      title: Data gas used
+    blobGasUsed:
+      title: Blob gas used
       $ref: '#/components/schemas/uint64'
-    excessDataGas:
-      title: Excess data gas
+    excessBlobGas:
+      title: Excess blob gas
       $ref: '#/components/schemas/uint64'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1

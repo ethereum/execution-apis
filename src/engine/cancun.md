@@ -34,7 +34,7 @@ This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md
 
 ### ExecutionPayloadV3
 
-This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and appends the new fields: `dataGasUsed` and `excessDataGas`.
+This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionpayloadv2) and appends the new fields: `blobGasUsed` and `excessBlobGas`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -51,8 +51,8 @@ This structure has the syntax of [`ExecutionPayloadV2`](./shanghai.md#executionp
 - `blockHash`: `DATA`, 32 Bytes
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `dataGasUsed`: `QUANTITY`, 64 Bits
-- `excessDataGas`: `QUANTITY`, 64 Bits
+- `blobGasUsed`: `QUANTITY`, 64 Bits
+- `excessBlobGas`: `QUANTITY`, 64 Bits
 
 ### BlobsBundleV1
 
