@@ -317,8 +317,8 @@ GenericTransaction:
       title: max fee per blob gas
       description: The maximum blob gas fee cap per blob the sender is willing to pay for blob transactions in wei
       $ref: '#/components/schemas/uint'
-    blobHashes:
-      title: max fee per blob gas
+    blobVersionedHashes:
+      title: blob versioned hashes
       description: The hases of the blob commitments for blob transactions, nil otherwise
       type: array
       items:
