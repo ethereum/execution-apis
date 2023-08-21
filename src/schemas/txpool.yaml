@@ -14,6 +14,12 @@ TxPoolFilter:
     gasPrice:
       title: gas price
       $ref: '#/components/schemas/FilterOperators'
+    maxFeePerGas:
+      title: max fee
+      $ref: '#/components/schemas/FilterOperators'
+    maxPriorityFeePerGas:
+      title: max priority fee
+      $ref: '#/components/schemas/FilterOperators'
     value:
       title: value
       $ref: '#/components/schemas/FilterOperators'
