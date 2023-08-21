@@ -13,7 +13,9 @@
   result:
     name: Block information
     schema:
-      $ref: '#/components/schemas/Block'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/Block'
 - name: eth_getBlockByNumber
   summary: Returns information about a block by number.
   params:
@@ -29,7 +31,9 @@
   result:
     name: Block information
     schema:
-      $ref: '#/components/schemas/Block'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/Block'
 - name: eth_getBlockTransactionCountByHash
   summary: Returns the number of transactions in a block from a block matching the given block hash.
   params:
@@ -39,7 +43,10 @@
   result:
     name: Transaction count
     schema:
-      $ref: '#/components/schemas/uint'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - title: Transaction count
+          $ref: '#/components/schemas/uint'
 - name: eth_getBlockTransactionCountByNumber
   summary: Returns the number of transactions in a block matching the given block number.
   params:
@@ -49,7 +56,10 @@
   result:
     name: Transaction count
     schema:
-      $ref: '#/components/schemas/uint'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - title: Transaction count
+          $ref: '#/components/schemas/uint'
 - name: eth_getUncleCountByBlockHash
   summary: Returns the number of uncles in a block from a block matching the given block hash.
   params:
@@ -59,7 +69,10 @@
   result:
     name: Uncle count
     schema:
-      $ref: '#/components/schemas/uint'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - title: Uncle count
+          $ref: '#/components/schemas/uint'
 - name: eth_getUncleCountByBlockNumber
   summary: Returns the number of transactions in a block matching the given block number.
   params:
@@ -69,4 +82,23 @@
   result:
     name: Uncle count
     schema:
-      $ref: '#/components/schemas/uint'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - title: Uncle count
+          $ref: '#/components/schemas/uint'
+- name: eth_getBlockReceipts
+  summary: Returns the receipts of a block by number or hash.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+  result:
+    name: Receipts information
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - title: Receipts information
+          type: array
+          items:
+            $ref: '#/components/schemas/ReceiptInfo'

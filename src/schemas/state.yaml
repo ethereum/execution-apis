@@ -9,6 +9,7 @@ AccountProof:
     - nonce
     - storageHash
     - storageProof
+  additionalProperties: false
   properties:
     address:
       title: address
@@ -31,7 +32,7 @@ AccountProof:
       title: storageHash
       $ref: '#/components/schemas/hash32'
     storageProof:
-      title: storageProof
+      title: Storage proofs
       type: array
       items:
         $ref: '#/components/schemas/StorageProof'
@@ -42,6 +43,7 @@ StorageProof:
     - key
     - value
     - proof
+  additionalProperties: false
   properties:
     key:
       title: key

@@ -1,5 +1,8 @@
 apis
 attributesv
+bodyv
+bodiesbyrangev
+bodiesbyhashv
 bytecode
 configurationv
 crypto
@@ -49,6 +52,11 @@ graphql
 gwei
 withdrawalv
 DocToc
+prevrandao
+randao
+src
+https
+forkchoiceupdatedresponsev
 txpool
 TxPool
 eq

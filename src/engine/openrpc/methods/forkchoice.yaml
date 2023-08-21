@@ -1,0 +1,73 @@
+- name: engine_forkchoiceUpdatedV1
+  summary: Updates the forkchoice state
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#engine_forkchoiceupdatedv1
+  params:
+    - name: Forkchoice state
+      required: true
+      schema:
+        $ref: '#/components/schemas/ForkchoiceStateV1'
+    - name: Payload attributes
+      required: false
+      schema:
+        $ref: '#/components/schemas/PayloadAttributesV1'
+  result:
+    name: Response object
+    schema:
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
+  errors:
+    - code: -38002
+      message: Invalid forkchoice state
+    - code: -38003
+      message: Invalid payload attributes
+- name: engine_forkchoiceUpdatedV2
+  summary: Updates the forkchoice state
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/shanghai.md#engine_forkchoiceupdatedv2
+  params:
+    - name: Forkchoice state
+      required: true
+      schema:
+        $ref: '#/components/schemas/ForkchoiceStateV1'
+    - name: Payload attributes
+      required: false
+      schema:
+        $ref: '#/components/schemas/PayloadAttributesV2'
+  result:
+    name: Response object
+    schema:
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
+  errors:
+    - code: -38002
+      message: Invalid forkchoice state
+    - code: -38003
+      message: Invalid payload attributes
+- name: engine_forkchoiceUpdatedV3
+  summary: Updates the forkchoice state
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/cancun.md#engine_forkchoiceupdatedv3
+  params:
+    - name: Forkchoice state
+      required: true
+      schema:
+        $ref: '#/components/schemas/ForkchoiceStateV1'
+    - name: Payload attributes
+      required: false
+      schema:
+        $ref: '#/components/schemas/PayloadAttributesV3'
+  result:
+    name: Response object
+    schema:
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
+  errors:
+    - code: -38002
+      message: Invalid forkchoice state
+    - code: -38003
+      message: Invalid payload attributes
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork

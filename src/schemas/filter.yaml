@@ -16,6 +16,7 @@ FilterResults:
 Filter:
   title: filter
   type: object
+  additionalProperties: false
   properties:
     fromBlock:
       title: from block

@@ -1,6 +1,7 @@
 AccessListEntry:
   title: Access list entry
   type: object
+  additionalProperties: false
   properties:
     address:
       $ref: '#/components/schemas/address'
@@ -24,18 +25,24 @@ Transaction1559Unsigned:
     - input
     - maxFeePerGas
     - maxPriorityFeePerGas
+    - gasPrice
     - chainId
     - accessList
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x2$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
@@ -52,6 +59,10 @@ Transaction1559Unsigned:
     maxFeePerGas:
       title: max fee per gas
       description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+      $ref: '#/components/schemas/uint'
+    gasPrice:
+      title: gas price
+      description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
       $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
@@ -76,13 +87,18 @@ Transaction2930Unsigned:
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x1$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
@@ -117,13 +133,18 @@ TransactionLegacyUnsigned:
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x0$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
@@ -161,6 +182,10 @@ Transaction1559Signed:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
           $ref: '#/components/schemas/uint'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          $ref: '#/components/schemas/uint'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -181,6 +206,10 @@ Transaction2930Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+          $ref: '#/components/schemas/uint'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
           $ref: '#/components/schemas/uint'
         r:
           title: r
@@ -224,6 +253,7 @@ TransactionInfo:
         - from
         - hash
         - transactionIndex
+      unevaluatedProperties: false
       properties:
         blockHash:
           title: block hash
@@ -244,6 +274,7 @@ TransactionInfo:
 GenericTransaction:
   type: object
   title: Transaction object generic to all types
+  additionalProperties: false
   properties:
     type:
       title: type
@@ -253,7 +284,11 @@ GenericTransaction:
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      $ref: '#/components/schemas/address'
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
     from:
       title: from address
       $ref: '#/components/schemas/address'
@@ -286,4 +321,3 @@ GenericTransaction:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
-

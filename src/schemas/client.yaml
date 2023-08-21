@@ -3,6 +3,7 @@ SyncingStatus:
   oneOf:
     - title: Syncing progress
       type: object
+      additionalProperties: false
       properties:
         startingBlock:
           title: Starting block

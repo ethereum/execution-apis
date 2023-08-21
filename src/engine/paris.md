@@ -136,6 +136,11 @@ The payload build process is specified as follows:
 
 4. Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (12s in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
 
+5. Client software **MUST** begin a new build process if given `PayloadAttributes` doesn't match payload attributes of an existing build process.
+   Every new build process **MUST** be uniquely identified by the returned `payloadId` value.
+
+6. If a build process with given `PayloadAttributes` already exists, client software **SHOULD NOT** restart it.
+
 ## Methods
 
 ### engine_newPayloadV1
@@ -272,7 +277,7 @@ The payload build process is specified as follows:
 
 4. Consensus Layer client software **SHOULD** poll this endpoint every 60 seconds.
 
-5. Execution Layer client software **SHOULD** surface an error to the user if it does not recieve a request on this endpoint at least once every 120 seconds.
+5. Execution Layer client software **SHOULD** surface an error to the user if it does not receive a request on this endpoint at least once every 120 seconds.
 
 6. Considering the absence of the `TERMINAL_BLOCK_NUMBER` setting, Consensus Layer client software **MAY** use `0` value for the `terminalBlockNumber` field in the input parameters of this call.
 

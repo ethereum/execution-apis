@@ -2,6 +2,7 @@ Block:
   title: Block object
   type: object
   required:
+    - hash
     - parentHash
     - sha3Uncles
     - miner
@@ -19,7 +20,11 @@ Block:
     - size
     - transactions
     - uncles
+  additionalProperties: false
   properties:
+    hash:
+      title: Hash
+      $ref: '#/components/schemas/hash32'
     parentHash:
       title: Parent block hash
       $ref: '#/components/schemas/hash32'
@@ -43,7 +48,7 @@ Block:
       $ref: '#/components/schemas/bytes256'
     difficulty:
       title: Difficulty
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/uint'
     number:
       title: Number
       $ref: '#/components/schemas/uint'
@@ -66,11 +71,14 @@ Block:
       title: Nonce
       $ref: '#/components/schemas/bytes8'
     totalDifficulty:
-      title: Total difficult
+      title: Total difficulty
       $ref: '#/components/schemas/uint'
     baseFeePerGas:
       title: Base fee per gas
       $ref: '#/components/schemas/uint'
+    withdrawalsRoot:
+      title: Withdrawals root
+      $ref: '#/components/schemas/hash32'
     size:
       title: Block size
       $ref: '#/components/schemas/uint'
@@ -83,7 +91,12 @@ Block:
         - title: Full transactions
           type: array
           items:
-            $ref: '#/components/schemas/TransactionSigned'
+            $ref: '#/components/schemas/TransactionInfo'
+    withdrawals:
+      title: Withdrawals
+      type: array
+      items:
+        $ref: '#/components/schemas/Withdrawal'
     uncles:
       title: Uncles
       type: array
@@ -106,6 +119,15 @@ BlockNumberOrTag:
       $ref: '#/components/schemas/uint'
     - title: Block tag
       $ref: '#/components/schemas/BlockTag'
+BlockNumberOrTagOrHash:
+  title: Block number, tag, or block hash
+  anyOf:
+    - title: Block number
+      $ref: '#/components/schemas/uint'
+    - title: Block tag
+      $ref: '#/components/schemas/BlockTag'
+    - title: Block hash
+      $ref: '#/components/schemas/hash32'
 BadBlock:
   title: Bad block
   type: object
@@ -113,6 +135,7 @@ BadBlock:
     - block
     - hash
     - rlp
+  additionalProperties: false
   properties:
     block:
       title: Block
