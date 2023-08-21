@@ -2,7 +2,7 @@
 
 Engine API changes introduced in Cancun.
 
-This specificaiton is based on and extends [Engine API - Shanghai](./shanghai.md) specification.
+This specification is based on and extends [Engine API - Shanghai](./shanghai.md) specification.
 
 ## Table of contents
 
