@@ -3,17 +3,67 @@
   params:
     - name: Filter
       schema:
-        $ref: '#/components/schemas/TxPoolFilter'
+        title: txpool filter
+        type: object
+        properties:
+          from:
+            title: from address
+            $ref: '#/components/schemas/address'
+          to:
+            title: to address
+            $ref: '#/components/schemas/address'
+          gas:
+            title: gas limit
+            $ref: '#/components/schemas/FilterOperators'
+          gasPrice:
+            title: gas price
+            $ref: '#/components/schemas/FilterOperators'
+          maxFeePerGas:
+            title: max fee
+            $ref: '#/components/schemas/FilterOperators'
+          maxPriorityFeePerGas:
+            title: max priority fee
+            $ref: '#/components/schemas/FilterOperators'
+          value:
+            title: value
+            $ref: '#/components/schemas/FilterOperators'
+          nonce:
+            title: nonce
+            $ref: '#/components/schemas/FilterOperators'
   result:
     name: Result
     schema:
       title: Result
       schema:
         $ref: '#/components/schemas/TxPoolTransactions'
+        title: transactions
+        type: object
+        properties:
+          pending:
+            title: pending
+            type: array
+            items:
+              $ref: '#/components/schemas/GenericTransaction'
+          queued:
+            title: queued
+            type: array
+            items:
+              $ref: '#/components/schemas/GenericTransaction'
 - name: txpool_statistics
   summary: Returns statistics about the node's transaction pool.
   params: []
   result:
     name: Statistics
     schema:
-      $ref: '#/components/schemas/TxPoolStatistics'
+      title: statistics
+      type: object
+      properties:
+        maxSize:
+          title: max size
+          $ref: '#/components/schemas/uint'
+        pending:
+          title: pending
+          $ref: '#/components/schemas/uint'
+        queued:
+          title: queued
+          $ref: '#/components/schemas/uint'
