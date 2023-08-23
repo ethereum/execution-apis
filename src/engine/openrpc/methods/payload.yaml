@@ -12,6 +12,31 @@
     name: Payload status
     schema:
       $ref: '#/components/schemas/PayloadStatusV1'
+  examples:
+    - name: engine_newPayloadV1 example
+      params:
+        - name: Execution payload
+          value:
+            parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+            feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            blockNumber: '0x1'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0x0'
+            timestamp: '0x5'
+            extraData: 0x
+            baseFeePerGas: '0x7'
+            blockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            transactions: []
+      result:
+        name: Payload status
+        value:
+          status: VALID
+          latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+          validationError: null
 - name: engine_newPayloadV2
   summary: Runs execution payload validation
   externalDocs:
@@ -77,6 +102,28 @@
   errors:
     - code: -38001
       message: Unknown payload
+  examples:
+    - name: engine_getPayloadV1 example
+      params:
+        - name: Payload id
+          value: '0x0000000021f32cc1'
+      result:
+        name: Execution payload
+        value:
+          parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+          feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+          stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+          receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+          logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+          prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+          blockNumber: '0x1'
+          gasLimit: '0x1c9c380'
+          gasUsed: '0x0'
+          timestamp: '0x5'
+          extraData: 0x
+          baseFeePerGas: '0x7'
+          blockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+          transactions: []
 - name: engine_getPayloadV2
   summary: Obtains execution payload from payload build process
   externalDocs:
@@ -164,6 +211,40 @@
   errors:
     - code: -38004
       message: Too large request
+  examples:
+    - name: engine_getPayloadBodiesByHashV1 example
+      params:
+        - name: Array of block hashes
+          value:
+            - '0xd5f1812548be429cbdc6376b29611fc49e06f1359758c4ceaaa3b393e2239f9c'
+            - '0xfe88c94d860f01a17f961bf4bdfb6e0c6cd10d3fda5cc861e805ca1240c58553'
+      result:
+        name: Execution payload bodies
+        value:
+          - transactions:
+              - '0xf865808506fc23ac00830124f8940101010101010101010101010101010101010101018031a02c4d88bfdc2f6dbf82c33d235c4e785e9fc23b2d0fc7b9d20fc5e9674f1f9d15a016d6d69b925cf26128683ab4a096e196fbb1142d6c6d4e8d3481b9bef1bd0f65'
+              - '0x02f86c0701843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a039409b4e5603dd8c3cf38232348661a8e99ac518396eeaa128ec9ec2a3eb8127a06b21ab956f5f138cb44fda1a9055bd08980ea4f8040d877c00dac025608d0d95'
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+          - transactions:
+              - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
+              - '0x02f86c0711843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a071d36bc93c7ae8cc5c01501e51e5e97a51aa541d1a89c809a2af7eb40e9bc2cba071644230e21c075c1da08916aff5efe9f95a6f6a4f94dc217f6c1bb4a3240b29'
+            withdrawals:
+              - index: '0xf2'
+                validatorIndex: '0xf2'
+                address: '0x00000000000000000000000000000000000010f2'
+                amount: '0x1'
+              - index: '0xf3'
+                validatorIndex: '0xf3'
+                address: '0x00000000000000000000000000000000000010f3'
+                amount: '0x1'
 - name: engine_getPayloadBodiesByRangeV1
   summary: Given a range of block numbers returns bodies of the corresponding execution payloads
   externalDocs:
@@ -187,3 +268,37 @@
   errors:
     - code: -38004
       message: Too large request
+  examples:
+    - name: engine_getPayloadBodiesByRangeV1 example
+      params:
+        - name: Starting block number
+          value: '0x20'
+        - name: Number of blocks to return
+          value: '0x2'
+      result:
+        name: Execution payload bodies
+        value:
+          - transactions:
+              - '0xf865808506fc23ac00830124f8940101010101010101010101010101010101010101018031a02c4d88bfdc2f6dbf82c33d235c4e785e9fc23b2d0fc7b9d20fc5e9674f1f9d15a016d6d69b925cf26128683ab4a096e196fbb1142d6c6d4e8d3481b9bef1bd0f65'
+              - '0x02f86c0701843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a039409b4e5603dd8c3cf38232348661a8e99ac518396eeaa128ec9ec2a3eb8127a06b21ab956f5f138cb44fda1a9055bd08980ea4f8040d877c00dac025608d0d95'
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+          - transactions:
+              - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
+              - '0x02f86c0711843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a071d36bc93c7ae8cc5c01501e51e5e97a51aa541d1a89c809a2af7eb40e9bc2cba071644230e21c075c1da08916aff5efe9f95a6f6a4f94dc217f6c1bb4a3240b29'
+            withdrawals:
+              - index: '0xf2'
+                validatorIndex: '0xf2'
+                address: '0x00000000000000000000000000000000000010f2'
+                amount: '0x1'
+              - index: '0xf3'
+                validatorIndex: '0xf3'
+                address: '0x00000000000000000000000000000000000010f3'
+                amount: '0x1'
