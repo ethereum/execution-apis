@@ -34,4 +34,10 @@ matrix:
       wordlists:
         - wordlist.txt
       encoding: utf-8
-    pipeline: null
+    pipeline:
+    - pyspelling.filters.context:
+        context_visible_first: true
+        delimiters:
+          - open: ''
+            content: 0x[a-fA-F0-9]+
+            close: ''

@@ -37,6 +37,30 @@
           status: VALID
           latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
           validationError: null
+    - name: engine_newPayloadV1 invalid example
+      params:
+        - name: Execution payload
+          value:
+            parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+            feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            blockNumber: '0x1'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0x0'
+            timestamp: '0x5'
+            extraData: 0x
+            baseFeePerGas: '0x7'
+            blockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            transactions: []
+      result:
+        name: Payload status
+        value:
+          status: INVALID
+          latestValidHash: '0x0000000000000000000000000000000000000000000000000000000000000000'
+          validationError: 'New payload is invalid'
 - name: engine_newPayloadV2
   summary: Runs execution payload validation
   externalDocs:
@@ -56,6 +80,40 @@
   errors:
     - code: -32602
       message: Invalid params
+  examples:
+    - name: engine_newPayloadV2 example
+      params:
+        - name: Execution payload
+          value:
+            parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+            feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0xc130d5e63c61c935f6089e61140ca9136172677cf6aa5800dcc1cf0a02152a14'
+            blockNumber: '0x112720f'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0xbad2e8'
+            timestamp: '0x64e7785b'
+            extraData: 0x
+            baseFeePerGas: '0x7'
+            blockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            transactions: []
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+      result:
+        name: Payload status
+        value:
+          status: VALID
+          latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+          validationError: null
 - name: engine_newPayloadV3
   summary: Runs execution payload validation
   externalDocs:
@@ -85,6 +143,49 @@
       message: Invalid params
     - code: -38005
       message: Unsupported fork
+  examples:
+    - name: engine_newPayloadV3 example
+      params:
+        - name: Execution payload
+          value:
+            parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+            feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0xc130d5e63c61c935f6089e61140ca9136172677cf6aa5800dcc1cf0a02152a14'
+            blockNumber: '0x112720f'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0xbad2e8'
+            timestamp: '0x64e7785b'
+            extraData: 0x
+            baseFeePerGas: '0x7'
+            blockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            transactions: []
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+            blobGasUsed: '0x0'
+            excessBlobGas: '0x0'
+        - name: Expected blob versioned hashes
+          value:
+            - '0x01cc823943986e363041d4011979e72fed29daff2824aa59061a2ce90d1b6d0de'
+            - '0x012cb1a24555a4e0bed5141ffe514efa6e90882d7a4141169192d84d92f814bbb'
+            - '0x014ff332c764d21e7d6257e3a37d0e9b6e28b30e4b3f5fca8adab21f7f2a923a4'
+        - name: Root of the parent beacon block
+          value: '0x11f780a954bcba8889998e4e61deaae6388dd2391e9c810bd9c94962cc1eadc1'
+      result:
+        name: Payload status
+        value:
+          status: VALID
+          latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+          validationError: null
 - name: engine_getPayloadV1
   summary: Obtains execution payload from payload build process
   externalDocs:
@@ -153,6 +254,39 @@
   errors:
     - code: -38001
       message: Unknown payload
+  examples:
+    - name: engine_getPayloadV2 example
+      params:
+        - name: Payload id
+          value: '0x0000000038fa5dd'
+      result:
+        name: Response object
+        value:
+          executionPayload:
+            parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+            feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            blockNumber: '0x112720f'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0xbad2e8'
+            timestamp: '0x64e7785b'
+            extraData: 0x
+            baseFeePerGas: '0x7'
+            blockHash: '0x1256f99fb899c2de0aeac0c5aa6aad69de188b6a0f4ac29f2d075a53aa3ed0e4'
+            transactions: []
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+          blockValue: '0x10a741a46278014d'
 - name: engine_getPayloadV3
   summary: Obtains execution payload from payload build process
   externalDocs:
@@ -190,6 +324,49 @@
       message: Unknown payload
     - code: -38005
       message: Unsupported fork
+  examples:
+    - name: engine_getPayloadV3 example
+      params:
+        - name: Payload id
+          value: '0x0000000038fa5dd'
+      result:
+        name: Response object
+        value:
+          executionPayload:
+            parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+            feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            blockNumber: '0x112720f'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0xbad2e8'
+            timestamp: '0x64e7785b'
+            extraData: 0x
+            baseFeePerGas: '0x7'
+            blockHash: '0x1256f99fb899c2de0aeac0c5aa6aad69de188b6a0f4ac29f2d075a53aa3ed0e4'
+            transactions: []
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+            blobGasUsed: '0x0'
+            excessBlobGas: '0x0'
+          blockValue: '0x10a741a46278014d'
+          blobsBundle:
+            commitments:
+              - '0x0'
+            proofs:
+              - '0x0'
+            blobs:
+              - '0x0'
+          shouldOverrideBuilder: true
 - name: engine_getPayloadBodiesByHashV1
   summary: Given block hashes returns bodies of the corresponding execution payloads
   externalDocs:
