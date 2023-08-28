@@ -9,22 +9,13 @@ Engine API changes introduced in ePBS, based on [Cancun](../cancun.md).
 
 - [Structures](#structures)
   - [InclusionListV1](#inclusionlistv1)
-  - [PayloadStatusVePBS](#payloadstatusvepbs)
   - [InclusionListStatusV1](#inclusionliststatusv1)
 
 - [Methods](#methods)
-  - [`engine_newPayloadVePBS`](#engine_newpayloadvepbs)
-    - [Request](#request)
-    - [Response](#response)
-    - [Specification](#specification)
   - [`engine_getInclusionListV1`](#engine_getinclusionlistv1)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
-  - [`engine_newInclusionListV1`](#engine_newinclusionlistv1)
-    - [Request](#request-2)
-    - [Response](#response-2)
-    - [Specification](#specification-2)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -34,46 +25,12 @@ Engine API changes introduced in ePBS, based on [Cancun](../cancun.md).
 This structure contains a list of transactions that are on the inclusion list. The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 
-### PayloadStatusVePBS
-This structure has the syntax of [`PayloadStatusV1`](../paris.md#payloadstatusv1) and appends a single field: `inclusionList`.
-
-- `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED" | "INVALID_BLOCK_HASH"`
-- `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
-- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
-- `inclusionList`: [`InclusionListV1`](#inclusionlistv1) // TODO: Should this be `InclusionListV1` or just a simple array of tranasactions? I haven't seen a nested structure in previous specs.
-
 ### InclusionListStatusV1
 This structure contains the result of processing an inclusion list. The field is encoded as follow:
 - `status`: `enum` - `"VALID" | "INVALID"`
 
 
 ## Methods
-
-### `engine_newPayloadVePBS`
-
-#### Request
-
-* method: `engine_newPayloadVePBS`
-* params:
-  1. `executionPayload`: [`ExecutionPayloadV3`](../cancun.md#executionpayloadv3).
-  2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
-  3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `parentBlockHash`: `DATA`, 32 Bytes - Hash of parent  block. // TODO: Maybe a better word for it to not be confused with `executionPayload.parentHash`?
-* timeout: 1s
-
-#### Response
-* result: [`PayloadStatusVePBS`](#payloadstatusvepbs)
-* error: code and message set in case an exception happens while processing the payload.
-
-#### Specification
-
-This method follows the same specification as [`engine_newPayloadV3`](../cancun.md#engine_newpayloadv3) with the following changes:
-
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload is less than the timestamp of ePBS activation.
-2. Client software **MUST** validate the payload if it complies with the inclusion list from previous slot. Return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null, inclusionList: []}` if payload does not comply. TODO: Do we need to return another status or anything to distinguish this error from invalid block hash?
-3. If `status` is anything other than `VALID`, `inclusionList` should be blank.
-4. If `status` is `VALID`, client software **MUST** return `inclusionList` with a list of transactions in the previous inclusion list that remain valid after executing the payload.
-
 
 ### `engine_getInclusionListV1`
 
