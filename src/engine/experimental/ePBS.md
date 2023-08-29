@@ -22,8 +22,15 @@ Engine API changes introduced in ePBS, based on [Cancun](../cancun.md).
 ## Structures
 
 ### InclusionListV1
-This structure contains a list of transactions that are on the inclusion list. The fields are encoded as follows:
+This structure maps onto inclusion list object from [{pending EIP}](). The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `summary`: `Array of InclusionListSummaryEntryV1` - Array of summary entries. Each object is an `OBJECT` containing the fields of a `InclusionListSummaryEntryV1` structure.
+
+### InclusionListSummaryEntryV1
+This structure maps onto inclusion list summary entry object from [{pending EIP}](). The fields are encoded as follows:
+- `address`: `DATA`, 20 Bytes
+- `gasLimit`: `QUANTITY`, 64 Bits
+
 
 ### InclusionListStatusV1
 This structure contains the result of processing an inclusion list. The field is encoded as follow:
