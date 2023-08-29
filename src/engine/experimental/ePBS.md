@@ -54,7 +54,7 @@ This structure contains the result of processing an inclusion list. The field is
 * error: code and message set in case an exception happens while getting the inclusion list.
 
 #### Specification
-1. Given the `payloadId` client software **MUST** return a valid inclusion list with no more than `MAX_TRANSACTIONS_PER_INCLUSION_LIST` number of transactions. and total gas limit of the transactions must not exceed `INCLUSION_LIST_MAX_GAS`.
+1. Given the `payloadId` client software **MUST** return a valid inclusion list.
 2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
 
 ### `engine_newInclusionListV1`
@@ -63,6 +63,7 @@ This structure contains the result of processing an inclusion list. The field is
 * method: `engine_newInclusionListV1`
 * params:
   1. `inclusionList`: [`InclusionListV1`](#inclusionlistv1) - The inclusion list to be processed.
+  2. `parentBlockHash`: `DATA`, 32 Bytes - hash of the block whose corresponding execution state will be used to validate against the inclusion list.
 * timeout: 1s
 
 #### Response
@@ -71,9 +72,7 @@ This structure contains the result of processing an inclusion list. The field is
 * error: code and message set in case an exception happens while processing the inclusion list.
 
 #### Specification
-1. Client software **MUST** validate the length of `transactions` in `inclusionList` to be less than or equal `MAX_TRANSACTIONS_PER_INCLUSION_LIST`.
-2. Client software **MUST** validate the total gas limit of `transactions` in `inclusionList` to be less than or equal to `INCLUSION_LIST_MAX_GAS`.
-3. Client software **MUST** respond to this method call in the following way:
+1. Client software **MUST** respond to this method call in the following way:
     * `{status: INVALID}` if `inclusionList` validation has failed.
     * `{status: VALID}` if `inclusionList` validation has succeeded.
-4. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
+2. If any of the above fails due to errors unrelated to the normal processing flow of the method, client software **MUST** respond with an error object.
