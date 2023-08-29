@@ -58,9 +58,6 @@
       title: statistics
       type: object
       properties:
-        maxSize:
-          title: max size
-          $ref: '#/components/schemas/uint'
         pending:
           title: pending
           $ref: '#/components/schemas/uint'
