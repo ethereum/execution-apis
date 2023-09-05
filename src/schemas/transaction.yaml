@@ -396,10 +396,26 @@ GenericTransaction:
       title: max fee per gas
       description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
       $ref: '#/components/schemas/uint'
+    maxFeePerBlobGas:
+      title: max fee per blob gas
+      description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
+      $ref: '#components/schemas/uint'
     accessList:
       title: accessList
       description: EIP-2930 access list
       $ref: '#/components/schemas/AccessList'
+    blobVersionedHashes:
+      title: blobVersionedHashes
+      description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    blobs:
+      title: blobs
+      description: Raw blob data.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
     chainId:
       title: chainId
       description: Chain ID that this transaction is valid on.
