@@ -1,3 +1,63 @@
+Transaction4844Unsigned:
+  type: object
+  title: EIP-4844 transaction.
+  required:
+    - type
+    - nonce
+    - address
+    - gas
+    - value
+    - input
+    - maxPriorityFeePerGas
+    - maxFeePerGas
+    - maxFeePerBlobGas
+    - accessList
+    - chainId
+  properties:
+    type:
+      title: type
+      $ref: '#/components/schemas/byte'
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint'
+    to:
+      title: to address
+      $ref: '#/components/schemas/address'
+    gas:
+      title: gas limit
+      $ref: '#/components/schemas/uint'
+    value:
+      title: value
+      $ref: '#/components/schemas/uint'
+    input:
+      title: input data
+      $ref: '#/components/schemas/bytes'
+    maxPriorityFeePerGas:
+      title: max priority fee per gas
+      description: Maximum fee per gas the sender is willing to pay to miners in wei
+      $ref: '#/components/schemas/uint'
+    maxFeePerGas:
+      title: max fee per gas
+      description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+      $ref: '#/components/schemas/uint'
+    maxFeePerBlobGas:
+      title: max fee per blob gas
+      description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
+      $ref: '#components/schemas/uint'
+    accessList:
+      title: accessList
+      description: EIP-2930 access list
+      $ref: '#/components/schemas/AccessList'
+    blobVersionedHashes:
+      title: blobVersionedHashes
+      description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    chainId:
+      title: chainId
+      description: Chain ID that this transaction is valid on.
+      $ref: '#/components/schemas/uint'
 AccessListEntry:
   title: Access list entry
   type: object
@@ -164,9 +224,31 @@ TransactionLegacyUnsigned:
       $ref: '#/components/schemas/uint'
 TransactionUnsigned:
   oneOf:
+    - $ref: '#/components/schemas/Transaction4844Unsigned'
     - $ref: '#/components/schemas/Transaction1559Unsigned'
     - $ref: '#/components/schemas/Transaction2930Unsigned'
     - $ref: '#/components/schemas/TransactionLegacyUnsigned'
+Transaction4844Signed:
+  title: Signed 4844 Transaction
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/Transaction4844Unsigned'
+    - title: EIP-4844 transaction signature properties.
+      required:
+        - yParity
+        - r
+        - s
+      properties:
+        yParity:
+          title: yParity
+          description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+          $ref: '#/components/schemas/uint'
+        r:
+          title: r
+          $ref: '#/components/schemas/uint'
+        s:
+          title: s
+          $ref: '#/components/schemas/uint'
 Transaction1559Signed:
   title: Signed 1559 Transaction
   type: object
@@ -239,6 +321,7 @@ TransactionLegacySigned:
           $ref: '#/components/schemas/uint'
 TransactionSigned:
   oneOf:
+    - $ref: '#/components/schemas/Transaction4844Signed'
     - $ref: '#/components/schemas/Transaction1559Signed'
     - $ref: '#/components/schemas/Transaction2930Signed'
     - $ref: '#/components/schemas/TransactionLegacySigned'
