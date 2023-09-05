@@ -10,7 +10,9 @@
     schema:
       $ref: '#/components/schemas/hash32'
 - name: eth_sendRawTransaction
-  summary: Submits a raw transaction.
+  summary: Submits a raw transaction. For EIP-4844 transactions, the raw form
+    must be the network form. This means it includes the blobs, KZG
+    commitments, and KZG proofs.
   params:
     - name: Transaction
       required: true
