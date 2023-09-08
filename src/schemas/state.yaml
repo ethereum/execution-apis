@@ -9,6 +9,7 @@ AccountProof:
     - nonce
     - storageHash
     - storageProof
+  additionalProperties: false
   properties:
     address:
       title: address
@@ -42,6 +43,7 @@ StorageProof:
     - key
     - value
     - proof
+  additionalProperties: false
   properties:
     key:
       title: key

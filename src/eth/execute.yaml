@@ -44,6 +44,7 @@
     schema:
       title: Access list result
       type: object
+      additionalProperties: false
       properties:
         accessList:
           title: "accessList"

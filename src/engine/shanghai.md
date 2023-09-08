@@ -93,7 +93,7 @@ This structure has the syntax of `PayloadAttributesV1` and appends a single fiel
 
 * method: `engine_newPayloadV2`
 * params:
-  1. [`ExecutionPayloadV1`](#./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
+  1. [`ExecutionPayloadV1`](./paris.md#ExecutionPayloadV1) | [`ExecutionPayloadV2`](#ExecutionPayloadV2), where:
       - `ExecutionPayloadV1` **MUST** be used if the `timestamp` value is lower than the Shanghai timestamp,
       - `ExecutionPayloadV2` **MUST** be used if the `timestamp` value is greater or equal to the Shanghai timestamp,
       - Client software **MUST** return `-32602: Invalid params` error if the wrong version of the structure is used in the method call.
@@ -111,6 +111,7 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 
 1. Client software **MAY NOT** validate terminal PoW block conditions during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine).
 2. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed.
+3. Consensus layer client **MUST** call this method instead of `engine_newPayloadV1` if `timestamp` value of a payload is greater or equal to the Shanghai timestamp.
 
 ### engine_forkchoiceUpdatedV2
 
@@ -134,8 +135,11 @@ Refer to the response for [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkc
 This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) with the exception of the following:
 
 1. Client software **MAY NOT** validate terminal PoW block conditions in the following places:
-  - during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine specification),
-  - when updating the forkchoice state (point (3) in the [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) method specification).
+    - during payload validation (point (2) in the [Payload validation](./paris.md#payload-validation) routine specification),
+    - when updating the forkchoice state (point (3) in the [`engine_forkchoiceUpdatedV1`](./paris.md#engine_forkchoiceupdatedv1) method specification).
+2. Consensus layer client **MUST** call this method instead of `engine_forkchoiceUpdatedV1` under any of the following conditions:
+    - `headBlockHash` references a block which `timestamp` is greater or equal to the Shanghai timestamp,
+    - `payloadAttributes` is not `null` and `payloadAttributes.timestamp` is greater or equal to the Shanghai timestamp.
 
 ### engine_getPayloadV2
 
@@ -211,6 +215,8 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 1. Given a `start` and a `count`, the client software **MUST** respond with array of `ExecutionPayloadBodyV1` objects with the corresponding execution block number respecting the order of blocks in the canonical chain, as selected by the latest `engine_forkchoiceUpdated` call.
 
 1. Client software **MUST** support `count` values of at least 32 blocks. The call **MUST** return `-38004: Too large request` error if the requested range is too large.
+
+1. Client software **MUST** return `-32602: Invalid params` error if either `start` or `count` value is less than `1`.
 
 1. Client software **MUST** place `null` in the response array for unavailable blocks which numbers are lower than a number of the latest known block. Client software **MUST NOT** return trailing `null` values if the request extends past the current latest known block. Execution Layer client software is expected to download and carry the full block history until EIP-4444 or a similar proposal takes into effect. Consider the following response examples:
     * `[B1.body, B2.body, ..., Bn.body]` -- entire requested range is filled with block bodies,

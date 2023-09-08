@@ -8,7 +8,9 @@
   result:
     name: Transaction information
     schema:
-      $ref: '#/components/schemas/TransactionInfo'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/TransactionInfo'
 - name: eth_getTransactionByBlockHashAndIndex
   summary: Returns information about a transaction by block hash and transaction index position.
   params:
@@ -23,7 +25,9 @@
   result:
     name: Transaction information
     schema:
-      $ref: '#/components/schemas/TransactionInfo'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/TransactionInfo'
 - name: eth_getTransactionByBlockNumberAndIndex
   summary: Returns information about a transaction by block number and transaction index position.
   params:
@@ -38,14 +42,19 @@
   result:
     name: Transaction information
     schema:
-      $ref: '#/components/schemas/TransactionInfo'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/TransactionInfo'
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
   params:
     - name: Transaction hash
+      required: true
       schema:
         $ref: '#/components/schemas/hash32'
   result:
-    name: Receipt Information
+    name: Receipt information
     schema:
-      $ref: '#/components/schemas/ReceiptInfo'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/ReceiptInfo'

@@ -1,0 +1,87 @@
+ForkchoiceStateV1:
+  title: Forkchoice state object V1
+  type: object
+  required:
+    - headBlockHash
+    - safeBlockHash
+    - finalizedBlockHash
+  properties:
+    headBlockHash:
+      title: Head block hash
+      $ref: '#/components/schemas/hash32'
+    safeBlockHash:
+      title: Safe block hash
+      $ref: '#/components/schemas/hash32'
+    finalizedBlockHash:
+      title: Finalized block hash
+      $ref: '#/components/schemas/hash32'
+ForkchoiceUpdatedResponseV1:
+  title: Forkchoice updated response
+  type: object
+  required:
+    - payloadStatus
+  properties:
+    payloadStatus:
+      title: Payload status
+      $ref: '#/components/schemas/RestrictedPayloadStatusV1'
+    payloadId:
+      title: Payload id
+      $ref: '#/components/schemas/bytes8'
+PayloadAttributesV1:
+  title: Payload attributes object V1
+  type: object
+  required:
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+  properties:
+    timestamp:
+      title: Timestamp
+      $ref: '#/components/schemas/uint64'
+    prevRandao:
+      title: Previous randao value
+      $ref: '#/components/schemas/bytes32'
+    suggestedFeeRecipient:
+      title: Suggested fee recipient
+      $ref: '#/components/schemas/address'
+PayloadAttributesV2:
+  title: Payload attributes object V2
+  type: object
+  required:
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+    - withdrawals
+  properties:
+    timestamp:
+      $ref: '#/components/schemas/PayloadAttributesV1/properties/timestamp'
+    prevRandao:
+      $ref: '#/components/schemas/PayloadAttributesV1/properties/prevRandao'
+    suggestedFeeRecipient:
+      $ref: '#/components/schemas/PayloadAttributesV1/properties/suggestedFeeRecipient'
+    withdrawals:
+      title: Withdrawals
+      type: array
+      items:
+        $ref: '#/components/schemas/WithdrawalV1'
+PayloadAttributesV3:
+  title: Payload attributes object V3
+  type: object
+  required:
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+    - withdrawals
+    - parentBeaconBlockRoot
+  properties:
+    timestamp:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/timestamp'
+    prevRandao:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/prevRandao'
+    suggestedFeeRecipient:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/suggestedFeeRecipient'
+    withdrawals:
+      $ref: '#/components/schemas/PayloadAttributesV2/properties/withdrawals'
+    parentBeaconBlockRoot:
+      title: Parent beacon block root
+      $ref: '#/components/schemas/hash32'

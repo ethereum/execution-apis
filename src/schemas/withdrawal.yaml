@@ -1,0 +1,22 @@
+Withdrawal:
+  type: object
+  title: Validator withdrawal
+  required:
+    - index
+    - validatorIndex
+    - address
+    - amount
+  additionalProperties: false
+  properties:
+    index:
+      title: index of withdrawal
+      $ref: '#/components/schemas/uint64'
+    validatorIndex:
+      title: index of validator that generated withdrawal
+      $ref: '#/components/schemas/uint64'
+    address:
+      title: recipient address for withdrawal value
+      $ref: '#/components/schemas/address'
+    amount:
+      title: value contained in withdrawal
+      $ref: '#/components/schemas/uint256'

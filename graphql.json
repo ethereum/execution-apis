@@ -272,7 +272,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,
@@ -495,7 +495,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,
@@ -529,7 +529,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "SCALAR",
-                    "name": "Int",
+                    "name": "Long",
                     "ofType": null
                   }
                 },
@@ -592,7 +592,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "SCALAR",
-                    "name": "Int",
+                    "name": "Long",
                     "ofType": null
                   }
                 },
@@ -762,6 +762,38 @@
                 "kind": "SCALAR",
                 "name": "Bytes",
                 "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "withdrawalsRoot",
+            "description": "WithdrawalsRoot is the withdrawals trie root in this block.\nIf withdrawals are unavailable for this block, this field will be null.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Bytes32",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "withdrawals",
+            "description": "Withdrawals is a list of withdrawals associated with this block. If\nwithdrawals are unavailable for this block, this field will be null.",
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Withdrawal",
+                  "ofType": null
+                }
               }
             },
             "isDeprecated": false,
@@ -1127,7 +1159,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "Int",
+                "name": "Long",
                 "ofType": null
               }
             },
@@ -1226,7 +1258,7 @@
       {
         "kind": "SCALAR",
         "name": "Long",
-        "description": "Long is a 64 bit unsigned integer.",
+        "description": "Long is a 64 bit unsigned integer. Input is accepted as either a JSON number or as a string.\nStrings may be either decimal or 0x-prefixed hexadecimal. Output values are all\n0x-prefixed hexadecimal.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -1289,7 +1321,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "Int",
+                "name": "Long",
                 "ofType": null
               }
             },
@@ -1754,7 +1786,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,
@@ -2067,7 +2099,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "Long",
               "ofType": null
             },
             "isDeprecated": false,
@@ -2119,6 +2151,81 @@
               "ofType": {
                 "kind": "SCALAR",
                 "name": "Bytes",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "Withdrawal",
+        "description": "EIP-4895",
+        "fields": [
+          {
+            "name": "index",
+            "description": "Index is a monotonically increasing identifier issued by consensus layer.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Long",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "validator",
+            "description": "Validator is index of the validator associated with withdrawal.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Long",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "address",
+            "description": "Recipient address of the withdrawn amount.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Address",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "amount",
+            "description": "Amount is the withdrawal value in Gwei.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Long",
                 "ofType": null
               }
             },
