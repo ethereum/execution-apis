@@ -311,37 +311,59 @@ GenericCallTransaction:
     type:
       title: type
       $ref: '#/components/schemas/byte'
+      description: |-
+        Default: 0x2
     nonce:
       title: nonce
+      description: |-
+        Default: Defaults to correct nonce
       $ref: '#/components/schemas/uint64'
     to:
       title: to address
       $ref: '#/components/schemas/address'
+      description: |-
+        Default: 0x0
     from:
       title: from address
       $ref: '#/components/schemas/address'
+      description: |-
+        Default: 0x0
     gas:
       title: gas limit
+      description: |-
+        Default: Remaining gas in a block
       $ref: '#/components/schemas/uint64'
     value:
       title: value
+      description: |-
+        Default: 0
       $ref: '#/components/schemas/uint256'
     input:
       title: input data
+      description: |-
+        Default: no data
       $ref: '#/components/schemas/bytes'
     gasPrice:
       title: gas price
-      description: The gas price willing to be paid by the sender in wei
+      description: |-
+        The gas price willing to be paid by the sender in wei
+        Default: 0
       $ref: '#/components/schemas/uint256'
     maxPriorityFeePerGas:
       title: max priority fee per gas
-      description: Maximum fee per gas the sender is willing to pay to miners in wei
+      description: |-
+        Maximum fee per gas the sender is willing to pay to miners in wei
+        Default: 0
       $ref: '#/components/schemas/uint256'
     maxFeePerGas:
       title: max fee per gas
-      description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+      description: |-
+        The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+        Default: 0
       $ref: '#/components/schemas/uint256'
     accessList:
       title: accessList
-      description: EIP-2930 access list
+      description: |-
+        EIP-2930 access list
+        Default: []
       $ref: '#/components/schemas/AccessList'
