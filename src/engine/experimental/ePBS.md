@@ -9,10 +9,15 @@ Engine API changes introduced in ePBS, based on [Cancun](../cancun.md).
 
 - [Structures](#structures)
   - [InclusionListV1](#inclusionlistv1)
+  - [InclusionListSummaryEntryV1](#inclusionlistsummaryentryv1)
   - [InclusionListStatusV1](#inclusionliststatusv1)
 
 - [Methods](#methods)
   - [`engine_getInclusionListV1`](#engine_getinclusionlistv1)
+    - [Request](#request-1)
+    - [Response](#response-1)
+    - [Specification](#specification-1)
+  - [`engine_newInclusionListV1`](#engine_newinclusionlistv1)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
@@ -46,6 +51,7 @@ This structure contains the result of processing an inclusion list. The field is
 * method: `engine_getInclusionListV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+  1. `parentBlockHash`: `DATA`, 32 Bytes - hash of the block which the returning inclusion list bases on
 * timeout: 1s
 
 #### Response
@@ -54,8 +60,8 @@ This structure contains the result of processing an inclusion list. The field is
 * error: code and message set in case an exception happens while getting the inclusion list.
 
 #### Specification
-1. Given the `payloadId` client software **MUST** return a valid inclusion list.
-2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+1. Client software **MUST** return the most recent version of the inclusion list based on `parentBlockHash`.
+2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `parent_block_hash` does not exist.
 
 ### `engine_newInclusionListV1`
 #### Request
