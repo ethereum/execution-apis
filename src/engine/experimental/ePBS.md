@@ -11,7 +11,6 @@ Engine API changes introduced in ePBS, based on [Cancun](../cancun.md).
   - [InclusionListV1](#inclusionlistv1)
   - [InclusionListSummaryEntryV1](#inclusionlistsummaryentryv1)
   - [InclusionListStatusV1](#inclusionliststatusv1)
-
 - [Methods](#methods)
   - [`engine_getInclusionListV1`](#engine_getinclusionlistv1)
     - [Request](#request-1)
