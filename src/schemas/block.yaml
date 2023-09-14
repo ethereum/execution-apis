@@ -139,7 +139,7 @@ BadBlock:
   properties:
     block:
       title: Block
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/Block'
     hash:
       title: Hash
       $ref: '#/components/schemas/hash32'
