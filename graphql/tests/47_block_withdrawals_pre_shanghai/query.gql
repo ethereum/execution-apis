@@ -1,0 +1,10 @@
+{
+  block(number: 32) {
+    number
+    withdrawalsRoot
+    withdrawals {
+      index
+      amount
+    }
+  }
+}

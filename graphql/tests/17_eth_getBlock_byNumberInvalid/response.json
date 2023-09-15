@@ -1,0 +1,28 @@
+{
+  "responses": [
+    {
+      "errors": [
+        {
+          "message": "Exception while fetching data (/block) : Block number 88888888 was not found",
+          "locations": [
+            {
+              "line": 1,
+              "column": 2
+            }
+          ],
+          "path": ["block"],
+          "extensions": {
+            "classification": "DataFetchingException"
+          }
+        }
+      ],
+      "data": null
+    },
+    {
+      "data": {
+        "block": null
+      }
+    }
+  ],
+  "statusCode": 400
+}

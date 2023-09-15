@@ -1,0 +1,5 @@
+{
+  block(number: 32) {
+    estimateGas(data: {})
+  }
+}

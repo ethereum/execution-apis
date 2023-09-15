@@ -1,0 +1,5 @@
+{
+  block(number: 88888888) {
+    number
+  }
+}

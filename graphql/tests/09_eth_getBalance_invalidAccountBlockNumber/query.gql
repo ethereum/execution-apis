@@ -1,0 +1,7 @@
+{
+  block(number: 25) {
+    account(address: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef") {
+      balance
+    }
+  }
+}

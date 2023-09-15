@@ -1,0 +1,21 @@
+{
+  block(number: 33) {
+    baseFeePerGas
+    difficulty
+    extraData
+    miner {
+      address
+    }
+    mixHash
+    nonce
+    stateRoot
+    totalDifficulty
+    withdrawalsRoot
+    withdrawals {
+      address
+      amount
+      index
+      validator
+    }
+  }
+}

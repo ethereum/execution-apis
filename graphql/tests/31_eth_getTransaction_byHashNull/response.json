@@ -1,0 +1,10 @@
+{
+  "responses": [
+    {
+      "data": {
+        "transaction": null
+      }
+    }
+  ],
+  "statusCode": 200
+}

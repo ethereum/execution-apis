@@ -1,0 +1,24 @@
+{
+  "responses": [
+    {
+      "data": {
+        "transaction": {
+          "accessList": [
+            {
+              "address": "0x6295ee1b4f6dd65047762f924ecd367c17eabf8f",
+              "storageKeys": [
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
+              ]
+            }
+          ],
+          "maxFeePerGas": "0xb2d05e00",
+          "maxPriorityFeePerGas": "0x3b9aca00",
+          "nonce": "0x20",
+          "type": "0x2",
+          "status": "0x1"
+        }
+      }
+    }
+  ],
+  "statusCode": 200
+}

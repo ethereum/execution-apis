@@ -1,0 +1,25 @@
+{
+  "responses": [
+    {
+      "errors": [
+        {
+          "message": "Exception while fetching data (/sendRawTransaction) : Nonce too low",
+          "locations": [
+            {
+              "line": 1,
+              "column": 12
+            }
+          ],
+          "path": ["sendRawTransaction"],
+          "extensions": {
+            "errorCode": -32001,
+            "errorMessage": "Nonce too low",
+            "classification": "DataFetchingException"
+          }
+        }
+      ],
+      "data": null
+    }
+  ],
+  "statusCode": 400
+}

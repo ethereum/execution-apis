@@ -1,0 +1,14 @@
+{
+  "responses": [
+    {
+      "data": {
+        "block": {
+          "account": {
+            "code": "0x"
+          }
+        }
+      }
+    }
+  ],
+  "statusCode": 200
+}

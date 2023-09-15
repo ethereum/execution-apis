@@ -1,0 +1,14 @@
+{
+  "responses": [
+    {
+      "data": {
+        "block": {
+          "account": {
+            "storage": "0xaabbccffffffffffffffffffffffffffffffffffffffffffffffffffffffffee"
+          }
+        }
+      }
+    }
+  ],
+  "statusCode": 200
+}

@@ -1,0 +1,15 @@
+{
+  transaction(
+    hash: "0x3ecd2ca6cf26c864d0ea5f038a58d4cd4a46a3e242fe92f446f392fdc232dd98"
+  ) {
+    accessList {
+      address
+      storageKeys
+    }
+    maxFeePerGas
+    maxPriorityFeePerGas
+    nonce
+    type
+    status
+  }
+}

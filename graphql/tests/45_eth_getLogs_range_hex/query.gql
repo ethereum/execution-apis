@@ -1,0 +1,10 @@
+{
+  logs(
+    filter: { fromBlock: "0x14", toBlock: "0x18", topics: [], addresses: [] }
+  ) {
+    index
+    transaction {
+      hash
+    }
+  }
+}

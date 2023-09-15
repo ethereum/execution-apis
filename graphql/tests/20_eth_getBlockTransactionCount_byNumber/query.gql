@@ -1,0 +1,23 @@
+{
+  block(number: 30) {
+    transactions {
+      hash
+    }
+    timestamp
+    difficulty
+    totalDifficulty
+    gasUsed
+    gasLimit
+    hash
+    nonce
+    ommerCount
+    logsBloom
+    mixHash
+    ommerHash
+    extraData
+    stateRoot
+    receiptsRoot
+    transactionCount
+    transactionsRoot
+  }
+}

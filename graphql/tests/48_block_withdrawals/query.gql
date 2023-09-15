@@ -1,0 +1,12 @@
+{
+  block(number: 33) {
+    number
+    withdrawalsRoot
+    withdrawals {
+      index
+      amount
+      validator
+      address
+    }
+  }
+}

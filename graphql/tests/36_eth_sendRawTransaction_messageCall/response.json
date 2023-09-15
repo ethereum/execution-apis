@@ -1,0 +1,10 @@
+{
+  "responses": [
+    {
+      "data": {
+        "sendRawTransaction": "0x6ad12f495251471d1834852623c2eeb2cb04d2fb9e1a5d6cff481cfec7b233a8"
+      }
+    }
+  ],
+  "statusCode": 200
+}
