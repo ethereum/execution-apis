@@ -8,7 +8,7 @@
     "build": "npm run build:spec",
     "build:spec": "node scripts/build.js",
     "build:docs": "cd build/docs/gatsby && npm install --legacy-peer-deps && gatsby build --prefix-paths",
-    "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
+    "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js && node scripts/graphql-schema-validate.js",
     "clean": "rm -rf build && mkdir -p build",
     "generate-clients": "mkdir -p build && open-rpc-generator generate -c open-rpc-generator-config.json",
     "graphql:schema": "node scripts/graphql.js",
