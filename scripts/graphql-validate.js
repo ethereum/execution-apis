@@ -1,6 +1,6 @@
 import fs from 'fs';
 import graphql from 'graphql';
-import diff frm '@graphql-inspector/core';
+import { diff } from '@graphql-inspector/core';
 
 function ignoreDirectiveChanges(obj) {
   return obj.changes.filter((change) => !change.type.startsWith('DIRECTIVE'));
