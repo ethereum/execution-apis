@@ -189,7 +189,7 @@ type Block {
   raw: Bytes!
 
   """
-  WithdrawalsRoot is withdrawals trie root in this block.
+  WithdrawalsRoot is the withdrawals trie root in this block.
   If withdrawals are unavailable for this block, this field will be null.
   """
   withdrawalsRoot: Bytes32
@@ -535,6 +535,7 @@ type Transaction {
   r: BigInt!
   s: BigInt!
   v: BigInt!
+  yParity: Long
 
   """Envelope transaction support"""
   type: Long
