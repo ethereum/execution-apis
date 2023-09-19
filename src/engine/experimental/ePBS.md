@@ -65,7 +65,6 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 
 * method: `engine_getInclusionListV1`
 * params:
-  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
   1. `parentBlockHash`: `DATA`, 32 Bytes - hash of the block which the returning inclusion list bases on
 * timeout: 1s
 
