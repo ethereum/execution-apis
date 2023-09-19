@@ -37,6 +37,10 @@ diff(schema, schemaStd, [ignoreDirectiveChanges])
 
 fs.readdir('graphql/tests', (_, files) => {
   files.forEach((file) => {
+    if (!fs.lstatSync(`graphql/tests/${file}`).isDirectory()) {
+      return;
+    }
+
     const query = graphql.parse(
       fs.readFileSync(`graphql/tests/${file}/request.gql`, 'utf8')
     );
