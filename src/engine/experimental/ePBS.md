@@ -44,6 +44,7 @@ This structure maps onto inclusion list summary entry object from [{pending EIP}
 ### InclusionListStatusV1
 This structure contains the result of processing an inclusion list. The field is encoded as follow:
 - `status`: `enum` - `"VALID" | "INVALID"`
+- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
 
 ### PayloadAttributesVePBS
 
@@ -65,7 +66,7 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 
 * method: `engine_getInclusionListV1`
 * params:
-  1. `parentBlockHash`: `DATA`, 32 Bytes - hash of the block which the returning inclusion list bases on
+  1. `parentHash`: `DATA`, 32 Bytes - hash of the block which the returning inclusion list bases on
 * timeout: 1s
 
 #### Response
@@ -74,7 +75,7 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 * error: code and message set in case an exception happens while getting the inclusion list.
 
 #### Specification
-1. Client software **MUST** return the most recent version of the inclusion list based on `parentBlockHash`.
+1. Client software **MUST** return the most recent version of the inclusion list based on `parentHash`.
 2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `parent_block_hash` does not exist.
 
 ### `engine_newInclusionListV1`
@@ -83,7 +84,7 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 * method: `engine_newInclusionListV1`
 * params:
   1. `inclusionList`: [`InclusionListV1`](#inclusionlistv1) - The inclusion list to be processed.
-  2. `parentBlockHash`: `DATA`, 32 Bytes - hash of the block whose corresponding execution state will be used to validate against the inclusion list.
+  2. `parentHash`: `DATA`, 32 Bytes - hash of the block whose corresponding execution state will be used to validate against the inclusion list.
 * timeout: 1s
 
 #### Response
