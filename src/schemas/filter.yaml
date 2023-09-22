@@ -20,10 +20,10 @@ Filter:
   properties:
     fromBlock:
       title: from block
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uintParam'
     toBlock:
       title: to block
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uintParam'
     address:
       title: Address(es)
       oneOf:

@@ -48,6 +48,14 @@ uint:
   title: hex encoded unsigned integer
   type: string
   pattern: ^0x([1-9a-f]+[0-9a-f]*|0)$
+uintParam:
+  title: unsigned integer number or hex string
+  description: clients accept both integer kinds in request parameters
+  oneOf:
+    - title: hex encoded unsigned integer
+      $ref: '#/components/schemas/uint'
+    - title: decimal unsigned integer
+      type: number
 uint64:
   title: hex encoded 64 bit unsigned integer
   type: string
