@@ -35,17 +35,17 @@ diff(schema, schemaStd, [ignoreDirectiveChanges])
   })
   .catch(console.error);
 
-fs.readdir('graphql/tests', (_, files) => {
+fs.readdir('tests/graphql', (_, files) => {
   files.forEach((file) => {
-    if (!fs.lstatSync(`graphql/tests/${file}`).isDirectory()) {
+    if (!fs.lstatSync(`tests/graphql/${file}`).isDirectory()) {
       return;
     }
 
     const query = graphql.parse(
-      fs.readFileSync(`graphql/tests/${file}/request.gql`, 'utf8')
+      fs.readFileSync(`tests/graphql/${file}/request.gql`, 'utf8')
     );
     const output = JSON.parse(
-      fs.readFileSync(`graphql/tests/${file}/response.json`, 'utf8')
+      fs.readFileSync(`tests/graphql/${file}/response.json`, 'utf8')
     );
     if (!('statusCode' in output) || !('responses' in output)) {
       throw new Error(
