@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 
 	"github.com/alexflint/go-arg"
 )
@@ -17,9 +18,30 @@ type Args struct {
 func main() {
 	var args Args
 	arg.MustParse(&args)
-	if err := checkSpec(&args); err != nil {
+	if err := run(&args); err != nil {
 		exit(err)
 	}
+}
+
+func run(args *Args) error {
+	re, err := regexp.Compile(args.TestsRegex)
+	if err != nil {
+		return err
+	}
+
+	// Read all method schemas (params+result) from the OpenRPC spec.
+	methods, err := parseSpec(args.SpecPath)
+	if err != nil {
+		return err
+	}
+
+	// Read all tests and parse out roundtrip HTTP exchanges so they can be validated.
+	rts, err := readRtts(args.TestsRoot, re)
+	if err != nil {
+		return err
+	}
+
+	return checkSpec(methods, rts, re)
 }
 
 func exit(err error) {

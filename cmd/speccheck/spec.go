@@ -3,126 +3,136 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
-	"strings"
+	"os"
 
 	openrpc "github.com/open-rpc/meta-schema"
-	"github.com/santhosh-tekuri/jsonschema/v5"
 )
+
+type ContentDescriptor struct {
+	name     string
+	required bool
+	schema   openrpc.JSONSchemaObject
+}
 
 // methodSchema stores all the schemas neccessary to validate a request or
 // response corresponding to the method.
 type methodSchema struct {
-	// Schemas
-	params []openrpc.ContentDescriptorObject
-	result []byte
+	name   string
+	params []*ContentDescriptor
+	result *ContentDescriptor
 }
 
-// roundTrip is a single round trip interaction between a certain JSON-RPC
-// method.
-type roundTrip struct {
-	method   string
-	name     string
-	params   [][]byte
-	response []byte
-}
-
-// checkSpec reads the schemas from the spec and test files, then validates
-// them against each other.
-func checkSpec(args *Args) error {
-	re, err := regexp.Compile(args.TestsRegex)
+// parseSpec reads an OpenRPC specification and parses out each
+// method's schemas.
+func parseSpec(filename string) (map[string]*methodSchema, error) {
+	doc, err := readSpec(filename)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("unable to read spec: %v", err)
 	}
 
-	// Read all method schemas (params+result) from the OpenRPC spec.
-	methods, err := parseMethodSchemas(args.SpecPath)
-	if err != nil {
-		return err
-	}
-
-	// Read all tests and parse out roundtrip HTTP exchanges so they can be validated.
-	rts, err := parseRoundTrips(args.TestsRoot, re)
-	if err != nil {
-		return err
-	}
-
-	for _, rt := range rts {
-		methodSchema, ok := methods[rt.method]
-		if !ok {
-			return fmt.Errorf("undefined method: %s", rt.method)
+	// Iterate over each method in the OpenRPC spec and pull out the parameter
+	// schema and result schema.
+	parsed := make(map[string]*methodSchema)
+	for _, method := range *doc.Methods {
+		if method.ReferenceObject != nil {
+			return nil, fmt.Errorf("reference object not supported, %s", *method.ReferenceObject.Ref)
 		}
-		// skip validator of test if name includes "invalid" as the schema
-		// doesn't yet support it.
-		// TODO(matt): create error schemas.
-		if strings.Contains(rt.name, "invalid") {
-			continue
-		}
-		if len(methodSchema.params) < len(rt.params) {
-			return fmt.Errorf("too many parameters")
-		}
-		// Validate each parameter value against their respective schema.
-		for i, schema := range methodSchema.params {
-			if len(rt.params) <= i {
-				if schema.Required == nil || !(*schema.Required) {
-					// skip missing optional values
-					continue
-				}
-				return fmt.Errorf("missing required parameter %s.param[%d]", rt.method, i)
+		var (
+			method = method.MethodObject
+			ms     = methodSchema{name: string(*method.Name)}
+		)
+		// Add parameter schemas.
+		for i, param := range *method.Params {
+			if err := checkCDOR(param); err != nil {
+				return nil, fmt.Errorf("%s, parameter %d: %v", *method.Name, i, err)
 			}
-			raw, err := json.Marshal(schema.Schema.JSONSchemaObject)
-			if err != nil {
-				return err
+			required := false
+			if param.ContentDescriptorObject.Required != nil && *param.ContentDescriptorObject.Required {
+				required = true
 			}
-			if err := validate(rt.params[i], raw, fmt.Sprintf("%s.param[%d]", rt.method, i)); err != nil {
-				return fmt.Errorf("unable to validate parameter: %s", err)
+			cd := &ContentDescriptor{
+				name:     string(*param.ContentDescriptorObject.Name),
+				required: required,
+				schema:   *param.ContentDescriptorObject.Schema.JSONSchemaObject,
 			}
+			ms.params = append(ms.params, cd)
 		}
-		if err := validate(rt.response, methodSchema.result, fmt.Sprintf("%s.result", rt.method)); err != nil {
-			// Print out the value and schema if there is an error to further debug.
-			var schema interface{}
-			json.Unmarshal(methodSchema.result, &schema)
-			buf, _ := json.MarshalIndent(schema, "", "  ")
-			fmt.Println(string(buf))
-			fmt.Println(string(methodSchema.result))
-			fmt.Println(string(rt.response))
-			return fmt.Errorf("invalid result %s: %w", rt.name, err)
+
+		// Add result schema.
+		if method.Result == nil {
+			return nil, fmt.Errorf("%s: missing result", *method.Name)
 		}
+		cdor := openrpc.ContentDescriptorOrReference{
+			ContentDescriptorObject: method.Result.ContentDescriptorObject,
+			ReferenceObject:         method.Result.ReferenceObject,
+		}
+		if err := checkCDOR(cdor); err != nil {
+			return nil, fmt.Errorf("%s: %v", *method.Name, err)
+		}
+		obj := method.Result.ContentDescriptorObject
+		required := false
+		if obj.Required != nil && *obj.Required {
+			required = true
+		}
+		ms.result = &ContentDescriptor{
+			name:     string(*obj.Name),
+			required: required,
+			schema:   *obj.Schema.JSONSchemaObject,
+		}
+		parsed[string(*method.Name)] = &ms
 	}
 
-	fmt.Println("all passing.")
-	return nil
+	return parsed, nil
 }
 
-// validateParam validates the provided value against schema using the url base.
-func validate(val []byte, baseSchema []byte, url string) error {
-	// Unmarshal value into interface{} so that validator can properly reflect
-	// the contents.
-	var x interface{}
-	if err := json.Unmarshal(val, &x); len(val) != 0 && err != nil {
-		return fmt.Errorf("unable to unmarshal testcase: %w", err)
+// parseParamValues parses each parameter out of the raw json value in its own byte
+// slice.
+func parseParamValues(raw json.RawMessage) ([][]byte, error) {
+	if len(raw) == 0 {
+		return [][]byte{}, nil
 	}
-	// Add $schema explicitly to force jsonschema to use draft 2019-09.
-	schema, err := appendDraft201909(baseSchema)
-	if err != nil {
-		return fmt.Errorf("unable to append draft: %w", err)
-	}
-	s, err := jsonschema.CompileString(url, string(schema))
-	if err != nil {
-		return fmt.Errorf("unable to compile schema: %w", err)
-	}
-	if err := s.Validate(x); err != nil {
-		return fmt.Errorf("validation error: %w", err)
-	}
-	return nil
-}
-
-// appendDraft201909 adds $schema = draft 2019-09 to the schema.
-func appendDraft201909(schema []byte) ([]byte, error) {
-	var out map[string]interface{}
-	if err := json.Unmarshal(schema, &out); err != nil {
+	var params []interface{}
+	if err := json.Unmarshal(raw, &params); err != nil {
 		return nil, err
 	}
-	out["$schema"] = "https://json-schema.org/draft/2019-09/schema"
-	return json.Marshal(out)
+	// Iterate over top-level parameter values and re-marshal them to get a
+	// list of json-encoded parameter values.
+	var out [][]byte
+	for _, param := range params {
+		buf, err := json.Marshal(param)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, buf)
+	}
+	return out, nil
+}
+
+func checkCDOR(obj openrpc.ContentDescriptorOrReference) error {
+	if obj.ReferenceObject != nil {
+		return fmt.Errorf("references not supported")
+	}
+	if obj.ContentDescriptorObject == nil {
+		return fmt.Errorf("missing content descriptor")
+	}
+	cd := obj.ContentDescriptorObject
+	if cd.Name == nil {
+		return fmt.Errorf("missing name")
+	}
+	if cd.Schema == nil || cd.Schema.JSONSchemaObject == nil {
+		return fmt.Errorf("missing schema")
+	}
+	return nil
+}
+
+func readSpec(path string) (*openrpc.OpenrpcDocument, error) {
+	spec, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var doc openrpc.OpenrpcDocument
+	if err := json.Unmarshal(spec, &doc); err != nil {
+		return nil, err
+	}
+	return &doc, nil
 }
