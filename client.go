@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"time"
 
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
@@ -131,8 +130,10 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 // AfterStart is called after the client has been fully started.
 // We send a forkchoiceUpdatedV2 request to the engine to trigger a post-merge forkchoice.
 func (g *gethClient) AfterStart(ctx context.Context) error {
-	auth := node.NewJWTAuth(common.BytesToHash(g.jwt))
-	endpoint := fmt.Sprintf("http://%s:%s", HOST, AUTHPORT)
+	var (
+		auth     = node.NewJWTAuth(common.BytesToHash(g.jwt))
+		endpoint = fmt.Sprintf("http://%s:%s", HOST, AUTHPORT)
+	)
 	cl, err := rpc.DialOptions(ctx, endpoint, rpc.WithHTTPAuth(auth))
 	if err != nil {
 		return err
@@ -140,27 +141,20 @@ func (g *gethClient) AfterStart(ctx context.Context) error {
 	defer cl.Close()
 
 	geth := ethclient.NewClient(cl)
-
 	block, err := geth.BlockByNumber(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	var (
-		tstamp       = uint64(time.Now().Unix())
-		feeRecipient = common.HexToAddress("fee")
-		fcResponse   engine.ForkChoiceResponse
-	)
-	fmt.Println("called forkchoiceUpdatedV2 with block hash:", block.Hash().String(), "and timestamp:", tstamp, "and feeRecipient:", feeRecipient.String())
-	err = cl.CallContext(ctx, &fcResponse, "engine_forkchoiceUpdatedV2", &engine.ForkchoiceStateV1{
+	var resp engine.ForkChoiceResponse
+	err = cl.CallContext(ctx, &resp, "engine_forkchoiceUpdatedV2", &engine.ForkchoiceStateV1{
 		HeadBlockHash:      block.Hash(),
 		SafeBlockHash:      block.Hash(),
 		FinalizedBlockHash: block.Hash(),
-	}, &engine.PayloadAttributes{
-		Timestamp:             tstamp,
-		SuggestedFeeRecipient: feeRecipient,
-		Withdrawals:           []*types.Withdrawal{},
-	})
+	}, nil)
+	if status := resp.PayloadStatus.Status; status != engine.VALID {
+		fmt.Printf("initializing forkchoice updated failed: status %s, err %v\n", status, err)
+	}
 	return err
 }
 
