@@ -44,7 +44,7 @@ type gethClient struct {
 	workdir string
 	blocks  []*types.Block
 	genesis *core.Genesis
-	jwtauth [32]byte
+	jwt     []byte
 }
 
 // newGethClient instantiates a new GethClient.
@@ -84,16 +84,13 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 		return nil, err
 	}
 
-	jwtSecret := make([]byte, 32)
-	rand.Read(jwtSecret)
-	if err := os.WriteFile(fmt.Sprintf("%s/jwt.hex", tmp), []byte(hexutil.Encode(jwtSecret)), 0600); err != nil {
+	jwt := make([]byte, 32)
+	rand.Read(jwt)
+	if err := os.WriteFile(fmt.Sprintf("%s/jwt.hex", tmp), []byte(hexutil.Encode(jwt)), 0600); err != nil {
 		return nil, err
 	}
 
-	var jwtAuth [32]byte
-	copy(jwtAuth[:], jwtSecret)
-
-	return &gethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp, jwtauth: jwtAuth}, nil
+	return &gethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp, jwt: jwt}, nil
 }
 
 // Start starts geth, but does not wait for the command to exit.
@@ -109,7 +106,7 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 			"--gcmode=archive",
 			"--nodiscover",
 			"--http",
-			"--http.api=admin,eth,debug,engine",
+			"--http.api=admin,eth,debug",
 			fmt.Sprintf("--http.addr=%s", HOST),
 			fmt.Sprintf("--http.port=%s", PORT),
 			fmt.Sprintf("--authrpc.port=%s", AUTHPORT),
@@ -134,7 +131,7 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 // AfterStart is called after the client has been fully started.
 // We send a forkchoiceUpdatedV2 request to the engine to trigger a post-merge forkchoice.
 func (g *gethClient) AfterStart(ctx context.Context) error {
-	auth := node.NewJWTAuth(g.jwtauth)
+	auth := node.NewJWTAuth(common.BytesToHash(g.jwt))
 	endpoint := fmt.Sprintf("http://%s:%s", HOST, AUTHPORT)
 	cl, err := rpc.DialOptions(ctx, endpoint, rpc.WithHTTPAuth(auth))
 	if err != nil {
