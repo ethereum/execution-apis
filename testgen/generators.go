@@ -337,6 +337,48 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
+			"get-latest",
+			"gets block latest",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, nil)
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 9 {
+					return fmt.Errorf("expected block 9, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-safe",
+			"gets block safe",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.SafeBlockNumber)))
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 9 {
+					return fmt.Errorf("expected block 9, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			"get-finalized",
+			"gets block finalized",
+			func(ctx context.Context, t *T) error {
+				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
+				if err != nil {
+					return err
+				}
+				if n := block.Number().Uint64(); n != 9 {
+					return fmt.Errorf("expected block 9, got block %d", n)
+				}
+				return nil
+			},
+		},
+		{
 			"get-block-n",
 			"gets block 2",
 			func(ctx context.Context, t *T) error {
@@ -989,7 +1031,7 @@ var EthSendRawTransaction = MethodTests{
 					GasPrice: new(big.Int).Add(genesis.BaseFee(), big.NewInt(1)),
 					Data:     common.FromHex("5544"),
 				}
-				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				s := types.LatestSigner(t.chain.Config())
 				tx, _ := types.SignNewTx(pk, s, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
@@ -1014,7 +1056,7 @@ var EthSendRawTransaction = MethodTests{
 					GasFeeCap: fee,
 					Data:      common.FromHex("0x3d602d80600a3d3981f3363d3d373d3d3d363d734d11c446473105a02b5c1ab9ebe9b03f33902a295af43d82803e903d91602b57fd5bf3"), // eip1167.minimal.proxy
 				}
-				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				s := types.LatestSigner(t.chain.Config())
 				tx, _ := types.SignNewTx(pk, s, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
@@ -1038,7 +1080,7 @@ var EthSendRawTransaction = MethodTests{
 						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
-				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				s := types.LatestSigner(t.chain.Config())
 				tx, _ := types.SignNewTx(pk, s, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
@@ -1065,7 +1107,7 @@ var EthSendRawTransaction = MethodTests{
 						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
-				s := types.MakeSigner(t.chain.Config(), t.chain.CurrentHeader().Number)
+				s := types.LatestSigner(t.chain.Config())
 				tx, _ := types.SignNewTx(pk, s, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
