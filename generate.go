@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/trie"
 	"github.com/lightclient/rpctestgen/testgen"
 )
 
@@ -37,7 +38,7 @@ func runGenerator(ctx context.Context) error {
 	}
 	defer client.Close()
 
-	err = client.PostStart(ctx)
+	err = client.AfterStart(ctx)
 	if err != nil {
 		return err
 	}
@@ -133,7 +134,7 @@ func initChain(ctx context.Context, args *Args) (*chainData, error) {
 
 	// Create BlockChain to verify client responses against.
 	db := rawdb.NewMemoryDatabase()
-	chain.gspec.MustCommit(db)
+	chain.gspec.MustCommit(db, trie.NewDatabase(db, trie.HashDefaults))
 
 	var err error
 	chain.bc, err = core.NewBlockChain(db, nil, chain.gspec, nil, beacon.New(ethash.NewFaker()), vm.Config{}, nil, nil)
