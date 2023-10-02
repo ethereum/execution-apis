@@ -25,7 +25,7 @@ func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Re
 			continue
 		}
 		if len(method.params) < len(rt.params) {
-			return fmt.Errorf("too many parameters")
+			return fmt.Errorf("%s: too many parameters", method.name)
 		}
 		// Validate each parameter value against their respective schema.
 		for i, cd := range method.params {
