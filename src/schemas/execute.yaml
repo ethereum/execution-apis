@@ -248,8 +248,6 @@ CallResultInvalid:
           messagE: Execution error
         - code: -32016
           message: Timeout
-        - code: -32602
-          message: Invalid params
         - code: -32603
           message: The Ethereum node encountered an internal error
         - code: -38010
@@ -272,6 +270,10 @@ CallResultInvalid:
           message: MovePrecompileToAddress referenced itself in replacement
         - code: -38023
           message: Multiple MovePrecompileToAddress referencing the same address to replace
+        - code: -38024
+          message: Sender is not an EoA
+        - code: -38025
+          message: Max init code size exceeded
 CallResultLog:
   title: log
   type: object
