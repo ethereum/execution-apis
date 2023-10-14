@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/trie"
+	"github.com/holiman/uint256"
 )
 
 // genSimpleChain generates a short chain with a few basic transactions.
@@ -31,12 +32,14 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 			Difficulty: common.Big1,
 			GasLimit:   5_000_000,
 		}
-		gendb  = rawdb.NewMemoryDatabase()
-		signer = types.LatestSigner(gspec.Config)
+		gendb = rawdb.NewMemoryDatabase()
 	)
 	gspec.Config.TerminalTotalDifficultyPassed = true
 	gspec.Config.TerminalTotalDifficulty = common.Big0
 	gspec.Config.ShanghaiTime = uintptr(0)
+	gspec.Config.CancunTime = uintptr(0)
+
+	signer := types.LatestSigner(gspec.Config)
 
 	// init 0xaa with some storage elements
 	storage := make(map[common.Hash]common.Hash)
@@ -102,6 +105,24 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 				StorageKeys: []common.Hash{{0}},
 			}}
 			tx, err = types.SignTx(types.NewTx(&types.AccessListTx{Nonce: uint64(i), To: nil, Gas: 58100, GasPrice: gen.BaseFee(), Data: common.FromHex("0x60806040"), AccessList: accessList}), signer, key)
+		case 6:
+			fee := uint256.NewInt(500)
+			fee.Add(fee, uint256.MustFromBig(gen.BaseFee()))
+			data := fmt.Sprintf("0xa9059cbb%s%s", common.HexToHash(common.BigToAddress(big.NewInt(int64(i + 1))).Hex()).String()[2:], common.BytesToHash([]byte{byte(i + 11)}).String()[2:])
+
+			// blob tx
+			inner := types.BlobTx{
+				Nonce:      uint64(i),
+				To:         contract,
+				Gas:        60000,
+				Value:      uint256.NewInt(1),
+				GasTipCap:  uint256.NewInt(500),
+				GasFeeCap:  fee,
+				Data:       common.FromHex(data),
+				BlobFeeCap: uint256.NewInt(params.BlobTxBlobGasPerBlob),
+				BlobHashes: []common.Hash{{0x01, 0x42}},
+			}
+			tx, err = types.SignTx(types.NewTx(&inner), signer, key)
 		default:
 			tx, err = types.SignTx(types.NewTransaction(gen.TxNonce(address), address, big.NewInt(1000), params.TxGas, new(big.Int).Add(gen.BaseFee(), common.Big1), nil), signer, key)
 		}

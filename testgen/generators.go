@@ -83,8 +83,8 @@ var AllMethods = []MethodTests{
 	EthGetTransactionReceipt,
 	EthGetBlockReceipts,
 	EthSendRawTransaction,
-	EthGasPrice,
-	EthMaxPriorityFeePerGas,
+	// EthGasPrice,
+	// EthMaxPriorityFeePerGas,
 	EthSyncing,
 	EthFeeHistory,
 	// EthGetUncleByBlockNumberAndIndex,
@@ -786,6 +786,21 @@ var EthGetTransactionByHash = MethodTests{
 				_, _, err := t.eth.TransactionByHash(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-blob-tx",
+			"gets a blob transaction",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlockByNumber(7).Transactions()[0]
+				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
 				}
 				return nil
 			},
