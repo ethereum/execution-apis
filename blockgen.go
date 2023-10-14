@@ -26,8 +26,11 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 		funds    = big.NewInt(0).Mul(big.NewInt(1337), big.NewInt(params.Ether))
 		contract = common.HexToAddress("0000000000000000000000000000000000031ec7")
 		gspec    = &core.Genesis{
-			Config:     params.AllEthashProtocolChanges,
-			Alloc:      core.GenesisAlloc{address: {Balance: funds}},
+			Config: params.AllEthashProtocolChanges,
+			Alloc: core.GenesisAlloc{
+				address: {Balance: funds},
+				common.HexToAddress("a94f5374fce5edbc8e2a8697c15331677e6ebf0b"): {Balance: funds},
+			},
 			BaseFee:    big.NewInt(params.InitialBaseFee),
 			Difficulty: common.Big1,
 			GasLimit:   5_000_000,
@@ -78,6 +81,7 @@ func genSimpleChain(engine consensus.Engine) (*core.Genesis, []*types.Block, *ty
 	genesis := gspec.MustCommit(gendb, trie.NewDatabase(gendb, trie.HashDefaults))
 
 	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, gendb, 10, func(i int, gen *core.BlockGen) {
+		gen.SetParentBeaconRoot(common.Hash{byte(i)})
 		var (
 			tx  *types.Transaction
 			err error
