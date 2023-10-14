@@ -4,7 +4,7 @@ Transaction4844Unsigned:
   required:
     - type
     - nonce
-    - address
+    - to
     - gas
     - value
     - input
@@ -12,6 +12,7 @@ Transaction4844Unsigned:
     - maxFeePerGas
     - maxFeePerBlobGas
     - accessList
+    - blobVersionedHashes
     - chainId
   properties:
     type:
