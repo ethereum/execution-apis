@@ -43,7 +43,7 @@ Transaction4844Unsigned:
     maxFeePerBlobGas:
       title: max fee per blob gas
       description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
-      $ref: '#components/schemas/uint'
+      $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
       description: EIP-2930 access list
@@ -399,7 +399,7 @@ GenericTransaction:
     maxFeePerBlobGas:
       title: max fee per blob gas
       description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
-      $ref: '#components/schemas/uint'
+      $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
       description: EIP-2930 access list
