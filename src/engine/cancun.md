@@ -122,9 +122,11 @@ Refer to the response for [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_fo
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2) with addition of the following:
 
-1. Client software **MUST** check that provided set of parameters and their fields strictly matches the expected one and return `-32602: Invalid params` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
+1. Client software **MUST** validate and apply the forkchoice state before validating `payloadAttributes`. If `forkchoiceState` does not match the expected fields, clients must return `-32602: Invalid params`.
 
-2. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes` is set and the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork.
+2. Client software **MUST** check that `payloadAttributes` strictly matches the expected fields and return `-38003: Invalid payload attributes` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
+
+3. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes` is set and the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork.
 
 ### engine_getPayloadV3
 
