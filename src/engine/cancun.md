@@ -128,6 +128,8 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./s
 
 3. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes` is set and the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork.
 
+4. Client software **MUST** return `-38003: Invalid payload attributes` if the `payloadAttributes.timestamp` is less or equal to the timestamp of a block referenced by `forkchoiceState.headBlockHash`.
+
 ### engine_getPayloadV3
 
 The response of this method is extended with [`BlobsBundleV1`](#blobsbundlev1) containing the blobs, their respective KZG commitments
