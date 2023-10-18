@@ -79,6 +79,15 @@ Block:
     withdrawalsRoot:
       title: Withdrawals root
       $ref: '#/components/schemas/hash32'
+    blobGasUsed:
+      title: Blob gas used
+      $ref: '#/components/schemas/uint'
+    excessBlobGas:
+      title: Excess blob gas
+      $ref: '#/components/schemas/uint'
+    parentBeaconBlockRoot:
+      title: Parent Beacon Block Root
+      $ref: '#/components/schemas/hash32'
     size:
       title: Block size
       $ref: '#/components/schemas/uint'

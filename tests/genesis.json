@@ -3,7 +3,6 @@
     "chainId": 1337,
     "homesteadBlock": 0,
     "eip150Block": 0,
-    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "eip155Block": 0,
     "eip158Block": 0,
     "byzantiumBlock": 0,
@@ -16,6 +15,7 @@
     "arrowGlacierBlock": 0,
     "grayGlacierBlock": 0,
     "shanghaiTime": 0,
+    "cancunTime": 0,
     "terminalTotalDifficulty": 0,
     "terminalTotalDifficultyPassed": true,
     "ethash": {}
@@ -33,6 +33,9 @@
       "balance": "0xde0b6b3a7640000"
     },
     "658bdf435d810c91414ec09147daa6db62406379": {
+      "balance": "0x487a9a304539440000"
+    },
+    "a94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
       "balance": "0x487a9a304539440000"
     },
     "aa00000000000000000000000000000000000000": {
@@ -61,5 +64,7 @@
   "number": "0x0",
   "gasUsed": "0x0",
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "baseFeePerGas": "0x3b9aca00"
+  "baseFeePerGas": "0x3b9aca00",
+  "excessBlobGas": null,
+  "blobGasUsed": null
 }
