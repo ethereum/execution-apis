@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import graphql from 'graphql';
 import { diff } from '@graphql-inspector/core';
 
@@ -35,36 +36,44 @@ diff(schema, schemaStd, [ignoreDirectiveChanges])
   })
   .catch(console.error);
 
-fs.readdir('tests/graphql', (_, files) => {
-  files.forEach((file) => {
-    if (!fs.lstatSync(`tests/graphql/${file}`).isDirectory()) {
-      return;
-    }
+function validateGraphql(dir) {
+  fs.readdir(dir, (_, files) => {
+    files.forEach((file) => {
+      const filePath = path.join(dir, file);
 
-    const query = graphql.parse(
-      fs.readFileSync(`tests/graphql/${file}/request.gql`, 'utf8')
-    );
-    const output = JSON.parse(
-      fs.readFileSync(`tests/graphql/${file}/response.json`, 'utf8')
-    );
-    if (!('statusCode' in output) || !('responses' in output)) {
-      throw new Error(
-        `GraphQL response ${file} without 'statusCode' or 'responses' keys`
-      );
-    }
-    if (output['statusCode'] === 200) {
-      const result = graphql.validate(schema, query);
-      if (result.length === 0) {
-        console.log(`GraphQL request ${file} validated successfully.`);
+      console.log(`Validating file: ${filePath}`);
+      if (fs.statSync(filePath).isFile()) {
+        const lines = fs.readFileSync(filePath, 'utf8').split('\n');
+
+        let prev = null;
+        lines.forEach((line) => {
+          if (prev && prev.startsWith('>> ') && line.startsWith('<< ')) {
+            const output = JSON.parse(line.substring(3));
+
+            // Validate the success Query
+            if (!'errors' in output) {
+              const query = graphql.parse(line.substring(3));
+              const result = graphql.validate(schema, query);
+              if (result.length === 0) {
+                console.log(`GraphQL test ${file} validated successfully.`);
+              } else {
+                throw new Error(
+                  `GraphQL query ${file} failed validation:\n${JSON.stringify(
+                    result,
+                    null,
+                    2
+                  )}`
+                );
+              }
+            }
+          }
+
+          prev = line;
+        });
       } else {
-        throw new Error(
-          `GraphQL query ${file} failed validation:\n${JSON.stringify(
-            result,
-            null,
-            2
-          )}`
-        );
+        validateGraphql(filePath);
       }
-    }
+    });
   });
-});
+}
+validateGraphql('tests/graphql');
