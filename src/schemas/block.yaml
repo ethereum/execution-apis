@@ -2,6 +2,7 @@ Block:
   title: Block object
   type: object
   required:
+    - hash
     - parentHash
     - sha3Uncles
     - miner
@@ -19,7 +20,11 @@ Block:
     - size
     - transactions
     - uncles
+  additionalProperties: false
   properties:
+    hash:
+      title: Hash
+      $ref: '#/components/schemas/hash32'
     parentHash:
       title: Parent block hash
       $ref: '#/components/schemas/hash32'
@@ -43,7 +48,7 @@ Block:
       $ref: '#/components/schemas/bytes256'
     difficulty:
       title: Difficulty
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/uint'
     number:
       title: Number
       $ref: '#/components/schemas/uint'
@@ -74,6 +79,15 @@ Block:
     withdrawalsRoot:
       title: Withdrawals root
       $ref: '#/components/schemas/hash32'
+    blobGasUsed:
+      title: Blob gas used
+      $ref: '#/components/schemas/uint'
+    excessBlobGas:
+      title: Excess blob gas
+      $ref: '#/components/schemas/uint'
+    parentBeaconBlockRoot:
+      title: Parent Beacon Block Root
+      $ref: '#/components/schemas/hash32'
     size:
       title: Block size
       $ref: '#/components/schemas/uint'
@@ -86,7 +100,7 @@ Block:
         - title: Full transactions
           type: array
           items:
-            $ref: '#/components/schemas/TransactionSigned'
+            $ref: '#/components/schemas/TransactionInfo'
     withdrawals:
       title: Withdrawals
       type: array
@@ -130,10 +144,11 @@ BadBlock:
     - block
     - hash
     - rlp
+  additionalProperties: false
   properties:
     block:
       title: Block
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/Block'
     hash:
       title: Hash
       $ref: '#/components/schemas/hash32'

@@ -6,6 +6,7 @@ Withdrawal:
     - validatorIndex
     - address
     - amount
+  additionalProperties: false
   properties:
     index:
       title: index of withdrawal

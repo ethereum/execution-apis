@@ -21,6 +21,27 @@
       message: Invalid forkchoice state
     - code: -38003
       message: Invalid payload attributes
+  examples:
+    - name: engine_forkchoiceUpdatedV1 example
+      params:
+        - name: Forkchoice state
+          value:
+            headBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            safeBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            finalizedBlockHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+        - name: Payload attributes
+          value:
+            timestamp: '0x5'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            suggestedFeeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+      result:
+        name: Response object
+        value:
+          payloadStatus:
+            status: VALID
+            latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            validationError: null
+          payloadId: '0x0000000021f32cc1'
 - name: engine_forkchoiceUpdatedV2
   summary: Updates the forkchoice state
   externalDocs:
@@ -44,3 +65,91 @@
       message: Invalid forkchoice state
     - code: -38003
       message: Invalid payload attributes
+  examples:
+    - name: engine_forkchoiceUpdatedV2 example
+      params:
+        - name: Forkchoice state
+          value:
+            headBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            safeBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            finalizedBlockHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+        - name: Payload attributes
+          value:
+            timestamp: '0x64e7785b'
+            prevRandao: '0xc130d5e63c61c935f6089e61140ca9136172677cf6aa5800dcc1cf0a02152a14'
+            suggestedFeeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+      result:
+        name: Response object
+        value:
+          payloadStatus:
+            status: VALID
+            latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            validationError: null
+          payloadId: '0x0000000021f32cc1'
+- name: engine_forkchoiceUpdatedV3
+  summary: Updates the forkchoice state
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/cancun.md#engine_forkchoiceupdatedv3
+  params:
+    - name: Forkchoice state
+      required: true
+      schema:
+        $ref: '#/components/schemas/ForkchoiceStateV1'
+    - name: Payload attributes
+      required: false
+      schema:
+        $ref: '#/components/schemas/PayloadAttributesV3'
+  result:
+    name: Response object
+    schema:
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
+  errors:
+    - code: -38002
+      message: Invalid forkchoice state
+    - code: -38003
+      message: Invalid payload attributes
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork
+  examples:
+    - name: engine_forkchoiceUpdatedV3 example
+      params:
+        - name: Forkchoice state
+          value:
+            headBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            safeBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            finalizedBlockHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+        - name: Payload attributes
+          value:
+            timestamp: '0x64e7785b'
+            prevRandao: '0xc130d5e63c61c935f6089e61140ca9136172677cf6aa5800dcc1cf0a02152a14'
+            suggestedFeeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+            parentBeaconBlockRoot: '0x11f780a954bcba8889998e4e61deaae6388dd2391e9c810bd9c94962cc1eadc1'
+      result:
+        name: Response object
+        value:
+          payloadStatus:
+            status: VALID
+            latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            validationError: null
+          payloadId: '0x0000000021f32cc1'
