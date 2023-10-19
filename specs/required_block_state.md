@@ -117,13 +117,11 @@ Most values are chosen to be the approximately the smallest possible value.
 
 | Name | Value | Description |
 | - | - | - |
-| MAX_ACCOUNT_NODES_PER_BLOCK | uint16(32768) | - |
 | MAX_BLOCKHASH_READS_PER_BLOCK | uint16(256) | A BLOCKHASH opcode may read up to 256 recent blocks |
 | MAX_BYTES_PER_NODE | uint16(32768) | - |
 | MAX_BYTES_PER_CONTRACT | uint16(32768) | - |
 | MAX_CONTRACTS_PER_BLOCK | uint16(2048) | - |
-| MAX_NODES_PER_PROOF | uint16(64) | - |
-| MAX_STORAGE_NODES_PER_BLOCK | uint16(32768) | - |
+| MAX_NODES_PER_BLOCK | uint16(32768) | - |
 | MAX_ACCOUNT_PROOFS_PER_BLOCK | uint16(8192) | - |
 | MAX_STORAGE_PROOFS_PER_ACCOUNT | uint16(8192) | - |
 
@@ -134,10 +132,11 @@ Most values are chosen to be the approximately the smallest possible value.
 The entire `RequiredBlockState` data format is represented by the following (SSZ-encoded and
 snappy-compressed) container.
 
-As proofs sometimes have common internal nodes, all internal nodes for proofs are aggregated
-for deduplication. They are located in the `account_nodes` and `storage_nodes` members.
-Proofs refer to those nodes by index. A "compact" proof consists of a list of indices, indicating
-which node is used.
+All trie nodes (account and storage) are aggregated for deduplication and simplicity.
+They are located in the `trie_nodes` members.
+A "compact" proof consists only of the root hash for that trie and the information required
+for computing the trie path. The trie nodes can then be traversed by locating the first
+node using the root hash and starting the traversal.
 
 The proof data represents values in the historical chain immediately prior to the execution of
 the block (sometimes referred to as "prestate"). That is, `RequiredBlockState` for block `n`
@@ -150,9 +149,7 @@ class RequiredBlockState(Container):
     #sorted
     contracts: List[Contract, MAX_CONTRACTS_PER_BLOCK]
     #sorted
-    account_nodes: List[TrieNode, MAX_ACCOUNT_NODES_PER_BLOCK]
-    #sorted
-    storage_nodes: List[TrieNode, MAX_STORAGE_NODES_PER_BLOCK]
+    trie_nodes: List[TrieNode, MAX_NODES_PER_BLOCK]
     #sorted (by block number)
     block_hashes: List[RecentBlockHash, MAX_BLOCKHASH_READS_PER_BLOCK]
 ```
@@ -163,8 +160,8 @@ The `RequiredBlockState` is compressed using snappy encoding (see algorithms sec
 
 Represents the proof data whose root is the state root in the block header of the preceeding block.
 
-The `account_proof` member consists of indices that refer to items in the `account_nodes` member
-of the `RequiredBlockState` container.
+The account proof is obtained by calculating the account hash and traversing nodes in the
+`RequiredBlockState` container.
 
 ```python
 class CompactEip1186Proof(Container):
@@ -173,8 +170,6 @@ class CompactEip1186Proof(Container):
     code_hash: Vector[uint8, 32]
     nonce: List[uint8, 8]
     storage_hash: Vector[uint8, 32]
-    #sorted: node nearest to root first
-    account_proof: List[uint16, MAX_NODES_PER_PROOF]
     #sorted
     storage_proofs: List[CompactStorageProof, MAX_STORAGE_PROOFS_PER_ACCOUNT]
 ```
@@ -207,16 +202,13 @@ class RecentBlockHash(Container):
 
 ### `CompactStorageProof`
 
-The `proof` member consists of indices that refer to items in the `storage_nodes` member
-of the `RequiredBlockState` container.
+The account proof is obtained by calculating the hash of the key and traversing nodes in the
+`RequiredBlockState` container.
 
-The proof consists of a list of indices, one per node. The indices refer to the nodes in `TrieNode`.
 ```python
 class CompactStorageProof(Container):
     key: Vector[uint8, 32]
     value: List[uint8, 8]
-    #sorted: node nearest to root first
-    proof: List[uint16, MAX_NODES_PER_PROOF]
 ```
 
 ## Algorithms
