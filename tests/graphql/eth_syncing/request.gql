@@ -1,7 +1,0 @@
-{
-  syncing {
-    startingBlock
-    currentBlock
-    highestBlock
-  }
-}

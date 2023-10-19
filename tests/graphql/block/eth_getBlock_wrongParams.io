@@ -1,0 +1,2 @@
+>> {block(number: "0x03" hash: "0xc8df1f061abb4d0c107b2b1a794ade8780b3120e681f723fe55a7be586d95ba6") {number transactions {hash} timestamp difficulty totalDifficulty gasUsed gasLimit hash nonce ommerCount logsBloom mixHash ommerHash extraData stateRoot receiptsRoot transactionCount transactionsRoot}}
+<< {"errors":[{"message":"Exceptionwhilefetchingdata(/block):Invalidparams","locations":[{"line":1,"column":2}],"path":["block"],"extensions":{"errorCode":-32602,"errorMessage":"Invalidparams","classification":"DataFetchingException"}}],"data":null}

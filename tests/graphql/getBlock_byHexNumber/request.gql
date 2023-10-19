@@ -1,7 +1,0 @@
-{
-  block(number: "0x1e") {
-    gasUsed
-    gasLimit
-    hash
-  }
-}

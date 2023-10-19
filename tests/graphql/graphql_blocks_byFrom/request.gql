@@ -1,5 +1,0 @@
-{
-  blocks(from: 30) {
-    number
-  }
-}

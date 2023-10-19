@@ -1,0 +1,2 @@
+>> {pending {transactionCount transactions {nonce gas} account(address: "0x6295ee1b4f6dd65047762f924ecd367c17eabf8f") {balance} estimateGas(data: {}) call(data: {from: "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b" to: "0x6295ee1b4f6dd65047762f924ecd367c17eabf8f" data: "0x12a7b914"}) {data status}}}
+<< {"data":{"pending":{"transactionCount":"0x1","transactions":[{"nonce":"0x32","gas":"0xfffff"}],"account":{"balance":"0x140"},"estimateGas":"0x5208","call":{"data":"0x0000000000000000000000000000000000000000000000000000000000000001","status":"0x1"}}}}
