@@ -75,7 +75,7 @@ Here we want our calls to be executed in blocks 11 (0xb) and in 12 (0xc). The bl
 Our solution to this problem is to define block hash of a phantom block to be:
 
 ```
-phantom block at block #i = keccac(rlp(hash_of_previous_non_phantom_block, #i))
+keccak(rlp([hash_of_previous_non_phantom_block, phantom_block_number]))
 ```
 
 So for example in our example, you could get block hash of block #142 as 
