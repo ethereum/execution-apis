@@ -202,7 +202,7 @@ But not following ones:
  - Gas fees
  - Multicalls eth balance override  
 
-ETH logs are not part of the calculation for logs bloom filter. Also similarly to normal logs, if the transaction sends eth but the execution reverts, no log gets issued.
+ETH logs are not part of the calculation for logs bloom filter. Also, similar to normal logs, if the transaction sends ETH but the execution reverts, no log gets issued.
 
 ## Validation
 The multicall has a feature to enable or disable validation with setting `Validation`, by default, the validation is off, and the multicall mimics `eth_call` with reduced number of checks. Validation enabled mode is intended to give as close as possible simulation of real EVM block creation, except there's no checks for transaction signatures and we also allow one to send a direct transaction from a contract.
