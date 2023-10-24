@@ -212,5 +212,5 @@ The method name for multicall ´eth_multicallV1` the intention is that after rel
 
 ## Clients can set their own limits
 Clients may introduce their own limits to prevent DOS attacks using the method. We have thought of two such standard limits
-- How many blocks can be defined in `BlockStateCalls`. The suggested default for this si 256 blocks
+- How many blocks can be defined in `BlockStateCalls`. The suggested default for this is 256 blocks
 - a global gas limit (similar to the same limit for `eth_call`). The multicall cannot exceed the global gas limit over its lifespan
