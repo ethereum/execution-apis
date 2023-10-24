@@ -208,7 +208,7 @@ ETH logs are not part of the calculation for logs bloom filter. Also, similar to
 The multicall has a feature to enable or disable validation with setting `Validation`, by default, the validation is off, and the multicall mimics `eth_call` with reduced number of checks. Validation enabled mode is intended to give as close as possible simulation of real EVM block creation, except there's no checks for transaction signatures and we also allow one to send a direct transaction from a contract.
 
 ## Version number
-The method name for multicall ´eth_multicallV1` the intention is that after release of multicall, if new features are wanted the `eth_multicallV1` is kept as it is, and instead `eth_multicallV2` is published with the new wanted features.
+The method name for multicall `eth_multicallV1` the intention is that after release of multicall, if new features are wanted the `eth_multicallV1` is kept as it is, and instead `eth_multicallV2` is published with the new wanted features.
 
 ## Clients can set their own limits
 Clients may introduce their own limits to prevent DOS attacks using the method. We have thought of two such standard limits
