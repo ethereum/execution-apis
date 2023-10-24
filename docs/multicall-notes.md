@@ -196,7 +196,7 @@ As can be seen, the sending address is the zero address, `0xddf252ad1be2c89b69c2
 The ETH logs will contain following types of ETH transfers:
  - Transfering ETH from EOA
  - Transfering ETH via contract
- - Selfdestructuring contract sending eth
+ - Selfdestructing contract sending ETH
 
 But not following ones:
  - Gas fees
