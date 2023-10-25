@@ -329,11 +329,11 @@ GenericCallTransaction:
       title: from address
       $ref: '#/components/schemas/address'
       description: |-
-        Default: 0x0
+        Default: null
     gas:
       title: gas limit
       description: |-
-        Default: Remaining gas in a block
+        Default: Remaining gas in the current block
       $ref: '#/components/schemas/uint64'
     value:
       title: value

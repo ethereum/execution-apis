@@ -16,7 +16,7 @@ Unlike `eth_call`, `eth_multicallV1`'s calls are conducted inside blocks. We don
 | hash | calculated normally, except for phantom blocks, see below Phantom block section |
 | parentHash | previous blocks hash (the real hash, or phantom blocks hash) |
 | timestamp | the timestamp of previous block + 1 |
-| baseFeePerGas | calculated on what it should be according to ethereum's spec. Note: Phantom blocks do not have transactions so this is always adjusted downwards on them |
+| baseFeePerGas | calculated on what it should be according to ethereum's spec. Note: baseFeePerGas is not adjusted in the phantom blocks. |
 | sha3Uncles | empty trie root |
 | withdrawals | empty array |
 | uncles | empty array |
@@ -43,25 +43,13 @@ The multicall allows you to define on what block number your calls or transactio
 			"blockStateCalls": [
 				{
 					"blockOverrides": {
-						"number": "0xb"
+						"number": "0x64"
 					},
-					"calls": [
-						{
-							"from": "0xc000000000000000000000000000000000000000",
-							"input": "0x4360005260206000f3"
-						}
-					]
 				},
 				{
 					"blockOverrides": {
-						"number": "0xc"
+						"number": "0xc8"
 					},
-					"calls": [
-						{
-							"from": "0xc100000000000000000000000000000000000000",
-							"input": "0x4360005260206000f3"
-						}
-					]
 				}
 			]
 		},
@@ -70,7 +58,7 @@ The multicall allows you to define on what block number your calls or transactio
 }
 ```
 
-Here we want our calls to be executed in blocks 11 (0xb) and in 12 (0xc). The block numbers can be anything as long as they are increasing and higher than the block we are building from 10 (0xa). So, we could set the blocks to be 100 and 200 for example. Now we end up in a situation where there exists block ranges 13-99 and 101-199 that are not defined anywhere. These blocks are called "phantom blocks". What happens if you try to request block hash of any of such blocks in the EVM? How can we calculate the block hash of future blocks when we don't know the block hash of the previous block?
+Here we want our calls to be executed in blocks 100 (0x64) and in 200 (0xc8). The block numbers can be anything as long as they are increasing and higher than the block we are building from 10 (0xa). Now we end up in a situation where there exists block ranges 13-99 and 101-199 that are not defined anywhere. These blocks are called "phantom blocks". What happens if you try to request block hash of any of such blocks in the EVM? How can we calculate the block hash of future blocks when we don't know the block hash of the previous block?
 
 Our solution to this problem is to define block hash of a phantom block to be:
 
@@ -78,14 +66,16 @@ Our solution to this problem is to define block hash of a phantom block to be:
 keccak(rlp([hash_of_previous_non_phantom_block, phantom_block_number]))
 ```
 
-So for example in our example, you could get block hash of block #142 as 
+So for example in our example, you could get block hash of block 142 as follows: 
 ```
-phantom block at block #i = keccac(rlp(hash of block #12, #142))
+keccac(rlp([hash of block 12, 142]))
 ```
 
 The phantom blocks other properties are set to their default properties as defined by the multicall specification. We came to this definition by wanting phantom block hashes to be unique if things prior to the phantom block changes, so if tooling is storing block hashes somewhere, they should remain unique if things change in the simulation.
 
 One other approach to this problem would be to really calculate the real block hashes for all the phantom blocks, but this would make generating blocks far in future really expensive, as to generate 100 phantom blocks, you would need to calculate 100 block hashes that all depend on each other. And in most cases, no one really cares about these blocks.
+
+Base fee per gas is not adjusted in the phantom blocks, their base fee remains constant.
 
 ## Default values for transactions
 As multicall is an extension to `eth_call` we want to enable the nice user experience that the user does not need to provide all required values for a transaction. We are assuming following defaults if the variable is not provided by the user:
@@ -93,9 +83,9 @@ As multicall is an extension to `eth_call` we want to enable the nice user exper
 -----------------|-----------------------
 | type | 0x2 |
 | nonce | Defaults to correct nonce |
-| to | 0x0 |
+| to | null |
 | from | 0x0 |
-| gas limit | defaults to gas used amount |
+| gas limit | Remaining gas in the curent block |
 | value | 0x0 |
 | input | no data |
 | gasPrice | 0x0 |
