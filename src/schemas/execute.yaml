@@ -217,6 +217,8 @@ MultiCallBlockResultInvalid:
           message: Sender is not an EoA
         - code: -38025
           message: Max init code size exceeded
+        - code: -38026
+          message: Client adjustable limit exceeded
 CallResults:
   title: Results of multi call within block
   type: array
