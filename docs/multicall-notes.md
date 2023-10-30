@@ -85,7 +85,7 @@ As multicall is an extension to `eth_call` we want to enable the nice user exper
 | nonce | Defaults to correct nonce |
 | to | null |
 | from | 0x0 |
-| gas limit | Remaining gas in the curent block |
+| gas limit | Remaining gas in the current block |
 | value | 0x0 |
 | input | no data |
 | gasPrice | 0x0 |
