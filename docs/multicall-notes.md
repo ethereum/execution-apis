@@ -6,11 +6,11 @@ Unlike `eth_call`, `eth_multicallV1`'s calls are conducted inside blocks. We don
 
 | parameter name | default value |
 -----------------|-----------------------
-| prevRandao | 0x0 |
-| feeRecipient | 0x0 |
-| mixHash | 0x0 |
+| prevRandao | 0x0000000000000000000000000000000000000000000000000000000000000000 |
+| feeRecipient | 0x0000000000000000000000000000000000000000 |
+| mixHash | 0x0000000000000000000000000000000000000000000000000000000000000000 |
 | nonce | 0x0 |
-| extraData | 0x0 |
+| extraData | 0x0000000000000000000000000000000000000000000000000000000000000000 |
 | difficulty | The same as the base block defined as the second parameter in the call |
 | gasLimit | The same as the base block defined as the second parameter in the call |
 | hash | calculated normally, except for phantom blocks, see below Phantom block section |
