@@ -2099,7 +2099,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Long",
+              "name": "BigInt",
               "ofType": null
             },
             "isDeprecated": false,
