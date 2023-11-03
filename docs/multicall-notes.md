@@ -13,25 +13,25 @@ Unlike `eth_call`, `eth_multicallV1`'s calls are conducted inside blocks. We don
 | extraData | 0x0000000000000000000000000000000000000000000000000000000000000000 |
 | difficulty | The same as the base block defined as the second parameter in the call |
 | gasLimit | The same as the base block defined as the second parameter in the call |
-| hash | calculated normally, except for phantom blocks, see below Phantom block section |
-| parentHash | previous blocks hash (the real hash, or phantom blocks hash) |
-| timestamp | the timestamp of previous block + 1 |
-| baseFeePerGas | calculated on what it should be according to ethereum's spec. Note: baseFeePerGas is not adjusted in the phantom blocks. |
-| sha3Uncles | empty trie root |
-| withdrawals | empty array |
-| uncles | empty array |
-| logsBloom | calculated normally. ETH logs are not part of the calculation |
-| receiptsRoot | calculated normally |
-| transactionsRoot | calculated normally |
-| number | calculated normally |
-| size | calculated normally |
-| withdrawalsRoot | calculated normally |
-| gasUsed | calculated normally |
-| stateRoot | calculated normally |
+| hash | Calculated normally, except for phantom blocks, see below Phantom block section |
+| parentHash | Previous blocks hash (the real hash, or phantom blocks hash) |
+| timestamp | The timestamp of previous block + 1 |
+| baseFeePerGas | Calculated on what it should be according to ethereum's spec. Note: baseFeePerGas is not adjusted in the phantom blocks. |
+| sha3Uncles | Empty trie root |
+| withdrawals | Empty array |
+| uncles | Empty array |
+| number | Previous block number + 1 |
+| logsBloom | Calculated normally. ETH logs are not part of the calculation |
+| receiptsRoot | Calculated normally |
+| transactionsRoot | Calculated normally |
+| size | Calculated normally |
+| withdrawalsRoot | Calculated normally |
+| gasUsed | Calculated normally |
+| stateRoot | Calculated normally |
 
 An interesting note here is that we decide timestamp as `previous block timestamp + 1`, while `previous block timestamp + 12` could also be an assumed default. The reasoning to use `+1` is that it's the minimum amount we have to increase the timestamp to keep them valid. While `+12` is what Mainnet uses, there are other chains that use some other values, and we didn't want to complicate the specification to consider all networks.
 
-## Phantom blocks
+### Phantom blocks
 The multicall allows you to define on what block number your calls or transactions are being executed on. Eg, consider following call:
 ```json
 {
@@ -85,13 +85,27 @@ As multicall is an extension to `eth_call` we want to enable the nice user exper
 | nonce | Defaults to correct nonce |
 | to | null |
 | from | 0x0000000000000000000000000000000000000000 |
-| gas limit | Remaining gas in the current block. This is calculated dynamically one by one for each transaction that is being processed.  |
+| gas limit | Remaining gas in the current block. This is calculated dynamically one by one for each transaction that is being processed. |
 | value | 0x0 |
 | input | no data |
 | gasPrice | 0x0 |
 | maxPriorityFeePerGas | 0x0 |
 | maxFeePerGas | 0x0 |
 | accessList | empty array |
+
+## Overriding default values
+The default values of blocks and transactions can be overriden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao` and `baseFeePerGas`:
+```json
+"blockOverrides": {
+	"number": "0x14",
+	"time": "0xc8",
+	"gasLimit": "0x2e631",
+	"feeRecipient": "0xc100000000000000000000000000000000000000",
+	"prevRandao": "0x0000000000000000000000000000000000000000000000000000000000001234",
+	"baseFeePerGas": "0x14"
+},
+```
+All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) or kept as their default values (eg. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, phantom blocks are created to fill the gaps.
 
 ## ETH transfer logs
 When `traceTransfers` setting is enabled on `eth_multicallV1` The multical will return logs for ethereum transfers along with the normal logs sent by contracts. The ETH transfers are identical to ERC20 transfers, except the "sending contract" is address 0x0.

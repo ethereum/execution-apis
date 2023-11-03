@@ -184,6 +184,8 @@ MultiCallBlockResultInvalid:
     error:
       oneOf:
         - code: -32000
+          message: Invalid request
+        - code: -32602
           message: Missing or invalid parameters
         - code: -32005
           message: Transactions maxFeePerGas is too low
