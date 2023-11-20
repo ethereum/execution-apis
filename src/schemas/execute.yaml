@@ -137,8 +137,8 @@ MultiCallResult:
   title: Full results of multi call
   type: object
   oneOf:
-    $ref: '#/components/schemas/MultiCallBlockResultInvalid'
-    $ref: '#/components/schemas/MultiCallBlockResultSuccess'
+    - $ref: '#/components/schemas/MultiCallBlockResultInvalid'
+    - $ref: '#/components/schemas/MultiCallBlockResultSuccess'
 MultiCallBlockResultSuccess:
   title: Full results of multi call
   type: array
@@ -204,7 +204,7 @@ MultiCallBlockResultInvalid:
         - code: -38013
           message: Not enough gas provided to pay for intrinsic gas for a transaction
         - code: -38014
-          message: Insufficient funds to pay for gas fees and value fo a transaction
+          message: Insufficient funds to pay for gas fees and value for a transaction
         - code: -38015
           message: Block gas limit exceeded by the block's transactions
         - code: -38020
@@ -216,7 +216,7 @@ MultiCallBlockResultInvalid:
         - code: -38023
           message: Multiple MovePrecompileToAddress referencing the same address to replace
         - code: -38024
-          message: Sender is not an EoA
+          message: Sender is not an EOA
         - code: -38025
           message: Max init code size exceeded
         - code: -38026

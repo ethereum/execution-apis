@@ -32,7 +32,7 @@ Unlike `eth_call`, `eth_multicallV1`'s calls are conducted inside blocks. We don
 An interesting note here is that we decide timestamp as `previous block timestamp + 1`, while `previous block timestamp + 12` could also be an assumed default. The reasoning to use `+1` is that it's the minimum amount we have to increase the timestamp to keep them valid. While `+12` is what Mainnet uses, there are other chains that use some other values, and we didn't want to complicate the specification to consider all networks.
 
 ### Phantom blocks
-The multicall allows you to define on what block number your calls or transactions are being executed on. Eg, consider following call:
+The multicall allows you to define on what block number your calls or transactions are being executed on. E.g, consider following call:
 ```json
 {
 	"jsonrpc": "2.0",
