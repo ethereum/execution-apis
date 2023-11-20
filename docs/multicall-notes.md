@@ -6,11 +6,11 @@ Unlike `eth_call`, `eth_multicallV1`'s calls are conducted inside blocks. We don
 
 | parameter name | default value |
 -----------------|-----------------------
-| prevRandao | 0x0000000000000000000000000000000000000000000000000000000000000000 |
-| feeRecipient | 0x0000000000000000000000000000000000000000 |
-| mixHash | 0x0000000000000000000000000000000000000000000000000000000000000000 |
-| nonce | 0x0 |
-| extraData | 0x0000000000000000000000000000000000000000000000000000000000000000 |
+| prevRandao | `0x0000000000000000000000000000000000000000000000000000000000000000` |
+| feeRecipient | `0x0000000000000000000000000000000000000000` |
+| mixHash | `0x0000000000000000000000000000000000000000000000000000000000000000` |
+| nonce | `0x0` |
+| extraData | `0x0000000000000000000000000000000000000000000000000000000000000000` |
 | difficulty | The same as the base block defined as the second parameter in the call |
 | gasLimit | The same as the base block defined as the second parameter in the call |
 | hash | Calculated normally, except for phantom blocks, see below Phantom block section |
@@ -58,7 +58,7 @@ The multicall allows you to define on what block number your calls or transactio
 }
 ```
 
-Here we want our calls to be executed in blocks 100 (0x64) and in 200 (0xc8). The block numbers can be anything as long as they are increasing and higher than the block we are building from 10 (0xa). Now we end up in a situation where there exists block ranges 13-99 and 101-199 that are not defined anywhere. These blocks are called "phantom blocks". What happens if you try to request block hash of any of such blocks in the EVM? How can we calculate the block hash of future blocks when we don't know the block hash of the previous block?
+Here we want our calls to be executed in blocks 100 (`0x64`) and in 200 (`0xc8`). The block numbers can be anything as long as they are increasing and higher than the block we are building from 10 (`0xa`). Now we end up in a situation where there exists block ranges 13-99 and 101-199 that are not defined anywhere. These blocks are called "phantom blocks". What happens if you try to request block hash of any of such blocks in the EVM? How can we calculate the block hash of future blocks when we don't know the block hash of the previous block?
 
 Our solution to this problem is to define block hash of a phantom block to be:
 
@@ -81,16 +81,16 @@ Base fee per gas is not adjusted in the phantom blocks, their base fee remains c
 As multicall is an extension to `eth_call` we want to enable the nice user experience that the user does not need to provide all required values for a transaction. We are assuming following defaults if the variable is not provided by the user:
 | parameter name | description |
 -----------------|-----------------------
-| type | 0x2 |
+| type | `0x2` |
 | nonce | Defaults to correct nonce |
-| to | null |
-| from | 0x0000000000000000000000000000000000000000 |
+| to | `null` |
+| from | `0x0000000000000000000000000000000000000000` |
 | gas limit | Remaining gas in the current block. This is calculated dynamically one by one for each transaction that is being processed. |
-| value | 0x0 |
+| value | `0x0` |
 | input | no data |
-| gasPrice | 0x0 |
-| maxPriorityFeePerGas | 0x0 |
-| maxFeePerGas | 0x0 |
+| gasPrice | `0x0` |
+| maxPriorityFeePerGas | `0x0` |
+| maxFeePerGas | `0x0` |
 | accessList | empty array |
 
 ## Overriding default values
@@ -110,7 +110,7 @@ All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) 
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
 ## ETH transfer logs
-When `traceTransfers` setting is enabled on `eth_multicallV1` The multical will return logs for ethereum transfers along with the normal logs sent by contracts. The ETH transfers are identical to ERC20 transfers, except the "sending contract" is address 0x0.
+When `traceTransfers` setting is enabled on `eth_multicallV1` The multical will return logs for ethereum transfers along with the normal logs sent by contracts. The ETH transfers are identical to ERC20 transfers, except the "sending contract" is address `0x0`.
 
 For example, here's a query that will simply send ether from one address to another (with a state override that gives us the ETH initially):
 ```json

@@ -61,12 +61,12 @@
     - name: Payload
       required: true
       schema:
-        type: '#/components/schemas/MultiCallPayload'
+        $ref: '#/components/schemas/MultiCallPayload'
     - name: Block tag
       required: false
       description: "default: 'latest'"
       schema:
-        type: '#/components/schemas/BlockNumberOrTagOrHash'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Result of calls
     schema:
