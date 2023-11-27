@@ -68,7 +68,7 @@ keccak(rlp([hash_of_previous_non_phantom_block, phantom_block_number]))
 
 So for example in our example, you could get block hash of block 142 as follows: 
 ```
-keccac(rlp([hash of block 12, 142]))
+keccak(rlp([hash of block 12, 142]))
 ```
 
 The phantom blocks other properties are set to their default properties as defined by the multicall specification. We came to this definition by wanting phantom block hashes to be unique if things prior to the phantom block changes, so if tooling is storing block hashes somewhere, they should remain unique if things change in the simulation.
