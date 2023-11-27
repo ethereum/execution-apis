@@ -197,7 +197,7 @@ Here the interesting part is:
 ],
 "data": "0x00000000000000000000000000000000000000000000000000000000000003e8",
 ```
-As can be seen, the sending address is the zero address, `0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef` corresponds to signature `Transfer(address,address,uint256)`, `"0x000000000000000000000000c000000000000000000000000000000000000000"` corresponds the sending address and `0x000000000000000000000000c100000000000000000000000000000000000000` is the receiving address. The amount of ETH moved is stored in the `data` field.
+In the observed event, the sender address is denoted as the zero address (`0x0`). The first topic (`0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef`) aligns with the event signature `Transfer(address,address,uint256)`, while the second topic (`0x000000000000000000000000c000000000000000000000000000000000000000`) corresponds to the sending address, and the third topic (`0x000000000000000000000000c100000000000000000000000000000000000000`) represents the receiving address. The quantity of ETH transacted is stored in the data field.
 
 The ETH logs will contain following types of ETH transfers:
  - Transfering ETH from EOA
@@ -220,6 +220,7 @@ It is possible that user defines a transaction that cannot be included in the Et
 The method name for multicall `eth_multicallV1` the intention is that after release of multicall, if new features are wanted the `eth_multicallV1` is kept as it is, and instead `eth_multicallV2` is published with the new wanted features.
 
 ## Clients can set their own limits
-Clients may introduce their own limits to prevent DOS attacks using the method. We have thought of two such standard limits
+Clients may introduce their own limits to prevent DOS attacks using the method. We have thought of three such standard limits
 - How many blocks can be defined in `BlockStateCalls`. The suggested default for this is 256 blocks
 - A global gas limit (similar to the same limit for `eth_call`). The multicall cannot exceed the global gas limit over its lifespan
+- The clients can set their own limit on how big the input JSON payload can be. A suggested default for this is 30mb
