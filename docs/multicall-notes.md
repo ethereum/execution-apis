@@ -58,7 +58,7 @@ The multicall allows you to define on what block number your calls or transactio
 }
 ```
 
-Here we want our calls to be executed in blocks 100 (`0x64`) and in 200 (`0xc8`). The block numbers can be anything as long as they are increasing and higher than the block we are building from 10 (`0xa`). Now we end up in a situation where there exists block ranges 13-99 and 101-199 that are not defined anywhere. These blocks are called "phantom blocks". What happens if you try to request block hash of any of such blocks in the EVM? How can we calculate the block hash of future blocks when we don't know the block hash of the previous block?
+Here we want our calls to be executed in blocks 100 (`0x64`) and in 200 (`0xc8`). The block numbers can be anything as long as they are increasing and higher than the block we are building from 10 (`0xa`). Now we end up in a situation where there exists block ranges 11-99 and 101-199 that are not defined anywhere. These blocks are called "phantom blocks". What happens if you try to request block hash of any of such blocks in the EVM? How can we calculate the block hash of future blocks when we don't know the block hash of the previous block?
 
 Our solution to this problem is to define block hash of a phantom block to be:
 
