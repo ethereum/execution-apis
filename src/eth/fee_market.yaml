@@ -6,28 +6,14 @@
     schema:
       title: Gas price
       $ref: '#/components/schemas/uint'
-- name: eth_gasPrices
-  summary: Returns the current prices for regular, blob gas and maxPriorityFee in wei.
+- name: eth_blobGasPrice
+  summary: Returns the current price per blob gas in wei.
   params: []
   result:
-    name: gasPricesResult
-    description: Prices of regular and blob gas along with priority fee
+    name: Blob gas price
     schema:
-      title: gasPricesResults
-      type: object
-      required:
-        - gasPrices
-      additionalProperties: false
-      properties:
-        gas:
-          title: Gas Price
-          $ref: '#/components/schemas/uint'
-        blobGas:
-          title: Blob gas price
-          $ref: '#/components/schemas/uint'
-        maxPriority:
-          description: Max priority fee per gas
-          $ref: '#/components/schemas/uint'
+      title: Blob gas price
+      $ref: '#/components/schemas/uint'
 - name: eth_maxPriorityFeePerGas
   summary: Returns the current maxPriorityFeePerGas per gas in wei.
   params: []
