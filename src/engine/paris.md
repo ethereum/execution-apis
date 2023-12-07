@@ -111,7 +111,7 @@ Payload validation process consists of validating a payload with respect to the 
       payload satisfying the above conditions.
   * Client software **MUST NOT** surface an `INVALID` payload over any API endpoint and p2p interface.
 
-4. Client software **MUST** not classify the same payload as either both `INVALID` and `VALID` or `INVALID_BLOCK_HASH` and `VALID`.
+4. Payload validation process **MUST** be idempotent with respect to payload's validity status (`VALID | INVALID`), i.e. a payload which validity status is `INVALID (INVALID_BLOCK_HASH)` **MUST NOT** become `VALID` and vice versa at any point in time when it subsequently runs through the validation process. Client software **MAY** change payload status from `INVALID` to `SYNCING | ACCEPTED` as long as the payload remains `INVALID` as a result of any further run of the validation process.
 
 5. Client software **MAY** provide additional details on the validation error if a payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
 
