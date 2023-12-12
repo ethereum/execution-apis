@@ -163,7 +163,7 @@ The output of this query is:
 					"returnData": "0x",
 					"logs": [
 						{
-							"address": "0x0000000000000000000000000000000000000000",
+							"address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
 							"topics": [
 								"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 								"0x000000000000000000000000c000000000000000000000000000000000000000",
@@ -189,7 +189,7 @@ The output of this query is:
 
 Here the interesting part is:
 ```json
-"address": "0x0000000000000000000000000000000000000000",
+"address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
 "topics": [
 	"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 	"0x000000000000000000000000c000000000000000000000000000000000000000",
@@ -197,7 +197,7 @@ Here the interesting part is:
 ],
 "data": "0x00000000000000000000000000000000000000000000000000000000000003e8",
 ```
-In the observed event, the sender address is denoted as the zero address (`0x0`). The first topic (`0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef`) aligns with the event signature `Transfer(address,address,uint256)`, while the second topic (`0x000000000000000000000000c000000000000000000000000000000000000000`) corresponds to the sending address, and the third topic (`0x000000000000000000000000c100000000000000000000000000000000000000`) represents the receiving address. The quantity of ETH transacted is stored in the data field.
+In the observed event, the sender address is denoted as the `0xee...` address. The first topic (`0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef`) aligns with the event signature `Transfer(address,address,uint256)`, while the second topic (`0x000000000000000000000000c000000000000000000000000000000000000000`) corresponds to the sending address, and the third topic (`0x000000000000000000000000c100000000000000000000000000000000000000`) represents the receiving address. The quantity of ETH transacted is stored in the data field.
 
 The ETH logs will contain following types of ETH transfers:
  - Transfering ETH from EOA

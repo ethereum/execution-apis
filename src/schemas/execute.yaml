@@ -10,7 +10,7 @@ MultiCallPayload:
     traceTransfers:
       title: Trace ETH Transfers
       description: |-
-        Adds ETH transfers as ERC20 transfer events to the logs. These transfers have emitter contract parameter set as address(0x0).
+        Adds ETH transfers as ERC20 transfer events to the logs. These transfers have emitter contract parameter set as address(0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee).
         Default: false.
       type: boolean
     validation:
@@ -300,7 +300,7 @@ CallResultLog:
       $ref: '#/components/schemas/uint64'
     address:
       title: address
-      description: When trace transfers is enabled, this field is address(0x0) for ETH transfers.
+      description: When trace transfers is enabled, this field is address(0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee) for ETH transfers.
       $ref: '#/components/schemas/address'
     data:
       title: data
