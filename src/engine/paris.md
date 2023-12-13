@@ -111,9 +111,11 @@ Payload validation process consists of validating a payload with respect to the 
       payload satisfying the above conditions.
   * Client software **MUST NOT** surface an `INVALID` payload over any API endpoint and p2p interface.
 
-4. Client software **MAY** provide additional details on the validation error if a payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
+4. Payload validation process **MUST** be idempotent with respect to payload's validity status (`VALID | INVALID`), i.e. a payload which validity status is `INVALID (INVALID_BLOCK_HASH)` **MUST NOT** become `VALID` and vice versa at any point in time when it subsequently runs through the validation process. Client software **MAY** change payload status from `INVALID` to `SYNCING | ACCEPTED` as long as the payload remains `INVALID` as a result of any further run of the validation process.
 
-5. The process of validating a payload on the canonical chain **MUST NOT** be affected by an active sync process on a side branch of the block tree. For example, if side branch `B` is `SYNCING` but the requisite data for validating a payload from canonical branch `A` is available, client software **MUST** run full validation of the payload and respond accordingly.
+5. Client software **MAY** provide additional details on the validation error if a payload is deemed `INVALID` by assigning the corresponding message to the `validationError` field.
+
+6. The process of validating a payload on the canonical chain **MUST NOT** be affected by an active sync process on a side branch of the block tree. For example, if side branch `B` is `SYNCING` but the requisite data for validating a payload from canonical branch `A` is available, client software **MUST** run full validation of the payload and respond accordingly.
 
 ### Sync
 
