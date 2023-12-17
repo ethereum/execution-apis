@@ -1,6 +1,6 @@
 FilterResults:
   title: Filter results
-  oneOf:
+  anyOf:
     - title: new block hashes
       type: array
       items:
