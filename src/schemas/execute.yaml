@@ -136,6 +136,9 @@ BlockOverrides:
     withdrawals:
       title: Withdrawals made by validators
       $ref: '#/components/schemas/Withdrawals'
+    blobGasPrice:
+      title: Blob gas price
+      $ref: '#/components/schemas/uint256'
 Withdrawals:
   title: Withdrawals made by validators
   description: This array can have a maximum length of 16.
@@ -202,6 +205,15 @@ MultiCallBlockResultSingleSuccess:
     withdrawals:
       title: Withdrawals made by validators
       $ref: '#/components/schemas/Withdrawals'
+    blobGasUsed:
+      title: The total amount of blob gas consumed by the transactions within the block.
+      $ref: '#/components/schemas/uint256'
+    excessBlobGas:
+      title: The running total of blob gas consumed in excess of the target, prior to the block.
+      $ref: '#/components/schemas/uint256'
+    blobGasPrice:
+      title: Blob gas price
+      $ref: '#/components/schemas/uint256'
 MultiCallBlockResultInvalid:
   title: Result of multicall not being valid
   description: The error messages are suggestions and a client might decide to return a different errror message than specified here. However, the error codes are enforced by this specification.
@@ -401,3 +413,9 @@ GenericCallTransaction:
         EIP-2930 access list
         Default: []
       $ref: '#/components/schemas/AccessList'
+    blobVersionedHashes:
+      title: Blob versioned hashes
+      description: |-
+        EIP-4844 versioned hashes
+        Default: []
+      $ref: '#/components/schemas/bytes32'
