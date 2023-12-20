@@ -1,11 +1,7 @@
 FilterResults:
   title: Filter results
-  anyOf:
-    - title: new block hashes
-      type: array
-      items:
-        $ref: '#/components/schemas/hash32'
-    - title: new transaction hashes
+  oneOf:
+    - title: new block or transaction hashes
       type: array
       items:
         $ref: '#/components/schemas/hash32'
