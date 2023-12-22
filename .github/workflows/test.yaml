@@ -22,4 +22,4 @@ jobs:
       - name: Install speccheck
         run: go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
       - name: Run speccheck
-        run: speccheck -v
+        run: speccheck -v --tests tests/jsonrpc

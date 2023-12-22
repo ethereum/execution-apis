@@ -1,0 +1,2 @@
+>> mutation {sendRawTransaction(data: "0xed0a85174876e800830222e0945aae326516b4f8fe08074b7e972e40a713048d62880de0b6b3a7640000801c8080")}
+<< {"errors":[{"message":"Exceptionwhilefetchingdata(/sendRawTransaction):Invalidparams","locations":[{"line":1,"column":12}],"path":["sendRawTransaction"],"extensions":{"errorCode":-32602,"errorMessage":"Invalidparams","classification":"DataFetchingException"}}],"data":null}
