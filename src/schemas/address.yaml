@@ -1,0 +1,54 @@
+BlockAddresses:
+  type: object
+  title: Block addresses
+  description: Addresses that appear in a single block
+  required:
+    - addresses
+    - blockNumber
+  additionalProperties: false
+  properties:
+    addresses:
+      title: Block addresses
+      type: array
+      $ref: '#/components/schemas/AddressBlockAppearances'
+    blockNumber:
+      title: Block number
+      $ref: '#/components/schemas/uint'
+AddressBlockAppearances:
+  type: object
+  title: Address appearances in a single block
+  description: An address that appears in one or more locations in a block
+  required:
+    - address
+    - locations
+  additionalProperties: false
+  properties:
+    address:
+      title: Address
+      $ref: '#/components/schemas/address'
+    locations:
+      title: Locations
+      $ref: '#/components/schemas/Locations'
+Locations:
+  title: List of locations in a block
+  type: array
+  description: Places an address appears in within a block
+  items:
+    $ref: '#/components/schemas/Location'
+Location:
+  title: Location in a block
+  description: A place an address appears in within a block
+  oneOf:
+    - title: Transaction index
+      $ref: '#/components/schemas/uint64'
+    - title: Block field
+      $ref: '#/components/schemas/BlockField'
+BlockField:
+  title: Block field
+  description: A block field. Alloc is a genesis block field.
+  type: string
+  enum:
+    - alloc
+    - miner
+    - uncles
+    - withdrawals

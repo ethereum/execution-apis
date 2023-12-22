@@ -1,3 +1,16 @@
+- name: eth_getAddressesInBlock
+  summary: Returns the addresses that appear in the block and the index of each transaction they appear in.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Addresses in block
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/BlockAddresses'
 - name: eth_getBlockByHash
   summary: Returns information about a block by hash.
   params:
