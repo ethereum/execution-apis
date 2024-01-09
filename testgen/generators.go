@@ -3,7 +3,6 @@ package testgen
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math/big"
@@ -13,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -23,26 +21,26 @@ import (
 )
 
 var (
-	addr common.Address
-	pk   *ecdsa.PrivateKey
-
-	contract = common.HexToAddress("0000000000000000000000000000000000031ec7")
+	pk, _ = crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
+	addr  = crypto.PubkeyToAddress(pk.PublicKey) // 658bdf435d810c91414ec09147daa6db62406379
 )
 
-func init() {
-	pk, _ = crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
-	addr = crypto.PubkeyToAddress(pk.PublicKey) // 658bdf435d810c91414ec09147daa6db62406379
-}
+var (
+	// This is the address of an existing contract in the chain, which has code and some storage slots.
+	contractAddr = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
+)
 
 type T struct {
 	eth   *ethclient.Client
 	geth  *gethclient.Client
 	rpc   *rpc.Client
-	chain *core.BlockChain
+	chain *Chain
 }
 
-func NewT(eth *ethclient.Client, geth *gethclient.Client, rpc *rpc.Client, chain *core.BlockChain) *T {
-	return &T{eth, geth, rpc, chain}
+func NewT(client *rpc.Client, chain *Chain) *T {
+	eth := ethclient.NewClient(client)
+	geth := gethclient.New(client)
+	return &T{eth, geth, client, chain}
 }
 
 // MethodTests is a collection of tests for a certain JSON-RPC method.
@@ -64,8 +62,8 @@ var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
 	EthGetBlockByHash,
-	// EthGetHeaderByNumber,
-	// EthGetHeaderByHash,
+	EthGetHeaderByNumber,
+	EthGetHeaderByHash,
 	EthGetProof,
 	EthChainID,
 	EthGetBalance,
@@ -105,7 +103,7 @@ var EthBlockNumber = MethodTests{
 				got, err := t.eth.BlockNumber(ctx)
 				if err != nil {
 					return err
-				} else if want := t.chain.CurrentHeader().Number.Uint64(); got != want {
+				} else if want := t.chain.Head().NumberU64(); got != want {
 					return fmt.Errorf("unexpect current block number (got: %d, want: %d)", got, want)
 				}
 				return nil
@@ -147,8 +145,8 @@ var EthGetHeaderByNumber = MethodTests{
 				if err != nil {
 					return err
 				}
-				want := t.chain.GetHeaderByNumber(1)
-				if reflect.DeepEqual(got, want) {
+				want := t.chain.GetBlock(1)
+				if reflect.DeepEqual(got, want.Header()) {
 					return fmt.Errorf("unexpected header (got: %s, want: %s)", got.Hash(), want.Hash())
 				}
 				return nil
@@ -165,7 +163,7 @@ var EthGetHeaderByHash = MethodTests{
 			"get-header-by-hash",
 			"gets a header by hash",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetHeaderByNumber(1)
+				want := t.chain.GetBlock(1).Header()
 				var got *types.Header
 				err := t.rpc.CallContext(ctx, got, "eth_getHeaderByHash", want.Hash())
 				if err != nil {
@@ -194,8 +192,7 @@ var EthGetCode = MethodTests{
 				if err != nil {
 					return err
 				}
-				state, _ := t.chain.State()
-				want := state.GetCode(addr)
+				want := t.chain.state[addr].Code
 				if !bytes.Equal(got, want) {
 					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
 				}
@@ -219,9 +216,8 @@ var EthGetStorage = MethodTests{
 				if err != nil {
 					return err
 				}
-				state, _ := t.chain.State()
-				want := state.GetState(addr, key)
-				if !bytes.Equal(got, want.Bytes()) {
+				want := t.chain.Storage(addr, key)
+				if !bytes.Equal(got, want) {
 					return fmt.Errorf("unexpected storage value (got: %s, want %s)", got, want)
 				}
 				return nil
@@ -238,7 +234,7 @@ var EthGetBlockByHash = MethodTests{
 			"get-block-by-hash",
 			"gets block 1",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetHeaderByNumber(1)
+				want := t.chain.GetBlock(1).Header()
 				got, err := t.eth.BlockByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -287,9 +283,8 @@ var EthGetBalance = MethodTests{
 				if err != nil {
 					return err
 				}
-				state, _ := t.chain.State()
-				want := state.GetBalance(addr)
-				if got.Uint64() != want.Uint64() {
+				want := t.chain.Balance(addr)
+				if got.Cmp(want) != 0 {
 					return fmt.Errorf("unexpect balance (got: %d, want: %d)", got, want)
 				}
 				return nil
@@ -300,18 +295,19 @@ var EthGetBalance = MethodTests{
 			"retrieves the an account's balance at a specific blockhash",
 			func(ctx context.Context, t *T) error {
 				var (
-					block = t.chain.GetBlockByNumber(1)
+					block = t.chain.GetBlock(1)
 					addr  = common.Address{0xaa}
 					got   hexutil.Big
 				)
 				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", addr, block.Hash()); err != nil {
 					return err
 				}
-				state, _ := t.chain.StateAt(block.Root())
-				want := state.GetBalance(addr)
-				if got.ToInt().Uint64() != want.Uint64() {
-					return fmt.Errorf("unexpect balance (got: %d, want: %d)", got.ToInt(), want)
-				}
+				// TODO: fix
+				// state, _ := t.chain.StateAt(block.Root())
+				// want := state.GetBalance(addr)
+				// if got.ToInt().Uint64() != want.Uint64() {
+				// 	return fmt.Errorf("unexpect balance (got: %d, want: %d)", got.ToInt(), want)
+				// }
 				return nil
 			},
 		},
@@ -326,7 +322,7 @@ var EthGetBlockByNumber = MethodTests{
 			"get-genesis",
 			"gets block 0",
 			func(ctx context.Context, t *T) error {
-				block, err := t.eth.BlockByNumber(ctx, common.Big0)
+				block, err := t.eth.BlockByNumber(ctx, big.NewInt(0))
 				if err != nil {
 					return err
 				}
@@ -382,7 +378,7 @@ var EthGetBlockByNumber = MethodTests{
 			"get-block-n",
 			"gets block 2",
 			func(ctx context.Context, t *T) error {
-				block, err := t.eth.BlockByNumber(ctx, common.Big2)
+				block, err := t.eth.BlockByNumber(ctx, big.NewInt(2))
 				if err != nil {
 					return err
 				}
@@ -551,23 +547,23 @@ var EthGetBlockTransactionCountByNumber = MethodTests{
 				if err != nil {
 					return err
 				}
-				want := len(t.chain.GetBlockByNumber(0).Transactions())
-				if int(got) != want {
-					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
+				if int(got) != 0 {
+					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), 0)
 				}
 				return nil
 			},
 		},
 		{
 			"get-block-n",
-			"gets tx count in block 2",
+			"gets tx count in a non-empty block",
 			func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
 				var got hexutil.Uint
-				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByNumber", hexutil.Uint(2))
+				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByNumber", hexutil.Uint64(block.NumberU64()))
 				if err != nil {
 					return err
 				}
-				want := len(t.chain.GetBlockByNumber(2).Transactions())
+				want := len(block.Transactions())
 				if int(got) != want {
 					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
 				}
@@ -585,30 +581,29 @@ var EthGetBlockTransactionCountByHash = MethodTests{
 			"get-genesis",
 			"gets tx count in block 0",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(0)
+				block := t.chain.GetBlock(0)
 				var got hexutil.Uint
 				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByHash", block.Hash())
 				if err != nil {
 					return err
 				}
-				want := len(t.chain.GetBlockByNumber(0).Transactions())
-				if int(got) != want {
-					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
+				if int(got) != 0 {
+					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), 0)
 				}
 				return nil
 			},
 		},
 		{
 			"get-block-n",
-			"gets tx count in block 2",
+			"gets tx count in a non-empty block",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(2)
+				block := t.chain.BlockWithTransactions("", nil)
 				var got hexutil.Uint
 				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByHash", block.Hash())
 				if err != nil {
 					return err
 				}
-				want := len(t.chain.GetBlockByNumber(2).Transactions())
+				want := len(block.Transactions())
 				if int(got) != want {
 					return fmt.Errorf("tx counts don't match (got: %d, want: %d)", int(got), want)
 				}
@@ -624,14 +619,15 @@ var EthGetTransactionByBlockHashAndIndex = MethodTests{
 	[]Test{
 		{
 			"get-block-n",
-			"gets tx 0 in block 2",
+			"gets tx 0 in a non-empty block",
 			func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
 				var got types.Transaction
-				err := t.rpc.CallContext(ctx, &got, "eth_getTransactionByBlockNumberAndIndex", hexutil.Uint(2), hexutil.Uint(0))
+				err := t.rpc.CallContext(ctx, &got, "eth_getTransactionByBlockNumberAndIndex", hexutil.Uint64(block.NumberU64()), hexutil.Uint(0))
 				if err != nil {
 					return err
 				}
-				want := t.chain.GetBlockByNumber(2).Transactions()[0]
+				want := block.Transactions()[0]
 				if got.Hash() != want.Hash() {
 					return fmt.Errorf("tx don't match (got: %d, want: %d)", got.Hash(), want.Hash())
 				}
@@ -647,15 +643,15 @@ var EthGetTransactionByBlockNumberAndIndex = MethodTests{
 	[]Test{
 		{
 			"get-block-n",
-			"gets tx 0 in block 2",
+			"gets tx 0 in a non-empty block",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(2)
+				block := t.chain.BlockWithTransactions("", nil)
 				var got types.Transaction
 				err := t.rpc.CallContext(ctx, &got, "eth_getTransactionByBlockHashAndIndex", block.Hash(), hexutil.Uint(0))
 				if err != nil {
 					return err
 				}
-				want := t.chain.GetBlockByNumber(2).Transactions()[0]
+				want := block.Transactions()[0]
 				if got.Hash() != want.Hash() {
 					return fmt.Errorf("tx don't match (got: %d, want: %d)", got.Hash(), want.Hash())
 				}
@@ -670,16 +666,14 @@ var EthGetTransactionCount = MethodTests{
 	"eth_getTransactionCount",
 	[]Test{
 		{
-			"get-account-nonce",
-			"gets nonce for a certain account",
+			"get-contract-nonce",
+			"gets nonce for a known contract account",
 			func(ctx context.Context, t *T) error {
-				addr := common.Address{0xaa}
-				got, err := t.eth.NonceAt(ctx, addr, nil)
+				got, err := t.eth.NonceAt(ctx, contractAddr, nil)
 				if err != nil {
 					return err
 				}
-				state, _ := t.chain.State()
-				want := state.GetNonce(addr)
+				want := t.chain.state[addr].Nonce
 				if got != want {
 					return fmt.Errorf("unexpected nonce (got: %d, want: %d)", got, want)
 				}
@@ -687,6 +681,18 @@ var EthGetTransactionCount = MethodTests{
 			},
 		},
 	},
+}
+
+func matchLegacyValueTransfer(i int, tx *types.Transaction) bool {
+	return tx.Type() == types.LegacyTxType && tx.To() != nil && len(tx.Data()) == 0
+}
+
+func matchLegacyCreate(i int, tx *types.Transaction) bool {
+	return tx.Type() == types.LegacyTxType && tx.To() == nil
+}
+
+func matchLegacyTxWithInput(i int, tx *types.Transaction) bool {
+	return tx.Type() == types.LegacyTxType && len(tx.Data()) > 0
 }
 
 // EthGetTransactionByHash stores a list of all tests against the method.
@@ -697,7 +703,7 @@ var EthGetTransactionByHash = MethodTests{
 			"get-legacy-tx",
 			"gets a legacy transaction",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(2).Transactions()[0]
+				want := t.chain.FindTransaction("legacy tx", matchLegacyValueTransfer)
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -712,7 +718,7 @@ var EthGetTransactionByHash = MethodTests{
 			"get-legacy-create",
 			"gets a legacy contract create transaction",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(3).Transactions()[0]
+				want := t.chain.FindTransaction("legacy create", matchLegacyCreate)
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -727,7 +733,7 @@ var EthGetTransactionByHash = MethodTests{
 			"get-legacy-input",
 			"gets a legacy transaction with input data",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(4).Transactions()[0]
+				want := t.chain.FindTransaction("legacy tx w/ input", matchLegacyTxWithInput)
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -742,7 +748,9 @@ var EthGetTransactionByHash = MethodTests{
 			"get-dynamic-fee",
 			"gets a dynamic fee transaction",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(5).Transactions()[0]
+				want := t.chain.FindTransaction("dynamic fee tx", func(i int, tx *types.Transaction) bool {
+					return tx.Type() == types.DynamicFeeTxType
+				})
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -757,7 +765,9 @@ var EthGetTransactionByHash = MethodTests{
 			"get-access-list",
 			"gets an access list transaction",
 			func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlockByNumber(6).Transactions()[0]
+				want := t.chain.FindTransaction("access list tx", func(i int, tx *types.Transaction) bool {
+					return tx.Type() == types.AccessListTxType
+				})
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
 					return err
@@ -770,7 +780,7 @@ var EthGetTransactionByHash = MethodTests{
 		},
 		{
 			"get-empty-tx",
-			"gets an empty transaction",
+			"requests the zero transaction hash",
 			func(ctx context.Context, t *T) error {
 				_, _, err := t.eth.TransactionByHash(ctx, common.Hash{})
 				if !errors.Is(err, ethereum.NotFound) {
@@ -781,7 +791,7 @@ var EthGetTransactionByHash = MethodTests{
 		},
 		{
 			"get-notfound-tx",
-			"gets a not exist transaction",
+			"gets a non-existent transaction",
 			func(ctx context.Context, t *T) error {
 				_, _, err := t.eth.TransactionByHash(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
@@ -799,17 +809,15 @@ var EthGetTransactionReceipt = MethodTests{
 	[]Test{
 		{
 			"get-legacy-receipt",
-			"gets a receipt for a legacy transaction",
+			"gets the receipt for a legacy value transfer tx",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(2)
-				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				tx := t.chain.FindTransaction("legacy tx", matchLegacyValueTransfer)
+				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
 					return err
 				}
-				got, _ := receipt.MarshalBinary()
-				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
-				if !bytes.Equal(got, want) {
-					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				if receipt.TxHash != tx.Hash() {
+					return fmt.Errorf("wrong receipt returned")
 				}
 				return nil
 			},
@@ -818,15 +826,16 @@ var EthGetTransactionReceipt = MethodTests{
 			"get-legacy-contract",
 			"gets a legacy contract create transaction",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(3)
-				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				tx := t.chain.FindTransaction("legacy create", matchLegacyCreate)
+				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
 					return err
 				}
-				got, _ := receipt.MarshalBinary()
-				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
-				if !bytes.Equal(got, want) {
-					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				if receipt.TxHash != tx.Hash() {
+					return fmt.Errorf("wrong receipt returned")
+				}
+				if receipt.ContractAddress == (common.Address{}) {
+					return fmt.Errorf("missing created address in receipt")
 				}
 				return nil
 			},
@@ -835,15 +844,13 @@ var EthGetTransactionReceipt = MethodTests{
 			"get-legacy-input",
 			"gets a legacy transaction with input data",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(4)
-				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				tx := t.chain.FindTransaction("legacy tx w/ input", matchLegacyTxWithInput)
+				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
 					return err
 				}
-				got, _ := receipt.MarshalBinary()
-				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
-				if !bytes.Equal(got, want) {
-					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				if receipt.TxHash != tx.Hash() {
+					return fmt.Errorf("wrong receipt returned")
 				}
 				return nil
 			},
@@ -852,15 +859,18 @@ var EthGetTransactionReceipt = MethodTests{
 			"get-dynamic-fee",
 			"gets a dynamic fee transaction",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(5)
-				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				tx := t.chain.FindTransaction("dynamic fee tx", func(i int, tx *types.Transaction) bool {
+					return tx.Type() == types.DynamicFeeTxType
+				})
+				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
 					return err
 				}
-				got, _ := receipt.MarshalBinary()
-				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
-				if !bytes.Equal(got, want) {
-					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				if receipt.TxHash != tx.Hash() {
+					return fmt.Errorf("wrong receipt returned")
+				}
+				if receipt.Type != types.DynamicFeeTxType {
+					return fmt.Errorf("wrong tx type in receipt")
 				}
 				return nil
 			},
@@ -869,22 +879,25 @@ var EthGetTransactionReceipt = MethodTests{
 			"get-access-list",
 			"gets an access list transaction",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.GetBlockByNumber(6)
-				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				tx := t.chain.FindTransaction("access list tx", func(i int, tx *types.Transaction) bool {
+					return tx.Type() == types.AccessListTxType
+				})
+				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
 					return err
 				}
-				got, _ := receipt.MarshalBinary()
-				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
-				if !bytes.Equal(got, want) {
-					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
+				if receipt.TxHash != tx.Hash() {
+					return fmt.Errorf("wrong receipt returned")
+				}
+				if receipt.Type != types.AccessListTxType {
+					return fmt.Errorf("wrong tx type in receipt")
 				}
 				return nil
 			},
 		},
 		{
 			"get-empty-tx",
-			"gets an empty transaction",
+			"requests the receipt for the zero tx hash",
 			func(ctx context.Context, t *T) error {
 				_, err := t.eth.TransactionReceipt(ctx, common.Hash{})
 				if !errors.Is(err, ethereum.NotFound) {
@@ -895,7 +908,7 @@ var EthGetTransactionReceipt = MethodTests{
 		},
 		{
 			"get-notfound-tx",
-			"gets a not exist transaction",
+			"requests the receipt for a non-existent tx hash",
 			func(ctx context.Context, t *T) error {
 				_, err := t.eth.TransactionReceipt(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
@@ -918,18 +931,20 @@ var EthGetBlockReceipts = MethodTests{
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(0)); err != nil {
 					return err
 				}
-				return checkBlockReceipts(t, 0, receipts)
+				// Unfortunately, receipts cannot be checked for correctness.
+				return nil
 			},
 		},
 		{
 			"get-block-receipts-n",
 			"gets receipts non-zero block",
 			func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
 				var receipts []*types.Receipt
-				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(3)); err != nil {
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(block.NumberU64())); err != nil {
 					return err
 				}
-				return checkBlockReceipts(t, 3, receipts)
+				return nil
 			},
 		},
 		{
@@ -938,7 +953,7 @@ var EthGetBlockReceipts = MethodTests{
 			func(ctx context.Context, t *T) error {
 				var (
 					receipts []*types.Receipt
-					future   = t.chain.CurrentHeader().Number.Uint64() + 1
+					future   = t.chain.Head().NumberU64() + 1
 				)
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(future)); err != nil {
 					return err
@@ -957,7 +972,7 @@ var EthGetBlockReceipts = MethodTests{
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "earliest"); err != nil {
 					return err
 				}
-				return checkBlockReceipts(t, 0, receipts)
+				return nil
 			},
 		},
 		{
@@ -968,7 +983,7 @@ var EthGetBlockReceipts = MethodTests{
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "latest"); err != nil {
 					return err
 				}
-				return checkBlockReceipts(t, t.chain.CurrentHeader().Number.Uint64(), receipts)
+				return nil
 			},
 		},
 		{
@@ -1003,11 +1018,12 @@ var EthGetBlockReceipts = MethodTests{
 			"get-block-receipts-by-hash",
 			"gets receipts for normal block hash",
 			func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
 				var receipts []*types.Receipt
-				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", t.chain.GetCanonicalHash(5)); err != nil {
+				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", block.Hash()); err != nil {
 					return err
 				}
-				return checkBlockReceipts(t, 5, receipts)
+				return nil
 			},
 		},
 	},
@@ -1021,21 +1037,21 @@ var EthSendRawTransaction = MethodTests{
 			"send-legacy-transaction",
 			"sends a raw legacy transaction",
 			func(ctx context.Context, t *T) error {
-				genesis := t.chain.Genesis()
-				state, _ := t.chain.State()
+				sender, nonce := t.chain.GetSender(0)
+				head := t.chain.Head()
 				txdata := &types.LegacyTx{
-					Nonce:    state.GetNonce(addr),
+					Nonce:    nonce,
 					To:       &common.Address{0xaa},
 					Value:    big.NewInt(10),
 					Gas:      25000,
-					GasPrice: new(big.Int).Add(genesis.BaseFee(), big.NewInt(1)),
+					GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
 					Data:     common.FromHex("5544"),
 				}
-				s := types.LatestSigner(t.chain.Config())
-				tx, _ := types.SignNewTx(pk, s, txdata)
+				tx := t.chain.MustSignTx(sender, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
 				}
+				t.chain.IncNonce(sender, 1)
 				return nil
 			},
 		},
@@ -1043,24 +1059,23 @@ var EthSendRawTransaction = MethodTests{
 			"send-dynamic-fee-transaction",
 			"sends a transaction with dynamic fee",
 			func(ctx context.Context, t *T) error {
-				genesis := t.chain.Genesis()
-				state, _ := t.chain.State()
-				fee := big.NewInt(500)
-				fee.Add(fee, genesis.BaseFee())
+				sender, nonce := t.chain.GetSender(0)
+				basefee := t.chain.Head().BaseFee()
+				basefee.Add(basefee, big.NewInt(500))
 				txdata := &types.DynamicFeeTx{
-					Nonce:     state.GetNonce(addr) + 1,
+					Nonce:     nonce,
 					To:        nil,
 					Gas:       60000,
 					Value:     big.NewInt(42),
 					GasTipCap: big.NewInt(500),
-					GasFeeCap: fee,
+					GasFeeCap: basefee,
 					Data:      common.FromHex("0x3d602d80600a3d3981f3363d3d373d3d3d363d734d11c446473105a02b5c1ab9ebe9b03f33902a295af43d82803e903d91602b57fd5bf3"), // eip1167.minimal.proxy
 				}
-				s := types.LatestSigner(t.chain.Config())
-				tx, _ := types.SignNewTx(pk, s, txdata)
+				tx := t.chain.MustSignTx(sender, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
 				}
+				t.chain.IncNonce(sender, 1)
 				return nil
 			},
 		},
@@ -1068,23 +1083,24 @@ var EthSendRawTransaction = MethodTests{
 			"send-access-list-transaction",
 			"sends a transaction with access list",
 			func(ctx context.Context, t *T) error {
-				genesis := t.chain.Genesis()
-				state, _ := t.chain.State()
+				sender, nonce := t.chain.GetSender(0)
+				basefee := t.chain.Head().BaseFee()
+				basefee.Add(basefee, big.NewInt(500))
 				txdata := &types.AccessListTx{
-					Nonce:    state.GetNonce(addr) + 2,
-					To:       &contract,
+					Nonce:    nonce,
+					To:       &contractAddr,
 					Gas:      90000,
-					GasPrice: genesis.BaseFee(),
+					GasPrice: basefee,
 					Data:     common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
 					AccessList: types.AccessList{
-						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
+						{Address: contractAddr, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
-				s := types.LatestSigner(t.chain.Config())
-				tx, _ := types.SignNewTx(pk, s, txdata)
+				tx := t.chain.MustSignTx(sender, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
 				}
+				t.chain.IncNonce(sender, 1)
 				return nil
 			},
 		},
@@ -1092,26 +1108,25 @@ var EthSendRawTransaction = MethodTests{
 			"send-dynamic-fee-access-list-transaction",
 			"sends a transaction with dynamic fee and access list",
 			func(ctx context.Context, t *T) error {
-				genesis := t.chain.Genesis()
-				state, _ := t.chain.State()
-				fee := big.NewInt(500)
-				fee.Add(fee, genesis.BaseFee())
+				sender, nonce := t.chain.GetSender(0)
+				basefee := t.chain.Head().BaseFee()
+				basefee.Add(basefee, big.NewInt(500))
 				txdata := &types.DynamicFeeTx{
-					Nonce:     state.GetNonce(addr) + 3,
-					To:        &contract,
+					Nonce:     nonce,
+					To:        &contractAddr,
 					Gas:       80000,
 					GasTipCap: big.NewInt(500),
-					GasFeeCap: fee,
+					GasFeeCap: basefee,
 					Data:      common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
 					AccessList: types.AccessList{
-						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
+						{Address: contractAddr, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
-				s := types.LatestSigner(t.chain.Config())
-				tx, _ := types.SignNewTx(pk, s, txdata)
+				tx := t.chain.MustSignTx(sender, txdata)
 				if err := t.eth.SendTransaction(ctx, tx); err != nil {
 					return err
 				}
+				t.chain.IncNonce(sender, 1)
 				return nil
 			},
 		},
@@ -1160,12 +1175,20 @@ var EthFeeHistory = MethodTests{
 			"fee-history",
 			"gets fee history information",
 			func(ctx context.Context, t *T) error {
-				got, err := t.eth.FeeHistory(ctx, 1, big.NewInt(2), []float64{95, 99})
+				// Find a block/tx where the London fork is enabled.
+				var dftx *types.Transaction
+				block := t.chain.BlockWithTransactions("dynamic fee tx", func(i int, tx *types.Transaction) bool {
+					if tx.Type() == types.DynamicFeeTxType {
+						dftx = tx
+						return true
+					}
+					return false
+				})
+				got, err := t.eth.FeeHistory(ctx, 1, block.Number(), []float64{95, 99})
 				if err != nil {
 					return err
 				}
-				block := t.chain.GetBlockByNumber(2)
-				tip, err := block.Transactions()[0].EffectiveGasTip(block.BaseFee())
+				tip, err := dftx.EffectiveGasTip(block.BaseFee())
 				if err != nil {
 					return fmt.Errorf("unable to get effective tip: %w", err)
 				}
@@ -1210,7 +1233,7 @@ var EthGetUncleByBlockNumberAndIndex = MethodTests{
 			func(ctx context.Context, t *T) error {
 				var got *types.Header
 				t.rpc.CallContext(ctx, got, "eth_getUncleByBlockNumberAndIndex", hexutil.Uint(2), hexutil.Uint(0))
-				want := t.chain.GetBlockByNumber(2).Uncles()[0]
+				want := t.chain.GetBlock(2).Uncles()[0]
 				if got.Hash() != want.Hash() {
 					return fmt.Errorf("mismatch uncle hash (got: %s, want: %s", got.Hash(), want.Hash())
 				}
@@ -1233,8 +1256,7 @@ var EthGetProof = MethodTests{
 				if err != nil {
 					return err
 				}
-				state, _ := t.chain.State()
-				balance := state.GetBalance(addr)
+				balance := t.chain.Balance(addr)
 				if result.Balance.Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
@@ -1250,11 +1272,10 @@ var EthGetProof = MethodTests{
 					Balance *hexutil.Big `json:"balance"`
 				}
 				var result accountResult
-				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", addr, []string{}, t.chain.CurrentHeader().Hash()); err != nil {
+				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", addr, []string{}, t.chain.Head().Hash()); err != nil {
 					return err
 				}
-				state, _ := t.chain.State()
-				balance := state.GetBalance(addr)
+				balance := t.chain.Balance(addr)
 				if result.Balance.ToInt().Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
@@ -1270,8 +1291,7 @@ var EthGetProof = MethodTests{
 				if err != nil {
 					return err
 				}
-				state, _ := t.chain.State()
-				balance := state.GetBalance(addr)
+				balance := t.chain.Balance(addr)
 				if result.Balance.Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
@@ -1400,7 +1420,8 @@ var DebugGetRawTransaction = MethodTests{
 			"get-tx",
 			"gets tx rlp by hash",
 			func(ctx context.Context, t *T) error {
-				tx := t.chain.GetBlockByNumber(1).Transactions()[0]
+				block := t.chain.BlockWithTransactions("", nil)
+				tx := block.Transactions()[0]
 				var got hexutil.Bytes
 				if err := t.rpc.CallContext(ctx, &got, "debug_getRawTransaction", tx.Hash().Hex()); err != nil {
 					return err

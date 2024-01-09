@@ -2,18 +2,11 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/consensus/beacon"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
@@ -26,13 +19,13 @@ func runGenerator(ctx context.Context) error {
 	args := ctx.Value(ARGS).(*Args)
 
 	// Initialize generated chain.
-	chain, err := initChain(ctx, args)
+	chain, err := testgen.NewChain(args.ChainDir)
 	if err != nil {
 		return err
 	}
 
 	// Start Ethereum client.
-	client, err := spawnClient(ctx, args, chain)
+	client, err := spawnClient(ctx, args)
 	if err != nil {
 		return err
 	}
@@ -75,7 +68,7 @@ func runGenerator(ctx context.Context) error {
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
 
-			err = test.Run(ctx, testgen.NewT(handler.ethclient, handler.gethclient, handler.rpc, chain.bc))
+			err = test.Run(ctx, testgen.NewT(handler.rpc, chain))
 			if err != nil {
 				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.Name, test.Name, err)
@@ -88,70 +81,11 @@ func runGenerator(ctx context.Context) error {
 	return nil
 }
 
-type chainData struct {
-	bc     *core.BlockChain
-	gspec  *core.Genesis
-	blocks []*types.Block
-	// bad    *types.Block
-}
-
-// initChain either attempts to read the chain config from args.ChainDir or it
-// generates a fresh test chain.
-func initChain(ctx context.Context, args *Args) (*chainData, error) {
-	var chain chainData
-	if args.ChainDir != "" {
-		chain.gspec = &core.Genesis{}
-		if g, err := os.ReadFile(fmt.Sprintf("%s/genesis.json", args.ChainDir)); err != nil {
-			return nil, err
-		} else if err := json.Unmarshal(g, chain.gspec); err != nil {
-			return nil, err
-		}
-		b, err := readChain(fmt.Sprintf("%s/chain.rlp", args.ChainDir))
-		if err != nil {
-			return nil, err
-		}
-		chain.blocks = b
-	} else {
-		// Make consensus engine.
-		engine := beacon.NewFaker()
-
-		// Generate test chain and write to output directory.
-		var bad *types.Block
-		chain.gspec, chain.blocks, bad = genSimpleChain(engine)
-		if err := mkdir(args.OutDir); err != nil {
-			return nil, err
-		}
-		if err := writeGenesis(fmt.Sprintf("%s/genesis.json", args.OutDir), chain.gspec); err != nil {
-			return nil, err
-		}
-		if err := writeChain(fmt.Sprintf("%s/chain.rlp", args.OutDir), chain.blocks); err != nil {
-			return nil, err
-		}
-		if err := writeChain(fmt.Sprintf("%s/bad.rlp", args.OutDir), []*types.Block{bad}); err != nil {
-			return nil, err
-		}
-	}
-
-	// Create BlockChain to verify client responses against.
-	db := rawdb.NewMemoryDatabase()
-	chain.gspec.MustCommit(db, trie.NewDatabase(db, trie.HashDefaults))
-
-	var err error
-	chain.bc, err = core.NewBlockChain(db, nil, chain.gspec, nil, beacon.New(ethash.NewFaker()), vm.Config{}, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := chain.bc.InsertChain(chain.blocks); err != nil {
-		return nil, err
-	}
-	return &chain, nil
-}
-
 // spawnClient starts an Ethereum client on a separate thread.
 //
 // It waits until the client is responding to JSON-RPC requests
 // before returning.
-func spawnClient(ctx context.Context, args *Args, chain *chainData) (Client, error) {
+func spawnClient(ctx context.Context, args *Args) (Client, error) {
 	var (
 		client Client
 		err    error
@@ -160,7 +94,7 @@ func spawnClient(ctx context.Context, args *Args, chain *chainData) (Client, err
 	// Initialize specified client and start it in a separate thread.
 	switch args.ClientType {
 	case "geth":
-		client, err = newGethClient(ctx, args.ClientBin, chain.gspec, chain.blocks, args.Verbose)
+		client, err = newGethClient(ctx, args.ClientBin, args.ChainDir, args.Verbose)
 		if err != nil {
 			return nil, err
 		}

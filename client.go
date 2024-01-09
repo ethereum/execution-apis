@@ -3,16 +3,15 @@ package main
 import (
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/node"
@@ -28,8 +27,7 @@ type Client interface {
 	// AfterStart is called after the client has been fully started.
 	AfterStart(ctx context.Context) error
 
-	// HttpAddr returns the address where the client is servering its
-	// JSON-RPC.
+	// HttpAddr returns the address where the client is serving JSON-RPC.
 	HttpAddr() string
 
 	// Close closes the client.
@@ -41,8 +39,6 @@ type gethClient struct {
 	cmd     *exec.Cmd
 	path    string
 	workdir string
-	blocks  []*types.Block
-	genesis *core.Genesis
 	jwt     []byte
 }
 
@@ -50,15 +46,9 @@ type gethClient struct {
 //
 // The client's data directory is set to a temporary location and it
 // initializes with the genesis and the provided blocks.
-func newGethClient(ctx context.Context, path string, genesis *core.Genesis, blocks []*types.Block, verbose bool) (*gethClient, error) {
+func newGethClient(ctx context.Context, geth string, chaindir string, verbose bool) (*gethClient, error) {
 	tmp, err := os.MkdirTemp("", "rpctestgen-*")
 	if err != nil {
-		return nil, err
-	}
-	if err := writeGenesis(fmt.Sprintf("%s/genesis.json", tmp), genesis); err != nil {
-		return nil, err
-	}
-	if err := writeChain(fmt.Sprintf("%s/chain.rlp", tmp), blocks); err != nil {
 		return nil, err
 	}
 
@@ -70,15 +60,15 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 	)
 
 	// Run geth init.
-	options := []string{datadir, gcmode, loglevel, "init", fmt.Sprintf("%s/genesis.json", tmp)}
-	err = runCmd(ctx, path, verbose, options...)
+	options := []string{datadir, gcmode, loglevel, "init", filepath.Join(chaindir, "genesis.json")}
+	err = runCmd(ctx, geth, verbose, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	// Run geth import.
-	options = []string{datadir, gcmode, loglevel, "import", fmt.Sprintf("%s/chain.rlp", tmp)}
-	err = runCmd(ctx, path, verbose, options...)
+	options = []string{datadir, gcmode, loglevel, "import", filepath.Join(chaindir, "chain.rlp")}
+	err = runCmd(ctx, geth, verbose, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +79,7 @@ func newGethClient(ctx context.Context, path string, genesis *core.Genesis, bloc
 		return nil, err
 	}
 
-	return &gethClient{path: path, genesis: genesis, blocks: blocks, workdir: tmp, jwt: jwt}, nil
+	return &gethClient{path: geth, workdir: tmp, jwt: jwt}, nil
 }
 
 // Start starts geth, but does not wait for the command to exit.
@@ -184,40 +174,14 @@ func runCmd(ctx context.Context, path string, verbose bool, args ...string) erro
 	return nil
 }
 
-// writeGenesis writes the genesis to disk.
-func writeGenesis(filename string, genesis *core.Genesis) error {
-	out, err := json.MarshalIndent(genesis, "", "  ")
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(filename, out, 0644); err != nil {
-		return err
-	}
-	return nil
-}
-
-// writeChain writes a chain to disk.
-func writeChain(filename string, blocks []*types.Block) error {
-	w, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return err
-	}
-	defer w.Close()
-	for _, block := range blocks {
-		if err := rlp.Encode(w, block); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// readChain reads a chain.rlp file to a slice of Block.
-func readChain(filename string) ([]*types.Block, error) {
+// readBlocks reads a chain.rlp file to a slice of Block.
+func readBlocks(filename string) ([]*types.Block, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
+
 	var (
 		stream = rlp.NewStream(f, 0)
 		blocks = make([]*types.Block, 0)
