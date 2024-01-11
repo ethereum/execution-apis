@@ -2,7 +2,7 @@
 This document contains some extra information that couldn't be fit to the specification document directly.
 
 ## Default block values
-Unlike `eth_call`, `eth_multicallV1`'s calls are conducted inside blocks. We don't require user to define all the fields of the blocks so here are the defaults that are assumed for blocks parameters:
+Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don't require user to define all the fields of the blocks so here are the defaults that are assumed for blocks parameters:
 
 | parameter name | default value |
 -----------------|-----------------------
@@ -38,7 +38,7 @@ The multicall allows you to define on what block number your calls or transactio
 {
 	"jsonrpc": "2.0",
 	"id": 1,
-	"method": "eth_multicallV1",
+	"method": "eth_simulateV1",
 	"params": [
 		{
 			"blockStateCalls": [
@@ -113,14 +113,14 @@ All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) 
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
 ## ETH transfer logs
-When `traceTransfers` setting is enabled on `eth_multicallV1` The multical will return logs for ethereum transfers along with the normal logs sent by contracts. The ETH transfers are identical to ERC20 transfers, except the "sending contract" is address `0x0`.
+When `traceTransfers` setting is enabled on `eth_simulateV1` The multical will return logs for ethereum transfers along with the normal logs sent by contracts. The ETH transfers are identical to ERC20 transfers, except the "sending contract" is address `0x0`.
 
 For example, here's a query that will simply send ether from one address to another (with a state override that gives us the ETH initially):
 ```json
 {
 	"jsonrpc": "2.0",
 	"id": 1,
-	"method": "eth_multicallV1",
+	"method": "eth_simulateV1",
 	"params": [
 		{
 			"blockStateCalls": [
@@ -220,7 +220,7 @@ The multicall has a feature to enable or disable validation with setting `Valida
 It is possible that user defines a transaction that cannot be included in the Ethereum block as it breaks the rules of EVM. For example, if transactions nonce is too high or low, baseFeePerGas is too low etc. In these situations the execution of multicall ends and an error is returned.
 
 ## Version number
-The method name for multicall `eth_multicallV1` the intention is that after release of multicall, if new features are wanted the `eth_multicallV1` is kept as it is, and instead `eth_multicallV2` is published with the new wanted features.
+The method name for multicall `eth_simulateV1` the intention is that after release of multicall, if new features are wanted the `eth_simulateV1` is kept as it is, and instead `eth_simulateV2` is published with the new wanted features.
 
 ## Clients can set their own limits
 Clients may introduce their own limits to prevent DOS attacks using the method. We have thought of three such standard limits
