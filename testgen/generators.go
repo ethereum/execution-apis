@@ -7,27 +7,23 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
-)
-
-var (
-	pk, _ = crypto.HexToECDSA("9c647b8b7c4e7c3490668fb6c11473619db80c93704c70893d3813af4090c39c")
-	addr  = crypto.PubkeyToAddress(pk.PublicKey) // 658bdf435d810c91414ec09147daa6db62406379
+	"golang.org/x/exp/maps"
 )
 
 var (
 	// This is the address of an existing contract in the chain, which has code and some storage slots.
-	contractAddr     = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
+	eip4788Contract  = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
 	emitContractAddr = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
 )
 
@@ -192,7 +188,7 @@ var EthGetCode = MethodTests{
 				if err != nil {
 					return err
 				}
-				want := t.chain.state[addr].Code
+				want := t.chain.state[emitContractAddr].Code
 				if !bytes.Equal(got, want) {
 					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
 				}
@@ -208,10 +204,10 @@ var EthGetStorage = MethodTests{
 	[]Test{
 		{
 			"get-storage",
-			"gets storage for 0xaa",
+			"gets storage of a contract",
 			func(ctx context.Context, t *T) error {
-				addr := common.Address{0xaa}
-				key := common.Hash{0x01}
+				addr := emitContractAddr
+				key := common.Hash{}
 				got, err := t.eth.StorageAt(ctx, addr, key, nil)
 				if err != nil {
 					return err
@@ -220,7 +216,14 @@ var EthGetStorage = MethodTests{
 				if !bytes.Equal(got, want) {
 					return fmt.Errorf("unexpected storage value (got: %s, want %s)", got, want)
 				}
-				return nil
+				// Check for any non-zero byte in the value.
+				// If it's all-zero, the slot doesn't really exist, indicating a problem with the test itself.
+				for _, b := range want {
+					if b != 0 {
+						return nil
+					}
+				}
+				return fmt.Errorf("requested storage slot is zero")
 			},
 		},
 	},
@@ -276,9 +279,9 @@ var EthGetBalance = MethodTests{
 	[]Test{
 		{
 			"get-balance",
-			"retrieves the an account's balance",
+			"retrieves the an account balance",
 			func(ctx context.Context, t *T) error {
-				addr := common.Address{0xaa}
+				addr := emitContractAddr
 				got, err := t.eth.BalanceAt(ctx, addr, nil)
 				if err != nil {
 					return err
@@ -295,19 +298,18 @@ var EthGetBalance = MethodTests{
 			"retrieves the an account's balance at a specific blockhash",
 			func(ctx context.Context, t *T) error {
 				var (
-					block = t.chain.GetBlock(1)
-					addr  = common.Address{0xaa}
+					block = t.chain.GetBlock(int(t.chain.Head().NumberU64()) - 10)
+					addr  = emitContractAddr
 					got   hexutil.Big
 				)
 				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", addr, block.Hash()); err != nil {
 					return err
 				}
-				// TODO: fix
-				// state, _ := t.chain.StateAt(block.Root())
-				// want := state.GetBalance(addr)
-				// if got.ToInt().Uint64() != want.Uint64() {
-				// 	return fmt.Errorf("unexpect balance (got: %d, want: %d)", got.ToInt(), want)
-				// }
+				// We can't really check the result here because there is no state, but the
+				// balance shouldn't be zero.
+				if got.ToInt().Sign() <= 0 {
+					return errors.New("invalid historical balance, should be > zero")
+				}
 				return nil
 			},
 		},
@@ -410,32 +412,106 @@ var EthCall = MethodTests{
 	"eth_call",
 	[]Test{
 		{
-			"call-revert",
-			"simulates a simple transfer",
+			"call-contract",
+			"performs a basic contract call with default settings",
 			func(ctx context.Context, t *T) error {
-				msg := ethereum.CallMsg{From: common.Address{0xaa}, To: &common.Address{0x01}, Gas: 100000}
-				got, err := t.eth.CallContract(ctx, msg, nil)
+				msg := ethereum.CallMsg{
+					To: &t.chain.txinfo.CallMeContract.Addr,
+					// This is the expected input that makes the call pass.
+					// See https://github.com/ethereum/hive/blob/master/cmd/hivechain/contracts/callme.eas
+					Data: []byte{0xff, 0x01},
+				}
+				result, err := t.eth.CallContract(ctx, msg, nil)
 				if err != nil {
 					return err
 				}
-				if len(got) != 0 {
-					return fmt.Errorf("unexpected return value (got: %s, want: nil)", hexutil.Bytes(got))
+				want := []byte{0xff, 0xee}
+				if !bytes.Equal(result, want) {
+					return fmt.Errorf("unexpected return value (got: %#x, want: %#x)", result, want)
 				}
 				return nil
 			},
 		},
 		{
-			"call-simple-contract",
-			"simulates a simple contract call with no return",
+			"call-callenv",
+			`Performs a call to the callenv contract, which echoes the EVM transaction environment.
+See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv.eas for the output structure.`,
 			func(ctx context.Context, t *T) error {
-				aa := common.Address{0xaa}
-				msg := ethereum.CallMsg{From: aa, To: &aa}
-				got, err := t.eth.CallContract(ctx, msg, nil)
+				msg := ethereum.CallMsg{
+					To: &t.chain.txinfo.CallEnvContract.Addr,
+				}
+				result, err := t.eth.CallContract(ctx, msg, nil)
 				if err != nil {
 					return err
 				}
+				if len(result) == 0 {
+					return fmt.Errorf("empty call result")
+				}
+				return nil
+			},
+		},
+		{
+			"call-callenv-options-eip1559",
+			`Performs a call to the callenv contract, which echoes the EVM transaction environment.
+This call uses EIP1559 transaction options.
+See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv.eas for the output structure.`,
+			func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(1)
+				basefee := t.chain.Head().BaseFee()
+				basefee.Add(basefee, big.NewInt(1))
+				msg := ethereum.CallMsg{
+					From:      sender,
+					To:        &t.chain.txinfo.CallEnvContract.Addr,
+					Gas:       60000,
+					GasFeeCap: basefee,
+					GasTipCap: big.NewInt(11),
+					Value:     big.NewInt(23),
+					Data:      []byte{0x33, 0x34, 0x35},
+				}
+				result, err := t.eth.CallContract(ctx, msg, nil)
+				if err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("empty call result")
+				}
+				return nil
+			},
+		},
+		{
+			"call-revert-abi-panic",
+			"calls a contract that reverts with an ABI-encoded Panic(uint) value",
+			func(ctx context.Context, t *T) error {
+				msg := ethereum.CallMsg{
+					To:   &t.chain.txinfo.CallRevertContract.Addr,
+					Gas:  100000,
+					Data: []byte{0}, // triggers panic(uint) revert
+				}
+				got, err := t.eth.CallContract(ctx, msg, nil)
 				if len(got) != 0 {
 					return fmt.Errorf("unexpected return value (got: %s, want: nil)", hexutil.Bytes(got))
+				}
+				if err == nil {
+					return fmt.Errorf("expected error for reverting call")
+				}
+				return nil
+			},
+		},
+		{
+			"call-revert-abi-error",
+			"calls a contract that reverts with an ABI-encoded Error(string) value",
+			func(ctx context.Context, t *T) error {
+				msg := ethereum.CallMsg{
+					To:   &t.chain.txinfo.CallRevertContract.Addr,
+					Gas:  100000,
+					Data: []byte{1}, // triggers error(string) revert
+				}
+				got, err := t.eth.CallContract(ctx, msg, nil)
+				if len(got) != 0 {
+					return fmt.Errorf("unexpected return value (got: %s, want: nil)", hexutil.Bytes(got))
+				}
+				if err == nil {
+					return fmt.Errorf("expected error for reverting call")
 				}
 				return nil
 			},
@@ -463,18 +539,43 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			"estimate-simple-contract",
-			"estimates a simple contract call with no return",
+			"estimate-successful-call",
+			"estimates a successful contract call",
 			func(ctx context.Context, t *T) error {
-				aa := common.Address{0xaa}
-				msg := ethereum.CallMsg{From: aa, To: &aa}
+				caller := common.Address{1, 2, 3}
+				callme := t.chain.txinfo.CallMeContract.Addr
+				msg := ethereum.CallMsg{
+					From: caller,
+					To:   &callme,
+					// This is the expected input that makes the call pass.
+					// See https://github.com/ethereum/hive/blob/master/cmd/hivechain/contracts/callme.eas
+					Data: []byte{0xff, 0x01},
+				}
 				got, err := t.eth.EstimateGas(ctx, msg)
 				if err != nil {
 					return err
 				}
-				want := params.TxGas + 3
+				want := uint64(21270)
 				if got != want {
 					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+		{
+			"estimate-failed-call",
+			"estimates a contract call that reverts",
+			func(ctx context.Context, t *T) error {
+				caller := common.Address{1, 2, 3}
+				callme := t.chain.txinfo.CallMeContract.Addr
+				msg := ethereum.CallMsg{
+					From: caller,
+					To:   &callme,
+					Data: []byte{0xff, 0x03, 0x04, 0x05},
+				}
+				_, err := t.eth.EstimateGas(ctx, msg)
+				if err == nil {
+					return fmt.Errorf("expected error for failed contract call")
 				}
 				return nil
 			},
@@ -491,7 +592,7 @@ var EthCreateAccessList = MethodTests{
 			"estimates a simple transfer",
 			func(ctx context.Context, t *T) error {
 				msg := make(map[string]interface{})
-				msg["from"] = addr
+				msg["from"] = eip4788Contract
 				msg["to"] = common.Address{0x01}
 
 				got := make(map[string]interface{})
@@ -507,7 +608,7 @@ var EthCreateAccessList = MethodTests{
 			"estimates a simple contract call with no return",
 			func(ctx context.Context, t *T) error {
 				msg := make(map[string]interface{})
-				msg["from"] = addr
+				msg["from"] = eip4788Contract
 				msg["to"] = common.Address{0xaa}
 
 				got := make(map[string]interface{})
@@ -523,7 +624,7 @@ var EthCreateAccessList = MethodTests{
 			"estimates a simple contract call with no return",
 			func(ctx context.Context, t *T) error {
 				msg := make(map[string]interface{})
-				msg["from"] = addr
+				msg["from"] = eip4788Contract
 				msg["to"] = common.Address{0xbb}
 
 				got := make(map[string]interface{})
@@ -669,10 +770,11 @@ var EthGetTransactionCount = MethodTests{
 	"eth_getTransactionCount",
 	[]Test{
 		{
-			"get-contract-nonce",
-			"gets nonce for a known contract account",
+			"get-nonce",
+			"gets nonce for a known account",
 			func(ctx context.Context, t *T) error {
-				got, err := t.eth.NonceAt(ctx, contractAddr, nil)
+				addr := findAccountWithNonce(t.chain)
+				got, err := t.eth.NonceAt(ctx, addr, nil)
 				if err != nil {
 					return err
 				}
@@ -684,6 +786,17 @@ var EthGetTransactionCount = MethodTests{
 			},
 		},
 	},
+}
+
+func findAccountWithNonce(c *Chain) common.Address {
+	accounts := maps.Keys(c.state)
+	slices.SortFunc(accounts, common.Address.Cmp)
+	for _, acc := range accounts {
+		if c.state[acc].Nonce > 0 {
+			return acc
+		}
+	}
+	panic("no account with non-zero nonce found in state")
 }
 
 func matchLegacyValueTransfer(i int, tx *types.Transaction) bool {
@@ -1060,7 +1173,7 @@ var EthSendRawTransaction = MethodTests{
 		},
 		{
 			"send-dynamic-fee-transaction",
-			"sends a transaction with dynamic fee",
+			"sends a create transaction with dynamic fee",
 			func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				basefee := t.chain.Head().BaseFee()
@@ -1091,12 +1204,12 @@ var EthSendRawTransaction = MethodTests{
 				basefee.Add(basefee, big.NewInt(500))
 				txdata := &types.AccessListTx{
 					Nonce:    nonce,
-					To:       &contractAddr,
+					To:       &emitContractAddr,
 					Gas:      90000,
 					GasPrice: basefee,
-					Data:     common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
+					Data:     common.FromHex("0x010203"),
 					AccessList: types.AccessList{
-						{Address: contractAddr, StorageKeys: []common.Hash{{0}, {1}}},
+						{Address: emitContractAddr, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
 				tx := t.chain.MustSignTx(sender, txdata)
@@ -1116,13 +1229,13 @@ var EthSendRawTransaction = MethodTests{
 				basefee.Add(basefee, big.NewInt(500))
 				txdata := &types.DynamicFeeTx{
 					Nonce:     nonce,
-					To:        &contractAddr,
+					To:        &emitContractAddr,
 					Gas:       80000,
 					GasTipCap: big.NewInt(500),
 					GasFeeCap: basefee,
-					Data:      common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
+					Data:      common.FromHex("0x01020304"),
 					AccessList: types.AccessList{
-						{Address: contractAddr, StorageKeys: []common.Hash{{0}, {1}}},
+						{Address: emitContractAddr, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
 				tx := t.chain.MustSignTx(sender, txdata)
@@ -1263,6 +1376,9 @@ var EthGetProof = MethodTests{
 				if result.Balance.Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
+				if result.Balance.Sign() == 0 {
+					return fmt.Errorf("balance is zero, does the account exist?")
+				}
 				return nil
 			},
 		},
@@ -1281,6 +1397,9 @@ var EthGetProof = MethodTests{
 				balance := t.chain.Balance(addr)
 				if result.Balance.ToInt().Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
+				}
+				if result.Balance.ToInt().Sign() == 0 {
+					return fmt.Errorf("balance is zero, does the account exist?")
 				}
 				return nil
 			},

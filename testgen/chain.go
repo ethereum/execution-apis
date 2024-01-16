@@ -35,14 +35,15 @@ type Chain struct {
 }
 
 type ChainTxInfo struct {
-	LegacyTransfers     []TxInfo     `json:"tx-transfer-legacy"`
-	AccessListTransfers []TxInfo     `json:"tx-transfer-eip2930"`
-	DynamicFeeTransfers []TxInfo     `json:"tx-transfer-eip1559"`
-	LegacyEmit          []TxInfo     `json:"tx-emit-legacy"`
-	AccessListEmit      []TxInfo     `json:"tx-emit-eip2930"`
-	DynamicFeeEmit      []TxInfo     `json:"tx-emit-eip1559"`
-	CallMeContract      ContractInfo `json:"deploy-callme"`
-	CallEnvContract     ContractInfo `json:"deploy-callenv"`
+	LegacyTransfers     []TxInfo      `json:"tx-transfer-legacy"`
+	AccessListTransfers []TxInfo      `json:"tx-transfer-eip2930"`
+	DynamicFeeTransfers []TxInfo      `json:"tx-transfer-eip1559"`
+	LegacyEmit          []TxInfo      `json:"tx-emit-legacy"`
+	AccessListEmit      []TxInfo      `json:"tx-emit-eip2930"`
+	DynamicFeeEmit      []TxInfo      `json:"tx-emit-eip1559"`
+	CallMeContract      *ContractInfo `json:"deploy-callme"`
+	CallEnvContract     *ContractInfo `json:"deploy-callenv"`
+	CallRevertContract  *ContractInfo `json:"deploy-callrevert"`
 }
 
 type TxInfo struct {
@@ -169,8 +170,11 @@ func (c *Chain) Balance(addr common.Address) *big.Int {
 
 // Balance returns the balance of an account at the head of the chain.
 func (c *Chain) Storage(addr common.Address, slot common.Hash) []byte {
-	v := c.state[addr].Storage[slot]
-	return hexutil.MustDecode("0x" + v)
+	v, ok := c.state[addr].Storage[slot]
+	if ok {
+		return common.LeftPadBytes(hexutil.MustDecode("0x"+v), 32)
+	}
+	return nil
 }
 
 // SignTx signs a transaction for the specified from account, so long as that
@@ -182,10 +186,6 @@ func (c *Chain) MustSignTx(from common.Address, txdata types.TxData) *types.Tran
 		panic(fmt.Errorf("account not available for signing: %s", from))
 	}
 	return types.MustSignNewTx(acc.Key, signer, txdata)
-}
-
-func (c *Chain) TxInfo() *ChainTxInfo {
-	return c.txinfo
 }
 
 func loadGenesis(genesisFile string) (core.Genesis, error) {
