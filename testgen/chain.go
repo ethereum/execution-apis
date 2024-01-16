@@ -30,7 +30,32 @@ type Chain struct {
 	blocks  []*types.Block
 	state   map[common.Address]state.DumpAccount // state of head block
 	senders map[common.Address]*senderInfo
+	txinfo  *ChainTxInfo
 	config  *params.ChainConfig
+}
+
+type ChainTxInfo struct {
+	LegacyTransfers     []TxInfo     `json:"tx-transfer-legacy"`
+	AccessListTransfers []TxInfo     `json:"tx-transfer-eip2930"`
+	DynamicFeeTransfers []TxInfo     `json:"tx-transfer-eip1559"`
+	LegacyEmit          []TxInfo     `json:"tx-emit-legacy"`
+	AccessListEmit      []TxInfo     `json:"tx-emit-eip2930"`
+	DynamicFeeEmit      []TxInfo     `json:"tx-emit-eip1559"`
+	CallMeContract      ContractInfo `json:"deploy-callme"`
+	CallEnvContract     ContractInfo `json:"deploy-callenv"`
+}
+
+type TxInfo struct {
+	TxHash   common.Hash    `json:"txhash"`
+	Sender   common.Address `json:"sender"`
+	Block    hexutil.Uint64 `json:"block"`
+	Index    int            `json:"indexInBlock"`
+	DataHash common.Hash    `json:"datahash"` // for emit txs
+}
+
+type ContractInfo struct {
+	Addr  common.Address `json:"contract"`
+	Block hexutil.Uint64 `json:"block"`
 }
 
 // NewChain takes the given chain.rlp file, and decodes and returns
@@ -54,11 +79,16 @@ func NewChain(dir string) (*Chain, error) {
 	if err != nil {
 		return nil, err
 	}
+	txinfo, err := readTxInfo(path.Join(dir, "txinfo.json"))
+	if err != nil {
+		return nil, err
+	}
 	return &Chain{
 		genesis: gen,
 		blocks:  blocks,
 		state:   state,
 		senders: accounts,
+		txinfo:  txinfo,
 		config:  gen.Config,
 	}, nil
 }
@@ -154,6 +184,10 @@ func (c *Chain) MustSignTx(from common.Address, txdata types.TxData) *types.Tran
 	return types.MustSignNewTx(acc.Key, signer, txdata)
 }
 
+func (c *Chain) TxInfo() *ChainTxInfo {
+	return c.txinfo
+}
+
 func loadGenesis(genesisFile string) (core.Genesis, error) {
 	chainConfig, err := os.ReadFile(genesisFile)
 	if err != nil {
@@ -237,7 +271,7 @@ func readState(file string) (map[common.Address]state.DumpAccount, error) {
 func readAccounts(file string) (map[common.Address]*senderInfo, error) {
 	f, err := os.ReadFile(file)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read state: %v", err)
+		return nil, fmt.Errorf("unable to read accounts: %v", err)
 	}
 	type account struct {
 		Key hexutil.Bytes `json:"key"`
@@ -255,4 +289,16 @@ func readAccounts(file string) (map[common.Address]*senderInfo, error) {
 		accounts[addr] = &senderInfo{Key: pk, Nonce: 0}
 	}
 	return accounts, nil
+}
+
+func readTxInfo(file string) (*ChainTxInfo, error) {
+	f, err := os.ReadFile(file)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read txinfo: %v", err)
+	}
+	var txinfo ChainTxInfo
+	if err := json.Unmarshal(f, &txinfo); err != nil {
+		return nil, err
+	}
+	return &txinfo, nil
 }

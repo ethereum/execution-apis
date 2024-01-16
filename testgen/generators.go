@@ -27,7 +27,8 @@ var (
 
 var (
 	// This is the address of an existing contract in the chain, which has code and some storage slots.
-	contractAddr = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
+	contractAddr     = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
+	emitContractAddr = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
 )
 
 type T struct {
@@ -140,8 +141,8 @@ var EthGetHeaderByNumber = MethodTests{
 			"get-header-by-number",
 			"gets a header by number",
 			func(ctx context.Context, t *T) error {
-				var got *types.Header
-				err := t.rpc.CallContext(ctx, got, "eth_getHeaderByNumber", "0x1")
+				var got types.Header
+				err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByNumber", "0x1")
 				if err != nil {
 					return err
 				}
@@ -164,8 +165,8 @@ var EthGetHeaderByHash = MethodTests{
 			"gets a header by hash",
 			func(ctx context.Context, t *T) error {
 				want := t.chain.GetBlock(1).Header()
-				var got *types.Header
-				err := t.rpc.CallContext(ctx, got, "eth_getHeaderByHash", want.Hash())
+				var got types.Header
+				err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByHash", want.Hash())
 				if err != nil {
 					return err
 				}
@@ -184,11 +185,10 @@ var EthGetCode = MethodTests{
 	[]Test{
 		{
 			"get-code",
-			"gets code for 0xaa",
+			"requests code of an existing contract",
 			func(ctx context.Context, t *T) error {
-				addr := common.Address{0xaa}
 				var got hexutil.Bytes
-				err := t.rpc.CallContext(ctx, &got, "eth_getCode", addr, "latest")
+				err := t.rpc.CallContext(ctx, &got, "eth_getCode", emitContractAddr, "latest")
 				if err != nil {
 					return err
 				}
@@ -340,8 +340,9 @@ var EthGetBlockByNumber = MethodTests{
 				if err != nil {
 					return err
 				}
-				if n := block.Number().Uint64(); n != 9 {
-					return fmt.Errorf("expected block 9, got block %d", n)
+				head := t.chain.Head().NumberU64()
+				if n := block.Number().Uint64(); n != head {
+					return fmt.Errorf("expected block %d, got block %d", head, n)
 				}
 				return nil
 			},
@@ -354,8 +355,9 @@ var EthGetBlockByNumber = MethodTests{
 				if err != nil {
 					return err
 				}
-				if n := block.Number().Uint64(); n != 9 {
-					return fmt.Errorf("expected block 9, got block %d", n)
+				head := t.chain.Head().NumberU64()
+				if n := block.Number().Uint64(); n != head {
+					return fmt.Errorf("expected block %d, got block %d", head, n)
 				}
 				return nil
 			},
@@ -368,8 +370,9 @@ var EthGetBlockByNumber = MethodTests{
 				if err != nil {
 					return err
 				}
-				if n := block.Number().Uint64(); n != 9 {
-					return fmt.Errorf("expected block 9, got block %d", n)
+				head := t.chain.Head().NumberU64()
+				if n := block.Number().Uint64(); n != head {
+					return fmt.Errorf("expected block %d, got block %d", head, n)
 				}
 				return nil
 			},
@@ -407,7 +410,7 @@ var EthCall = MethodTests{
 	"eth_call",
 	[]Test{
 		{
-			"call-simple-transfer",
+			"call-revert",
 			"simulates a simple transfer",
 			func(ctx context.Context, t *T) error {
 				msg := ethereum.CallMsg{From: common.Address{0xaa}, To: &common.Address{0x01}, Gas: 100000}
