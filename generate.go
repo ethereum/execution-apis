@@ -39,6 +39,7 @@ func runGenerator(ctx context.Context) error {
 	// outputDir/methodName/testName.io
 	fmt.Println("filling tests...")
 	tests := testgen.AllMethods
+	fails := 0
 	for _, methodTest := range tests {
 		// Skip tests that don't match regexp.
 		if !args.tests.MatchString(methodTest.Name) {
@@ -71,11 +72,16 @@ func runGenerator(ctx context.Context) error {
 			if err != nil {
 				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.Name, test.Name, err)
+				fails++
 				continue
 			}
 			fmt.Println("  done.")
 			handler.Close()
 		}
+	}
+
+	if fails > 0 {
+		return fmt.Errorf("%d tests failed to fill", fails)
 	}
 	return nil
 }
