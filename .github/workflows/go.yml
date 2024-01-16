@@ -17,12 +17,6 @@ jobs:
           go-version: ^1.19
         id: go
 
-      - name: Install geth
-        run: |
-          sudo add-apt-repository -y ppa:ethereum/ethereum
-          sudo apt-get update
-          sudo apt-get install ethereum
-
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
