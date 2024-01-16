@@ -1,4 +1,6 @@
 tests/
 ethash/
-rpctestgen
-openrpc.json
+/rpctestgen
+/geth
+/openrpc.json
+
