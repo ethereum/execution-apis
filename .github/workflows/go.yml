@@ -26,11 +26,9 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
-      - name: Build binary
-        run: make all
-
       - name: Fill tests
-        run: ./rpctestgen
+        run: make fill
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
