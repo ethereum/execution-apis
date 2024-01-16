@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,10 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -172,30 +169,4 @@ func runCmd(ctx context.Context, path string, verbose bool, args ...string) erro
 		return err
 	}
 	return nil
-}
-
-// readBlocks reads a chain.rlp file to a slice of Block.
-func readBlocks(filename string) ([]*types.Block, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	var (
-		stream = rlp.NewStream(f, 0)
-		blocks = make([]*types.Block, 0)
-		i      = 0
-	)
-	for {
-		var b types.Block
-		if err := stream.Decode(&b); err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, fmt.Errorf("at block %d: %v", i, err)
-		}
-		blocks = append(blocks, &b)
-		i++
-	}
-	return blocks, nil
 }
