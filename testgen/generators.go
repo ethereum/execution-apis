@@ -638,6 +638,41 @@ var EthCreateAccessList = MethodTests{
 				return nil
 			},
 		},
+		{
+			"create-al-contract-eip1559",
+			`Creates an access list for a contract invocation that accesses storage.
+This invocation uses EIP-1559 fields to specify the gas price.`,
+			func(ctx context.Context, t *T) error {
+				gasprice := t.chain.Head().BaseFee()
+				sender, nonce := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   emitContract,
+					"nonce":                hexutil.Uint64(nonce),
+					"gasLimit":             hexutil.Uint64(60000),
+					"maxFeePerGas":         (*hexutil.Big)(gasprice),
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(3)),
+					"input":                "0x010203040506",
+				}
+				var result struct {
+					AccessList types.AccessList
+				}
+				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
+				if err != nil {
+					return err
+				}
+				if len(result.AccessList) == 0 {
+					return fmt.Errorf("empty access list")
+				}
+				if result.AccessList[0].Address != emitContract {
+					return fmt.Errorf("wrong address in access list entry")
+				}
+				if len(result.AccessList[0].StorageKeys) == 0 {
+					return fmt.Errorf("no storage keys in access list entry")
+				}
+				return nil
+			},
+		},
 	},
 }
 
