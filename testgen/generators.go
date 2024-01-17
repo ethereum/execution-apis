@@ -22,8 +22,7 @@ import (
 )
 
 var (
-	eip4788Contract = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
-	emitContract    = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
+	emitContract = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
 )
 
 type T struct {
