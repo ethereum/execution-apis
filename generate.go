@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/cespare/cp"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/lightclient/rpctestgen/testgen"
@@ -20,6 +22,9 @@ func runGenerator(ctx context.Context) error {
 	// Initialize generated chain.
 	chain, err := testgen.NewChain(args.ChainDir)
 	if err != nil {
+		return err
+	}
+	if err := copyChainFiles(args.ChainDir, args.OutDir); err != nil {
 		return err
 	}
 
@@ -126,6 +131,24 @@ func mkdir(path string) error {
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func copyChainFiles(chainDir, outDir string) error {
+	err := os.MkdirAll(outDir, 0755)
+	if err != nil {
+		return err
+	}
+	fmt.Println("copying genesis.json")
+	err = cp.CopyFile(filepath.Join(outDir, "genesis.json"), filepath.Join(chainDir, "genesis.json"))
+	if err != nil {
+		return err
+	}
+	fmt.Println("copying chain.rlp")
+	err = cp.CopyFile(filepath.Join(outDir, "chain.rlp"), filepath.Join(chainDir, "chain.rlp"))
+	if err != nil {
+		return err
 	}
 	return nil
 }
