@@ -228,6 +228,28 @@ var EthGetStorage = MethodTests{
 				return fmt.Errorf("requested storage slot is zero")
 			},
 		},
+		{
+			"get-storage-invalid-key-too-large",
+			"requests an invalid storage key",
+			func(ctx context.Context, t *T) error {
+				err := t.rpc.CallContext(ctx, nil, "eth_getStorageAt", "0xaa00000000000000000000000000000000000000", "0x00000000000000000000000000000000000000000000000000000000000000000", "latest")
+				if err == nil {
+					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-storage-invalid-key",
+			"requests an invalid storage key",
+			func(ctx context.Context, t *T) error {
+				err := t.rpc.CallContext(ctx, nil, "eth_getStorageAt", "0xaa00000000000000000000000000000000000000", "0xasdf", "latest")
+				if err == nil {
+					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
 	},
 }
 
