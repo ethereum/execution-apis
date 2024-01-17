@@ -17,7 +17,6 @@
     "mergeNetsplitBlock": 0,
     "shanghaiTime": 0,
     "cancunTime": 0,
-    "pragueTime": 0,
     "terminalTotalDifficulty": 131072,
     "terminalTotalDifficultyPassed": true,
     "ethash": {}
