@@ -22,9 +22,8 @@ import (
 )
 
 var (
-	// This is the address of an existing contract in the chain, which has code and some storage slots.
-	eip4788Contract  = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
-	emitContractAddr = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
+	eip4788Contract = common.HexToAddress("0x000f3df6d732807ef1319fb7b8bb8522d0beac02")
+	emitContract    = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
 )
 
 type T struct {
@@ -184,11 +183,11 @@ var EthGetCode = MethodTests{
 			"requests code of an existing contract",
 			func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
-				err := t.rpc.CallContext(ctx, &got, "eth_getCode", emitContractAddr, "latest")
+				err := t.rpc.CallContext(ctx, &got, "eth_getCode", emitContract, "latest")
 				if err != nil {
 					return err
 				}
-				want := t.chain.state[emitContractAddr].Code
+				want := t.chain.state[emitContract].Code
 				if !bytes.Equal(got, want) {
 					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
 				}
@@ -206,7 +205,7 @@ var EthGetStorage = MethodTests{
 			"get-storage",
 			"gets storage of a contract",
 			func(ctx context.Context, t *T) error {
-				addr := emitContractAddr
+				addr := emitContract
 				key := common.Hash{}
 				got, err := t.eth.StorageAt(ctx, addr, key, nil)
 				if err != nil {
@@ -281,7 +280,7 @@ var EthGetBalance = MethodTests{
 			"get-balance",
 			"retrieves the an account balance",
 			func(ctx context.Context, t *T) error {
-				addr := emitContractAddr
+				addr := emitContract
 				got, err := t.eth.BalanceAt(ctx, addr, nil)
 				if err != nil {
 					return err
@@ -299,7 +298,7 @@ var EthGetBalance = MethodTests{
 			func(ctx context.Context, t *T) error {
 				var (
 					block = t.chain.GetBlock(int(t.chain.Head().NumberU64()) - 10)
-					addr  = emitContractAddr
+					addr  = emitContract
 					got   hexutil.Big
 				)
 				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", addr, block.Hash()); err != nil {
@@ -588,15 +587,18 @@ var EthCreateAccessList = MethodTests{
 	"eth_createAccessList",
 	[]Test{
 		{
-			"create-al-simple-transfer",
+			"create-al-value-transfer",
 			"estimates a simple transfer",
 			func(ctx context.Context, t *T) error {
-				msg := make(map[string]interface{})
-				msg["from"] = eip4788Contract
-				msg["to"] = common.Address{0x01}
-
-				got := make(map[string]interface{})
-				err := t.rpc.CallContext(ctx, &got, "eth_createAccessList", msg, "latest")
+				sender, nonce := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":  sender,
+					"to":    common.Address{0x01},
+					"value": hexutil.Uint64(10),
+					"nonce": hexutil.Uint64(nonce),
+				}
+				result := make(map[string]any)
+				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
 				if err != nil {
 					return err
 				}
@@ -604,33 +606,34 @@ var EthCreateAccessList = MethodTests{
 			},
 		},
 		{
-			"create-al-simple-contract",
-			"estimates a simple contract call with no return",
+			"create-al-contract",
+			"creates an access list for a contract invocation that accesses storage",
 			func(ctx context.Context, t *T) error {
-				msg := make(map[string]interface{})
-				msg["from"] = eip4788Contract
-				msg["to"] = common.Address{0xaa}
-
-				got := make(map[string]interface{})
-				err := t.rpc.CallContext(ctx, &got, "eth_createAccessList", msg, "latest")
+				gasprice := t.chain.Head().BaseFee()
+				sender, nonce := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":     sender,
+					"to":       emitContract,
+					"nonce":    hexutil.Uint64(nonce),
+					"gasLimit": hexutil.Uint64(60000),
+					"gasPrice": (*hexutil.Big)(gasprice),
+					"input":    "0x010203040506",
+				}
+				var result struct {
+					AccessList types.AccessList
+				}
+				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
 				if err != nil {
 					return err
 				}
-				return nil
-			},
-		},
-		{
-			"create-al-multiple-reads",
-			"estimates a simple contract call with no return",
-			func(ctx context.Context, t *T) error {
-				msg := make(map[string]interface{})
-				msg["from"] = eip4788Contract
-				msg["to"] = common.Address{0xbb}
-
-				got := make(map[string]interface{})
-				err := t.rpc.CallContext(ctx, &got, "eth_createAccessList", msg, "latest")
-				if err != nil {
-					return err
+				if len(result.AccessList) == 0 {
+					return fmt.Errorf("empty access list")
+				}
+				if result.AccessList[0].Address != emitContract {
+					return fmt.Errorf("wrong address in access list entry")
+				}
+				if len(result.AccessList[0].StorageKeys) == 0 {
+					return fmt.Errorf("no storage keys in access list entry")
 				}
 				return nil
 			},
@@ -1204,12 +1207,12 @@ var EthSendRawTransaction = MethodTests{
 				basefee.Add(basefee, big.NewInt(500))
 				txdata := &types.AccessListTx{
 					Nonce:    nonce,
-					To:       &emitContractAddr,
+					To:       &emitContract,
 					Gas:      90000,
 					GasPrice: basefee,
 					Data:     common.FromHex("0x010203"),
 					AccessList: types.AccessList{
-						{Address: emitContractAddr, StorageKeys: []common.Hash{{0}, {1}}},
+						{Address: emitContract, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
 				tx := t.chain.MustSignTx(sender, txdata)
@@ -1229,13 +1232,13 @@ var EthSendRawTransaction = MethodTests{
 				basefee.Add(basefee, big.NewInt(500))
 				txdata := &types.DynamicFeeTx{
 					Nonce:     nonce,
-					To:        &emitContractAddr,
+					To:        &emitContract,
 					Gas:       80000,
 					GasTipCap: big.NewInt(500),
 					GasFeeCap: basefee,
 					Data:      common.FromHex("0x01020304"),
 					AccessList: types.AccessList{
-						{Address: emitContractAddr, StorageKeys: []common.Hash{{0}, {1}}},
+						{Address: emitContract, StorageKeys: []common.Hash{{0}, {1}}},
 					},
 				}
 				tx := t.chain.MustSignTx(sender, txdata)
@@ -1364,15 +1367,14 @@ var EthGetProof = MethodTests{
 	"eth_getProof",
 	[]Test{
 		{
-			"get-account-proof",
-			"gets proof for a certain account",
+			"get-account-proof-latest",
+			"requests the account proof for a known account",
 			func(ctx context.Context, t *T) error {
-				addr := common.Address{0xaa}
-				result, err := t.geth.GetProof(ctx, addr, []string{}, big.NewInt(3))
+				result, err := t.geth.GetProof(ctx, emitContract, []string{}, nil)
 				if err != nil {
 					return err
 				}
-				balance := t.chain.Balance(addr)
+				balance := t.chain.Balance(emitContract)
 				if result.Balance.Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
@@ -1386,15 +1388,14 @@ var EthGetProof = MethodTests{
 			"get-account-proof-blockhash",
 			"gets proof for a certain account at the specified blockhash",
 			func(ctx context.Context, t *T) error {
-				addr := common.Address{0xaa}
 				type accountResult struct {
 					Balance *hexutil.Big `json:"balance"`
 				}
 				var result accountResult
-				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", addr, []string{}, t.chain.Head().Hash()); err != nil {
+				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, []string{}, t.chain.Head().Hash()); err != nil {
 					return err
 				}
-				balance := t.chain.Balance(addr)
+				balance := t.chain.Balance(emitContract)
 				if result.Balance.ToInt().Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
@@ -1408,12 +1409,11 @@ var EthGetProof = MethodTests{
 			"get-account-proof-with-storage",
 			"gets proof for a certain account",
 			func(ctx context.Context, t *T) error {
-				addr := common.Address{0xaa}
-				result, err := t.geth.GetProof(ctx, addr, []string{"0x01"}, big.NewInt(3))
+				result, err := t.geth.GetProof(ctx, emitContract, []string{"0x00"}, nil)
 				if err != nil {
 					return err
 				}
-				balance := t.chain.Balance(addr)
+				balance := t.chain.Balance(emitContract)
 				if result.Balance.Cmp(balance) != 0 {
 					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
