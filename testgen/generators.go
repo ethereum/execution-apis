@@ -3,6 +3,7 @@ package testgen
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"math/big"
@@ -14,10 +15,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/holiman/uint256"
 	"golang.org/x/exp/maps"
 )
 
@@ -979,6 +983,21 @@ var EthGetTransactionByHash = MethodTests{
 				return nil
 			},
 		},
+		{
+			"get-blob-tx",
+			"gets a blob transaction",
+			func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlockByNumber(7).Transactions()[0]
+				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
+				if err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -1092,6 +1111,23 @@ var EthGetTransactionReceipt = MethodTests{
 				_, err := t.eth.TransactionReceipt(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+		{
+			"get-blob-tx",
+			"gets a blob transaction",
+			func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlockByNumber(7)
+				receipt, err := t.eth.TransactionReceipt(ctx, block.Transactions()[0].Hash())
+				if err != nil {
+					return err
+				}
+				got, _ := receipt.MarshalBinary()
+				want, _ := t.chain.GetReceiptsByHash(block.Hash())[0].MarshalBinary()
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("receipt mismatch (got: %s, want: %s)", hexutil.Bytes(got), hexutil.Bytes(want))
 				}
 				return nil
 			},
@@ -1306,6 +1342,56 @@ var EthSendRawTransaction = MethodTests{
 					return err
 				}
 				t.chain.IncNonce(sender, 1)
+				return nil
+			},
+		},
+		{
+			"send-blob-tx",
+			"sends a blob transaction",
+			func(ctx context.Context, t *T) error {
+				var (
+					genesis = t.chain.Genesis()
+					fee     = uint256.NewInt(500)
+
+					emptyBlob          = kzg4844.Blob{}
+					emptyBlobCommit, _ = kzg4844.BlobToCommitment(emptyBlob)
+					emptyBlobProof, _  = kzg4844.ComputeBlobProof(emptyBlob, emptyBlobCommit)
+				)
+				fee.Add(fee, uint256.MustFromBig(genesis.BaseFee()))
+
+				// compute versioned hash
+				hasher := sha256.New()
+				hasher.Write(emptyBlobCommit[:])
+				hash := hasher.Sum(nil)
+				var vhash common.Hash
+				vhash[0] = params.BlobTxHashVersion
+				copy(vhash[1:], hash[1:])
+
+				txdata := &types.BlobTx{
+					Nonce:     0,
+					To:        contract,
+					Gas:       80000,
+					GasTipCap: uint256.NewInt(500),
+					GasFeeCap: fee,
+					Data:      common.FromHex("0xa9059cbb000000000000000000000000cff33720980c026cc155dcb366861477e988fd870000000000000000000000000000000000000000000000000000000002fd6892"), // transfer(address to, uint256 value)
+					AccessList: types.AccessList{
+						{Address: contract, StorageKeys: []common.Hash{{0}, {1}}},
+					},
+					BlobHashes: []common.Hash{vhash},
+					BlobFeeCap: uint256.NewInt(params.BlobTxBlobGasPerBlob),
+					Sidecar: &types.BlobTxSidecar{
+						Blobs:       []kzg4844.Blob{emptyBlob},
+						Commitments: []kzg4844.Commitment{emptyBlobCommit},
+						Proofs:      []kzg4844.Proof{emptyBlobProof},
+					},
+				}
+				s := types.LatestSigner(t.chain.Config())
+
+				pk, _ = crypto.HexToECDSA("45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8")
+				tx, _ := types.SignNewTx(pk, s, txdata)
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
 				return nil
 			},
 		},
