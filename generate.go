@@ -141,12 +141,12 @@ func copyChainFiles(chainDir, outDir string) error {
 		return err
 	}
 	fmt.Println("copying genesis.json")
-	err = cp.CopyFile(filepath.Join(outDir, "genesis.json"), filepath.Join(chainDir, "genesis.json"))
+	err = cp.CopyFileOverwrite(filepath.Join(outDir, "genesis.json"), filepath.Join(chainDir, "genesis.json"))
 	if err != nil {
 		return err
 	}
 	fmt.Println("copying chain.rlp")
-	err = cp.CopyFile(filepath.Join(outDir, "chain.rlp"), filepath.Join(chainDir, "chain.rlp"))
+	err = cp.CopyFileOverwrite(filepath.Join(outDir, "chain.rlp"), filepath.Join(chainDir, "chain.rlp"))
 	if err != nil {
 		return err
 	}
