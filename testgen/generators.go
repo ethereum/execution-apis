@@ -76,15 +76,19 @@ var AllMethods = []MethodTests{
 	EthGetTransactionReceipt,
 	EthGetBlockReceipts,
 	EthSendRawTransaction,
-	EthGasPrice,
-	EthMaxPriorityFeePerGas,
 	EthSyncing,
 	EthFeeHistory,
-	// EthGetUncleByBlockNumberAndIndex,
 	DebugGetRawHeader,
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
+
+	// -- gas price tests are disabled because of non-determinism
+	// EthGasPrice,
+	// EthMaxPriorityFeePerGas,
+
+	// -- uncle APIs are not required anymore after the merge
+	// EthGetUncleByBlockNumberAndIndex,
 }
 
 // EthBlockNumber stores a list of all tests against the method.
