@@ -25,6 +25,7 @@ import (
 
 var (
 	emitContract = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
+	nonAccount   = common.HexToAddress("0xc1cadaffffffffffffffffffffffffffffffffff")
 )
 
 type T struct {
@@ -199,6 +200,21 @@ var EthGetCode = MethodTests{
 				return nil
 			},
 		},
+		{
+			"get-code-unknown-account",
+			"requests code of a non-existent account",
+			func(ctx context.Context, t *T) error {
+				var got hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &got, "eth_getCode", nonAccount, "latest")
+				if err != nil {
+					return err
+				}
+				if len(got) > 0 {
+					return fmt.Errorf("account %v has non-empty code", nonAccount)
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -222,12 +238,27 @@ var EthGetStorage = MethodTests{
 				}
 				// Check for any non-zero byte in the value.
 				// If it's all-zero, the slot doesn't really exist, indicating a problem with the test itself.
-				for _, b := range want {
-					if b != 0 {
-						return nil
-					}
+				nz := slices.ContainsFunc(got, func(b byte) bool { return b != 0 })
+				if !nz {
+					return fmt.Errorf("requested storage slot is zero")
 				}
-				return fmt.Errorf("requested storage slot is zero")
+				return nil
+			},
+		},
+		{
+			"get-storage-unknown-account",
+			"gets storage of a non-existent account",
+			func(ctx context.Context, t *T) error {
+				key := common.Hash{1}
+				got, err := t.eth.StorageAt(ctx, nonAccount, key, nil)
+				if err != nil {
+					return err
+				}
+				nz := slices.ContainsFunc(got, func(b byte) bool { return b != 0 })
+				if nz {
+					return fmt.Errorf("storage is non-empty")
+				}
+				return nil
 			},
 		},
 		{
@@ -315,6 +346,20 @@ var EthGetBalance = MethodTests{
 				want := t.chain.Balance(addr)
 				if got.Cmp(want) != 0 {
 					return fmt.Errorf("unexpect balance (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
+		{
+			"get-balance-unknown-account",
+			"requests the balance of a non-existent account",
+			func(ctx context.Context, t *T) error {
+				got, err := t.eth.BalanceAt(ctx, nonAccount, nil)
+				if err != nil {
+					return err
+				}
+				if got.Sign() > 0 {
+					return fmt.Errorf("account %v has non-zero balance", nonAccount)
 				}
 				return nil
 			},
@@ -846,6 +891,27 @@ var EthGetTransactionCount = MethodTests{
 				want := t.chain.state[addr].Nonce
 				if got != want {
 					return fmt.Errorf("unexpected nonce (got: %d, want: %d)", got, want)
+				}
+				if want == 0 {
+					return fmt.Errorf("nonce for account %v is zero", addr)
+				}
+				return nil
+			},
+		},
+		{
+			"get-nonce-unknown-account",
+			"gets nonce for a non-existent account",
+			func(ctx context.Context, t *T) error {
+				got, err := t.eth.NonceAt(ctx, nonAccount, nil)
+				if err != nil {
+					return err
+				}
+				want := t.chain.state[nonAccount].Nonce
+				if got != want {
+					return fmt.Errorf("unexpected nonce (got: %d, want: %d)", got, want)
+				}
+				if want != 0 {
+					return fmt.Errorf("nonce for account %v is non-zero", nonAccount)
 				}
 				return nil
 			},
