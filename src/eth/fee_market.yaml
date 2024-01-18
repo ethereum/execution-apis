@@ -6,13 +6,13 @@
     schema:
       title: Gas price
       $ref: '#/components/schemas/uint'
-- name: eth_blobGasPrice
-  summary: Returns the current price per blob gas in wei.
+- name: eth_blobBaseFee
+  summary: Returns the base fee per blob gas in wei.
   params: []
   result:
-    name: Blob gas price
+    name: Blob gas base fee
     schema:
-      title: Blob gas price
+      title: Blob gas base fee
       $ref: '#/components/schemas/uint'
 - name: eth_maxPriorityFeePerGas
   summary: Returns the current maxPriorityFeePerGas per gas in wei.
