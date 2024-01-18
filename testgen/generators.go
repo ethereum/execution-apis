@@ -81,6 +81,7 @@ var AllMethods = []MethodTests{
 	EthSendRawTransaction,
 	EthSyncing,
 	EthFeeHistory,
+	EthGetLogs,
 	DebugGetRawHeader,
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
@@ -1625,6 +1626,109 @@ var EthGetProof = MethodTests{
 				}
 				if len(result.StorageProof) == 0 || len(result.StorageProof[0].Proof) == 0 {
 					return fmt.Errorf("expected storage proof")
+				}
+				return nil
+			},
+		},
+	},
+}
+
+var EthGetLogs = MethodTests{
+	"eth_getLogs",
+	[]Test{
+		{
+			"no-topics",
+			"queries for all logs across a range of blocks",
+			func(ctx context.Context, t *T) error {
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: big.NewInt(1),
+					ToBlock:   big.NewInt(3),
+				})
+				if err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("no logs returned")
+				}
+				return nil
+			},
+		},
+		{
+			"contract-addr",
+			"queries for logs from a specific contract across a range of blocks",
+			func(ctx context.Context, t *T) error {
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: big.NewInt(1),
+					ToBlock:   big.NewInt(4),
+					Addresses: []common.Address{emitContract},
+				})
+				if err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("no logs returned")
+				}
+				bad := slices.ContainsFunc(result, func(l types.Log) bool {
+					return l.Address != emitContract
+				})
+				if bad {
+					return fmt.Errorf("result contains log for unrequested contract")
+				}
+				return nil
+			},
+		},
+		{
+			"topic-exact-match",
+			"queries for logs with two topics, with both topics set explictly",
+			func(ctx context.Context, t *T) error {
+				// Find a topic.
+				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
+					return tx.Block > 2
+				})
+				if i == -1 {
+					return fmt.Errorf("no suitable tx found")
+				}
+				info := t.chain.txinfo.LegacyEmit[i]
+				startBlock := uint64(info.Block - 1)
+				endBlock := uint64(info.Block + 2)
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: new(big.Int).SetUint64(startBlock),
+					ToBlock:   new(big.Int).SetUint64(endBlock),
+					Topics:    [][]common.Hash{{*info.LogTopic0}, {*info.LogTopic1}},
+				})
+				if err != nil {
+					return err
+				}
+				if len(result) != 1 {
+					return fmt.Errorf("result contains %d logs, want 1", len(result))
+				}
+				return nil
+			},
+		},
+		{
+			"topic-wildcard",
+			"queries for logs with two topics, performing a wildcard match in topic position zero",
+			func(ctx context.Context, t *T) error {
+				// Find a topic.
+				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
+					return tx.Block > 2
+				})
+				if i == -1 {
+					return fmt.Errorf("no suitable tx found")
+				}
+				info := t.chain.txinfo.LegacyEmit[i]
+				startBlock := uint64(info.Block - 1)
+				endBlock := uint64(info.Block + 2)
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: new(big.Int).SetUint64(startBlock),
+					ToBlock:   new(big.Int).SetUint64(endBlock),
+					Topics:    [][]common.Hash{{}, {*info.LogTopic1}},
+				})
+				if err != nil {
+					return err
+				}
+				if len(result) != 1 {
+					return fmt.Errorf("result contains %d logs, want 1", len(result))
 				}
 				return nil
 			},

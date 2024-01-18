@@ -47,11 +47,13 @@ type ChainTxInfo struct {
 }
 
 type TxInfo struct {
-	TxHash   common.Hash    `json:"txhash"`
-	Sender   common.Address `json:"sender"`
-	Block    hexutil.Uint64 `json:"block"`
-	Index    int            `json:"indexInBlock"`
-	DataHash common.Hash    `json:"datahash"` // for emit txs
+	TxHash common.Hash    `json:"txhash"`
+	Sender common.Address `json:"sender"`
+	Block  hexutil.Uint64 `json:"block"`
+	Index  int            `json:"indexInBlock"`
+	// for emit contract txs
+	LogTopic0 *common.Hash `json:"logtopic0"`
+	LogTopic1 *common.Hash `json:"logtopic1"`
 }
 
 type ContractInfo struct {
