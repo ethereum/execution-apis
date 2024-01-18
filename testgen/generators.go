@@ -220,7 +220,7 @@ var EthGetCode = MethodTests{
 
 // EthGetStorage stores a list of all tests against the method.
 var EthGetStorage = MethodTests{
-	"eth_getStorage",
+	"eth_getStorageAt",
 	[]Test{
 		{
 			"get-storage",
