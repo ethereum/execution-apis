@@ -6,7 +6,7 @@
       schema:
         $ref: '#/components/schemas/address'
     - name: Block
-      required: false
+      required: true
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
