@@ -20,7 +20,7 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | sha3Uncles | Empty trie root |
 | withdrawals | Empty array |
 | uncles | Empty array |
-| blobGasPrice | Calculated on what it should be according to EIP-4844 spec. Note: blobGasPrice is not adjusted in the phantom blocks. |
+| blobBaseFee | Calculated on what it should be according to EIP-4844 spec. Note: blobBaseFee is not adjusted in the phantom blocks. |
 | number | Previous block number + 1 |
 | logsBloom | Calculated normally. ETH logs are not part of the calculation |
 | receiptsRoot | Calculated normally |
@@ -83,10 +83,10 @@ As multicall is an extension to `eth_call` we want to enable the nice user exper
 | parameter name | description |
 -----------------|-----------------------
 | type | `0x2` |
-| nonce | Defaults to correct nonce |
+| nonce | Take the correct nonce for the account prior multicall and increment by one for each transaction by the account |
 | to | `null` |
 | from | `0x0000000000000000000000000000000000000000` |
-| gas limit | Remaining gas in the current block. This is calculated dynamically one by one for each transaction that is being processed. |
+| gas limit | (blockGasLimit - SumOfGasLimitOfTransactionsWithDefinedGasLimit) / NumberOfTransactionsWithoutKnownGasLimit |
 | value | `0x0` |
 | input | no data |
 | gasPrice | `0x0` |
@@ -96,7 +96,7 @@ As multicall is an extension to `eth_call` we want to enable the nice user exper
 | blobVersionedHashes | empty array |
 
 ## Overriding default values
-The default values of blocks and transactions can be overriden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobGasPrice`:
+The default values of blocks and transactions can be overriden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobBaseFee`:
 ```json
 "blockOverrides": {
 	"number": "0x14",
@@ -105,7 +105,7 @@ The default values of blocks and transactions can be overriden. For Transactions
 	"feeRecipient": "0xc100000000000000000000000000000000000000",
 	"prevRandao": "0x0000000000000000000000000000000000000000000000000000000000001234",
 	"baseFeePerGas": "0x14",
-	"blobGasPrice": "0x15"
+	"blobBaseFee": "0x15"
 },
 ```
 All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) or kept as their default values (eg. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, phantom blocks are created to fill the gaps.
