@@ -61,7 +61,7 @@ type ContractInfo struct {
 	Block hexutil.Uint64 `json:"block"`
 }
 
-// NewChain takes the given chain.rlp file, and decodes and returns
+// NewChain takes the given chain.rlp file, decodes it, and returns
 // the blocks from the file.
 func NewChain(dir string) (*Chain, error) {
 	gen, err := loadGenesis(path.Join(dir, "genesis.json"))
