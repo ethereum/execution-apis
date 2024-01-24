@@ -23,8 +23,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-// Chain is a lightweight blockchain-like store which can read a hivechain
-// created chain.
+// Chain is a lightweight blockchain-like store, based on hivechain output files.
+// This mostly exists to provide some convenient accessors for the chain.
 type Chain struct {
 	genesis core.Genesis
 	blocks  []*types.Block
@@ -34,6 +34,7 @@ type Chain struct {
 	config  *params.ChainConfig
 }
 
+// ChainTxInfo is the structure of txinfo.json from hivechain.
 type ChainTxInfo struct {
 	LegacyTransfers     []TxInfo      `json:"tx-transfer-legacy"`
 	AccessListTransfers []TxInfo      `json:"tx-transfer-eip2930"`
@@ -46,6 +47,7 @@ type ChainTxInfo struct {
 	CallRevertContract  *ContractInfo `json:"deploy-callrevert"`
 }
 
+// TxInfo is a transaction record created by hivechain.
 type TxInfo struct {
 	TxHash common.Hash    `json:"txhash"`
 	Sender common.Address `json:"sender"`
@@ -56,6 +58,7 @@ type TxInfo struct {
 	LogTopic1 *common.Hash `json:"logtopic1"`
 }
 
+// ContactInfo is a contract deployment record created by hivechain.
 type ContractInfo struct {
 	Addr  common.Address `json:"contract"`
 	Block hexutil.Uint64 `json:"block"`
