@@ -812,7 +812,7 @@ var EthGetBlockTransactionCountByHash = MethodTests{
 			"get-block-n",
 			"gets tx count in a non-empty block",
 			func(ctx context.Context, t *T) error {
-				block := t.chain.BlockWithTransactions("", nil)
+				block := t.chain.BlockWithTransactions("any", nil)
 				var got hexutil.Uint
 				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByHash", block.Hash())
 				if err != nil {
