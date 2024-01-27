@@ -23,6 +23,8 @@ Filter:
     address:
       title: Address(es)
       oneOf:
+        - title: Any Address
+          type: 'null'
         - title: Address
           $ref: '#/components/schemas/address'
         - title: Addresses
@@ -32,14 +34,17 @@ Filter:
       $ref: '#/components/schemas/FilterTopics'
 FilterTopics:
   title: Filter Topics
-  type: array
-  items:
-    $ref: '#/components/schemas/FilterTopic'
+  oneOf:
+    - title: Any Topic Match
+      type: 'null'
+    - title: Specified Filter Topics
+      type: array
+      items:
+        $ref: '#/components/schemas/FilterTopic'
+
 FilterTopic:
   title: Filter Topic List Entry
   oneOf:
-    - title: Any Topic Match
-      type: "null"
     - title: Single Topic Match
       $ref: '#/components/schemas/bytes32'
     - title: Multiple Topic Match
