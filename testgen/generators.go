@@ -60,8 +60,6 @@ var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
 	EthGetBlockByHash,
-	EthGetHeaderByNumber,
-	EthGetHeaderByHash,
 	EthGetProof,
 	EthChainID,
 	EthGetBalance,
@@ -86,6 +84,10 @@ var AllMethods = []MethodTests{
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
+
+	// -- header requests are not in the spec yet
+	// EthGetHeaderByNumber,
+	// EthGetHeaderByHash,
 
 	// -- gas price tests are disabled because of non-determinism
 	// EthGasPrice,
