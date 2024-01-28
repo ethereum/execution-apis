@@ -37,14 +37,18 @@ func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Re
 				return fmt.Errorf("missing required parameter %s.param[%d]", rt.method, i)
 			}
 			if err := validate(&method.params[i].schema, rt.params[i], fmt.Sprintf("%s.param[%d]", rt.method, i)); err != nil {
-				return fmt.Errorf("unable to validate parameter: %s", err)
+				return fmt.Errorf("unable to validate parameter in %s: %s", rt.name, err)
 			}
 		}
-		if err := validate(&method.result.schema, rt.response, fmt.Sprintf("%s.result", rt.method)); err != nil {
+		if rt.response.Result == nil && rt.response.Error != nil {
+			// skip validation of errors, they haven't been standardized
+			continue
+		}
+		if err := validate(&method.result.schema, rt.response.Result, fmt.Sprintf("%s.result", rt.method)); err != nil {
 			// Print out the value and schema if there is an error to further debug.
 			buf, _ := json.Marshal(method.result.schema)
 			fmt.Println(string(buf))
-			fmt.Println(string(rt.response))
+			fmt.Println(string(rt.response.Result))
 			fmt.Println()
 			return fmt.Errorf("invalid result %s\n%#v", rt.name, err)
 		}
