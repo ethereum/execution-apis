@@ -1,16 +1,14 @@
 package testgen
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
 func checkHeaderRLP(t *T, n uint64, got []byte) error {
-	head := t.chain.GetHeaderByNumber(n)
+	head := t.chain.GetBlock(int(n)).Header()
 	if head == nil {
 		return fmt.Errorf("unable to load block %d from test chain", n)
 	}
@@ -25,7 +23,7 @@ func checkHeaderRLP(t *T, n uint64, got []byte) error {
 }
 
 func checkBlockRLP(t *T, n uint64, got []byte) error {
-	head := t.chain.GetBlockByNumber(n)
+	head := t.chain.GetBlock(int(n))
 	if head == nil {
 		return fmt.Errorf("unable to load block %d from test chain", n)
 	}
@@ -35,25 +33,6 @@ func checkBlockRLP(t *T, n uint64, got []byte) error {
 	}
 	if hexutil.Encode(got) != hexutil.Encode(want) {
 		return fmt.Errorf("unexpected response (got: %s, want: %s)", got, hexutil.Bytes(want))
-	}
-	return nil
-}
-
-func checkBlockReceipts(t *T, n uint64, got []*types.Receipt) error {
-	b := t.chain.GetBlockByNumber(n)
-	if b == nil {
-		return fmt.Errorf("block number %d not found", n)
-	}
-	want := t.chain.GetReceiptsByHash(b.Hash())
-	if len(got) != len(want) {
-		return fmt.Errorf("receipts length mismatch (got: %d, want: %d)", len(got), len(want))
-	}
-	for i := range got {
-		got, _ := got[i].MarshalBinary()
-		want, _ := want[i].MarshalBinary()
-		if !bytes.Equal(got, want) {
-			return fmt.Errorf("receipt %d mismatch (got: %x, want: %x)", i, got, want)
-		}
 	}
 	return nil
 }

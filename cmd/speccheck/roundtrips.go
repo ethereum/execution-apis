@@ -30,7 +30,7 @@ type roundTrip struct {
 	method   string
 	name     string
 	params   [][]byte
-	response []byte
+	response *jsonrpcMessage
 }
 
 // readRtts walks a root directory and parses round trip HTTP exchanges
@@ -99,7 +99,7 @@ func readTest(testname string, filename string) ([]*roundTrip, error) {
 			if err != nil {
 				return nil, fmt.Errorf("unable to parse params: %s %v", err, req.Params)
 			}
-			rts = append(rts, &roundTrip{req.Method, testname, params, resp.Result})
+			rts = append(rts, &roundTrip{req.Method, testname, params, &resp})
 			req = nil
 		default:
 			return nil, fmt.Errorf("invalid line in test: %s", line)

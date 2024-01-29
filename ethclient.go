@@ -8,17 +8,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/ethclient/gethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type ethclientHandler struct {
-	ethclient  *ethclient.Client
-	gethclient *gethclient.Client
-	rpc        *rpc.Client
-	logFile    *os.File
-	transport  *loggingRoundTrip
+	rpc       *rpc.Client
+	logFile   *os.File
+	transport *loggingRoundTrip
 }
 
 func newEthclientHandler(addr string) (*ethclientHandler, error) {
@@ -32,11 +28,10 @@ func newEthclientHandler(addr string) (*ethclientHandler, error) {
 		return nil, err
 	}
 	return &ethclientHandler{
-		ethclient.NewClient(rpcClient),
-		gethclient.New(rpcClient),
-		rpcClient,
-		nil,
-		rt}, nil
+		rpc:       rpcClient,
+		logFile:   nil,
+		transport: rt,
+	}, nil
 }
 
 func (l *ethclientHandler) RotateLog(filename string) error {
