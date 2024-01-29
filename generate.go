@@ -150,6 +150,11 @@ func copyChainFiles(chainDir, outDir string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("copying forkenv.json")
+	err = cp.CopyFileOverwrite(filepath.Join(outDir, "forkenv.json"), filepath.Join(chainDir, "forkenv.json"))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
