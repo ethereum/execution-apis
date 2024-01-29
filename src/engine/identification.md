@@ -7,7 +7,7 @@ Engine API structures and methods specified for client version specification.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Client Identification](#client-identification)
+- [Client Version Specification](#client-version-specification)
 - [Structures](#structures)
   - [ClientCode](#clientcode)
   - [ClientVersionV1](#clientversionv1)
