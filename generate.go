@@ -68,6 +68,15 @@ func runGenerator(ctx context.Context) error {
 
 			// Write the exchange for each test in a separte file.
 			handler.RotateLog(filename)
+			if test.About != "" {
+				handler.WriteComment(test.About)
+			}
+			if test.SpecOnly {
+				if test.About != "" {
+					handler.WriteComment("")
+				}
+				handler.WriteComment("speconly: client response is only checked for schema validity.")
+			}
 
 			// Fail test fill if request exceeds timeout.
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
