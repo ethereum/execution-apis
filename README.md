@@ -7,7 +7,7 @@ test definitions, 2) executes them against a client, and 3) outputs the
 exchange.
 
 The full API specification can be found in
-[`ethereum/exeuction-apis`][execution-apis].
+[`ethereum/execution-apis`][execution-apis].
 
 ## Usage
 
