@@ -8,10 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/beacon/engine"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -37,6 +35,12 @@ type gethClient struct {
 	path    string
 	workdir string
 	jwt     []byte
+	fcu     rpcRequest
+}
+
+type rpcRequest struct {
+	Method string
+	Params []any
 }
 
 // newGethClient instantiates a new GethClient.
@@ -44,6 +48,14 @@ type gethClient struct {
 // The client's data directory is set to a temporary location and it
 // initializes with the genesis and the provided blocks.
 func newGethClient(ctx context.Context, geth string, chaindir string, verbose bool) (*gethClient, error) {
+	// Load ForkchoiceUpdated from test chain.
+	var fcuRequest rpcRequest
+	fcuFile := filepath.Join(chaindir, "headfcu.json")
+	if err := common.LoadJSON(fcuFile, &fcuRequest); err != nil {
+		return nil, err
+	}
+
+	// Initialize the data directory.
 	tmp, err := os.MkdirTemp("", "rpctestgen-*")
 	if err != nil {
 		return nil, err
@@ -76,7 +88,8 @@ func newGethClient(ctx context.Context, geth string, chaindir string, verbose bo
 		return nil, err
 	}
 
-	return &gethClient{path: geth, workdir: tmp, jwt: jwt}, nil
+	g := &gethClient{path: geth, workdir: tmp, jwt: jwt, fcu: fcuRequest}
+	return g, nil
 }
 
 // Start starts geth, but does not wait for the command to exit.
@@ -99,11 +112,7 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 			fmt.Sprintf("--authrpc.jwtsecret=%s", fmt.Sprintf("%s/jwt.hex", g.workdir)),
 		}
 	)
-	g.cmd = exec.CommandContext(
-		ctx,
-		g.path,
-		options...,
-	)
+	g.cmd = exec.CommandContext(ctx, g.path, options...)
 	if verbose {
 		g.cmd.Stdout = os.Stdout
 		g.cmd.Stderr = os.Stderr
@@ -117,32 +126,18 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 // AfterStart is called after the client has been fully started.
 // We send a forkchoiceUpdatedV2 request to the engine to trigger a post-merge forkchoice.
 func (g *gethClient) AfterStart(ctx context.Context) error {
-	var (
-		auth     = node.NewJWTAuth(common.BytesToHash(g.jwt))
-		endpoint = fmt.Sprintf("http://%s:%s", HOST, AUTHPORT)
-	)
+	auth := node.NewJWTAuth(common.BytesToHash(g.jwt))
+	endpoint := fmt.Sprintf("http://%s:%s", HOST, AUTHPORT)
 	cl, err := rpc.DialOptions(ctx, endpoint, rpc.WithHTTPAuth(auth))
 	if err != nil {
 		return err
 	}
 	defer cl.Close()
-
-	geth := ethclient.NewClient(cl)
-	block, err := geth.BlockByNumber(ctx, nil)
+	err = cl.CallContext(ctx, nil, g.fcu.Method, g.fcu.Params...)
 	if err != nil {
-		return err
+		return fmt.Errorf("geth rejected forkchoiceUpdated: %v", err)
 	}
-
-	var resp engine.ForkChoiceResponse
-	err = cl.CallContext(ctx, &resp, "engine_forkchoiceUpdatedV2", &engine.ForkchoiceStateV1{
-		HeadBlockHash:      block.Hash(),
-		SafeBlockHash:      block.Hash(),
-		FinalizedBlockHash: block.Hash(),
-	}, nil)
-	if status := resp.PayloadStatus.Status; status != engine.VALID {
-		fmt.Printf("initializing forkchoice updated failed: status %s, err %v\n", status, err)
-	}
-	return err
+	return nil
 }
 
 // HttpAddr returns the address where the client is servering its JSON-RPC.

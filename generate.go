@@ -135,20 +135,25 @@ func mkdir(path string) error {
 	return nil
 }
 
+// copyChainFiles copies the chain into the tests output directory.
+// Here we copy all files required to run the tests.
 func copyChainFiles(chainDir, outDir string) error {
+	files := []string{
+		"genesis.json",
+		"chain.rlp",
+		"forkenv.json",
+		"headfcu.json",
+	}
 	err := os.MkdirAll(outDir, 0755)
 	if err != nil {
 		return err
 	}
-	fmt.Println("copying genesis.json")
-	err = cp.CopyFileOverwrite(filepath.Join(outDir, "genesis.json"), filepath.Join(chainDir, "genesis.json"))
-	if err != nil {
-		return err
-	}
-	fmt.Println("copying chain.rlp")
-	err = cp.CopyFileOverwrite(filepath.Join(outDir, "chain.rlp"), filepath.Join(chainDir, "chain.rlp"))
-	if err != nil {
-		return err
+	for _, f := range files {
+		fmt.Println("copying", f)
+		err = cp.CopyFileOverwrite(filepath.Join(outDir, f), filepath.Join(chainDir, f))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
