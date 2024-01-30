@@ -618,8 +618,9 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:  "estimate-successful-call",
-			About: "estimates a successful contract call",
+			Name:     "estimate-successful-call",
+			About:    "estimates a successful contract call",
+			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
 			Run: func(ctx context.Context, t *T) error {
 				caller := common.Address{1, 2, 3}
 				callme := t.chain.txinfo.CallMeContract.Addr
