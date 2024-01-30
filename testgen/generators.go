@@ -52,7 +52,12 @@ type MethodTests struct {
 type Test struct {
 	Name  string
 	About string
-	Run   func(context.Context, *T) error
+
+	// If SpecOnly is true, the client response doesn't have to match exactly and is
+	// checked for spec validity only.
+	SpecOnly bool
+
+	Run func(context.Context, *T) error
 }
 
 // AllMethods is a slice of all JSON-RPC methods with tests.
@@ -102,9 +107,9 @@ var EthBlockNumber = MethodTests{
 	"eth_blockNumber",
 	[]Test{
 		{
-			"simple-test",
-			"retrieves the client's current block number",
-			func(ctx context.Context, t *T) error {
+			Name:  "simple-test",
+			About: "retrieves the client's current block number",
+			Run: func(ctx context.Context, t *T) error {
 				got, err := t.eth.BlockNumber(ctx)
 				if err != nil {
 					return err
@@ -122,9 +127,9 @@ var EthChainID = MethodTests{
 	"eth_chainId",
 	[]Test{
 		{
-			"get-chain-id",
-			"retrieves the client's current chain id",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-chain-id",
+			About: "retrieves the client's current chain id",
+			Run: func(ctx context.Context, t *T) error {
 				got, err := t.eth.ChainID(ctx)
 				if err != nil {
 					return err
@@ -142,9 +147,9 @@ var EthGetHeaderByNumber = MethodTests{
 	"eth_getHeaderByNumber",
 	[]Test{
 		{
-			"get-header-by-number",
-			"gets a header by number",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-header-by-number",
+			About: "gets a header by number",
+			Run: func(ctx context.Context, t *T) error {
 				var got types.Header
 				err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByNumber", "0x1")
 				if err != nil {
@@ -165,9 +170,9 @@ var EthGetHeaderByHash = MethodTests{
 	"eth_getHeaderByHash",
 	[]Test{
 		{
-			"get-header-by-hash",
-			"gets a header by hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-header-by-hash",
+			About: "gets a header by hash",
+			Run: func(ctx context.Context, t *T) error {
 				want := t.chain.GetBlock(1).Header()
 				var got types.Header
 				err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByHash", want.Hash())
@@ -188,9 +193,9 @@ var EthGetCode = MethodTests{
 	"eth_getCode",
 	[]Test{
 		{
-			"get-code",
-			"requests code of an existing contract",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-code",
+			About: "requests code of an existing contract",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
 				err := t.rpc.CallContext(ctx, &got, "eth_getCode", emitContract, "latest")
 				if err != nil {
@@ -204,9 +209,9 @@ var EthGetCode = MethodTests{
 			},
 		},
 		{
-			"get-code-unknown-account",
-			"requests code of a non-existent account",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-code-unknown-account",
+			About: "requests code of a non-existent account",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
 				err := t.rpc.CallContext(ctx, &got, "eth_getCode", nonAccount, "latest")
 				if err != nil {
@@ -226,9 +231,9 @@ var EthGetStorage = MethodTests{
 	"eth_getStorageAt",
 	[]Test{
 		{
-			"get-storage",
-			"gets storage of a contract",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-storage",
+			About: "gets storage of a contract",
+			Run: func(ctx context.Context, t *T) error {
 				addr := emitContract
 				key := common.Hash{}
 				got, err := t.eth.StorageAt(ctx, addr, key, nil)
@@ -249,9 +254,9 @@ var EthGetStorage = MethodTests{
 			},
 		},
 		{
-			"get-storage-unknown-account",
-			"gets storage of a non-existent account",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-storage-unknown-account",
+			About: "gets storage of a non-existent account",
+			Run: func(ctx context.Context, t *T) error {
 				key := common.Hash{1}
 				got, err := t.eth.StorageAt(ctx, nonAccount, key, nil)
 				if err != nil {
@@ -265,9 +270,9 @@ var EthGetStorage = MethodTests{
 			},
 		},
 		{
-			"get-storage-invalid-key-too-large",
-			"requests an invalid storage key",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-storage-invalid-key-too-large",
+			About: "requests an invalid storage key",
+			Run: func(ctx context.Context, t *T) error {
 				err := t.rpc.CallContext(ctx, nil, "eth_getStorageAt", "0xaa00000000000000000000000000000000000000", "0x00000000000000000000000000000000000000000000000000000000000000000", "latest")
 				if err == nil {
 					return fmt.Errorf("expected error")
@@ -276,9 +281,9 @@ var EthGetStorage = MethodTests{
 			},
 		},
 		{
-			"get-storage-invalid-key",
-			"requests an invalid storage key",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-storage-invalid-key",
+			About: "requests an invalid storage key",
+			Run: func(ctx context.Context, t *T) error {
 				err := t.rpc.CallContext(ctx, nil, "eth_getStorageAt", "0xaa00000000000000000000000000000000000000", "0xasdf", "latest")
 				if err == nil {
 					return fmt.Errorf("expected error")
@@ -294,9 +299,9 @@ var EthGetBlockByHash = MethodTests{
 	"eth_getBlockByHash",
 	[]Test{
 		{
-			"get-block-by-hash",
-			"gets block 1",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-by-hash",
+			About: "gets block 1",
+			Run: func(ctx context.Context, t *T) error {
 				want := t.chain.GetBlock(1).Header()
 				got, err := t.eth.BlockByHash(ctx, want.Hash())
 				if err != nil {
@@ -309,9 +314,9 @@ var EthGetBlockByHash = MethodTests{
 			},
 		},
 		{
-			"get-block-by-empty-hash",
-			"gets block empty hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-by-empty-hash",
+			About: "gets block empty hash",
+			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.BlockByHash(ctx, common.Hash{})
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
@@ -320,9 +325,9 @@ var EthGetBlockByHash = MethodTests{
 			},
 		},
 		{
-			"get-block-by-notfound-hash",
-			"gets block not found hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-by-notfound-hash",
+			About: "gets block not found hash",
+			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.BlockByHash(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
@@ -338,9 +343,9 @@ var EthGetBalance = MethodTests{
 	"eth_getBalance",
 	[]Test{
 		{
-			"get-balance",
-			"retrieves the an account balance",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-balance",
+			About: "retrieves the an account balance",
+			Run: func(ctx context.Context, t *T) error {
 				addr := emitContract
 				got, err := t.eth.BalanceAt(ctx, addr, nil)
 				if err != nil {
@@ -354,9 +359,9 @@ var EthGetBalance = MethodTests{
 			},
 		},
 		{
-			"get-balance-unknown-account",
-			"requests the balance of a non-existent account",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-balance-unknown-account",
+			About: "requests the balance of a non-existent account",
+			Run: func(ctx context.Context, t *T) error {
 				got, err := t.eth.BalanceAt(ctx, nonAccount, nil)
 				if err != nil {
 					return err
@@ -368,9 +373,9 @@ var EthGetBalance = MethodTests{
 			},
 		},
 		{
-			"get-balance-blockhash",
-			"retrieves the an account's balance at a specific blockhash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-balance-blockhash",
+			About: "retrieves the an account's balance at a specific blockhash",
+			Run: func(ctx context.Context, t *T) error {
 				var (
 					block = t.chain.GetBlock(int(t.chain.Head().NumberU64()) - 10)
 					addr  = emitContract
@@ -395,9 +400,9 @@ var EthGetBlockByNumber = MethodTests{
 	"eth_getBlockByNumber",
 	[]Test{
 		{
-			"get-genesis",
-			"gets block 0",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-genesis",
+			About: "gets block 0",
+			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(0))
 				if err != nil {
 					return err
@@ -409,9 +414,9 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
-			"get-latest",
-			"gets block latest",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-latest",
+			About: "gets block latest",
+			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, nil)
 				if err != nil {
 					return err
@@ -424,9 +429,9 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
-			"get-safe",
-			"gets block safe",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-safe",
+			About: "gets block safe",
+			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.SafeBlockNumber)))
 				if err != nil {
 					return err
@@ -439,9 +444,9 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
-			"get-finalized",
-			"gets block finalized",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-finalized",
+			About: "gets block finalized",
+			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
 				if err != nil {
 					return err
@@ -454,9 +459,9 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
-			"get-block-n",
-			"gets block 2",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets block 2",
+			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(2))
 				if err != nil {
 					return err
@@ -468,9 +473,9 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
-			"get-block-notfound",
-			"gets block notfound",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-notfound",
+			About: "gets block notfound",
+			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.BlockByNumber(ctx, big.NewInt(1000))
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("get a non-existent block should return notfound")
@@ -486,9 +491,9 @@ var EthCall = MethodTests{
 	"eth_call",
 	[]Test{
 		{
-			"call-contract",
-			"performs a basic contract call with default settings",
-			func(ctx context.Context, t *T) error {
+			Name:  "call-contract",
+			About: "performs a basic contract call with default settings",
+			Run: func(ctx context.Context, t *T) error {
 				msg := ethereum.CallMsg{
 					To: &t.chain.txinfo.CallMeContract.Addr,
 					// This is the expected input that makes the call pass.
@@ -507,10 +512,10 @@ var EthCall = MethodTests{
 			},
 		},
 		{
-			"call-callenv",
-			`Performs a call to the callenv contract, which echoes the EVM transaction environment.
+			Name: "call-callenv",
+			About: `Performs a call to the callenv contract, which echoes the EVM transaction environment.
 See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv.eas for the output structure.`,
-			func(ctx context.Context, t *T) error {
+			Run: func(ctx context.Context, t *T) error {
 				msg := ethereum.CallMsg{
 					To: &t.chain.txinfo.CallEnvContract.Addr,
 				}
@@ -525,11 +530,11 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 			},
 		},
 		{
-			"call-callenv-options-eip1559",
-			`Performs a call to the callenv contract, which echoes the EVM transaction environment.
+			Name: "call-callenv-options-eip1559",
+			About: `Performs a call to the callenv contract, which echoes the EVM transaction environment.
 This call uses EIP1559 transaction options.
 See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv.eas for the output structure.`,
-			func(ctx context.Context, t *T) error {
+			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(1)
 				basefee := t.chain.Head().BaseFee()
 				basefee.Add(basefee, big.NewInt(1))
@@ -553,9 +558,9 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 			},
 		},
 		{
-			"call-revert-abi-panic",
-			"calls a contract that reverts with an ABI-encoded Panic(uint) value",
-			func(ctx context.Context, t *T) error {
+			Name:  "call-revert-abi-panic",
+			About: "calls a contract that reverts with an ABI-encoded Panic(uint) value",
+			Run: func(ctx context.Context, t *T) error {
 				msg := ethereum.CallMsg{
 					To:   &t.chain.txinfo.CallRevertContract.Addr,
 					Gas:  100000,
@@ -572,9 +577,9 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 			},
 		},
 		{
-			"call-revert-abi-error",
-			"calls a contract that reverts with an ABI-encoded Error(string) value",
-			func(ctx context.Context, t *T) error {
+			Name:  "call-revert-abi-error",
+			About: "calls a contract that reverts with an ABI-encoded Error(string) value",
+			Run: func(ctx context.Context, t *T) error {
 				msg := ethereum.CallMsg{
 					To:   &t.chain.txinfo.CallRevertContract.Addr,
 					Gas:  100000,
@@ -598,9 +603,9 @@ var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
 	[]Test{
 		{
-			"estimate-simple-transfer",
-			"estimates a simple transfer",
-			func(ctx context.Context, t *T) error {
+			Name:  "estimate-simple-transfer",
+			About: "estimates a simple transfer",
+			Run: func(ctx context.Context, t *T) error {
 				msg := ethereum.CallMsg{From: common.Address{0xaa}, To: &common.Address{0x01}}
 				got, err := t.eth.EstimateGas(ctx, msg)
 				if err != nil {
@@ -613,9 +618,9 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			"estimate-successful-call",
-			"estimates a successful contract call",
-			func(ctx context.Context, t *T) error {
+			Name:  "estimate-successful-call",
+			About: "estimates a successful contract call",
+			Run: func(ctx context.Context, t *T) error {
 				caller := common.Address{1, 2, 3}
 				callme := t.chain.txinfo.CallMeContract.Addr
 				msg := ethereum.CallMsg{
@@ -637,9 +642,9 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			"estimate-failed-call",
-			"estimates a contract call that reverts",
-			func(ctx context.Context, t *T) error {
+			Name:  "estimate-failed-call",
+			About: "estimates a contract call that reverts",
+			Run: func(ctx context.Context, t *T) error {
 				caller := common.Address{1, 2, 3}
 				callme := t.chain.txinfo.CallMeContract.Addr
 				msg := ethereum.CallMsg{
@@ -662,9 +667,9 @@ var EthCreateAccessList = MethodTests{
 	"eth_createAccessList",
 	[]Test{
 		{
-			"create-al-value-transfer",
-			"estimates a simple transfer",
-			func(ctx context.Context, t *T) error {
+			Name:  "create-al-value-transfer",
+			About: "estimates a simple transfer",
+			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				msg := map[string]any{
 					"from":  sender,
@@ -681,9 +686,9 @@ var EthCreateAccessList = MethodTests{
 			},
 		},
 		{
-			"create-al-contract",
-			"creates an access list for a contract invocation that accesses storage",
-			func(ctx context.Context, t *T) error {
+			Name:  "create-al-contract",
+			About: "creates an access list for a contract invocation that accesses storage",
+			Run: func(ctx context.Context, t *T) error {
 				gasprice := t.chain.Head().BaseFee()
 				sender, nonce := t.chain.GetSender(0)
 				msg := map[string]any{
@@ -714,10 +719,10 @@ var EthCreateAccessList = MethodTests{
 			},
 		},
 		{
-			"create-al-contract-eip1559",
-			`Creates an access list for a contract invocation that accesses storage.
+			Name: "create-al-contract-eip1559",
+			About: `Creates an access list for a contract invocation that accesses storage.
 This invocation uses EIP-1559 fields to specify the gas price.`,
-			func(ctx context.Context, t *T) error {
+			Run: func(ctx context.Context, t *T) error {
 				gasprice := t.chain.Head().BaseFee()
 				sender, nonce := t.chain.GetSender(0)
 				msg := map[string]any{
@@ -756,9 +761,9 @@ var EthGetBlockTransactionCountByNumber = MethodTests{
 	"eth_getBlockTransactionCountByNumber",
 	[]Test{
 		{
-			"get-genesis",
-			"gets tx count in block 0",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-genesis",
+			About: "gets tx count in block 0",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Uint
 				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByNumber", hexutil.Uint(0))
 				if err != nil {
@@ -771,9 +776,9 @@ var EthGetBlockTransactionCountByNumber = MethodTests{
 			},
 		},
 		{
-			"get-block-n",
-			"gets tx count in a non-empty block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets tx count in a non-empty block",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				var got hexutil.Uint
 				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByNumber", hexutil.Uint64(block.NumberU64()))
@@ -795,9 +800,9 @@ var EthGetBlockTransactionCountByHash = MethodTests{
 	"eth_getBlockTransactionCountByHash",
 	[]Test{
 		{
-			"get-genesis",
-			"gets tx count in block 0",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-genesis",
+			About: "gets tx count in block 0",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.GetBlock(0)
 				var got hexutil.Uint
 				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByHash", block.Hash())
@@ -811,9 +816,9 @@ var EthGetBlockTransactionCountByHash = MethodTests{
 			},
 		},
 		{
-			"get-block-n",
-			"gets tx count in a non-empty block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets tx count in a non-empty block",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("any", nil)
 				var got hexutil.Uint
 				err := t.rpc.CallContext(ctx, &got, "eth_getBlockTransactionCountByHash", block.Hash())
@@ -835,9 +840,9 @@ var EthGetTransactionByBlockHashAndIndex = MethodTests{
 	"eth_getTransactionByBlockNumberAndIndex",
 	[]Test{
 		{
-			"get-block-n",
-			"gets tx 0 in a non-empty block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets tx 0 in a non-empty block",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				var got types.Transaction
 				err := t.rpc.CallContext(ctx, &got, "eth_getTransactionByBlockNumberAndIndex", hexutil.Uint64(block.NumberU64()), hexutil.Uint(0))
@@ -859,9 +864,9 @@ var EthGetTransactionByBlockNumberAndIndex = MethodTests{
 	"eth_getTransactionByBlockHashAndIndex",
 	[]Test{
 		{
-			"get-block-n",
-			"gets tx 0 in a non-empty block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets tx 0 in a non-empty block",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				var got types.Transaction
 				err := t.rpc.CallContext(ctx, &got, "eth_getTransactionByBlockHashAndIndex", block.Hash(), hexutil.Uint(0))
@@ -883,9 +888,9 @@ var EthGetTransactionCount = MethodTests{
 	"eth_getTransactionCount",
 	[]Test{
 		{
-			"get-nonce",
-			"gets nonce for a known account",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-nonce",
+			About: "gets nonce for a known account",
+			Run: func(ctx context.Context, t *T) error {
 				addr := findAccountWithNonce(t.chain)
 				got, err := t.eth.NonceAt(ctx, addr, nil)
 				if err != nil {
@@ -902,9 +907,9 @@ var EthGetTransactionCount = MethodTests{
 			},
 		},
 		{
-			"get-nonce-unknown-account",
-			"gets nonce for a non-existent account",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-nonce-unknown-account",
+			About: "gets nonce for a non-existent account",
+			Run: func(ctx context.Context, t *T) error {
 				got, err := t.eth.NonceAt(ctx, nonAccount, nil)
 				if err != nil {
 					return err
@@ -950,9 +955,9 @@ var EthGetTransactionByHash = MethodTests{
 	"eth_getTransactionByHash",
 	[]Test{
 		{
-			"get-legacy-tx",
-			"gets a legacy transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-legacy-tx",
+			About: "gets a legacy transaction",
+			Run: func(ctx context.Context, t *T) error {
 				want := t.chain.FindTransaction("legacy tx", matchLegacyValueTransfer)
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
@@ -965,9 +970,9 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
-			"get-legacy-create",
-			"gets a legacy contract create transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-legacy-create",
+			About: "gets a legacy contract create transaction",
+			Run: func(ctx context.Context, t *T) error {
 				want := t.chain.FindTransaction("legacy create", matchLegacyCreate)
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
@@ -980,9 +985,9 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
-			"get-legacy-input",
-			"gets a legacy transaction with input data",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-legacy-input",
+			About: "gets a legacy transaction with input data",
+			Run: func(ctx context.Context, t *T) error {
 				want := t.chain.FindTransaction("legacy tx w/ input", matchLegacyTxWithInput)
 				got, _, err := t.eth.TransactionByHash(ctx, want.Hash())
 				if err != nil {
@@ -995,9 +1000,9 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
-			"get-dynamic-fee",
-			"gets a dynamic fee transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-dynamic-fee",
+			About: "gets a dynamic fee transaction",
+			Run: func(ctx context.Context, t *T) error {
 				want := t.chain.FindTransaction("dynamic fee tx", func(i int, tx *types.Transaction) bool {
 					return tx.Type() == types.DynamicFeeTxType
 				})
@@ -1012,9 +1017,9 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
-			"get-access-list",
-			"gets an access list transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-access-list",
+			About: "gets an access list transaction",
+			Run: func(ctx context.Context, t *T) error {
 				want := t.chain.FindTransaction("access list tx", func(i int, tx *types.Transaction) bool {
 					return tx.Type() == types.AccessListTxType
 				})
@@ -1029,9 +1034,9 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
-			"get-blob-tx",
-			"gets a blob transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-blob-tx",
+			About: "gets a blob transaction",
+			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("blob tx", func(i int, tx *types.Transaction) bool {
 					return tx.Type() == types.BlobTxType
 				})
@@ -1046,9 +1051,9 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
-			"get-empty-tx",
-			"requests the zero transaction hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-empty-tx",
+			About: "requests the zero transaction hash",
+			Run: func(ctx context.Context, t *T) error {
 				_, _, err := t.eth.TransactionByHash(ctx, common.Hash{})
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
@@ -1057,9 +1062,9 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
-			"get-notfound-tx",
-			"gets a non-existent transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-notfound-tx",
+			About: "gets a non-existent transaction",
+			Run: func(ctx context.Context, t *T) error {
 				_, _, err := t.eth.TransactionByHash(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
@@ -1075,9 +1080,9 @@ var EthGetTransactionReceipt = MethodTests{
 	"eth_getTransactionReceipt",
 	[]Test{
 		{
-			"get-legacy-receipt",
-			"gets the receipt for a legacy value transfer tx",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-legacy-receipt",
+			About: "gets the receipt for a legacy value transfer tx",
+			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("legacy tx", matchLegacyValueTransfer)
 				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
@@ -1090,9 +1095,9 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
-			"get-legacy-contract",
-			"gets a legacy contract create transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-legacy-contract",
+			About: "gets a legacy contract create transaction",
+			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("legacy create", matchLegacyCreate)
 				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
@@ -1108,9 +1113,9 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
-			"get-legacy-input",
-			"gets a legacy transaction with input data",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-legacy-input",
+			About: "gets a legacy transaction with input data",
+			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("legacy tx w/ input", matchLegacyTxWithInput)
 				receipt, err := t.eth.TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
@@ -1123,9 +1128,9 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
-			"get-dynamic-fee",
-			"gets a dynamic fee transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-dynamic-fee",
+			About: "gets a dynamic fee transaction",
+			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("dynamic fee tx", func(i int, tx *types.Transaction) bool {
 					return tx.Type() == types.DynamicFeeTxType
 				})
@@ -1143,9 +1148,9 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
-			"get-access-list",
-			"gets an access list transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-access-list",
+			About: "gets an access list transaction",
+			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("access list tx", func(i int, tx *types.Transaction) bool {
 					return tx.Type() == types.AccessListTxType
 				})
@@ -1163,9 +1168,9 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
-			"get-blob-tx",
-			"gets a blob transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-blob-tx",
+			About: "gets a blob transaction",
+			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("blob tx", func(i int, tx *types.Transaction) bool {
 					return tx.Type() == types.BlobTxType
 				})
@@ -1183,9 +1188,9 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
-			"get-empty-tx",
-			"requests the receipt for the zero tx hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-empty-tx",
+			About: "requests the receipt for the zero tx hash",
+			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.TransactionReceipt(ctx, common.Hash{})
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
@@ -1194,9 +1199,9 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
-			"get-notfound-tx",
-			"requests the receipt for a non-existent tx hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-notfound-tx",
+			About: "requests the receipt for a non-existent tx hash",
+			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.TransactionReceipt(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
@@ -1211,9 +1216,9 @@ var EthGetBlockReceipts = MethodTests{
 	"eth_getBlockReceipts",
 	[]Test{
 		{
-			"get-block-receipts-0",
-			"gets receipts for block 0",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-0",
+			About: "gets receipts for block 0",
+			Run: func(ctx context.Context, t *T) error {
 				var receipts []*types.Receipt
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(0)); err != nil {
 					return err
@@ -1223,9 +1228,9 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
-			"get-block-receipts-n",
-			"gets receipts non-zero block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-n",
+			About: "gets receipts non-zero block",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				var receipts []*types.Receipt
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", hexutil.Uint64(block.NumberU64())); err != nil {
@@ -1235,9 +1240,9 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
-			"get-block-receipts-future",
-			"gets receipts of future block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-future",
+			About: "gets receipts of future block",
+			Run: func(ctx context.Context, t *T) error {
 				var (
 					receipts []*types.Receipt
 					future   = t.chain.Head().NumberU64() + 1
@@ -1252,9 +1257,9 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
-			"get-block-receipts-earliest",
-			"gets receipts for block earliest",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-earliest",
+			About: "gets receipts for block earliest",
+			Run: func(ctx context.Context, t *T) error {
 				var receipts []*types.Receipt
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "earliest"); err != nil {
 					return err
@@ -1263,9 +1268,9 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
-			"get-block-receipts-latest",
-			"gets receipts for block latest",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-latest",
+			About: "gets receipts for block latest",
+			Run: func(ctx context.Context, t *T) error {
 				var receipts []*types.Receipt
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", "latest"); err != nil {
 					return err
@@ -1274,9 +1279,9 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
-			"get-block-receipts-empty",
-			"gets receipts for empty block hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-empty",
+			About: "gets receipts for empty block hash",
+			Run: func(ctx context.Context, t *T) error {
 				var receipts []*types.Receipt
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", common.Hash{}); err != nil {
 					return err
@@ -1288,9 +1293,9 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
-			"get-block-receipts-not-found",
-			"gets receipts for notfound hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-not-found",
+			About: "gets receipts for notfound hash",
+			Run: func(ctx context.Context, t *T) error {
 				var receipts []*types.Receipt
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", common.HexToHash("deadbeef")); err != nil {
 					return err
@@ -1302,9 +1307,9 @@ var EthGetBlockReceipts = MethodTests{
 			},
 		},
 		{
-			"get-block-receipts-by-hash",
-			"gets receipts for normal block hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-receipts-by-hash",
+			About: "gets receipts for normal block hash",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				var receipts []*types.Receipt
 				if err := t.rpc.CallContext(ctx, &receipts, "eth_getBlockReceipts", block.Hash()); err != nil {
@@ -1321,9 +1326,9 @@ var EthSendRawTransaction = MethodTests{
 	"eth_sendRawTransaction",
 	[]Test{
 		{
-			"send-legacy-transaction",
-			"sends a raw legacy transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "send-legacy-transaction",
+			About: "sends a raw legacy transaction",
+			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				head := t.chain.Head()
 				txdata := &types.LegacyTx{
@@ -1343,9 +1348,9 @@ var EthSendRawTransaction = MethodTests{
 			},
 		},
 		{
-			"send-dynamic-fee-transaction",
-			"sends a create transaction with dynamic fee",
-			func(ctx context.Context, t *T) error {
+			Name:  "send-dynamic-fee-transaction",
+			About: "sends a create transaction with dynamic fee",
+			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				basefee := t.chain.Head().BaseFee()
 				basefee.Add(basefee, big.NewInt(500))
@@ -1367,9 +1372,9 @@ var EthSendRawTransaction = MethodTests{
 			},
 		},
 		{
-			"send-access-list-transaction",
-			"sends a transaction with access list",
-			func(ctx context.Context, t *T) error {
+			Name:  "send-access-list-transaction",
+			About: "sends a transaction with access list",
+			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				basefee := t.chain.Head().BaseFee()
 				basefee.Add(basefee, big.NewInt(500))
@@ -1392,9 +1397,9 @@ var EthSendRawTransaction = MethodTests{
 			},
 		},
 		{
-			"send-dynamic-fee-access-list-transaction",
-			"sends a transaction with dynamic fee and access list",
-			func(ctx context.Context, t *T) error {
+			Name:  "send-dynamic-fee-access-list-transaction",
+			About: "sends a transaction with dynamic fee and access list",
+			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				basefee := t.chain.Head().BaseFee()
 				basefee.Add(basefee, big.NewInt(500))
@@ -1418,9 +1423,9 @@ var EthSendRawTransaction = MethodTests{
 			},
 		},
 		{
-			"send-blob-tx",
-			"sends a blob transaction",
-			func(ctx context.Context, t *T) error {
+			Name:  "send-blob-tx",
+			About: "sends a blob transaction",
+			Run: func(ctx context.Context, t *T) error {
 				var (
 					sender, nonce      = t.chain.GetSender(3)
 					basefee            = uint256.MustFromBig(t.chain.Head().BaseFee())
@@ -1466,9 +1471,9 @@ var EthGasPrice = MethodTests{
 	"eth_gasPrice",
 	[]Test{
 		{
-			"get-current-gas-price",
-			"gets the current gas price in wei",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-current-gas-price",
+			About: "gets the current gas price in wei",
+			Run: func(ctx context.Context, t *T) error {
 				if _, err := t.eth.SuggestGasPrice(ctx); err != nil {
 					return err
 				}
@@ -1483,9 +1488,9 @@ var EthMaxPriorityFeePerGas = MethodTests{
 	"eth_maxPriorityFeePerGas",
 	[]Test{
 		{
-			"get-current-tip",
-			"gets the current maxPriorityFeePerGas in wei",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-current-tip",
+			About: "gets the current maxPriorityFeePerGas in wei",
+			Run: func(ctx context.Context, t *T) error {
 				if _, err := t.eth.SuggestGasTipCap(ctx); err != nil {
 					return err
 				}
@@ -1500,9 +1505,9 @@ var EthFeeHistory = MethodTests{
 	"eth_feeHistory",
 	[]Test{
 		{
-			"fee-history",
-			"gets fee history information",
-			func(ctx context.Context, t *T) error {
+			Name:  "fee-history",
+			About: "gets fee history information",
+			Run: func(ctx context.Context, t *T) error {
 				// Find a block/tx where the London fork is enabled.
 				var dftx *types.Transaction
 				block := t.chain.BlockWithTransactions("dynamic fee tx", func(i int, tx *types.Transaction) bool {
@@ -1538,9 +1543,9 @@ var EthSyncing = MethodTests{
 	"eth_syncing",
 	[]Test{
 		{
-			"check-syncing",
-			"checks client syncing status",
-			func(ctx context.Context, t *T) error {
+			Name:  "check-syncing",
+			About: "checks client syncing status",
+			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.SyncProgress(ctx)
 				if err != nil {
 					return err
@@ -1556,9 +1561,9 @@ var EthGetUncleByBlockNumberAndIndex = MethodTests{
 	"eth_getUncleByBlockNumberAndIndex",
 	[]Test{
 		{
-			"get-uncle",
-			"gets uncle header",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-uncle",
+			About: "gets uncle header",
+			Run: func(ctx context.Context, t *T) error {
 				var got *types.Header
 				t.rpc.CallContext(ctx, got, "eth_getUncleByBlockNumberAndIndex", hexutil.Uint(2), hexutil.Uint(0))
 				want := t.chain.GetBlock(2).Uncles()[0]
@@ -1576,9 +1581,9 @@ var EthGetProof = MethodTests{
 	"eth_getProof",
 	[]Test{
 		{
-			"get-account-proof-latest",
-			"requests the account proof for a known account",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-account-proof-latest",
+			About: "requests the account proof for a known account",
+			Run: func(ctx context.Context, t *T) error {
 				result, err := t.geth.GetProof(ctx, emitContract, []string{}, nil)
 				if err != nil {
 					return err
@@ -1594,9 +1599,9 @@ var EthGetProof = MethodTests{
 			},
 		},
 		{
-			"get-account-proof-blockhash",
-			"gets proof for a certain account at the specified blockhash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-account-proof-blockhash",
+			About: "gets proof for a certain account at the specified blockhash",
+			Run: func(ctx context.Context, t *T) error {
 				type accountResult struct {
 					Balance *hexutil.Big `json:"balance"`
 				}
@@ -1615,9 +1620,9 @@ var EthGetProof = MethodTests{
 			},
 		},
 		{
-			"get-account-proof-with-storage",
-			"gets proof for a certain account",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-account-proof-with-storage",
+			About: "gets proof for a certain account",
+			Run: func(ctx context.Context, t *T) error {
 				result, err := t.geth.GetProof(ctx, emitContract, []string{"0x00"}, nil)
 				if err != nil {
 					return err
@@ -1639,9 +1644,9 @@ var EthGetLogs = MethodTests{
 	"eth_getLogs",
 	[]Test{
 		{
-			"no-topics",
-			"queries for all logs across a range of blocks",
-			func(ctx context.Context, t *T) error {
+			Name:  "no-topics",
+			About: "queries for all logs across a range of blocks",
+			Run: func(ctx context.Context, t *T) error {
 				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
 					FromBlock: big.NewInt(1),
 					ToBlock:   big.NewInt(3),
@@ -1656,9 +1661,9 @@ var EthGetLogs = MethodTests{
 			},
 		},
 		{
-			"contract-addr",
-			"queries for logs from a specific contract across a range of blocks",
-			func(ctx context.Context, t *T) error {
+			Name:  "contract-addr",
+			About: "queries for logs from a specific contract across a range of blocks",
+			Run: func(ctx context.Context, t *T) error {
 				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
 					FromBlock: big.NewInt(1),
 					ToBlock:   big.NewInt(4),
@@ -1680,9 +1685,9 @@ var EthGetLogs = MethodTests{
 			},
 		},
 		{
-			"topic-exact-match",
-			"queries for logs with two topics, with both topics set explictly",
-			func(ctx context.Context, t *T) error {
+			Name:  "topic-exact-match",
+			About: "queries for logs with two topics, with both topics set explictly",
+			Run: func(ctx context.Context, t *T) error {
 				// Find a topic.
 				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
 					return tx.Block > 2
@@ -1708,9 +1713,9 @@ var EthGetLogs = MethodTests{
 			},
 		},
 		{
-			"topic-wildcard",
-			"queries for logs with two topics, performing a wildcard match in topic position zero",
-			func(ctx context.Context, t *T) error {
+			Name:  "topic-wildcard",
+			About: "queries for logs with two topics, performing a wildcard match in topic position zero",
+			Run: func(ctx context.Context, t *T) error {
 				// Find a topic.
 				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
 					return tx.Block > 2
@@ -1742,9 +1747,9 @@ var DebugGetRawHeader = MethodTests{
 	"debug_getRawHeader",
 	[]Test{
 		{
-			"get-genesis",
-			"gets block 0",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-genesis",
+			About: "gets block 0",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
 				if err := t.rpc.CallContext(ctx, &got, "debug_getRawHeader", "0x0"); err != nil {
 					return err
@@ -1753,9 +1758,9 @@ var DebugGetRawHeader = MethodTests{
 			},
 		},
 		{
-			"get-block-n",
-			"gets non-zero block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets non-zero block",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
 				if err := t.rpc.CallContext(ctx, &got, "debug_getRawHeader", "0x3"); err != nil {
 					return err
@@ -1764,9 +1769,9 @@ var DebugGetRawHeader = MethodTests{
 			},
 		},
 		{
-			"get-invalid-number",
-			"gets block with invalid number formatting",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-invalid-number",
+			About: "gets block with invalid number formatting",
+			Run: func(ctx context.Context, t *T) error {
 				err := t.rpc.CallContext(ctx, nil, "debug_getRawHeader", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
@@ -1781,9 +1786,9 @@ var DebugGetRawBlock = MethodTests{
 	"debug_getRawBlock",
 	[]Test{
 		{
-			"get-genesis",
-			"gets block 0",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-genesis",
+			About: "gets block 0",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
 				if err := t.rpc.CallContext(ctx, &got, "debug_getRawBlock", "0x0"); err != nil {
 					return err
@@ -1792,9 +1797,9 @@ var DebugGetRawBlock = MethodTests{
 			},
 		},
 		{
-			"get-block-n",
-			"gets non-zero block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets non-zero block",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
 				if err := t.rpc.CallContext(ctx, &got, "debug_getRawBlock", "0x3"); err != nil {
 					return err
@@ -1803,9 +1808,9 @@ var DebugGetRawBlock = MethodTests{
 			},
 		},
 		{
-			"get-invalid-number",
-			"gets block with invalid number formatting",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-invalid-number",
+			About: "gets block with invalid number formatting",
+			Run: func(ctx context.Context, t *T) error {
 				err := t.rpc.CallContext(ctx, nil, "debug_getRawBlock", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
@@ -1820,23 +1825,23 @@ var DebugGetRawReceipts = MethodTests{
 	"debug_getRawReceipts",
 	[]Test{
 		{
-			"get-genesis",
-			"gets receipts for block 0",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-genesis",
+			About: "gets receipts for block 0",
+			Run: func(ctx context.Context, t *T) error {
 				return t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "0x0")
 			},
 		},
 		{
-			"get-block-n",
-			"gets receipts non-zero block",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-block-n",
+			About: "gets receipts non-zero block",
+			Run: func(ctx context.Context, t *T) error {
 				return t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "0x3")
 			},
 		},
 		{
-			"get-invalid-number",
-			"gets receipts with invalid number formatting",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-invalid-number",
+			About: "gets receipts with invalid number formatting",
+			Run: func(ctx context.Context, t *T) error {
 				err := t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "2")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
@@ -1851,9 +1856,9 @@ var DebugGetRawTransaction = MethodTests{
 	"debug_getRawTransaction",
 	[]Test{
 		{
-			"get-tx",
-			"gets tx rlp by hash",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-tx",
+			About: "gets tx rlp by hash",
+			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				tx := block.Transactions()[0]
 				var got hexutil.Bytes
@@ -1871,9 +1876,9 @@ var DebugGetRawTransaction = MethodTests{
 			},
 		},
 		{
-			"get-invalid-hash",
-			"gets tx with hash missing 0x prefix",
-			func(ctx context.Context, t *T) error {
+			Name:  "get-invalid-hash",
+			About: "gets tx with hash missing 0x prefix",
+			Run: func(ctx context.Context, t *T) error {
 				var got hexutil.Bytes
 				err := t.rpc.CallContext(ctx, &got, "debug_getRawTransaction", "1000000000000000000000000000000000000000000000000000000000000001")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {

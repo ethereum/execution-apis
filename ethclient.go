@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -47,6 +48,14 @@ func (l *ethclientHandler) RotateLog(filename string) error {
 	l.logFile = f
 	l.transport.w = f
 	return nil
+}
+
+// WriteComment adds the given text as a comment to the current log file.
+func (l *ethclientHandler) WriteComment(text string) error {
+	text = strings.TrimSpace(text)
+	text = "// " + strings.Replace(text, "\n", "\n// ", -1) + "\n"
+	_, err := io.WriteString(l.logFile, text)
+	return err
 }
 
 func (l *ethclientHandler) Close() {
