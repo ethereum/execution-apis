@@ -6,11 +6,13 @@ bodiesbyhashv
 bytecode
 configurationv
 crypto
+dev
 eip
 endian
 enum
 eth
 ethereum
+EVM
 interop
 json
 mempool
@@ -33,6 +35,7 @@ uint
 updatedv
 url
 validator
+verkle
 wei
 yaml
 yParity
