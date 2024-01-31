@@ -44,11 +44,6 @@ the client **MUST** also expose the following subset of `eth` methods:
 * `eth_sendRawTransaction`
 * `eth_syncing`
 
-To facilitate a more accurate measurement of execution layer client diversity statistics, the client **SHOULD** also expose
-the following `web3` method:
-
-* `web3_clientVersion`
-
 These methods are described in [Ethereum JSON-RPC Specification][json-rpc-spec].
 
 ### Authentication

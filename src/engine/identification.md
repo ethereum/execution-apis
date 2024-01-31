@@ -41,7 +41,7 @@ This enum defines a standard for specifying a client with just two letters. Clie
  - `TK`: teku
  - `PM`: prysm
  - `RH`: reth
- 
+
 ### ClientVersionV1
 
 This structure contains information which identifies a client implementation. The fields are encoded as follows:
