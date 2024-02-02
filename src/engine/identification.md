@@ -12,7 +12,7 @@ Engine API structures and methods specified for client version specification.
   - [ClientCode](#clientcode)
   - [ClientVersionV1](#clientversionv1)
 - [Methods](#methods)
-  - [engine_clientVersionV1](#engine_clientversionv1)
+  - [engine_getClientVersionV1](#engine_getclientversionv1)
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
@@ -55,20 +55,22 @@ Rationale: Human-readable fields like `clientName` and `version` are useful for 
 
 ## Methods
 
-### engine_clientVersionV1
+### engine_getClientVersionV1
 
 #### Request
 
-* method: `engine_clientVersionV1`
+* method: `engine_getClientVersionV1`
 * params:
   1. [`ClientVersionV1`](#ClientVersionV1) - identifies the consensus client
 * timeout: 1s
 
 #### Response
-
-* result: [`ClientVersionV1`](#ClientVersionV1) - identifies the execution client
+* result: `Array of ClientVersionV1` - Array of [`ClientVersionV1`](#ClientVersionV1)
 
 #### Specification
 
 1. Consensus and execution layer clients **MAY** exchange `ClientVersionV1` objects. Execution clients **MUST NOT** log any error messages if this method has either never been called or hasn't been called for a significant amount of time.
-2. Clients **MUST** accomodate receiving any two-letter `ClientCode`, even if they are not reserved in the list above. Clients **MAY** log messages upon receiving an unlisted client code. 
+2. Clients **MUST** accommodate receiving any two-letter `ClientCode`, even if they are not reserved in the list above. Clients **MAY** log messages upon receiving an unlisted client code.
+3. When connected to a single execution client, the consensus client **MUST** receieve an array with a single
+`ClientVersionV1` object. When connected to multiple execution clients via a multiplexer, the multiplexer **MUST** concatenate the responses from each execution client into a single, flat array before returning the
+response to the consensus client.
