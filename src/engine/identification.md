@@ -49,7 +49,7 @@ This structure contains information which identifies a client implementation. Th
 - `code`: `ClientCode`, e.g. `NB` or `BU`
 - `name`: `string`, Human-readable name of the client, e.g. `Lighthouse` or `go-ethereum`
 - `version`: `string`, the version string of the current implementation e.g. `v4.6.0` or `1.0.0-alpha.1` or `1.0.0+20130313144700`
-- `commit`: `string`, the hex of the first 4 bytes of the latest commit hash of this build e.g. `fa4ff922`
+- `commit`: `DATA`, 4 bytes - first four bytes of the latest commit hash of this build e.g. `fa4ff922`
 
 Rationale: Human-readable fields like `clientName` and `version` are useful for log messages while fields like `code` and `commit` are useful for uniquely specifying clients within a limited space (e.g. in block `graffiti`).
 
