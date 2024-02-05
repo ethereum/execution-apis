@@ -47,7 +47,7 @@ This enum defines a standard for specifying a client with just two letters. Clie
 This structure contains information which identifies a client implementation. The fields are encoded as follows:
 
 - `code`: `ClientCode`, e.g. `NB` or `BU`
-- `clientName`: `string`, Human-readable name of the client, e.g. `Lighthouse` or `go-ethereum`
+- `name`: `string`, Human-readable name of the client, e.g. `Lighthouse` or `go-ethereum`
 - `version`: `string`, the version string of the current implementation e.g. `v4.6.0` or `1.0.0-alpha.1` or `1.0.0+20130313144700`
 - `commit`: `string`, the hex of the first 4 bytes of the latest commit hash of this build e.g. `fa4ff922`
 
