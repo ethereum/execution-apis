@@ -59,6 +59,33 @@ Transaction4844Unsigned:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
+Transaction4844UnsignedWithSidecar:
+  title: Unsigned 4844 transaction with sidecar
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/Transaction4844Unsigned'
+    - title: EIP-4844 transaction signature properties.
+      required:
+        - blobs
+        - commitments
+        - proofs
+      properties:
+        blobs:
+          title: blobs
+          description: Raw blob data.
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
+        commitments:
+          title: Blob commitments.
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
+        proofs:
+          title: Blob proofs.
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
 AccessListEntry:
   title: Access list entry
   type: object
@@ -417,6 +444,18 @@ GenericTransaction:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+    commitments:
+      title: commitments
+      description: List of blob commitments as per EIP-4844.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    proofs:
+      title: proofs
+      description: List of blob proofs as per EIP-4844.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
     chainId:
       title: chainId
       description: Chain ID that this transaction is valid on.
@@ -434,6 +473,13 @@ SignTransactionResult:
     tx:
       title: tx
       $ref: '#/components/schemas/TransactionSigned'
+FilledTransaction:
+  oneOf:
+    - $ref: '#/components/schemas/Transaction4844UnsignedWithSidecar'
+    - $ref: '#/components/schemas/Transaction4844Unsigned'
+    - $ref: '#/components/schemas/Transaction1559Unsigned'
+    - $ref: '#/components/schemas/Transaction2930Unsigned'
+    - $ref: '#/components/schemas/TransactionLegacyUnsigned'
 FillTransactionResult:
   type: object
   title: Encoded and raw unsigned transaction object.
@@ -446,4 +492,4 @@ FillTransactionResult:
       $ref: '#/components/schemas/byte'
     tx:
       title: tx
-      $ref: '#/components/schemas/TransactionUnsigned'
+      $ref: '#/components/schemas/FilledTransaction'
