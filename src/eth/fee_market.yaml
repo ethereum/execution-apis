@@ -83,7 +83,7 @@
             $ref: '#/components/schemas/ratio'
         blobGasUsedRatio:
           title: blobGasUsedRatio
-          description: An array of block blob gas used ratios. These are calculated as the ratio of gasUsed and gasLimit.
+          description: An array of block blob gas used ratios. These are calculated as the ratio of blobGasUsed and the max blob gas per block.
           type: array
           items:
             $ref: '#/components/schemas/ratio'
