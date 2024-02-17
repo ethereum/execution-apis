@@ -6,6 +6,14 @@
     schema:
       title: Gas price
       $ref: '#/components/schemas/uint'
+- name: eth_blobBaseFee
+  summary: Returns the base fee per blob gas in wei.
+  params: []
+  result:
+    name: Blob gas base fee
+    schema:
+      title: Blob gas base fee
+      $ref: '#/components/schemas/uint'
 - name: eth_maxPriorityFeePerGas
   summary: Returns the current maxPriorityFeePerGas per gas in wei.
   params: []
@@ -61,9 +69,21 @@
           type: array
           items:
             $ref: '#/components/schemas/uint'
+        baseFeePerBlobGas:
+          title: baseFeePerBlobGasArray
+          description: An array of block base fees per blob gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-4844 blocks.
+          type: array
+          items:
+            $ref: '#/components/schemas/uint'
         gasUsedRatio:
           title: gasUsedRatio
           description: An array of block gas used ratios. These are calculated as the ratio of gasUsed and gasLimit.
+          type: array
+          items:
+            $ref: '#/components/schemas/ratio'
+        blobGasUsedRatio:
+          title: blobGasUsedRatio
+          description: An array of block blob gas used ratios. These are calculated as the ratio of blobGasUsed and the max blob gas per block.
           type: array
           items:
             $ref: '#/components/schemas/ratio'
