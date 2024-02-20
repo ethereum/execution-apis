@@ -62,3 +62,8 @@ randao
 src
 https
 forkchoiceupdatedresponsev
+txpool
+TxPool
+eq
+lt
+gt

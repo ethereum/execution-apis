@@ -51,3 +51,13 @@ FilterTopic:
       type: array
       items:
         $ref: '#/components/schemas/bytes32'
+FilterOperators:
+  title: operator
+  type: object
+  properties:
+    eq:
+      $ref: '#/components/schemas/uint'
+    gt:
+      $ref: '#/components/schemas/uint'
+    lt:
+      $ref: '#/components/schemas/uint'
