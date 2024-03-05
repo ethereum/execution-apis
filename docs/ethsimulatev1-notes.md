@@ -113,7 +113,7 @@ All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) 
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
 ## ETH transfer logs
-When `traceTransfers` setting is enabled on `eth_simulateV1` The multical will return logs for ethereum transfers along with the normal logs sent by contracts. The ETH transfers are identical to ERC20 transfers, except the "sending contract" is address `0x0`.
+When `traceTransfers` setting is enabled on `eth_simulateV1` The multical will return logs for ethereum transfers along with the normal logs sent by contracts. The ETH transfers are identical to ERC20 transfers, except the "sending contract" is address `0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`.
 
 For example, here's a query that will simply send ether from one address to another (with a state override that gives us the ETH initially):
 ```json
