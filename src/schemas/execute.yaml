@@ -136,8 +136,8 @@ BlockOverrides:
     withdrawals:
       title: Withdrawals made by validators
       $ref: '#/components/schemas/Withdrawals'
-    blobGasPrice:
-      title: Blob gas price
+    baseFeePerBlobGas:
+      title: Base fee per unit of blob gas
       $ref: '#/components/schemas/uint256'
 Withdrawals:
   title: Withdrawals made by validators
@@ -211,8 +211,8 @@ MultiCallBlockResultSingleSuccess:
     excessBlobGas:
       title: The running total of blob gas consumed in excess of the target, prior to the block.
       $ref: '#/components/schemas/uint256'
-    blobGasPrice:
-      title: Blob gas price
+    baseFeePerBlobGas:
+      title: Base fee per unit of blob gas
       $ref: '#/components/schemas/uint256'
 MultiCallBlockResultInvalid:
   title: Result of multicall not being valid
@@ -413,6 +413,12 @@ GenericCallTransaction:
       title: max fee per gas
       description: |-
         The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+        Default: 0
+      $ref: '#/components/schemas/uint256'
+    maxFeePerBlobGas:
+      title: max fee per blob gas
+      description: |-
+        The maximum total fee per blob gas the sender is willing to pay in wei
         Default: 0
       $ref: '#/components/schemas/uint256'
     accessList:
