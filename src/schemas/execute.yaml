@@ -136,7 +136,7 @@ BlockOverrides:
     withdrawals:
       title: Withdrawals made by validators
       $ref: '#/components/schemas/Withdrawals'
-    baseFeePerBlobGas:
+    blobBaseFee:
       title: Base fee per unit of blob gas
       $ref: '#/components/schemas/uint256'
 Withdrawals:
@@ -211,7 +211,7 @@ MultiCallBlockResultSingleSuccess:
     excessBlobGas:
       title: The running total of blob gas consumed in excess of the target, prior to the block.
       $ref: '#/components/schemas/uint256'
-    baseFeePerBlobGas:
+    blobBaseFee:
       title: Base fee per unit of blob gas
       $ref: '#/components/schemas/uint256'
 MultiCallBlockResultInvalid:
