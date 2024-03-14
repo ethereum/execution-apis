@@ -46,6 +46,12 @@ The fields are encoded as follows:
 
 *Note:* The `amount` value is represented in Gwei.
 
+### ExecutionLayerExitV1
+The fields are encoded as follows:
+
+- `sourceAddress`: `DATA`, 20 Bytes - source address as defined in [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002)
+- `validatorPubkey`: `DATA`, 48 Bytes - validator pubkey as defined in [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002)
+
 ### ExecutionPayloadV4
 
 This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `exits` and `depositReceipts`.
@@ -69,6 +75,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `excessBlobGas`: `QUANTITY`, 64 Bits
 - `exits`: `Array of ExitV1` - Array of exits, each object is an `OBJECT` containing the fields of a `ExitV1` structure.
 - `depositReceipts`: `Array of DepositReceiptV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositReceiptV1` structure.
+- `exits`: `Array of ExeuctionLayerExitV1` - Array of execution layer exits, each object is an `OBJECT` containing the fields of a `ExecutionLayerExitV1` structure.
 
 ## Methods
 
