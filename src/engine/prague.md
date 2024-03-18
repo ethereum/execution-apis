@@ -9,18 +9,20 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Structures](#structures)
-  - [ExitV1](#exitv1)
-  - [ExecutionPayloadV4](#executionpayloadv4)
-- [Methods](#methods)
-  - [engine_newPayloadV4](#engine_newpayloadv4)
-    - [Request](#request)
-    - [Response](#response)
-    - [Specification](#specification)
-  - [engine_getPayloadV4](#engine_getpayloadv4)
-    - [Request](#request-1)
-    - [Response](#response-1)
-    - [Specification](#specification-1)
+- [Engine API -- Prague](#engine-api----prague)
+  - [Table of contents](#table-of-contents)
+  - [Structures](#structures)
+    - [ExitV1](#exitv1)
+    - [ExecutionPayloadV4](#executionpayloadv4)
+  - [Methods](#methods)
+    - [engine\_newPayloadV4](#engine_newpayloadv4)
+      - [Request](#request)
+      - [Response](#response)
+      - [Specification](#specification)
+    - [engine\_getPayloadV4](#engine_getpayloadv4)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -85,7 +87,7 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
 
 #### Request
 
-* method: `engine_getPayloadV3`
+* method: `engine_getPayloadV4`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
 * timeout: 1s
