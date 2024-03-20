@@ -32,7 +32,7 @@ bytes48:
   type: string
   pattern: ^0x[0-9a-f]{96}$
 bytes96:
-  title: 48 hex encoded bytes
+  title: 96 hex encoded bytes
   type: string
   pattern: ^0x[0-9a-f]{192}$
 bytes256:
