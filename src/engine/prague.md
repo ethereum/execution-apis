@@ -51,7 +51,7 @@ The fields are encoded as follows:
 
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `depositReceipts` and `exits`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositReceipts` and `exits`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
