@@ -138,7 +138,7 @@ BlockOverrides:
       $ref: '#/components/schemas/Withdrawals'
     blobBaseFee:
       title: Base fee per unit of blob gas
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint64'
 Withdrawals:
   title: Withdrawals made by validators
   description: This array can have a maximum length of 16.
@@ -152,7 +152,7 @@ Withdrawal:
     index:
       title: index
       $ref: '#/components/schemas/uint64'
-    validator_index:
+    validatorIndex:
       title: Validator Index
       $ref: '#/components/schemas/uint64'
     address:
@@ -207,7 +207,7 @@ MultiCallBlockResultSingleSuccess:
       $ref: '#/components/schemas/Withdrawals'
     blobGasUsed:
       title: The total amount of blob gas consumed by the transactions within the block.
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint64'
     excessBlobGas:
       title: The running total of blob gas consumed in excess of the target, prior to the block.
       $ref: '#/components/schemas/uint256'
