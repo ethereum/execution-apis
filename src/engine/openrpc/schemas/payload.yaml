@@ -305,7 +305,7 @@ ExecutionPayloadV4:
       title: Deposit receipts
       type: array
       items:
-        $ref: '#compoenents/schemas/DepositReceiptV1'
+        $ref: '#/components/schemas/DepositReceiptV1'
     exits:
       title: Exits
       type: array
@@ -361,19 +361,19 @@ DepositReceiptV1:
   properties:
     pubkey:
       title: Public key
-      $ref: '#/components/schema/bytes48'
+      $ref: '#/components/schemas/bytes48'
     withdrawalCredentials:
       title: Withdrawal credentials
-      $ref: '#/components/schema/bytes32'
+      $ref: '#/components/schemas/bytes32'
     amount:
       title: Deposit amount
-      $ref: '#/components/schema/uint64'
+      $ref: '#/components/schemas/uint64'
     signature:
       title: Deposit signature
-      $ref: '#/components/schema/bytes96'
+      $ref: '#/components/schemas/bytes96'
     index:
       title: Deposit index
-      $ref: '#/components/schema/uint64'
+      $ref: '#/components/schemas/uint64'
 ExitV1:
   title: Exit object V1
   type: object
