@@ -93,8 +93,8 @@ ReceiptInfo:
       description: The contract address created, if the transaction was a contract creation, otherwise null.
       oneOf:
         - $ref: '#/components/schemas/address'
-        - name: Null
-          type: "null"
+        - title: 'Null'
+          type: 'null'
     logs:
       title: logs
       type: array

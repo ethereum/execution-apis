@@ -28,7 +28,7 @@ RestrictedPayloadStatusV1:
       enum:
         - VALID
         - INVALID
-        - SYNCING        
+        - SYNCING
     latestValidHash:
       $ref: '#/components/schemas/PayloadStatusV1/properties/latestValidHash'
     validationError:
@@ -43,7 +43,7 @@ PayloadStatusNoInvalidBlockHash:
         - VALID
         - INVALID
         - SYNCING
-        - ACCEPTED        
+        - ACCEPTED
     latestValidHash:
       $ref: '#/components/schemas/PayloadStatusV1/properties/latestValidHash'
     validationError:
@@ -243,6 +243,68 @@ ExecutionPayloadV3:
     excessBlobGas:
       title: Excess blob gas
       $ref: '#/components/schemas/uint64'
+ExecutionPayloadV4:
+  title: Execution payload object V4
+  type: object
+  required:
+    - parentHash
+    - feeRecipient
+    - stateRoot
+    - receiptsRoot
+    - logsBloom
+    - prevRandao
+    - blockNumber
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - baseFeePerGas
+    - blockHash
+    - transactions
+    - withdrawals
+    - blobGasUsed
+    - excessBlobGas
+    - exits
+  properties:
+    parentHash:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/parentHash'
+    feeRecipient:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/feeRecipient'
+    stateRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/stateRoot'
+    receiptsRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/receiptsRoot'
+    logsBloom:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/logsBloom'
+    prevRandao:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/prevRandao'
+    blockNumber:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/blockNumber'
+    gasLimit:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/gasLimit'
+    gasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/gasUsed'
+    timestamp:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/timestamp'
+    extraData:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/extraData'
+    baseFeePerGas:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/baseFeePerGas'
+    blockHash:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/blockHash'
+    transactions:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/transactions'
+    withdrawals:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/withdrawals'
+    blobGasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/blobGasUsed'
+    excessBlobGas:
+      $ref: '#/components/schemas/ExecutionPayloadV3/properties/excessBlobGas'
+    exits:
+      title: Exits
+      type: array
+      items:
+        $ref: '#/components/schemas/ExitV1'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object
@@ -281,3 +343,16 @@ BlobsBundleV1:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+ExitV1:
+  title: Exit object V1
+  type: object
+  required:
+    - sourceAddress
+    - validatorPublicKey
+  properties:
+    sourceAddress:
+      title: Source address
+      $ref: '#/components/schemas/address'
+    validatorPublicKey:
+      title: Validator public key
+      $ref: '#/components/schemas/bytes48'

@@ -1,2 +1,3 @@
->> {"jsonrpc":"2.0","id":1,"method":"eth_getBlockTransactionCountByHash","params":["0xf3ead498e80202fbe66268da5992b34c9de06bf724e01f4db1211333b75ef82e"]}
+// gets tx count in block 0
+>> {"jsonrpc":"2.0","id":1,"method":"eth_getBlockTransactionCountByHash","params":["0x414c637788e37e9f65ed2c6ee962d32aeea39722ad50ee764e712fabebd69118"]}
 << {"jsonrpc":"2.0","id":1,"result":"0x0"}

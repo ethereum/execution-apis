@@ -4,6 +4,7 @@ bodyv
 bodiesbyrangev
 bodiesbyhashv
 bytecode
+clientversionv
 configurationv
 crypto
 eip
@@ -11,6 +12,9 @@ endian
 enum
 eth
 ethereum
+ethereumjs
+erigon
+getclientversionv
 interop
 json
 mempool
@@ -29,6 +33,7 @@ secp
 statev
 statusv
 sha
+teku
 uint
 updatedv
 url
@@ -63,3 +68,4 @@ EOA
 EVM
 ERC
 VM
+exitv

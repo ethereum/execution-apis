@@ -120,11 +120,19 @@ Refer to the response for [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_fo
 
 #### Specification
 
-This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2) with addition of the following:
+This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2) with the following changes to the processing flow:
 
-1. Client software **MUST** check that provided set of parameters and their fields strictly matches the expected one and return `-32602: Invalid params` error if this check fails. Any field having `null` value **MUST** be considered as not provided.
+1. Client software **MUST** verify that `forkchoiceState` matches the [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1) structure and return `-32602: Invalid params` on failure.
 
-2. Client software **MUST** return `-38005: Unsupported fork` error if the `payloadAttributes` is set and the `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork.
+2. Extend point (7) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
+
+    1. `payloadAttributes` matches the [`PayloadAttributesV3`](#payloadattributesv3) structure, return `-38003: Invalid payload attributes` on failure.
+
+    2. `payloadAttributes.timestamp` falls within the time frame of the Cancun fork, return `-38005: Unsupported fork` on failure.
+
+    3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
+
+    4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
 
 ### engine_getPayloadV3
 
