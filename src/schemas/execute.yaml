@@ -211,9 +211,6 @@ MultiCallBlockResultSingleSuccess:
     excessBlobGas:
       title: The running total of blob gas consumed in excess of the target, prior to the block.
       $ref: '#/components/schemas/uint256'
-    blobBaseFee:
-      title: Base fee per unit of blob gas
-      $ref: '#/components/schemas/uint256'
 MultiCallBlockResultInvalid:
   title: Result of multicall not being valid
   description: The error messages are suggestions and a client might decide to return a different errror message than specified here. However, the error codes are enforced by this specification.
