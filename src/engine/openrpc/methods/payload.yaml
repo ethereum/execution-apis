@@ -262,7 +262,7 @@
                 withdrawalCredentials: '0x001db70c485b6264692f26b8aeaab5b0c384180df8e2184a21a808a3ec8e86ca'
                 amount: '0x1'
                 signature: '0x9561731785b48cf1886412234531e4940064584463e96ac63a1a154320227e333fb51addc4a89b7e0d3f862d7c1fd4ea03bd8eb3d8806f1e7daf591cbbbb92b0beb74d13c01617f22c5026b4f9f9f294a8a7c32db895de3b01bee0132c9209e1'
-                index: '0xf0'
+                index: '0xf1'
             exits:
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
                 validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
@@ -550,7 +550,7 @@
                 withdrawalCredentials: '0x001db70c485b6264692f26b8aeaab5b0c384180df8e2184a21a808a3ec8e86ca'
                 amount: '0x1'
                 signature: '0x9561731785b48cf1886412234531e4940064584463e96ac63a1a154320227e333fb51addc4a89b7e0d3f862d7c1fd4ea03bd8eb3d8806f1e7daf591cbbbb92b0beb74d13c01617f22c5026b4f9f9f294a8a7c32db895de3b01bee0132c9209e1'
-                index: '0xf0'
+                index: '0xf1'
             exits:
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
                 validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
