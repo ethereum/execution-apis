@@ -2,25 +2,28 @@
 
 Engine API changes introduced in Prague.
 
-This specificaiton is based on and extends [Engine API - Cancun](./cancun.md) specification.
+This specification is based on and extends [Engine API - Cancun](./cancun.md) specification.
 
 ## Table of contents
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Structures](#structures)
-  - [DepositReceiptV1](#depositreceiptv1)
-  - [ExecutionPayloadV4](#executionpayloadV4)
-- [Methods](#methods)
-  - [`engine_newPayloadV4`](#engine_newpayloadV4)
-    - [Request](#request)
-    - [Response](#response)
-    - [Specification](#specification)
-  - [`engine_getPayloadV4`](#engine_getpayloadV4)
-    - [Request](#request-1)
-    - [Response](#response-1)
-    - [Specification](#specification-1)
+- [Engine API -- Prague](#engine-api----prague)
+   - [Table of contents](#table-of-contents)
+   - [Structures](#structures)
+     - [ExitV1](#exitv1)
+     - [DepositReceiptV1](#depositreceiptv1)
+     - [ExecutionPayloadV4](#executionpayloadv4)
+   - [Methods](#methods)
+     - [engine\_newPayloadV4](#engine_newpayloadv4)
+       - [Request](#request)
+       - [Response](#response)
+       - [Specification](#specification)
+     - [engine\_getPayloadV4](#engine_getpayloadv4)
+       - [Request](#request-1)
+       - [Response](#response-1)
+       - [Specification](#specification-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -110,10 +113,13 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
 * result: `object`
   - `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
-<<<<<<< HEAD
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
+* error: code and message set in case an exception happens while getting the payload.
 
-This method follows the same specification as [`engine_newPayloadV3`](../cancun.md#engine_newpayloadv3) with the following changes:
+#### Specification
+
+This method follows the same specification as [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv3) with the following changes:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
 
