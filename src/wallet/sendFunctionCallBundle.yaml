@@ -1,0 +1,58 @@
+- name: wallet_sendFunctionCallBundle
+  summary: Sends a bundle of function calls from the user wallet
+  params:
+    - name: Function calls
+      required: true
+      schema:
+        type: object
+        title: Send function call bundle request
+        required:
+          - chainId
+          - from
+          - calls
+        properties:
+          chainId:
+            title: chainId
+            description: Chain ID that these calls should be sent on
+            $ref: '#/components/schemas/uint'
+          from:
+            title: from address
+            description: The address from which the function calls should be sent
+            $ref: '#/components/schemas/address'
+          calls:
+            title: calls to make
+            description: The calls that the wallet should make from the user's address
+            type: array
+            minItems: 1
+            items:
+              title: function call
+              description: A single function call
+              type: object
+              required:
+                - gas
+                - data
+              to:
+                title: to address
+                description: The address that is being called
+                $ref: '#/components/schemas/address'
+              gas:
+                title: gas limit
+                description: The gas limit for this particular call
+                $ref: '#/components/schemas/uint'
+              value:
+                title: value
+                description: How much value to send with the call
+                $ref: '#/components/schemas/uint'
+              data:
+                title: data
+                description: The data to send with the function call
+                $ref: '#/components/schemas/bytes'
+              optional:
+                title: optional
+                description: Whether the call must succeed for subsequent calls to be made
+                type: boolean
+  result:
+    name: Bundle identifier
+    schema:
+      type: string
+      maxLength: 66
