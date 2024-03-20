@@ -10,32 +10,24 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Engine API -- Prague](#engine-api----prague)
-   - [Table of contents](#table-of-contents)
-   - [Structures](#structures)
-     - [ExitV1](#exitv1)
-     - [DepositReceiptV1](#depositreceiptv1)
-     - [ExecutionPayloadV4](#executionpayloadv4)
-   - [Methods](#methods)
-     - [engine\_newPayloadV4](#engine_newpayloadv4)
-       - [Request](#request)
-       - [Response](#response)
-       - [Specification](#specification)
-     - [engine\_getPayloadV4](#engine_getpayloadv4)
-       - [Request](#request-1)
-       - [Response](#response-1)
-       - [Specification](#specification-1)
+  - [Table of contents](#table-of-contents)
+  - [Structures](#structures)
+    - [DepositReceiptV1](#depositreceiptv1)
+    - [ExitV1](#exitv1)
+    - [ExecutionPayloadV4](#executionpayloadv4)
+  - [Methods](#methods)
+    - [engine\_newPayloadV4](#engine_newpayloadv4)
+      - [Request](#request)
+      - [Response](#response)
+      - [Specification](#specification)
+    - [engine\_getPayloadV4](#engine_getpayloadv4)
+      - [Request](#request-1)
+      - [Response](#response-1)
+      - [Specification](#specification-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Structures
-
-### ExitV1
-
-This structure represents an execution layer triggered exit operation.
-The fields are encoded as follows:
-
-- `sourceAddress`: `DATA`, 20 Bytes
-- `validatorPublicKey`: `DATA`, 48 Bytes
 
 ### DepositReceiptV1
 This structure maps onto the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110).
@@ -49,9 +41,17 @@ The fields are encoded as follows:
 
 *Note:* The `amount` value is represented in Gwei.
 
+### ExitV1
+
+This structure represents an execution layer triggered exit operation.
+The fields are encoded as follows:
+
+- `sourceAddress`: `DATA`, 20 Bytes
+- `validatorPublicKey`: `DATA`, 48 Bytes
+
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `exits` and `depositReceipts`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `depositReceipts` and `exits`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -70,8 +70,8 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
-- `exits`: `Array of ExitV1` - Array of exits, each object is an `OBJECT` containing the fields of a `ExitV1` structure.
 - `depositReceipts`: `Array of DepositReceiptV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositReceiptV1` structure.
+- `exits`: `Array of ExitV1` - Array of exits, each object is an `OBJECT` containing the fields of a `ExitV1` structure.
 
 ## Methods
 
