@@ -12,6 +12,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 - [Engine API -- Prague](#engine-api----prague)
   - [Table of contents](#table-of-contents)
   - [Structures](#structures)
+    - [DepositReceiptV1](#depositreceiptv1)
     - [ExitV1](#exitv1)
     - [ExecutionPayloadV4](#executionpayloadv4)
   - [Methods](#methods)
@@ -28,6 +29,18 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 
 ## Structures
 
+### DepositReceiptV1
+This structure maps onto the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110).
+The fields are encoded as follows:
+
+- `pubkey`: `DATA`, 48 Bytes
+- `withdrawalCredentials`: `DATA`, 32 Bytes
+- `amount`: `QUANTITY`, 64 Bits
+- `signature`: `DATA`, 96 Bytes
+- `index`: `QUANTITY`, 64 Bits
+
+*Note:* The `amount` value is represented in Gwei.
+
 ### ExitV1
 
 This structure represents an execution layer triggered exit operation.
@@ -38,7 +51,7 @@ The fields are encoded as follows:
 
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `exits`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositReceipts` and `exits`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -57,6 +70,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
+- `depositReceipts`: `Array of DepositReceiptV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositReceiptV1` structure.
 - `exits`: `Array of ExitV1` - Array of exits, each object is an `OBJECT` containing the fields of a `ExitV1` structure.
 
 ## Methods
@@ -79,7 +93,9 @@ Refer to the response for [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv
 
 #### Specification
 
-This method follows the same specification as [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv3).
+This method follows the same specification as [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv3) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Prague fork.
 
 ### engine_getPayloadV4
 
@@ -103,4 +119,19 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
 
 #### Specification
 
-Refer to the specification for [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3).
+This method follows the same specification as [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
+
+### Update the methods of previous forks
+
+This document defines how Prague payload should be handled by the [`Cancun API`](./cancun.md).
+
+For the following methods:
+
+- [`engine_newPayloadV3`](./cancun.md#engine_newpayloadV3)
+- [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3)
+
+a validation **MUST** be added:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload or payloadAttributes greater or equal to the Prague activation timestamp.
