@@ -8,6 +8,9 @@
     name: Filter Identifier
     schema:
       $ref: '#/components/schemas/uint'
+  errors:
+    - code: -32000
+      message: 'invalid block range params'
 - name: eth_newBlockFilter
   summary: Creates a filter in the node, to notify when a new block arrives.
   params: []
@@ -62,3 +65,6 @@
     name: Log objects
     schema:
       $ref: '#/components/schemas/FilterResults'
+  errors:
+    - code: -32000
+      message: 'invalid block range params'
