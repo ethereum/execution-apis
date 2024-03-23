@@ -23,7 +23,7 @@
     - name: Storage slot
       required: true
       schema:
-        $ref: '#/components/schemas/uint256'
+        $ref: '#/components/schemas/bytesMax32'
     - name: Block
       required: true
       schema:
@@ -31,7 +31,7 @@
   result:
     name: Value
     schema:
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/bytes32'
 - name: eth_getTransactionCount
   summary: Returns the number of transactions sent from an address.
   params:
