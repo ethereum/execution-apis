@@ -21,6 +21,6 @@
       schema:
         $ref: '#/components/schemas/GenericTransaction'
   result:
-    name: Encoded transaction
+    name: Transaction result
     schema:
-      $ref: '#/components/schemas/bytes'
+      $ref: '#/components/schemas/SignTransactionResult'
