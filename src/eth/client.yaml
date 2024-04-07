@@ -36,3 +36,19 @@
     name: Block number
     schema:
       $ref: '#/components/schemas/uint'
+- name: eth_checkMethodSupport
+  summary: Returns an object with data about supported methods
+  params:
+    - name: Method names
+      required: false
+      schema:
+        type: array
+        items :
+          $ref: '#/components/schemas/methodName'
+  result:
+    name: Method support object
+    schema:
+      type: object
+      patternProperties:
+        '^(eth_|debug_|engine_).*$':  boolean
+      additionalProperties: false
