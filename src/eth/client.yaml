@@ -52,3 +52,17 @@
       patternProperties:
         '^(eth_|debug_|engine_).*$':  boolean
       additionalProperties: false
+  examples:
+    - name: eth_checkMethodSupport example
+      params:
+        - name: Method names
+          value:
+            - 'eth_getBalance'
+            - 'eth_blockNumber'
+            - 'eth_sendTransaction'
+      result:
+        name: Method support object
+        value:
+          eth_getBalance: true
+          eth_blockNumber: true
+          eth_sendTransaction: false
