@@ -66,10 +66,12 @@ func newGethClient(ctx context.Context, geth string, chaindir string, verbose bo
 		datadir  = fmt.Sprintf("--datadir=%s", tmp)
 		gcmode   = "--gcmode=archive"
 		loglevel = fmt.Sprintf("--verbosity=%d", args.logLevelInt)
+		// Archive mode requires hash-based scheme.
+		scheme = fmt.Sprintf("--state.scheme=%s", "hash")
 	)
 
 	// Run geth init.
-	options := []string{datadir, gcmode, loglevel, "init", filepath.Join(chaindir, "genesis.json")}
+	options := []string{datadir, gcmode, scheme, loglevel, "init", filepath.Join(chaindir, "genesis.json")}
 	err = runCmd(ctx, geth, verbose, options...)
 	if err != nil {
 		return nil, err
