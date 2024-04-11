@@ -48,7 +48,7 @@ The fields are encoded as follows:
 
 - `sourceAddress`: `DATA`, 20 Bytes
 - `validatorPublicKey`: `DATA`, 48 Bytes
-- `amount`: `DATA`, 64 Bits
+- `amount`: `QUANTITY`, 64 Bits
 
 *Note:* The `amount` value is represented in Gwei.
 
