@@ -12,8 +12,8 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 - [Engine API -- Prague](#engine-api----prague)
   - [Table of contents](#table-of-contents)
   - [Structures](#structures)
-    - [DepositReceiptV1](#depositreceiptv1)
-    - [ExitV1](#exitv1)
+    - [DepositRequestV1](#depositrequestv1)
+    - [WithdrawalRequestV1](#withdrawalrequestv1)
     - [ExecutionPayloadV4](#executionpayloadv4)
   - [Methods](#methods)
     - [engine\_newPayloadV4](#engine_newpayloadv4)
@@ -29,7 +29,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 
 ## Structures
 
-### DepositReceiptV1
+### DepositRequestV1
 This structure maps onto the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110).
 The fields are encoded as follows:
 
@@ -41,7 +41,7 @@ The fields are encoded as follows:
 
 *Note:* The `amount` value is represented in Gwei.
 
-### ExitV1
+### WithdrawalRequestV1
 
 This structure represents an execution layer triggered exit operation.
 The fields are encoded as follows:
@@ -54,7 +54,7 @@ The fields are encoded as follows:
 
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositReceipts` and `exits`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositRequests` and `withdrawalRequests`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -73,8 +73,8 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
-- `depositReceipts`: `Array of DepositReceiptV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositReceiptV1` structure.
-- `exits`: `Array of ExitV1` - Array of exits, each object is an `OBJECT` containing the fields of a `ExitV1` structure.
+- `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
+- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of exits, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
 
 ## Methods
 
