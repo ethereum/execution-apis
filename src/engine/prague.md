@@ -43,7 +43,7 @@ The fields are encoded as follows:
 
 ### WithdrawalRequestV1
 
-This structure represents an execution layer triggered exit operation.
+This structure represents an execution layer triggered withdrawal request.
 The fields are encoded as follows:
 
 - `sourceAddress`: `DATA`, 20 Bytes
@@ -74,7 +74,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
 - `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
-- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of exits, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
+- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
 
 ## Methods
 
