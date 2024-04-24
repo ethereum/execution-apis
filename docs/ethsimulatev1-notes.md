@@ -13,14 +13,14 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | extraData | `0x0000000000000000000000000000000000000000000000000000000000000000` |
 | difficulty | The same as the base block defined as the second parameter in the call |
 | gasLimit | The same as the base block defined as the second parameter in the call |
-| hash | Calculated normally, except for phantom blocks, see below Phantom block section |
-| parentHash | Previous blocks hash (the real hash, or phantom blocks hash) |
+| hash | Calculated normally |
+| parentHash | Previous blocks hash |
 | timestamp | The timestamp of previous block + 1 |
-| baseFeePerGas | Calculated on what it should be according to Ethereum's spec. Note: baseFeePerGas is not adjusted in the phantom blocks. |
+| baseFeePerGas | Calculated on what it should be according to Ethereum's spec. |
 | sha3Uncles | Empty trie root |
 | withdrawals | Empty array |
 | uncles | Empty array |
-| blobBaseFee | Calculated on what it should be according to EIP-4844 spec. Note: blobBaseFee is not adjusted in the phantom blocks. |
+| blobBaseFee | Calculated on what it should be according to EIP-4844 spec. |
 | number | Previous block number + 1 |
 | logsBloom | Calculated normally. ETH logs are not part of the calculation |
 | receiptsRoot | Calculated normally |
@@ -31,52 +31,6 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | stateRoot | Calculated normally |
 
 An interesting note here is that we decide timestamp as `previous block timestamp + 1`, while `previous block timestamp + 12` could also be an assumed default. The reasoning to use `+1` is that it's the minimum amount we have to increase the timestamp to keep them valid. While `+12` is what Mainnet uses, there are other chains that use some other values, and we didn't want to complicate the specification to consider all networks.
-
-### Phantom blocks
-The multicall allows you to define on what block number your calls or transactions are being executed on. E.g, consider following call:
-```json
-{
-	"jsonrpc": "2.0",
-	"id": 1,
-	"method": "eth_simulateV1",
-	"params": [
-		{
-			"blockStateCalls": [
-				{
-					"blockOverrides": {
-						"number": "0x64"
-					},
-				},
-				{
-					"blockOverrides": {
-						"number": "0xc8"
-					},
-				}
-			]
-		},
-		"0xa"
-	]
-}
-```
-
-Here we want our calls to be executed in blocks 100 (`0x64`) and in 200 (`0xc8`). The block numbers can be anything as long as they are increasing and higher than the block we are building from 10 (`0xa`). Now we end up in a situation where there exists block ranges 11-99 and 101-199 that are not defined anywhere. These blocks are called "phantom blocks". What happens if you try to request block hash of any of such blocks in the EVM? How can we calculate the block hash of future blocks when we don't know the block hash of the previous block?
-
-Our solution to this problem is to define block hash of a phantom block to be:
-
-```
-keccak(rlp([hash_of_previous_non_phantom_block, phantom_block_number]))
-```
-
-So for example in our example, you could get block hash of block 142 as follows: 
-```
-keccak(rlp([hash of block 12, 142]))
-```
-
-The phantom blocks other properties are set to their default properties as defined by the multicall specification. We came to this definition by wanting phantom block hashes to be unique if things prior to the phantom block changes, so if tooling is storing block hashes somewhere, they should remain unique if things change in the simulation.
-
-One other approach to this problem would be to really calculate the real block hashes for all the phantom blocks, but this would make generating blocks far in future really expensive, as to generate 100 phantom blocks, you would need to calculate 100 block hashes that all depend on each other. And in most cases, no one really cares about these blocks.
-
-Base fee per gas is not adjusted in the phantom blocks, their base fee remains constant.
 
 ## Default values for transactions
 As multicall is an extension to `eth_call` we want to enable the nice user experience that the user does not need to provide all required values for a transaction. We are assuming following defaults if the variable is not provided by the user:
@@ -108,7 +62,7 @@ The default values of blocks and transactions can be overriden. For Transactions
 	"blobBaseFee": "0x15"
 },
 ```
-All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) or kept as their default values (eg. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, phantom blocks are created to fill the gaps.
+All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) or kept as their default values (eg. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, new empty blocks are generated in between.
 
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
