@@ -12,7 +12,8 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 - [Engine API -- Prague](#engine-api----prague)
   - [Table of contents](#table-of-contents)
   - [Structures](#structures)
-    - [ExitV1](#exitv1)
+    - [DepositRequestV1](#depositrequestv1)
+    - [WithdrawalRequestV1](#withdrawalrequestv1)
     - [ExecutionPayloadV4](#executionpayloadv4)
   - [Methods](#methods)
     - [engine\_newPayloadV4](#engine_newpayloadv4)
@@ -28,17 +29,32 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 
 ## Structures
 
-### ExitV1
+### DepositRequestV1
+This structure maps onto the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110).
+The fields are encoded as follows:
 
-This structure represents an execution layer triggered exit operation.
+- `pubkey`: `DATA`, 48 Bytes
+- `withdrawalCredentials`: `DATA`, 32 Bytes
+- `amount`: `QUANTITY`, 64 Bits
+- `signature`: `DATA`, 96 Bytes
+- `index`: `QUANTITY`, 64 Bits
+
+*Note:* The `amount` value is represented in Gwei.
+
+### WithdrawalRequestV1
+
+This structure represents an execution layer triggered withdrawal request.
 The fields are encoded as follows:
 
 - `sourceAddress`: `DATA`, 20 Bytes
 - `validatorPublicKey`: `DATA`, 48 Bytes
+- `amount`: `QUANTITY`, 64 Bits
+
+*Note:* The `amount` value is represented in Gwei.
 
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `exits`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositRequests` and `withdrawalRequests`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -57,7 +73,8 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
-- `exits`: `Array of ExitV1` - Array of exits, each object is an `OBJECT` containing the fields of a `ExitV1` structure.
+- `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
+- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
 
 ## Methods
 
@@ -79,7 +96,9 @@ Refer to the response for [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv
 
 #### Specification
 
-This method follows the same specification as [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv3).
+This method follows the same specification as [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv3) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Prague fork.
 
 ### engine_getPayloadV4
 
@@ -103,4 +122,19 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
 
 #### Specification
 
-Refer to the specification for [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3).
+This method follows the same specification as [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
+
+### Update the methods of previous forks
+
+This document defines how Prague payload should be handled by the [`Cancun API`](./cancun.md).
+
+For the following methods:
+
+- [`engine_newPayloadV3`](./cancun.md#engine_newpayloadV3)
+- [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3)
+
+a validation **MUST** be added:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload or payloadAttributes greater or equal to the Prague activation timestamp.
