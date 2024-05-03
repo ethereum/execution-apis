@@ -42,8 +42,7 @@ The fields are encoded as follows:
 *Note:* The `amount` value is represented in Gwei.
 
 ### WithdrawalRequestV1
-
-This structure represents an execution layer triggered withdrawal request.
+This structure maps onto the withdrawal request from [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002).
 The fields are encoded as follows:
 
 - `sourceAddress`: `DATA`, 20 Bytes
