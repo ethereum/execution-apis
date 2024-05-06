@@ -264,7 +264,7 @@ ExecutionPayloadV4:
     - withdrawals
     - blobGasUsed
     - excessBlobGas
-    - depositRequests
+    - depositReceipts
     - withdrawalRequests
   properties:
     parentHash:
@@ -301,11 +301,11 @@ ExecutionPayloadV4:
       $ref: '#/components/schemas/ExecutionPayloadV3/properties/blobGasUsed'
     excessBlobGas:
       $ref: '#/components/schemas/ExecutionPayloadV3/properties/excessBlobGas'
-    depositRequests:
-      title: Deposit requests
+    depositReceipts:
+      title: Deposit receipts
       type: array
       items:
-        $ref: '#/components/schemas/DepositRequestV1'
+        $ref: '#/components/schemas/DepositReceiptV1'
     withdrawalRequests:
       title: Withdrawals requests
       type: array
@@ -349,8 +349,8 @@ BlobsBundleV1:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
-DepositRequestV1:
-  title: Deposit request object V1
+DepositReceiptV1:
+  title: Deposit receipt object V1
   type: object
   required:
     - pubkey
