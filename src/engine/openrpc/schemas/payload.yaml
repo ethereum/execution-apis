@@ -411,13 +411,13 @@ WithdrawalRequestV1:
   type: object
   required:
     - sourceAddress
-    - validatorPublicKey
+    - validatorPubkey
     - amount
   properties:
     sourceAddress:
       title: Source address
       $ref: '#/components/schemas/address'
-    validatorPublicKey:
+    validatorPubkey:
       title: Validator public key
       $ref: '#/components/schemas/bytes48'
     amount:

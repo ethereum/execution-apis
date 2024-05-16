@@ -265,10 +265,10 @@
                 index: '0xf1'
             withdrawalRequests:
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
-                validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
+                validatorPubkey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
                 amount: '0x0'
               - sourceAddress: '0x00000000000000000000000000000000000010f6'
-                validatorPublicKey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
+                validatorPubkey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
                 amount: '0x1'
         - name: Expected blob versioned hashes
           value:
@@ -555,10 +555,10 @@
                 index: '0xf1'
             withdrawalRequests:
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
-                validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
+                validatorPubkey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
                 amount: '0x0'
               - sourceAddress: '0x00000000000000000000000000000000000010f6'
-                validatorPublicKey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
+                validatorPubkey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
                 amount: '0x1'
           blockValue: '0x10a741a46278014d'
           blobsBundle:
@@ -675,7 +675,7 @@
                 index: '0xf0'
             withdrawalRequests:
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
-                validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
+                validatorPubkey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
                 amount: '0x0'
           - transactions:
               - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
@@ -697,7 +697,7 @@
                 index: '0xf1'
             withdrawalRequests:
               - sourceAddress: '0x00000000000000000000000000000000000010f6'
-                validatorPublicKey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
+                validatorPubkey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
                 amount: '0x1'
 - name: engine_getPayloadBodiesByRangeV1
   summary: Given a range of block numbers returns bodies of the corresponding execution payloads
@@ -809,7 +809,7 @@
                 index: '0xf0'
             withdrawalRequests:
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
-                validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
+                validatorPubkey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
                 amount: '0x0'
           - transactions:
               - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
@@ -831,5 +831,5 @@
                 index: '0xf1'
             withdrawalRequests:
               - sourceAddress: '0x00000000000000000000000000000000000010f6'
-                validatorPublicKey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
+                validatorPubkey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
                 amount: '0x1'
