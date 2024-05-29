@@ -180,99 +180,15 @@ EthSimulateBlockResultSuccess:
 EthSimulateBlockResultSingleSuccess:
   title: Result of eth_simulate block-level, with array of calls
   type: object
-  properties:
-    baseFeePerGas:
-      title: Base fee per unit of gas
-      $ref: '#/components/schemas/uint256'
-    number:
-      title: Number
-      $ref: '#/components/schemas/uint64'
-    hash:
-      title: Block Hash
-      $ref: '#/components/schemas/hash32'
-    gasLimit:
-      title: Gas limit
-      $ref: '#/components/schemas/uint64'
-    timestamp:
-      title: Timestamp
-      $ref: '#/components/schemas/uint64'
-    gasUsed:
-      title: Gas used
-      $ref: '#/components/schemas/uint64'
-    withdrawals:
-      title: Withdrawals made by validators
-      $ref: '#/components/schemas/Withdrawals'
-    blobGasUsed:
-      title: The total amount of blob gas consumed by the transactions within the block.
-      $ref: '#/components/schemas/uint64'
-    excessBlobGas:
-      title: The running total of blob gas consumed in excess of the target, prior to the block.
-      $ref: '#/components/schemas/uint256'
-    miner:
-      title: Fee Recipient (also known as coinbase)
-      $ref: '#/components/schemas/address'
-    mixHash:
-      title: The Previous value of randomness beacon
-      $ref: '#/components/schemas/uint256'
-    parentHash:
-      title: Parent block hash
-      $ref: '#/components/schemas/hash32'
-    sha3Uncles:
-      title: Ommers hash
-      $ref: '#/components/schemas/hash32'
-    stateRoot:
-      title: State root
-      $ref: '#/components/schemas/hash32'
-    transactionsRoot:
-      title: Transactions root
-      $ref: '#/components/schemas/hash32'
-    receiptsRoot:
-      title: Receipts root
-      $ref: '#/components/schemas/hash32'
-    logsBloom:
-      title: Bloom filter
-      $ref: '#/components/schemas/bytes256'
-    difficulty:
-      title: Difficulty
-      $ref: '#/components/schemas/uint'
-    extraData:
-      title: Extra data
-      $ref: '#/components/schemas/bytes'
-    mixHash:
-      title: Mix hash
-      $ref: '#/components/schemas/hash32'
-    nonce:
-      title: Nonce
-      $ref: '#/components/schemas/bytes8'
-    size:
-      title: Block size
-      $ref: '#/components/schemas/uint'
-    totalDifficulty:
-      title: Total difficulty
-      $ref: '#/components/schemas/uint'
-    parentBeaconBlockRoot:
-      title: Parent Beacon Block Root
-      $ref: '#/components/schemas/hash32'
-    withdrawalsRoot:
-      title: Withdrawals root
-      $ref: '#/components/schemas/hash32'
-    transactions:
-      anyOf:
-        - title: Transaction hashes
-          type: array
-          items:
-            $ref: '#/components/schemas/hash32'
-        - title: Full transactions
-          type: array
-          items:
-            $ref: '#/components/schemas/TransactionInfo'
-    uncles:
-      title: Uncles
-      type: array
-      items:
-        $ref: '#/components/schemas/hash32'
-    calls:
-      $ref: '#/components/schemas/CallResults'
+  allOf:
+    - $ref: '#/components/schemas/Block'
+    - title: Eth Simulate call results
+      required:
+        - calls
+      properties:
+        calls:
+          title: Call Results
+          $ref: '#/components/schemas/CallResults'
 EthSimulateBlockResultInvalid:
   title: Result of eth_simulate not being valid
   description: The error messages are suggestions and a client might decide to return a different errror message than specified here. However, the error codes are enforced by this specification.
