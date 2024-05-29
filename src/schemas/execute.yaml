@@ -1,4 +1,4 @@
-MultiCallPayload:
+EthSimulatePayload:
   title: Arguments for multi call
   required:
     - blockStateCalls
@@ -16,8 +16,13 @@ MultiCallPayload:
     validation:
       title: Validation
       description: |-
-        When true, the multicall does all validations that a normal EVM would do, except contract sender and signature checks. When false, multicall behaves like eth_call.
+        When true, the eth_simulateV1 does all validations that a normal EVM would do, except contract sender and signature checks. When false, eth_simulateV1 behaves like eth_call.
         Default: false.
+      type: boolean
+    returnFullTransactions:
+      title: Return Full Transactions
+      description: |-
+        When true, the method returns full transaction objects, otherwise, just hashes are returned.
       type: boolean
 BlockStateCalls:
   title: Array of block state calls to be executed at specific, optional block/state.
@@ -161,47 +166,39 @@ Withdrawal:
     amount:
       title: Amount
       $ref: '#/components/schemas/uint64'
-MultiCallResult:
+EthSimulateResult:
   title: Full results of multi call
   type: object
   oneOf:
-    - $ref: '#/components/schemas/MultiCallBlockResultInvalid'
-    - $ref: '#/components/schemas/MultiCallBlockResultSuccess'
-MultiCallBlockResultSuccess:
+    - $ref: '#/components/schemas/EthSimulateBlockResultInvalid'
+    - $ref: '#/components/schemas/EthSimulateBlockResultSuccess'
+EthSimulateBlockResultSuccess:
   title: Full results of multi call
   type: array
   items:
-    $ref: '#/components/schemas/MultiCallBlockResultSingleSuccess'
-MultiCallBlockResultSingleSuccess:
-  title: Result of multicall block-level, with array of calls
+    $ref: '#/components/schemas/EthSimulateBlockResultSingleSuccess'
+EthSimulateBlockResultSingleSuccess:
+  title: Result of eth_simulate block-level, with array of calls
   type: object
   properties:
+    baseFeePerGas:
+      title: Base fee per unit of gas
+      $ref: '#/components/schemas/uint256'
     number:
       title: Number
       $ref: '#/components/schemas/uint64'
     hash:
       title: Block Hash
       $ref: '#/components/schemas/hash32'
-    timestamp:
-      title: Timestamp
-      $ref: '#/components/schemas/uint64'
     gasLimit:
       title: Gas limit
+      $ref: '#/components/schemas/uint64'
+    timestamp:
+      title: Timestamp
       $ref: '#/components/schemas/uint64'
     gasUsed:
       title: Gas used
       $ref: '#/components/schemas/uint64'
-    feeRecipient:
-      title: Fee Recipient (also known as coinbase)
-      $ref: '#/components/schemas/address'
-    baseFeePerGas:
-      title: Base fee per unit of gas
-      $ref: '#/components/schemas/uint256'
-    calls:
-      $ref: '#/components/schemas/CallResults'
-    prevRandao:
-      title: The Previous value of randomness beacon
-      $ref: '#/components/schemas/uint256'
     withdrawals:
       title: Withdrawals made by validators
       $ref: '#/components/schemas/Withdrawals'
@@ -211,8 +208,73 @@ MultiCallBlockResultSingleSuccess:
     excessBlobGas:
       title: The running total of blob gas consumed in excess of the target, prior to the block.
       $ref: '#/components/schemas/uint256'
-MultiCallBlockResultInvalid:
-  title: Result of multicall not being valid
+    miner:
+      title: Fee Recipient (also known as coinbase)
+      $ref: '#/components/schemas/address'
+    mixHash:
+      title: The Previous value of randomness beacon
+      $ref: '#/components/schemas/uint256'
+    parentHash:
+      title: Parent block hash
+      $ref: '#/components/schemas/hash32'
+    sha3Uncles:
+      title: Ommers hash
+      $ref: '#/components/schemas/hash32'
+    stateRoot:
+      title: State root
+      $ref: '#/components/schemas/hash32'
+    transactionsRoot:
+      title: Transactions root
+      $ref: '#/components/schemas/hash32'
+    receiptsRoot:
+      title: Receipts root
+      $ref: '#/components/schemas/hash32'
+    logsBloom:
+      title: Bloom filter
+      $ref: '#/components/schemas/bytes256'
+    difficulty:
+      title: Difficulty
+      $ref: '#/components/schemas/uint'
+    extraData:
+      title: Extra data
+      $ref: '#/components/schemas/bytes'
+    mixHash:
+      title: Mix hash
+      $ref: '#/components/schemas/hash32'
+    nonce:
+      title: Nonce
+      $ref: '#/components/schemas/bytes8'
+    size:
+      title: Block size
+      $ref: '#/components/schemas/uint'
+    totalDifficulty:
+      title: Total difficulty
+      $ref: '#/components/schemas/uint'
+    parentBeaconBlockRoot:
+      title: Parent Beacon Block Root
+      $ref: '#/components/schemas/hash32'
+    withdrawalsRoot:
+      title: Withdrawals root
+      $ref: '#/components/schemas/hash32'
+    transactions:
+      anyOf:
+        - title: Transaction hashes
+          type: array
+          items:
+            $ref: '#/components/schemas/hash32'
+        - title: Full transactions
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionInfo'
+    uncles:
+      title: Uncles
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    calls:
+      $ref: '#/components/schemas/CallResults'
+EthSimulateBlockResultInvalid:
+  title: Result of eth_simulate not being valid
   description: The error messages are suggestions and a client might decide to return a different errror message than specified here. However, the error codes are enforced by this specification.
   type: object
   required:
