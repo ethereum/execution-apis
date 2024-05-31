@@ -17,7 +17,8 @@ Transaction4844Unsigned:
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x3$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
