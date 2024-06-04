@@ -16,11 +16,11 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | hash | Calculated normally |
 | parentHash | Previous blocks hash |
 | timestamp | The timestamp of previous block + 1 |
-| baseFeePerGas | Calculated on what it should be according to Ethereum's spec. |
+| baseFeePerGas | When validation mode is true, baseFeePerGas is calculated on what it should be according to Ethereum's spec. When validation mode is false, the baseFeePerGas is set to zero |
 | sha3Uncles | Empty trie root |
 | withdrawals | Empty array |
 | uncles | Empty array |
-| blobBaseFee | Calculated on what it should be according to EIP-4844 spec. |
+| blobBaseFee | When validation mode is true, blobBaseFee is calculated on what it should be according to EIP-4844 spec. When validation mode is false, the blobBaseFee is set to zero |
 | number | Previous block number + 1 |
 | logsBloom | Calculated normally. ETH logs are not part of the calculation |
 | receiptsRoot | Calculated normally |
