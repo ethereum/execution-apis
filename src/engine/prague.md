@@ -12,6 +12,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 - [Structures](#structures)
   - [DepositRequestV1](#depositrequestv1)
   - [WithdrawalRequestV1](#withdrawalrequestv1)
+  - [ConsolidationRequestV1](#consolidationrequestv1)
   - [ExecutionPayloadV4](#executionpayloadv4)
   - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
 - [Methods](#methods)
@@ -59,6 +60,14 @@ The fields are encoded as follows:
 
 *Note:* The `amount` value is represented in Gwei.
 
+### ConsolidationRequestV1
+This structure maps onto the consolidation request from [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251).
+The fields are encoded as follows:
+
+- `sourceAddress`: `DATA`, 20 Bytes
+- `sourcePubkey`: `DATA`, 48 Bytes
+- `targetPubkey`: `DATA`, 48 Bytes
+
 ### ExecutionPayloadV4
 
 This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositRequests` and `withdrawalRequests`.
@@ -82,6 +91,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `excessBlobGas`: `QUANTITY`, 64 Bits
 - `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
 - `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
+- `consolidationRequests`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
 
 ### ExecutionPayloadBodyV2
 
@@ -91,6 +101,7 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
 - `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
+- `consolidationRequests`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
 
 ## Methods
 

@@ -270,6 +270,13 @@
               - sourceAddress: '0x00000000000000000000000000000000000010f6'
                 validatorPublicKey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
                 amount: '0x1'
+            consolidationRequests:
+              - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+                sourcePubkey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
+                targetPubkey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
+              - sourceAddress: '0x00000000000000000000000000000000000010f6'
+                sourcePubkey: '0x96a96086cff07df17668f35f7418ef8798079167e3f4f9b72ecde17b28226137cf454ab1dd20ef5d924786ab3483c2f9'
+                targetPubkey: '0xa5c85a60ba2905c215f6a12872e62b1ee037051364244043a5f639aa81b04a204c55e7cc851f29c7c183be253ea1510b'
         - name: Expected blob versioned hashes
           value:
             - '0x000657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014'
@@ -677,6 +684,10 @@
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
                 validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
                 amount: '0x0'
+            consolidationRequests:
+              - sourceAddress: '0x00000000000000000000000000000000000010f6'
+                sourcePubkey: '0x96a96086cff07df17668f35f7418ef8798079167e3f4f9b72ecde17b28226137cf454ab1dd20ef5d924786ab3483c2f9'
+                targetPubkey: '0xa5c85a60ba2905c215f6a12872e62b1ee037051364244043a5f639aa81b04a204c55e7cc851f29c7c183be253ea1510b'
           - transactions:
               - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
               - '0x02f86c0711843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a071d36bc93c7ae8cc5c01501e51e5e97a51aa541d1a89c809a2af7eb40e9bc2cba071644230e21c075c1da08916aff5efe9f95a6f6a4f94dc217f6c1bb4a3240b29'
@@ -699,6 +710,10 @@
               - sourceAddress: '0x00000000000000000000000000000000000010f6'
                 validatorPublicKey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
                 amount: '0x1'
+            consolidationRequests:
+              - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+                sourcePubkey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
+                targetPubkey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
 - name: engine_getPayloadBodiesByRangeV1
   summary: Given a range of block numbers returns bodies of the corresponding execution payloads
   externalDocs:
@@ -775,7 +790,7 @@
     schema:
       type: array
       items:
-        $ref: '#/components/schemas/ExecutionPayloadBodyV1'
+        $ref: '#/components/schemas/ExecutionPayloadBodyV2'
   errors:
     - code: -38004
       message: Too large request
@@ -811,6 +826,10 @@
               - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
                 validatorPublicKey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
                 amount: '0x0'
+            consolidationRequests:
+              - sourceAddress: '0x00000000000000000000000000000000000010f6'
+                sourcePubkey: '0x96a96086cff07df17668f35f7418ef8798079167e3f4f9b72ecde17b28226137cf454ab1dd20ef5d924786ab3483c2f9'
+                targetPubkey: '0xa5c85a60ba2905c215f6a12872e62b1ee037051364244043a5f639aa81b04a204c55e7cc851f29c7c183be253ea1510b'
           - transactions:
               - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
               - '0x02f86c0711843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a071d36bc93c7ae8cc5c01501e51e5e97a51aa541d1a89c809a2af7eb40e9bc2cba071644230e21c075c1da08916aff5efe9f95a6f6a4f94dc217f6c1bb4a3240b29'
@@ -833,3 +852,7 @@
               - sourceAddress: '0x00000000000000000000000000000000000010f6'
                 validatorPublicKey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
                 amount: '0x1'
+            consolidationRequests:
+              - sourceAddress: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+                sourcePubkey: '0x85103a5617937691dfeeb89b86a80d5dc9e3c9d3a1a0e7ce311e26e0bb732eabaa47ffa288f0d54de28209a62a7d29d0'
+                targetPubkey: '0x98daeed734da114470da559bd4b4c7259e1f7952555241dcbc90cf194a2ef676fc6005f3672fada2a3645edb297a7553'
