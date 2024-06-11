@@ -64,6 +64,9 @@ AccessListEntry:
   title: Access list entry
   type: object
   additionalProperties: false
+  required: 
+    - address
+    - storageKeys
   properties:
     address:
       $ref: '#/components/schemas/address'
