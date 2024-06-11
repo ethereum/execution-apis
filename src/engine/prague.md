@@ -54,7 +54,7 @@ This structure maps onto the withdrawal request from [EIP-7002](https://eips.eth
 The fields are encoded as follows:
 
 - `sourceAddress`: `DATA`, 20 Bytes
-- `validatorPublicKey`: `DATA`, 48 Bytes
+- `validatorPubkey`: `DATA`, 48 Bytes
 - `amount`: `QUANTITY`, 64 Bits
 
 *Note:* The `amount` value is represented in Gwei.
