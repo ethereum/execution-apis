@@ -266,6 +266,7 @@ ExecutionPayloadV4:
     - excessBlobGas
     - depositRequests
     - withdrawalRequests
+    - consolidationRequests
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV3/properties/parentHash'
@@ -311,6 +312,11 @@ ExecutionPayloadV4:
       type: array
       items:
         $ref: '#/components/schemas/WithdrawalRequestV1'
+    consolidationRequests:
+      title: Consolidation requests
+      type: array
+      items:
+        $ref: '#/components/schemas/ConsolidationRequestV1'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object
@@ -358,6 +364,12 @@ ExecutionPayloadBodyV2:
         - 'null'
       items:
         $ref: '#/components/schemas/WithdrawalRequestV1'
+    consolidationRequests:
+      title: Consolidation requests
+        - array
+        - 'null'
+      items:
+        $ref: '#/components/schemas/ConsolidationRequestV1'
 BlobsBundleV1:
   title: Blobs bundle object V1
   type: object
@@ -423,3 +435,20 @@ WithdrawalRequestV1:
     amount:
       title: Withdraw amount
       $ref: '#/components/schemas/uint64'
+ConsolidationRequestV1:
+  title: Consolidation request object V1
+  type: object
+  required:
+    - sourceAddress
+    - sourcePubkey
+    - targetPubkey
+  properties:
+    sourceAddress:
+      title: Source address
+      $ref: '#/components/schemas/address'
+    sourcePubkey:
+      title: Source validator public key
+      $ref: '#/components/schemas/bytes48'
+    targetPubkey:
+      title: Target validator public key
+      $ref: '#/components/schemas/bytes48'
