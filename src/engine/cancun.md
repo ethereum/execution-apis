@@ -15,6 +15,7 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
   - [PayloadAttributesV3](#payloadattributesv3)
   - [StatelessWitnessV1](#statelesswitnessv1)
   - [StatelessPayloadStatusV1](#statelesspayloadstatusv1)
+  - [PayloadStatusWithWitnessV1](#payloadstatuswithwitnessv1)
 - [Methods](#methods)
   - [engine_newPayloadV3](#engine_newpayloadv3)
     - [Request](#request)
@@ -28,10 +29,14 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
-  - [engine_executeStatelessPayloadV3](#engine_executestatelesspayloadv3)
+  - [engine_newPayloadWithWitnessV3](#engine_newpayloadwithwitnessv3)
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
+  - [engine_executeStatelessPayloadV3](#engine_executestatelesspayloadv3)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
   - [Deprecate `engine_exchangeTransitionConfigurationV1`](#deprecate-engine_exchangetransitionconfigurationv1)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
 
@@ -97,6 +102,12 @@ This structure contains the result of processing a payload. The fields are encod
 - `stateRoot`: `DATA|null`, 32 Bytes - the state root of the most recent *valid* block in the branch defined by payload and its ancestors
 - `receiptsRoot`: `DATA|null`, 32 Bytes - the receipts root of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
+
+### PayloadStatusWithWitnessV1
+
+This structure has the syntax of [`PayloadStatusV1`](./paris.md#payloadstatusv1) and appends a single field: `witness`.
+
+- `witness`: `StatelessWitnessV1` - `OBJECT` containing the fields of a `StatelessWitnessV1` structure.
 
 ## Methods
 
@@ -193,6 +204,25 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 4. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
 
 5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
+
+### engine_newPayloadWithWitnessV3
+
+#### Request
+
+* method: `engine_newPayloadWithWitnessV3`
+
+Refer to the params for [`engine_newPayloadV3`](#engine_newpayloadv3).
+
+#### Response
+
+* result: [`PayloadStatusWithWitnessV1`](#PayloadStatusWithWitnessV1)
+* error: code and message set in case an exception happens while processing the payload.
+
+#### Specification
+
+This method follows the same specification as [`engine_newPayloadV3`](#engine_newpayloadv3) with the addition of the following:
+
+1. Client software **MUST** trigger stateless witness creation during payload execution
 
 ### engine_executeStatelessPayloadV3
 
