@@ -64,6 +64,13 @@ The fields are encoded as follows:
 
 All of the above three arrays **MUST** be of same length.
 
+### BlobAndProofV1
+
+The fields are encoded as follows:
+
+- `blob`: `DATA` - `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844).
+- `proof`: `DATA` - `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes (`DATA`).
+
 ### PayloadAttributesV3
 
 This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadattributesv2) and appends a single field: `parentBeaconBlockRoot`.
@@ -169,6 +176,36 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 4. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
 
 5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
+
+### engine_getBlobsV1
+
+Consensus layer clients MAY use this method to fetch blobs from the execution layer blob pool.
+
+This is a new optional method introduced after Cancun. It is defined here because it is backwards-compatible with Cancun.
+
+#### Request
+
+* method: `engine_getBlobsV1`
+* params:
+  1. `Array of DATA`, 32 Bytes - Array of blob versioned hashes.
+* timeout: 1s
+
+#### Response
+
+* result: `Array of BlobAndProofV1` - Array of [`BlobAndProofV1`](#BlobAndProofV1) which may be `null`.
+* error: code and message set in case an error occurs during processing of the request.
+
+#### Specification
+
+1. Given an array of blob versioned hashes client software **MUST** respond with an array of `BlobAndProofV1` objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
+
+1. Client software **MUST** place responses in the order given in the request, using `null` for any missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[A, null, C]`.
+
+1. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
+
+1. Client software **MAY** return an array of all `null` entries if syncing or otherwise unable to serve blob pool data.
+
+1. Callers must consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
 
 ### Deprecate `engine_exchangeTransitionConfigurationV1`
 
