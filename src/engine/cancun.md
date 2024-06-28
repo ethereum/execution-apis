@@ -13,7 +13,6 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
   - [ExecutionPayloadV3](#executionpayloadv3)
   - [BlobsBundleV1](#blobsbundlev1)
   - [PayloadAttributesV3](#payloadattributesv3)
-  - [StatelessWitnessV1](#statelesswitnessv1)
   - [StatelessPayloadStatusV1](#statelesspayloadstatusv1)
   - [PayloadStatusWithWitnessV1](#payloadstatuswithwitnessv1)
 - [Methods](#methods)
@@ -86,14 +85,6 @@ This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadat
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 
-### StatelessWitnessV1
-
-The fields are encoded as follows:
-
-- `headers`: `Array of DATA` - Array of header objects, each object is a byte list (`DATA`) representing an RLP encoded header.
-- `codes`: `Array of DATA` - Array of TODO `["0xcode1", "0xcode2", ...]`
-- `state`: `Array of DATA` - Array of TODO `["0xnode1", "0xnode2", ...]`
-
 ### StatelessPayloadStatusV1
 
 This structure contains the result of processing a payload. The fields are encoded as follows:
@@ -107,7 +98,7 @@ This structure contains the result of processing a payload. The fields are encod
 
 This structure has the syntax of [`PayloadStatusV1`](./paris.md#payloadstatusv1) and appends a single field: `witness`.
 
-- `witness`: `StatelessWitnessV1` - `OBJECT` containing the fields of a `StatelessWitnessV1` structure.
+- `witness`: `DATA` - Opaque blob containing witness data RLP encoded.
 
 ## Methods
 
@@ -233,7 +224,7 @@ This method follows the same specification as [`engine_newPayloadV3`](#engine_ne
   1. `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `statelessWitness`: [`StatelessWitnessV1`](#StatelessWitnessV1).
+  4. `statelessWitness`: `DATA`, - Opaque blob containing witness data RLP encoded.
 
 #### Response
 
