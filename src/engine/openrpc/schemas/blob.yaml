@@ -7,7 +7,7 @@ BlobAndProofV1:
   properties:
     blob: 
       title: Blob
-      $ref: '#/components/schema/bytes'
+      $ref: '#/components/schemas/bytes'
     proof:
       title: proof
       $ref: '#/components/schemas/bytes48'
