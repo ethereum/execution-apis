@@ -13,6 +13,8 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
   - [ExecutionPayloadV3](#executionpayloadv3)
   - [BlobsBundleV1](#blobsbundlev1)
   - [PayloadAttributesV3](#payloadattributesv3)
+  - [StatelessPayloadStatusV1](#statelesspayloadstatusv1)
+  - [PayloadStatusWithWitnessV1](#payloadstatuswithwitnessv1)
 - [Methods](#methods)
   - [engine_newPayloadV3](#engine_newpayloadv3)
     - [Request](#request)
@@ -26,7 +28,16 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_newPayloadWithWitnessV3](#engine_newpayloadwithwitnessv3)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
+  - [engine_executeStatelessPayloadV3](#engine_executestatelesspayloadv3)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
   - [Deprecate `engine_exchangeTransitionConfigurationV1`](#deprecate-engine_exchangetransitionconfigurationv1)
+  - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -73,6 +84,21 @@ This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadat
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+
+### StatelessPayloadStatusV1
+
+This structure contains the result of processing a payload. The fields are encoded as follows:
+
+- `status`: `enum` - `"VALID" | "INVALID"`
+- `stateRoot`: `DATA|null`, 32 Bytes - the state root of the most recent *valid* block in the branch defined by payload and its ancestors
+- `receiptsRoot`: `DATA|null`, 32 Bytes - the receipts root of the most recent *valid* block in the branch defined by payload and its ancestors
+- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID` or `INVALID_BLOCK_HASH`.
+
+### PayloadStatusWithWitnessV1
+
+This structure has the syntax of [`PayloadStatusV1`](./paris.md#payloadstatusv1) and appends a single field: `witness`.
+
+- `witness`: `DATA` - Opaque blob containing witness data RLP encoded.
 
 ## Methods
 
@@ -169,6 +195,54 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 4. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
 
 5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
+
+### engine_newPayloadWithWitnessV3
+
+#### Request
+
+* method: `engine_newPayloadWithWitnessV3`
+
+Refer to the params for [`engine_newPayloadV3`](#engine_newpayloadv3).
+
+#### Response
+
+* result: [`PayloadStatusWithWitnessV1`](#PayloadStatusWithWitnessV1)
+* error: code and message set in case an exception happens while processing the payload.
+
+#### Specification
+
+This method follows the same specification as [`engine_newPayloadV3`](#engine_newpayloadv3) with the addition of the following:
+
+1. Client software **MUST** trigger stateless witness creation during payload execution
+
+### engine_executeStatelessPayloadV3
+
+#### Request
+
+* method: `engine_executeStatelessPayloadV3`
+* params:
+  1. `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3).
+  2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
+  3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+  4. `statelessWitness`: `DATA`, - Opaque blob containing witness data RLP encoded.
+
+#### Response
+
+* result: [`StatelessPayloadStatusV1`](#StatelessPayloadStatusV1), values of the `status` field are restricted in the following way:
+  - `INVALID_BLOCK_HASH` status value is supplanted by `INVALID`.
+* error: code and message set in case an exception happens while processing the payload.
+
+#### Specification
+
+1. Client software **MUST** execute the payload using the provided witness and return the resulting state and receipt roots. Client software **MUST NOT** do any local chain checks.
+
+2. Client software **MUST** respond to this method call in the following way:
+  * `{status: VALID, validationError: null}` if the payload executes successfully
+  * `{status: INVALID, validationError: errorMessage | null}` if the payload can't be executed
+
+3. Given the expected array of blob versioned hashes client software **MUST** run its validation by taking the following steps:
+    1. Obtain the actual array by concatenating blob versioned hashes lists (`tx.blob_versioned_hashes`) of each [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#new-transaction-type) included in the payload, respecting the order of inclusion. If the payload has no blob transactions the expected array **MUST** be `[]`.
+    2. Return `{status: INVALID, validationError: errorMessage | null}` if the expected and the actual arrays don't match.
 
 ### Deprecate `engine_exchangeTransitionConfigurationV1`
 

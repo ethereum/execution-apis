@@ -64,3 +64,5 @@ https
 forkchoiceupdatedresponsev
 exitv
 depositreceiptv
+payloadstatuswithwitnessv
+newpayloadwithwitnessv
