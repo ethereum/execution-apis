@@ -16,6 +16,9 @@
       type: array
       items:
         $ref: '#/components/schemas/BlobAndProofV1'
+  errors:
+    - code: -38004
+      message: Too large request
   examples:
     - name: engine_getBlobsV1 example
       params:
