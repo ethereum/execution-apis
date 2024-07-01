@@ -170,6 +170,25 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 
 5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
 
+### engine_getBlobsV1
+
+#### Request
+
+* method: `engine_getBlobsV1`
+* params:
+  1. `versionedHashes`: `Array of DATA` - Array of blob transaction versioned hash as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-2718)
+
+#### Response
+
+* result: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to `versionHashes`.
+* error: code and message set in case an exception happens while getting the blob transactions.
+
+#### Specification
+
+1. For each item in `versionedHashes` client software **MUST** return the `blob`, `commitment`, and `proof` and bundle them as [`BlobsBundleV1`](#BlobsBundleV1).
+
+2. The call **MUST** return `-38001: Unknown versionedHash` error if the client does not know any of the items in `versionedHashes`.
+
 ### Deprecate `engine_exchangeTransitionConfigurationV1`
 
 This document introduces deprecation of [`engine_exchangeTransitionConfigurationV1`](./paris.md#engine_exchangetransitionconfigurationv1). The deprecation is specified as follows:
