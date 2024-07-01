@@ -179,9 +179,9 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 
 ### engine_getBlobsV1
 
-Consensus layer clients MAY use this method to fetch blobs from the execution layer blob pool.
+Consensus layer clients **MAY** use this method to fetch blobs from the execution layer blob pool.
 
-This is a new optional method introduced after Cancun. It is defined here because it is backwards-compatible with Cancun.
+*Note*: This is a new optional method introduced after Cancun. It is defined here because it is backwards-compatible with Cancun.
 
 #### Request
 
@@ -192,7 +192,7 @@ This is a new optional method introduced after Cancun. It is defined here becaus
 
 #### Response
 
-* result: `Array of BlobAndProofV1` - Array of [`BlobAndProofV1`](#BlobAndProofV1) which may be `null`.
+* result: `Array of BlobAndProofV1` - Array of [`BlobAndProofV1`](#BlobAndProofV1), items of which may be `null`.
 * error: code and message set in case an error occurs during processing of the request.
 
 #### Specification
@@ -205,7 +205,7 @@ This is a new optional method introduced after Cancun. It is defined here becaus
 
 1. Client software **MAY** return an array of all `null` entries if syncing or otherwise unable to serve blob pool data.
 
-1. Callers must consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
+1. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
 
 ### Deprecate `engine_exchangeTransitionConfigurationV1`
 
