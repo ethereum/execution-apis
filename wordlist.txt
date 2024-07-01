@@ -6,6 +6,7 @@ bodiesbyhashv
 bytecode
 clientversionv
 configurationv
+getBlobsV
 crypto
 eip
 endian
