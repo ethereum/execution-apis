@@ -13,6 +13,16 @@
     name: Balance
     schema:
       $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_getBalance example
+      params:
+        - name: Address
+          value: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+        - name: Block
+          value: 'latest'
+      result:
+        name: Balance
+        value: '0x1cfe56f3795885980000'
 - name: eth_getStorageAt
   summary: Returns the value from a storage position at a given address.
   params:
@@ -32,6 +42,18 @@
     name: Value
     schema:
       $ref: '#/components/schemas/bytes'
+  examples:
+    - name: eth_getStorageAt example
+      params:
+        - name: Address
+          value: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+        - name: Storage slot
+          value: '0x0'
+        - name: Block
+          value: 'latest'
+      result:
+        name: Value
+        value: '0x0000000000000000000000000000000000000000000000000000000000000000'
 - name: eth_getTransactionCount
   summary: Returns the number of transactions sent from an address.
   params:
@@ -47,6 +69,16 @@
     name: Transaction count
     schema:
       $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_getTransactionCount example
+      params:
+        - name: Address
+          value: '0xc94770007dda54cF92009BFF0dE90c06F603a09f'
+        - name: Block
+          value: 'latest'
+      result:
+        name: Transaction count
+        value: '0x1'
 - name: eth_getCode
   summary: Returns code at a given address.
   params:
@@ -62,6 +94,16 @@
     name: Bytecode
     schema:
       $ref: '#/components/schemas/bytes'
+  examples:
+    - name: eth_getCode example
+      params:
+        - name: Address
+          value: '0xa50a51c09a5c451c52bb714527e1974b686d8e77'
+        - name: Block
+          value: 'latest'
+      result:
+        name: Bytecode
+        value: '0x60806040526004361060485763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416633fa4f2458114604d57806355241077146071575b600080fd5b348015605857600080fd5b50605f6088565b60408051918252519081900360200190f35b348015607c57600080fd5b506086600435608e565b005b60005481565b60008190556040805182815290517f199cd93e851e4c78c437891155e2112093f8f15394aa89dab09e38d6ca0727879181900360200190a1505600a165627a7a723058209d8929142720a69bde2ab3bfa2da6217674b984899b62753979743c0470a2ea70029'
 - name: eth_getProof
   summary: Returns the merkle proof for a given account and optionally some storage keys.
   params:
@@ -84,3 +126,33 @@
     name: Account
     schema:
       $ref: '#/components/schemas/AccountProof'
+  examples:
+    - name: eth_getProof example
+      params:
+        - name: Address
+          value: '0xe5cB067E90D5Cd1F8052B83562Ae670bA4A211a8'
+        - name: StorageKeys
+          value:
+            - '0x56e81f'
+            - '0x283s34'
+        - name: Block
+          value: 'latest'
+      result:
+        name: Account
+        value:
+          accountProof:
+            - '0xf90211a...0701bc80'
+            - '0xf90211a...0d832380'
+            - '0xf90211a...5fb20c80'
+            - '0xf90211a...0675b80'
+            - '0xf90151a0...ca08080'
+          balance: '0x0'
+          codeHash: '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'
+          nonce: '0x0'
+          storageHash: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+          storageProof:
+            - key: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+              proof:
+                - '0xf90211a...0701bc80'
+                - '0xf90211a...0d832380'
+              value: '0x1'
