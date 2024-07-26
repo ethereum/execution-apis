@@ -10,9 +10,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Structures](#structures)
-  - [DepositRequestV1](#depositrequestv1)
-  - [WithdrawalRequestV1](#withdrawalrequestv1)
-  - [ConsolidationRequestV1](#consolidationrequestv1)
+  - [RequestV1](#requestv1)
   - [ExecutionPayloadV4](#executionpayloadv4)
   - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
 - [Methods](#methods)
@@ -38,39 +36,28 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 
 ## Structures
 
-### DepositRequestV1
-This structure maps onto the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110).
+### RequestV1
+
+This structure maps onto the amalgamation of the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110), withdrawal request from [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002), and the consolidation request from [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251).
+
 The fields are encoded as follows:
 
+- `type`: `QUANTITY`, 64 bits - [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685) type byte to identify the request
 - `pubkey`: `DATA`, 48 Bytes
 - `withdrawalCredentials`: `DATA`, 32 Bytes
 - `amount`: `QUANTITY`, 64 Bits
 - `signature`: `DATA`, 96 Bytes
 - `index`: `QUANTITY`, 64 Bits
-
-*Note:* The `amount` value is represented in Gwei.
-
-### WithdrawalRequestV1
-This structure maps onto the withdrawal request from [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002).
-The fields are encoded as follows:
-
 - `sourceAddress`: `DATA`, 20 Bytes
 - `validatorPubkey`: `DATA`, 48 Bytes
-- `amount`: `QUANTITY`, 64 Bits
-
-*Note:* The `amount` value is represented in Gwei.
-
-### ConsolidationRequestV1
-This structure maps onto the consolidation request from [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251).
-The fields are encoded as follows:
-
-- `sourceAddress`: `DATA`, 20 Bytes
 - `sourcePubkey`: `DATA`, 48 Bytes
 - `targetPubkey`: `DATA`, 48 Bytes
 
+*Note:* The `amount` value is represented in Gwei.
+
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositRequests` and `withdrawalRequests`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field `requests`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -89,19 +76,15 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
-- `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
-- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
-- `consolidationRequests`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
+- `requests`: `Array of RequestV1` - Array of request objects
 
 ### ExecutionPayloadBodyV2
 
-This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadv1) and appends the new fields: `depositRequests` and `withdrawalRequests`.
+This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadv1) and appends the new field `requests`.
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
-- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
-- `consolidationRequests`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
+- `requests`: `Array of RequestV1` - Array of requests, each object is an `OBJECT` containing the fields of a `RequestV1` structure.
 
 ## Methods
 
@@ -173,7 +156,7 @@ The response of this method is updated with [`ExecutionPayloadBodyV2`](#executio
 
 This method follows the same specification as [`engine_getPayloadBodiesByHashV1`](./shanghai.md#engine_getpayloadbodiesbyhashv1) with the addition of the following:
 
-1. Client software **MUST** set `depositRequests` and `withdrawalRequests` fields to `null` for bodies of pre-Prague blocks.
+1. Client software **MUST** set `requests` field to `null` for bodies of pre-Prague blocks.
 
 ### engine_getPayloadBodiesByRangeV2
 
@@ -196,7 +179,7 @@ The response of this method is updated with [`ExecutionPayloadBodyV2`](#executio
 
 This method follows the same specification as [`engine_getPayloadBodiesByRangeV2`](./shanghai.md#engine_getpayloadbodiesbyrangev1) with the addition of the following:
 
-1. Client software **MUST** set `depositRequests` and `withdrawalRequests` fields to `null` for bodies of pre-Prague blocks.
+1. Client software **MUST** set `requests` field to `null` for bodies of pre-Prague blocks.
 
 ### Update the methods of previous forks
 
