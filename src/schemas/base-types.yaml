@@ -43,6 +43,10 @@ bytes65:
   title: 65 hex encoded bytes
   type: string
   pattern: ^0x[0-9a-f]{130}$
+methodName:
+  title: Name of a ETH JSON-RPC method
+  type: string
+  pattern: ^(eth_|debug_|engine_).*$
 ratio:
   title: normalized ratio
   type: number
