@@ -24,3 +24,18 @@
     name: Encoded transaction
     schema:
       $ref: '#/components/schemas/bytes'
+- name: eth_signIntendedValidatorData
+  summary: Returns an EIP-191 signature according to version 0x00 with the validator address and the provided data.
+  params:
+    - name: SigningAddress
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: ValidatorAddress
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Message
+      required: true
+      schema:
+        $ref: '#/components/schemas/bytes'
