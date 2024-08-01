@@ -13,12 +13,13 @@
       params:
         - name: Filter
           value:
-            fromBlock: 'earliest'
-            toBlock: 'latest'
+            fromBlock: '0x137d3c2'
+            toBlock: '0x137d3c3'
+            address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
             topics: []
       result:
         name: Filter identifier
-        value: '0x1ddf0c00989044e9b41cc0ae40272df3'
+        value: '0x01'
 - name: eth_newBlockFilter
   summary: Creates a filter in the node, to notify when a new block arrives.
   params: []
@@ -31,7 +32,7 @@
       params: []
       result:
         name: Filter identifier
-        value: '0x9d78b6780f844228b96ecc65a320a825'
+        value: '0x01'
 - name: eth_newPendingTransactionFilter
   summary: Creates a filter in the node, to notify when new pending transactions arrive.
   params: []
@@ -44,7 +45,7 @@
       params: []
       result:
         name: Filter identifier
-        value: '0x443d6a77c4964707a8554c92f7e4debd'
+        value: '0x01'
 - name: eth_uninstallFilter
   summary: Uninstalls a filter with given id.
   params:
@@ -59,7 +60,7 @@
     - name: eth_uninstallFilter example
       params:
         - name: Filter identifier
-          value: '0x70355a0b574b437eaa19fe95adfedc0a'
+          value: '0x01'
       result:
         name: Success
         value: true
@@ -77,7 +78,7 @@
     - name: eth_getFilterChanges example
       params:
         - name: Filter identifier
-          value: '0xf8bf5598d9e04fbe84523d42640b9b0e'
+          value: '0x01'
       result:
         name: Log objects
         value:
@@ -115,7 +116,7 @@
     - name: eth_getFilterLogs example
       params:
         - name: Filter identifier
-          value: '0x5ace5de3985749b6a1b2b0d3f3e1fb69'
+          value: '0x01'
       result:
         name: Log objects
         value:
@@ -154,9 +155,9 @@
       params:
         - name: Filter
           value:
-            fromBlock: 'earliest'
-            toBlock: 'latest'
-            address: '0x2e1f232a9439c3d459fceca0beef13acc8259dd8'
+            fromBlock: '0x137d3c2'
+            toBlock: '0x137d3c3'
+            address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
             topics: []
       result:
         name: Log objects
