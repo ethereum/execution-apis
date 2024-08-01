@@ -159,10 +159,10 @@
     - name: eth_getUncleCountByBlockHash example
       params:
         - name: Block hash
-          value: '0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238'
+          value: '0xb3b20624f8f0f86eb50dd04688409e5cea4bd02d700bf6e79e9384d47d6a5a35'
       result:
         name: Uncle count
-        value: '0x0'
+        value: '0x1'
 - name: eth_getUncleCountByBlockNumber
   summary: Returns the number of transactions in a block matching the given block number.
   params:
