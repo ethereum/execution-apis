@@ -6,6 +6,12 @@
     schema:
       title: Gas price
       $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_gasPrice example
+      params: []
+      result:
+        name: Gas price
+        value: '0x3e8'
 - name: eth_blobBaseFee
   summary: Returns the base fee per blob gas in wei.
   params: []
@@ -14,6 +20,12 @@
     schema:
       title: Blob gas base fee
       $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_blobBaseFee example
+      params: []
+      result:
+        name: Blob gas base fee
+        value: '0x3f5694c1f'
 - name: eth_maxPriorityFeePerGas
   summary: Returns the current maxPriorityFeePerGas per gas in wei.
   params: []
@@ -22,6 +34,12 @@
     schema:
       title: Max priority fee per gas
       $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_maxPriorityFeePerGas example
+      params: []
+      result:
+        name: Max priority fee per gas
+        value: '0x773c23ba'
 - name: eth_feeHistory
   summary: Transaction fee history
   description: Returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range.
@@ -47,7 +65,7 @@
           description: Floating point value between 0 and 100.
           type: number
   result:
-    name: feeHistoryResult
+    name: Fee history result
     description: Fee history for the returned block range. This can be a subsection of the requested range if not all blocks are available.
     schema:
       title: feeHistoryResults
@@ -99,3 +117,60 @@
               title: rewardPercentile
               description: A given percentile sample of effective priority fees per gas from a single block in ascending order, weighted by gas used. Zeroes are returned if the block is empty.
               $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_feeHistory example
+      params:
+        - name: blockCount
+          value: '0x5'
+        - name: newestblock
+          value: 'latest'
+        - name: rewardPercentiles
+          value:
+            - 20
+            - 30
+      result:
+        name: Fee history result
+        value:
+          oldestblock: '0x10b52f'
+          baseFeePerGas:
+            - '0x3fa63a3f'
+            - '0x37f999ee'
+            - '0x3e36f20a'
+            - '0x4099f79a'
+            - '0x430d532d'
+            - '0x46fcd4a4'
+          baseFeePerBlobGas:
+            - '0x7b7609c19'
+            - '0x6dbe41789'
+            - '0x7223341d4'
+            - '0x6574a002c'
+            - '0x7223341d4'
+            - '0x6574a002c'
+          gasUsedRatio:
+            - 0.017712333333333333
+            - 0.9458865666666667
+            - 0.6534561
+            - 0.6517375666666667
+            - 0.7347769666666667
+          blobGasUsedRatio:
+            - 0.0
+            - 0.6666666666666666
+            - 0.0
+            - 1.0
+            - 0.0
+          reward:
+            -
+              - '0x3b9aca00'
+              - '0x59682f00'
+            -
+              - '0x3a13012'
+              - '0x3a13012'
+            -
+              - '0x3a13012'
+              - '0x3a13012'
+            -
+              - '0xf4240'
+              - '0xf4240'
+            -
+              - '0xf4240'
+              - '0xf4240'
