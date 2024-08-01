@@ -65,7 +65,7 @@
         name: Success
         value: true
 - name: eth_getFilterChanges
-  summary: Polling method for a filter, which returns an array of logs which occurred since last poll.
+  summary: Polling method for the filter with the given ID (created using `eth_newFilter`). Returns an array of logs which occurred since last poll.
   params:
     - name: Filter identifier
       schema:
@@ -103,7 +103,7 @@
             topics:
               - '0x04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3'
 - name: eth_getFilterLogs
-  summary: Returns an array of all logs matching filter with given id.
+  summary: Returns an array of all logs matching the filter with the given ID (created using `eth_newFilter`).
   params:
     - name: Filter identifier
       schema:
