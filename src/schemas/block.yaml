@@ -70,9 +70,6 @@ Block:
     nonce:
       title: Nonce
       $ref: '#/components/schemas/bytes8'
-    totalDifficulty:
-      title: Total difficulty
-      $ref: '#/components/schemas/uint'
     baseFeePerGas:
       title: Base fee per gas
       $ref: '#/components/schemas/uint'
