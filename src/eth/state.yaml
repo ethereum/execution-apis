@@ -33,7 +33,7 @@
     schema:
       $ref: '#/components/schemas/bytes'
 - name: eth_getTransactionCount
-  summary: Returns the number of transactions sent from an address.
+  summary: Returns the nonce of an address.  NOTE: The name eth_getTransactionCount reflects the historical fact that before EIP-7702 was introduced in Pectra an account's nonce and sent transaction count were the same.
   params:
     - name: Address
       required: true
@@ -44,7 +44,7 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
-    name: Transaction count
+    name: Account nonce
     schema:
       $ref: '#/components/schemas/uint'
 - name: eth_getCode
