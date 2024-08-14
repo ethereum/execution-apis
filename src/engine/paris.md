@@ -161,7 +161,7 @@ The payload build process is specified as follows:
 
 #### Specification
 
-1. Client software **MUST** validate that all `transactions` have non-zero length (at least 1 byte). Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process.
+1. Client software **MUST** validate that all `transactions` have non-zero length (at least 1 byte). Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process. Client software **MAY** employ stricter checks and validate that all `transactions` are fully valid.
 
 2. Client software **MUST** validate `blockHash` value as being equivalent to `Keccak256(RLP(ExecutionBlockHeader))`, where `ExecutionBlockHeader` is the execution layer block header (the former PoW block header structure). Fields of this object are set to the corresponding payload values and constant values according to the Block structure section of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#block-structure), extended with the corresponding section of [EIP-4399](https://eips.ethereum.org/EIPS/eip-4399#block-structure). Client software **MUST** run this validation in all cases even if this branch or any other branches of the block tree are in an active sync process.
 
@@ -172,7 +172,7 @@ The payload build process is specified as follows:
 5. Client software **MAY NOT** validate the payload if the payload doesn't belong to the canonical chain.
 
 6. Client software **MUST** respond to this method call in the following way:
-  * `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if `transactions` contains zero length entries
+  * `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if `transactions` contains zero length or invalid entries
   * `{status: INVALID_BLOCK_HASH, latestValidHash: null, validationError: errorMessage | null}` if the `blockHash` validation has failed
   * `{status: INVALID, latestValidHash: 0x0000000000000000000000000000000000000000000000000000000000000000, validationError: errorMessage | null}` if terminal block conditions are not satisfied
   * `{status: SYNCING, latestValidHash: null, validationError: null}` if requisite data for the payload's acceptance or validation is missing
