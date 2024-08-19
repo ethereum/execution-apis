@@ -27,8 +27,6 @@
           startingBlock: '0x0'
           currentBlock: '0x1518'
           highestBlock: '0x9567a3'
-          pulledStates: '0x203ca'
-          knownStates: '0x200636'
 - name: eth_coinbase
   summary: Returns the client coinbase address.
   params: []

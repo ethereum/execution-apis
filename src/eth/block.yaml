@@ -49,6 +49,15 @@
             - '0xa0807e117a8dd124ab949f460f08c36c72b710188f01609595223b325e58e0fc'
             - '0xeae6d797af50cb62a596ec3939114d63967c374fa57de9bc0f4e2b576ed6639d'
           baseFeePerGas: '0x7'
+          withdrawalsRoot: '0x7a4ecf19774d15cf9c15adf0dd8e8a250c128b26c9e2ab2a08d6c9c8ffbd104f'
+          withdrawals:
+            - index: '0x0'
+              validatorIndex: '0x9d8c0'
+              address: '0xb9d7934878b5fb9610b3fe8a5e441e8fad7e293f'
+              amount: '0x11a33e3760'
+          blobGasUsed: '0x0'
+          excessBlobGas: '0x0'
+          parentBeaconBlockRoot: '0x95c4dbd5b19f6fe3cbc3183be85ff4e85ebe75c5b4fc911f1c91e5b7a554a685'
 - name: eth_getBlockByNumber
   summary: Returns information about a block by number.
   params:
@@ -100,6 +109,15 @@
             - '0xa0807e117a8dd124ab949f460f08c36c72b710188f01609595223b325e58e0fc'
             - '0xeae6d797af50cb62a596ec3939114d63967c374fa57de9bc0f4e2b576ed6639d'
           baseFeePerGas: '0x7'
+          withdrawalsRoot: '0x7a4ecf19774d15cf9c15adf0dd8e8a250c128b26c9e2ab2a08d6c9c8ffbd104f'
+          withdrawals:
+            - index: '0x0'
+              validatorIndex: '0x9d8c0'
+              address: '0xb9d7934878b5fb9610b3fe8a5e441e8fad7e293f'
+              amount: '0x11a33e3760'
+          blobGasUsed: '0x0'
+          excessBlobGas: '0x0'
+          parentBeaconBlockRoot: '0x95c4dbd5b19f6fe3cbc3183be85ff4e85ebe75c5b4fc911f1c91e5b7a554a685'
 - name: eth_getBlockTransactionCountByHash
   summary: Returns the number of transactions in a block from a block matching the given block hash.
   params:
@@ -214,7 +232,9 @@
             cumulativeGasUsed: '0x18c36'
             from: '0x22896bfc68814bfd855b1a167255ee497006e730'
             gasUsed: '0x18c36'
+            blobGasUsed: '0x20000'
             effectiveGasPrice: '0x9502f907'
+            blobGasPrice: '0x32'
             logs:
               - address: '0xfd584430cafa2f451b4e2ebcf3986a21fff04350'
                 topics:
@@ -241,7 +261,9 @@
             cumulativeGasUsed: '0x1de3e'
             from: '0x712e3a792c974b3e3dbe41229ad4290791c75a82'
             gasUsed: '0x5208'
+            blobGasUsed: '0x20000'
             effectiveGasPrice: '0x9502f907'
+            blobGasPrice: '0x32'
             logs: []
             logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
             status: '0x1'
