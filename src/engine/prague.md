@@ -15,6 +15,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
   - [ConsolidationRequestV1](#consolidationrequestv1)
   - [ExecutionPayloadV4](#executionpayloadv4)
   - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
+  - [PayloadAttributesV4](#payloadattributesv4)
 - [Methods](#methods)
   - [engine_newPayloadV4](#engine_newpayloadv4)
     - [Request](#request)
@@ -24,14 +25,18 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
-  - [engine_getPayloadBodiesByHashV2](#engine_getpayloadbodiesbyhashv2)
+  - [engine_forkchoiceUpdatedV4](#engine_forkchoiceupdatedv4)
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
-  - [engine_getPayloadBodiesByRangeV2](#engine_getpayloadbodiesbyrangev2)
+  - [engine_getPayloadBodiesByHashV2](#engine_getpayloadbodiesbyhashv2)
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
+  - [engine_getPayloadBodiesByRangeV2](#engine_getpayloadbodiesbyrangev2)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -103,6 +108,17 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 - `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
 - `consolidationRequests`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
 
+### PayloadAttributesV4
+
+This structure has the syntax of `PayloadAttributesV3` and appends a single field: `targetBlobCount`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+- `targetBlobCount`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
+
 ## Methods
 
 ### engine_newPayloadV4
@@ -116,6 +132,7 @@ The request of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayl
   1. `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+  4. `targetBlobCount`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
 
 #### Response
 
@@ -152,6 +169,24 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
 This method follows the same specification as [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3) with the following changes:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
+
+### engine_forkchoiceUpdatedV4
+
+#### Request
+
+* method: `engine_forkchoiceUpdatedV4`
+* params:
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
+* timeout: 8s
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV3`](./shanghai.md#engine_forkchoiceupdatedv3).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./shanghai.md#engine_forkchoiceupdatedv3).
 
 ### engine_getPayloadBodiesByHashV2
 
