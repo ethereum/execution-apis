@@ -10,7 +10,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Structures](#structures)
-  - [RequestV1](#requestv1)
+  - [ExecutionRequestV1](#requestv1)
   - [ExecutionPayloadV4](#executionpayloadv4)
   - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
 - [Methods](#methods)
@@ -36,7 +36,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 
 ## Structures
 
-### RequestV1
+### ExecutionRequestV1
 
 This structure maps onto the amalgamation of the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110), withdrawal request from [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002), and the consolidation request from [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251).
 
@@ -76,7 +76,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
-- `requests`: `Array of RequestV1` - Array of request objects
+- `requests`: `Array of ExecutionRequestV1` - Array of request objects
 
 ### ExecutionPayloadBodyV2
 
@@ -84,7 +84,7 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `requests`: `Array of RequestV1` - Array of requests, each object is an `OBJECT` containing the fields of a `RequestV1` structure.
+- `requests`: `Array of ExecutionRequestV1` - Array of requests, each object is an `OBJECT` containing the fields of a `ExecutionRequestV1` structure.
 
 ## Methods
 
