@@ -110,7 +110,7 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 
 ### PayloadAttributesV4
 
-This structure has the syntax of `PayloadAttributesV3` and appends a single field: `targetBlobCount`.
+This structure has the syntax of `PayloadAttributesV3` and appends the fields: `targetBlobCount`, `maximumBlobCount`.
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
@@ -118,6 +118,7 @@ This structure has the syntax of `PayloadAttributesV3` and appends a single fiel
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `targetBlobCount`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
+- `maximumBlobCount`: `QUANTITY`, 64 Bits - Maximum number of blobs allowed per payload.
 
 ## Methods
 
