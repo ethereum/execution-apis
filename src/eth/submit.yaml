@@ -24,8 +24,11 @@
         name: Transaction hash
         value: '0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331'
 - name: eth_sendRawTransaction
-  summary: Submits a raw transaction. For EIP-4844 transactions, the raw form
-    must be the network form. This means it includes the blobs, KZG
+  summary: Submits a raw transaction. You can create and sign a transaction
+    externally using a library such as [web3.js](https://web3js.readthedocs.io/)
+    or [ethers.js](https://docs.ethers.org/). For
+    [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) transactions, the raw
+    form must be the network form. This means it includes the blobs, KZG
     commitments, and KZG proofs.
   params:
     - name: Transaction
