@@ -1,3 +1,68 @@
+Transaction7702Unsigned:
+  type: object
+  title: EIP-7702 transaction.
+  required:
+    - type
+    - nonce
+    - gas
+    - value
+    - input
+    - maxFeePerGas
+    - maxPriorityFeePerGas
+    - gasPrice
+    - chainId
+    - accessList
+    - authorization list
+  properties:
+    type:
+      title: type
+      type: string
+      pattern: ^0x2$
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint'
+    to:
+      title: to address
+      oneOf:
+        - title: Contract Creation (null)
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
+    gas:
+      title: gas limit
+      $ref: '#/components/schemas/uint'
+    value:
+      title: value
+      $ref: '#/components/schemas/uint'
+    input:
+      title: input data
+      $ref: '#/components/schemas/bytes'
+    maxPriorityFeePerGas:
+      title: max priority fee per gas
+      description: Maximum fee per gas the sender is willing to pay to miners in wei
+      $ref: '#/components/schemas/uint'
+    maxFeePerGas:
+      title: max fee per gas
+      description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+      $ref: '#/components/schemas/uint'
+    gasPrice:
+      title: gas price
+      description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
+      $ref: '#/components/schemas/uint'
+    accessList:
+      title: accessList
+      description: EIP-2930 access lists
+      $ref: '#/components/schemas/AccessList'
+    chainId:
+      title: chainId
+      description: Chain ID that this transaction is valid on.
+      $ref: '#/components/schemas/uint'
+    authorization list:
+      title: authorization list
+      description: List of authorizations associated with the transaction.
+      type: array
+      items:
+        $ref: '#/components/schemas/AuthorizationList'
 Transaction4844Unsigned:
   type: object
   title: EIP-4844 transaction.
