@@ -1,17 +1,19 @@
-Transaction7702Unsigned:
+Transaction7702Signed:
   type: object
   title: EIP-7702 transaction.
   required:
     - type
     - nonce
+    - to
     - gas
     - value
     - input
-    - maxFeePerGas
     - maxPriorityFeePerGas
-    - gasPrice
-    - chainId
+    - maxFeePerGas
+    - maxFeePerBlobGas
     - accessList
+    - blobVersionedHashes
+    - chainId
     - authorization list
   properties:
     type:
@@ -45,9 +47,9 @@ Transaction7702Unsigned:
       title: max fee per gas
       description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
       $ref: '#/components/schemas/uint'
-    gasPrice:
-      title: gas price
-      description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
+    maxFeePerBlobGas:
+      title: max fee per blob gas
+      description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
       $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
@@ -57,12 +59,28 @@ Transaction7702Unsigned:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
-    authorization list:
-      title: authorization list
-      description: List of authorizations associated with the transaction.
-      type: array
-      items:
-        $ref: '#/components/schemas/AuthorizationList'
+    authorizationList:
+      type: object
+      title: Authorizations List
+      chainId:
+        title: chainId
+        description: Chain ID that this transaction is valid on.
+        $ref: '#/components/schemas/uint'
+      nonce:
+        title: nonce
+        $ref: '#/components/schemas/uint64'
+      address:
+        $ref: '#/components/schemas/address'
+      yParity:
+        title: yParity
+        description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+        $ref: '#/components/schemas/uint'
+      r:
+        title: r
+        $ref: '#/components/schemas/uint'
+      s:
+        title: s
+        $ref: '#/components/schemas/uint'
 Transaction4844Unsigned:
   type: object
   title: EIP-4844 transaction.

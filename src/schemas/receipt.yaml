@@ -119,26 +119,4 @@ ReceiptInfo:
       title: blob gas price
       description: The actual value per gas deducted from the sender's account for blob gas. Only specified for blob transactions as defined by EIP-4844.
       $ref: '#/components/schemas/uint'
-AuthorizationList:
-  type: object
-  title: Authorizations List
-  
-  chainId:
-    title: chainId
-    description: Chain ID that this transaction is valid on.
-    $ref: '#/components/schemas/uint'
-  nonce:
-    title: nonce
-    $ref: '#/components/schemas/uint64'
-  address:
-    $ref: '#/components/schemas/address'
-  yParity:
-    title: yParity
-    description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-    $ref: '#/components/schemas/uint'
-  r:
-    title: r
-    $ref: '#/components/schemas/uint'
-  s:
-    title: s
-    $ref: '#/components/schemas/uint'
+
