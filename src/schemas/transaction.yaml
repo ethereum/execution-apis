@@ -1,6 +1,6 @@
 Transaction7702Signed:
   type: object
-  title: EIP-7702 transaction.
+  title: EIP-7702 transaction
   required:
     - type
     - nonce
@@ -57,20 +57,21 @@ Transaction7702Signed:
       $ref: '#/components/schemas/AccessList'
     chainId:
       title: chainId
-      description: Chain ID that this transaction is valid on.
+      description: Chain ID that this transaction is valid on
       $ref: '#/components/schemas/uint'
     authorizationList:
-    title: authorizationList
-    $ref: '#/components/schemas/AuthorizationList'
+      title: authorizationList
+      $ref: '#/components/schemas/AuthorizationList'
 AuthorizationList:
   title: Authorization List
-  description: List of authorizations for the transaction.
+  description: List of authorizations for the transaction
   type: array
-    items:
-      title: Authorizations List
+  items:
+    type: object
+    properties:
       chainId:
         title: chainId
-        description: Chain ID on which this transaction is valid.
+        description: Chain ID on which this transaction is valid
         $ref: '#/components/schemas/uint'
       nonce:
         title: nonce
@@ -79,7 +80,7 @@ AuthorizationList:
         $ref: '#/components/schemas/address'
       yParity:
         title: yParity
-        description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+        description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature
         $ref: '#/components/schemas/uint'
       r:
         title: r
@@ -87,6 +88,13 @@ AuthorizationList:
       s:
         title: s
         $ref: '#/components/schemas/uint'
+    required:
+      - chainId
+      - nonce
+      - address
+      - yParity
+      - r
+      - s
 Transaction4844Unsigned:
   type: object
   title: EIP-4844 transaction.
@@ -140,13 +148,13 @@ Transaction4844Unsigned:
       $ref: '#/components/schemas/AccessList'
     blobVersionedHashes:
       title: blobVersionedHashes
-      description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+      description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs
       type: array
       items:
         $ref: '#/components/schemas/hash32'
     chainId:
       title: chainId
-      description: Chain ID that this transaction is valid on.
+      description: Chain ID that this transaction is valid on
       $ref: '#/components/schemas/uint'
 AccessListEntry:
   title: Access list entry
