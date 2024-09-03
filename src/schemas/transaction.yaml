@@ -14,7 +14,7 @@ Transaction7702Signed:
     - accessList
     - blobVersionedHashes
     - chainId
-    - authorization list
+    - authorizationlist
   properties:
     type:
       title: type
@@ -60,15 +60,21 @@ Transaction7702Signed:
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
     authorizationList:
-      type: object
+    title: authorizationList
+    $ref: '#/components/schemas/AuthorizationList'
+AuthorizationList:
+  title: Authorization List
+  description: List of authorizations for the transaction.
+  type: array
+    items:
       title: Authorizations List
       chainId:
         title: chainId
-        description: Chain ID that this transaction is valid on.
+        description: Chain ID on which this transaction is valid.
         $ref: '#/components/schemas/uint'
       nonce:
         title: nonce
-        $ref: '#/components/schemas/uint64'
+        $ref: '#/components/schemas/uint'
       address:
         $ref: '#/components/schemas/address'
       yParity:
@@ -405,6 +411,7 @@ TransactionLegacySigned:
           $ref: '#/components/schemas/uint'
 TransactionSigned:
   oneOf:
+    - $ref: '#/components/schemas/Transaction7702Signed'
     - $ref: '#/components/schemas/Transaction4844Signed'
     - $ref: '#/components/schemas/Transaction1559Signed'
     - $ref: '#/components/schemas/Transaction2930Signed'
