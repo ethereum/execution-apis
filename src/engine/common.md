@@ -161,7 +161,7 @@ Execution layer clients **MUST** support `engine_exchangeCapabilities` method, w
 
 #### Specification
 
-1. Consensus and execution layer client software **MAY** exchange with a list of currently supported Engine API methods. Execution layer client software **MUST NOT** log any error messages if this method has either never been called or haven't been called for a significant amount of time.
+1. Consensus and execution layer client software **MAY** exchange with a list of currently supported Engine API methods. Execution layer client software **MUST NOT** log any error messages if this method has either never been called or hasn't been called for a significant amount of time.
 
 2. Request and response lists **MUST** contain Engine API methods that are currently supported by consensus and execution client software respectively. Name of each method in both lists **MUST** include suffixed version. Consider the following examples:
     * Client software of both layers currently supports `V1` and `V2` versions of `engine_newPayload` method:
