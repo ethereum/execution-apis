@@ -474,22 +474,6 @@
             "deprecationReason": null
           },
           {
-            "name": "totalDifficulty",
-            "description": "TotalDifficulty is the sum of all difficulty values up to and including\nthis block.",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "BigInt",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "ommerCount",
             "description": "OmmerCount is the number of ommers (AKA uncles) associated with this\nblock. If ommers are unavailable, this field will be null.",
             "args": [],
