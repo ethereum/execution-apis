@@ -10,7 +10,6 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Structures](#structures)
-  - [ExecutionRequestV1](#requestv1)
   - [ExecutionPayloadV4](#executionpayloadv4)
   - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
 - [Methods](#methods)
@@ -35,25 +34,6 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Structures
-
-### ExecutionRequestV1
-
-This structure maps onto the amalgamation of the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110), withdrawal request from [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002), and the consolidation request from [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251).
-
-The fields are encoded as follows:
-
-- `type`: `QUANTITY`, 64 bits - [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685) type byte to identify the request
-- `pubkey`: `DATA`, 48 Bytes
-- `withdrawalCredentials`: `DATA`, 32 Bytes
-- `amount`: `QUANTITY`, 64 Bits
-- `signature`: `DATA`, 96 Bytes
-- `index`: `QUANTITY`, 64 Bits
-- `sourceAddress`: `DATA`, 20 Bytes
-- `validatorPubkey`: `DATA`, 48 Bytes
-- `sourcePubkey`: `DATA`, 48 Bytes
-- `targetPubkey`: `DATA`, 48 Bytes
-
-*Note:* The `amount` value is represented in Gwei.
 
 ### ExecutionPayloadV4
 
@@ -84,7 +64,8 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `requests`: `Array of ExecutionRequestV1` - Array of requests, each object is an `OBJECT` containing the fields of a `ExecutionRequestV1` structure.
+- `requests`: `Array of ExecutionRequestV1` - Array of requests, each element is a byte list (`DATA`) containing 
+`request_type || request_data` as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 ## Methods
 
