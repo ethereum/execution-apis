@@ -64,7 +64,7 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `requests`: `Array of ExecutionRequestV1` - Array of requests, each element is a byte list (`DATA`) containing 
+- `requests`: `Array of DATA` - Array of requests, each element is a byte list (`DATA`) containing 
 `request_type || request_data` as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 ## Methods
