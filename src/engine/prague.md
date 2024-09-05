@@ -148,7 +148,7 @@ The response of this method is updated with [`ExecutionPayloadBodyV2`](#executio
 * method: `engine_getPayloadBodiesByRangeV2`
 * params:
   1. `start`: `QUANTITY`, 64 bits - Starting block number
-  1. `count`: `QUANITTY`, 64 bits - Number of blocks to return
+  1. `count`: `QUANTITY`, 64 bits - Number of blocks to return
 * timeout: 10s
 
 #### Response

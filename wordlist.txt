@@ -16,6 +16,7 @@ ethereumjs
 erigon
 getclientversionv
 interop
+js
 json
 mempool
 merkle
@@ -41,6 +42,8 @@ validator
 wei
 yaml
 yParity
+eips
+EIPS
 EL
 CL
 CLs
