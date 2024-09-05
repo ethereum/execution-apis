@@ -95,7 +95,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 
 ### ExecutionPayloadBodyV2
 
-This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadv1) and appends the new fields: `depositRequests` and `withdrawalRequests`.
+This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadv1) and appends the new fields: `depositRequests`, `withdrawalRequests` and `consolidationRequests`.
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
@@ -173,7 +173,7 @@ The response of this method is updated with [`ExecutionPayloadBodyV2`](#executio
 
 This method follows the same specification as [`engine_getPayloadBodiesByHashV1`](./shanghai.md#engine_getpayloadbodiesbyhashv1) with the addition of the following:
 
-1. Client software **MUST** set `depositRequests` and `withdrawalRequests` fields to `null` for bodies of pre-Prague blocks.
+1. Client software **MUST** set `depositRequests`, `withdrawalRequests` and `consolidationRequests` fields to `null` for bodies of pre-Prague blocks.
 
 ### engine_getPayloadBodiesByRangeV2
 
@@ -196,7 +196,7 @@ The response of this method is updated with [`ExecutionPayloadBodyV2`](#executio
 
 This method follows the same specification as [`engine_getPayloadBodiesByRangeV2`](./shanghai.md#engine_getpayloadbodiesbyrangev1) with the addition of the following:
 
-1. Client software **MUST** set `depositRequests` and `withdrawalRequests` fields to `null` for bodies of pre-Prague blocks.
+1. Client software **MUST** set `depositRequests`, `withdrawalRequests` and `consolidationRequests` fields to `null` for bodies of pre-Prague blocks.
 
 ### Update the methods of previous forks
 
