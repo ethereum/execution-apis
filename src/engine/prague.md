@@ -56,7 +56,8 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
-- `requests`: `Array of ExecutionRequestV1` - Array of request objects
+- `requests`: `Array of DATA` - Array of request objects, each element is a byte list (`DATA`) containing 
+ `request_type || request_data` as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 ### ExecutionPayloadBodyV2
 
