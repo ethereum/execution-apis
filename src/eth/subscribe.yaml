@@ -1,0 +1,22 @@
+- name: eth_subscribe
+  summary: Subscribe to specific events. The node will return a subscription id. For each event that matches the subscription a notification with relevant data is send together with the subscription id.
+  params:
+    - name: Subscription
+      required: true
+      schema:
+        $ref: '#/components/schemas/SupportedSubscriptions'
+  result:
+    name: Subscription ID
+    schema:
+      $ref: '#/components/schemas/uint256'
+- name: eth_unsubscribe
+  summary: Cancel a subscription for specific events. It returns a boolean indicating if the subscription was cancelled successfully.
+  params:
+    - name: Subscription ID
+      required: true
+      schema:
+        $ref: '#/components/schemas/bytes'
+  result:
+    name: Cancellation status
+    schema:
+      type: boolean
