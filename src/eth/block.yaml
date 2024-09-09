@@ -80,7 +80,7 @@
     - name: eth_getBlockByNumber example
       params:
         - name: block
-          value: '0x68B3'
+          value: '0x68b3'
         - name: Hydrated transactions
           value: false
       result:
