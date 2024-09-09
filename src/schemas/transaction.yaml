@@ -59,7 +59,7 @@ Transaction7702Signed:
       title: chainId
       description: Chain ID that this transaction is valid on
       $ref: '#/components/schemas/uint'
-    authorizationList:
+    authList:
       title: authorizationList
       $ref: '#/components/schemas/AuthorizationList'
 AuthorizationList:
