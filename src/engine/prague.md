@@ -59,6 +59,8 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `requests`: `Array of DATA` - Array of request objects, each element is a byte list (`DATA`) containing 
  `request_type || request_data` as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
   - The requests MUST be provided in the same order which was used to compute `blockHash`.
+  - When processing the payload, the consensus-layer client MUST verify that requests are provided in ascending `request_type` order.
+  - The consensus layer MUST reject payloads containing undefined `request_type`s. Notably this includes request types defined in a future fork, i.e. it must verify the requests of the payload are defined for the fork it uses.
 
 ### ExecutionPayloadBodyV2
 
