@@ -58,6 +58,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `excessBlobGas`: `QUANTITY`, 64 Bits
 - `requests`: `Array of DATA` - Array of request objects, each element is a byte list (`DATA`) containing 
  `request_type || request_data` as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+  - The requests MUST be provided in the same order which was used to compute `blockHash`.
 
 ### ExecutionPayloadBodyV2
 
