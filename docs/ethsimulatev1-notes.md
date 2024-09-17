@@ -191,3 +191,14 @@ Clients may introduce their own limits to prevent DOS attacks using the method. 
 - How many blocks can be defined in `BlockStateCalls`. The suggested default for this is 256 blocks
 - A global gas limit (similar to the same limit for `eth_call`). The eth_simulate cannot exceed the global gas limit over its lifespan
 - The clients can set their own limit on how big the input JSON payload can be. A suggested default for this is 30mb
+
+## Rationale
+
+### Pre-computed calls
+
+When it comes to contract override behavior, specifically precompile override, there were two approaches:
+
+1. As specified above to allow replacement of precompiles by EVM code and to allow those same precompiles to be relocated to another access for fallback behavior.
+2. Allow users to pass in a set of pre-computed calls for an address, i.e. direct mapping of input to output.
+
+The second approach has better UX for simple use-cases such as faking a signature via ecrecover. It also allows for getting the same gas usage as a real precompile execution. Nevertheless it imposes changes to the EVM interpreter code, which has been otherwise avoided, without enabling new features. Hence the spec proposes the first alternative.
