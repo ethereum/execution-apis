@@ -1426,8 +1426,8 @@ var EthSendRawTransaction = MethodTests{
 					basefee            = uint256.MustFromBig(t.chain.Head().BaseFee())
 					fee                = uint256.NewInt(500)
 					emptyBlob          = kzg4844.Blob{}
-					emptyBlobCommit, _ = kzg4844.BlobToCommitment(emptyBlob)
-					emptyBlobProof, _  = kzg4844.ComputeBlobProof(emptyBlob, emptyBlobCommit)
+					emptyBlobCommit, _ = kzg4844.BlobToCommitment(&emptyBlob)
+					emptyBlobProof, _  = kzg4844.ComputeBlobProof(&emptyBlob, emptyBlobCommit)
 				)
 				fee.Add(basefee, fee)
 				sidecar := &types.BlobTxSidecar{
