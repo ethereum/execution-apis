@@ -201,4 +201,4 @@ When it comes to contract override behavior, specifically precompile override, t
 1. As specified above to allow replacement of precompiles by EVM code and to allow those same precompiles to be relocated to another access for fallback behavior.
 2. Allow users to pass in a set of pre-computed calls for an address, i.e. direct mapping of input to output.
 
-The second approach has better UX for simple use-cases such as faking a signature via ecrecover. It also allows for getting the same gas usage as a real precompile execution. Nevertheless it imposes changes to the EVM interpreter code, which has been otherwise avoided, without enabling new features. Hence the spec proposes the first alternative.
+The second approach has better UX for simple use-cases such as faking a signature via ecrecover. It also allows for getting the same gas usage as a real precompile execution. The simpler UX comes at cost of flexibility. Overriding with EVM code is general. It also imposes changes to the EVM interpreter code, which has been otherwise avoided, without enabling new features. Hence the spec proposes the first alternative.
