@@ -68,9 +68,16 @@ The fields are encoded as follows:
 - `sourcePubkey`: `DATA`, 48 Bytes
 - `targetPubkey`: `DATA`, 48 Bytes
 
+### ExecutionRequestsV1
+This container holds requests from the execution layer.
+
+- `deposits`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
+- `withdrawals`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
+- `consolidations`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
+
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new fields: `depositRequests` and `withdrawalRequests`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -89,25 +96,20 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
-- `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
-- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
-- `consolidationRequests`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
 
 ### ExecutionPayloadBodyV2
 
-This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadv1) and appends the new fields: `depositRequests`, `withdrawalRequests` and `consolidationRequests`.
+This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadv1) and appends a single field: `requests`.
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `depositRequests`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
-- `withdrawalRequests`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
-- `consolidationRequests`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
+- `requests`: [`ExecutionRequestsV1`](#ExecutionRequestsV1)
 
 ## Methods
 
 ### engine_newPayloadV4
 
-The request of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayloadV4).
+The request of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayloadV4) and new [`ExecutionRequestsV1`](#ExecutionRequestsV1).
 
 #### Request
 
@@ -116,6 +118,7 @@ The request of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayl
   1. `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+  4. `executionRequests`: [`ExecutionRequestsV1`](#ExecutionRequestsV1)
 
 #### Response
 
@@ -173,7 +176,7 @@ The response of this method is updated with [`ExecutionPayloadBodyV2`](#executio
 
 This method follows the same specification as [`engine_getPayloadBodiesByHashV1`](./shanghai.md#engine_getpayloadbodiesbyhashv1) with the addition of the following:
 
-1. Client software **MUST** set `depositRequests`, `withdrawalRequests` and `consolidationRequests` fields to `null` for bodies of pre-Prague blocks.
+1. Client software **MUST** set `requests` field to `null` for bodies of pre-Prague blocks.
 
 ### engine_getPayloadBodiesByRangeV2
 
@@ -196,7 +199,7 @@ The response of this method is updated with [`ExecutionPayloadBodyV2`](#executio
 
 This method follows the same specification as [`engine_getPayloadBodiesByRangeV2`](./shanghai.md#engine_getpayloadbodiesbyrangev1) with the addition of the following:
 
-1. Client software **MUST** set `depositRequests`, `withdrawalRequests` and `consolidationRequests` fields to `null` for bodies of pre-Prague blocks.
+1. Client software **MUST** set `requests` field to `null` for bodies of pre-Prague blocks.
 
 ### Update the methods of previous forks
 
