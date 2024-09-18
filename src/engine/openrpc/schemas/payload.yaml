@@ -332,44 +332,6 @@ ExecutionPayloadBodyV1:
         - 'null'
       items:
         $ref: '#/components/schemas/WithdrawalV1'
-ExecutionPayloadBodyV2:
-  title: Execution payload body object V2
-  type: object
-  required:
-    - transactions
-  properties:
-    transactions:
-      title: Transactions
-      type: array
-      items:
-        $ref: '#/components/schemas/bytes'
-    withdrawals:
-      title: Withdrawals
-      type:
-        - array
-        - 'null'
-      items:
-        $ref: '#/components/schemas/WithdrawalV1'
-    depositRequests:
-      title: Deposit requests
-      type:
-        - array
-        - 'null'
-      items:
-        $ref: '#/components/schemas/DepositRequestV1'
-    withdrawalRequests:
-      title: Withdrawals requests
-      type:
-        - array
-        - 'null'
-      items:
-        $ref: '#/components/schemas/WithdrawalRequestV1'
-    consolidationRequests:
-      title: Consolidation requests
-        - array
-        - 'null'
-      items:
-        $ref: '#/components/schemas/ConsolidationRequestV1'
 BlobsBundleV1:
   title: Blobs bundle object V1
   type: object
