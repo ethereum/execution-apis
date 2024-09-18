@@ -132,7 +132,7 @@ This method follows the same specification as [`engine_newPayloadV3`](./cancun.m
 
 ### engine_getPayloadV4
 
-The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayloadV4).
+The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayloadV4) and new [`ExecutionRequestsV1`](#ExecutionRequestsV1).
 
 #### Request
 
@@ -147,6 +147,7 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
   - `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `requests`: [`ExecutionRequestsV1`](#ExecutionRequestsV1) - Container with requests from execution layer included in `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
 * error: code and message set in case an exception happens while getting the payload.
 
