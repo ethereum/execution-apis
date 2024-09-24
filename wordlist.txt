@@ -66,5 +66,4 @@ src
 https
 forkchoiceupdatedresponsev
 exitv
-depositreceiptv
 executionrequestsv

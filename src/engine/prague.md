@@ -13,7 +13,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
   - [DepositRequestV1](#depositrequestv1)
   - [WithdrawalRequestV1](#withdrawalrequestv1)
   - [ConsolidationRequestV1](#consolidationrequestv1)
-  - [ExecutionPayloadV4](#executionpayloadv4)
+  - [ExecutionRequestsV1](#executionrequestsv1)
 - [Methods](#methods)
   - [engine_newPayloadV4](#engine_newpayloadv4)
     - [Request](#request)
@@ -30,6 +30,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 ## Structures
 
 ### DepositRequestV1
+
 This structure maps onto the deposit object from [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110).
 The fields are encoded as follows:
 
@@ -42,6 +43,7 @@ The fields are encoded as follows:
 *Note:* The `amount` value is represented in Gwei.
 
 ### WithdrawalRequestV1
+
 This structure maps onto the withdrawal request from [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002).
 The fields are encoded as follows:
 
@@ -52,6 +54,7 @@ The fields are encoded as follows:
 *Note:* The `amount` value is represented in Gwei.
 
 ### ConsolidationRequestV1
+
 This structure maps onto the consolidation request from [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251).
 The fields are encoded as follows:
 
@@ -60,45 +63,27 @@ The fields are encoded as follows:
 - `targetPubkey`: `DATA`, 48 Bytes
 
 ### ExecutionRequestsV1
-This container holds requests from the execution layer.
+
+This container holds execution layer triggered requests.
 
 - `deposits`: `Array of DepositRequestV1` - Array of deposits, each object is an `OBJECT` containing the fields of a `DepositRequestV1` structure.
 - `withdrawals`: `Array of WithdrawalRequestV1` - Array of withdrawal requests, each object is an `OBJECT` containing the fields of a `WithdrawalRequestV1` structure.
 - `consolidations`: `Array of ConsolidationRequestV1` - Array of consolidation requests, each object is an `OBJECT` containing the fields of a `ConsolidationRequestV1` structure.
 
-### ExecutionPayloadV4
-
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
-
-- `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`:  `DATA`, 20 Bytes
-- `stateRoot`: `DATA`, 32 Bytes
-- `receiptsRoot`: `DATA`, 32 Bytes
-- `logsBloom`: `DATA`, 256 Bytes
-- `prevRandao`: `DATA`, 32 Bytes
-- `blockNumber`: `QUANTITY`, 64 Bits
-- `gasLimit`: `QUANTITY`, 64 Bits
-- `gasUsed`: `QUANTITY`, 64 Bits
-- `timestamp`: `QUANTITY`, 64 Bits
-- `extraData`: `DATA`, 0 to 32 Bytes
-- `baseFeePerGas`: `QUANTITY`, 256 Bits
-- `blockHash`: `DATA`, 32 Bytes
-- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `blobGasUsed`: `QUANTITY`, 64 Bits
-- `excessBlobGas`: `QUANTITY`, 64 Bits
+*Note*: The order of items within `deposits`, `withdrawals` and `consolidations` lists is defined by
+[EIP-6110](https://eips.ethereum.org/EIPS/eip-6110), [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002) and [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251) respectively.
 
 ## Methods
 
 ### engine_newPayloadV4
 
-The request of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayloadV4) and new [`ExecutionRequestsV1`](#ExecutionRequestsV1).
+Method parameter list is extended with `executionRequests`.
 
 #### Request
 
 * method: `engine_newPayloadV4`
 * params:
-  1. `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4).
+  1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: [`ExecutionRequestsV1`](#ExecutionRequestsV1)
@@ -112,6 +97,10 @@ Refer to the response for [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv
 This method follows the same specification as [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv3) with the following changes:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Prague fork.
+
+2. Client software **MUST** incorporate `executionRequests` into the `blockHash` validation process.
+   That is, if `executionRequests` does not match the execution requests commitment in the execution layer block header
+   the call **MUST** be responded with `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
 
 ### engine_getPayloadV4
 
@@ -130,8 +119,8 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
   - `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
-  - `requests`: [`ExecutionRequestsV1`](#ExecutionRequestsV1) - Container with requests from execution layer included in `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
+  - `executionRequests`: [`ExecutionRequestsV1`](#ExecutionRequestsV1) - Execution layer trigerred requests obtained from the `executionPayload` transaction execution
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -139,6 +128,10 @@ The response of this method is updated with [`ExecutionPayloadV4`](#ExecutionPay
 This method follows the same specification as [`engine_getPayloadV3`](./cancun.md#engine_getpayloadv3) with the following changes:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
+
+2. The call **MUST** return `executionRequests` object containing deposit, withdrawal and consolidation requests obtained from transaction execution of the `executionPayload`.
+   The way the requests are obtained from the payload execution is defined by the [EIP-6110](https://eips.ethereum.org/EIPS/eip-6110),
+   [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002) and [EIP-7251](https://eips.ethereum.org/EIPS/eip-7251) respectively.
 
 ### Update the methods of previous forks
 
