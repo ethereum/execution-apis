@@ -305,6 +305,7 @@ CallResultLog:
     - address
     - data
     - topics
+    - removed
   properties:
     logIndex:
       title: log index
@@ -333,6 +334,10 @@ CallResultLog:
       type: array
       items:
         $ref: '#/components/schemas/bytes32'
+    removed:
+      title: removed
+      type: boolean
+      description: Always false. A flag indicating if a log was removed in a chain reorganization, which cannot happen in eth_simulateV1.
 GenericCallTransaction:
   type: object
   title: Transaction object type for call
