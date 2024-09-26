@@ -49,7 +49,7 @@ This method follows the same specification as [`engine_newPayloadV3`](./cancun.m
 
 2. Client software **MUST** incorporate `executionRequests` into the `blockHash` validation process.
 That is, if `executionRequests` does not match the execution requests commitment in the execution layer block header
-the call **MUST** be responded with `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
+the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
 The commitment computation algorithm is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 ### engine_getPayloadV4
@@ -80,8 +80,8 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
 
-2. The call **MUST** return `executionRequests` object containing execution layer trigerred requests obtained from transaction execution of the `executionPayload`.
-The ways the requests are encoded and obtained from the payload execution are defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+2. The call **MUST** return `executionRequests` byte sequence representing an encoded list of execution layer trigerred requests obtained from the `executionPayload` transaction execution.
+The ways the requests are encoded and obtained from the execution are defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 ### Update the methods of previous forks
 
