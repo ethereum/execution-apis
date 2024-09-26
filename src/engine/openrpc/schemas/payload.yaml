@@ -243,29 +243,6 @@ ExecutionPayloadV3:
     excessBlobGas:
       title: Excess blob gas
       $ref: '#/components/schemas/uint64'
-ExecutionRequestsV1:
-  title: Execution requests object V1
-  type: object
-  required:
-    - deposits
-    - withdrawals
-    - consolidations
-  properties:
-    deposits:
-      title: Deposit requests
-      type: array
-      items:
-        $ref: '#/components/schemas/DepositRequestV1'
-    withdrawals:
-      title: Withdrawals requests
-      type: array
-      items:
-        $ref: '#/components/schemas/WithdrawalRequestV1'
-    consolidations:
-      title: Consolidation requests
-      type: array
-      items:
-        $ref: '#/components/schemas/ConsolidationRequestV1'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object
