@@ -12,24 +12,19 @@ Transaction7702Signed:
     - maxFeePerGas
     - maxFeePerBlobGas
     - accessList
-    - blobVersionedHashes
     - chainId
     - authorizationlist
   properties:
     type:
       title: type
       type: string
-      pattern: ^0x2$
+      pattern: ^0x4$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
     to:
       title: to address
-      oneOf:
-        - title: Contract Creation (null)
-          type: 'null'
-        - title: Address
-          $ref: '#/components/schemas/address'
+      $ref: '#/components/schemas/address'
     gas:
       title: gas limit
       $ref: '#/components/schemas/uint'
