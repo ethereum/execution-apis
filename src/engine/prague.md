@@ -35,7 +35,8 @@ Method parameter list is extended with `executionRequests`.
   1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `executionRequests`: `DATA` - Execution layer triggered requests encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+  4. `executionRequestsHash`: `DATA`, 32 Bytes - Hash of the execution layer triggered requests,
+computed as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 #### Response
 
@@ -47,10 +48,9 @@ This method follows the same specification as [`engine_newPayloadV3`](./cancun.m
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Prague fork.
 
-2. Client software **MUST** incorporate `executionRequests` into the `blockHash` validation process.
-That is, if `executionRequests` does not match the execution requests commitment in the execution layer block header
+2. Client software **MUST** incorporate `executionRequestsHash` into the `blockHash` validation process.
+That is, if `executionRequestsHash` does not match the execution requests commitment in the execution layer block header
 the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
-The commitment computation algorithm is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 ### engine_getPayloadV4
 
@@ -70,8 +70,8 @@ The response of this method is extended with the `executionRequests` field.
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
-  - `executionRequests`: `DATA` - Execution layer trigerred requests obtained from the `executionPayload` transaction execution, 
-encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+  - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution,
+each element of the list rerpresents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -80,8 +80,9 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
 
-2. The call **MUST** return `executionRequests` byte sequence representing an encoded list of execution layer trigerred requests obtained from the `executionPayload` transaction execution.
-The ways the requests are encoded and obtained from the execution are defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+2. The call **MUST** return `executionRequests` list representing execution layer triggered requests obtained from the `executionPayload` transaction execution.
+The way the requests of different types are encoded and obtained from the execution is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+Elements of the `executionRequests` list **MUST** be ordered by the `requestType` (the first byte) in ascending order.
 
 ### Update the methods of previous forks
 
