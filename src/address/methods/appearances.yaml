@@ -1,0 +1,17 @@
+- name: address_getAppearances
+  summary: Returns transaction identifiers relevant to an address.
+  params:
+    - name: Address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Block range
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockRange'
+  result:
+    name: Address appearances
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/AddressAppearances'
