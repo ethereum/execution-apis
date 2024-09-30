@@ -71,7 +71,7 @@ The response of this method is extended with the `executionRequests` field.
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
   - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution,
-each element of the list rerpresents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
