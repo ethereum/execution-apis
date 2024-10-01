@@ -66,7 +66,7 @@ The response of this method is extended with the `executionRequests` field.
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4)
+  - `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
