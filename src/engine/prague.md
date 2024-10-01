@@ -26,7 +26,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 
 ### engine_newPayloadV4
 
-Method parameter list is extended with `executionRequests`.
+Method parameter list is extended with `executionRequestsHash`.
 
 #### Request
 
