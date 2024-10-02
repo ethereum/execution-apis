@@ -12,6 +12,7 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
 - [Structures](#structures)
   - [ExecutionPayloadV3](#executionpayloadv3)
   - [BlobsBundleV1](#blobsbundlev1)
+  - [BlobAndProofV1](#blobandproofv1)
   - [PayloadAttributesV3](#payloadattributesv3)
 - [Methods](#methods)
   - [engine_newPayloadV3](#engine_newpayloadv3)
@@ -26,7 +27,12 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_getBlobsV1](#engine_getblobsv1)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
   - [Deprecate `engine_exchangeTransitionConfigurationV1`](#deprecate-engine_exchangetransitionconfigurationv1)
+  - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
