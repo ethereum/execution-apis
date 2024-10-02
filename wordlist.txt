@@ -15,6 +15,7 @@ ethereum
 ethereumjs
 erigon
 getclientversionv
+getblobsv
 interop
 js
 json
@@ -53,6 +54,7 @@ ipc
 cli
 blobsbundlev
 getblobsbundlev
+blobandproofv
 ssz
 kzg
 besu

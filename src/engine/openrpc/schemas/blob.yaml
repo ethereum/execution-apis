@@ -1,0 +1,14 @@
+BlobAndProofV1:
+  title: Blob and proof object V1
+  type: object
+  required:
+    - blob
+    - proof
+  properties:
+    blob: 
+      title: Blob
+      $ref: '#/components/schemas/bytes'
+    proof:
+      title: proof
+      $ref: '#/components/schemas/bytes48'
+  
