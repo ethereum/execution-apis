@@ -36,8 +36,8 @@ Method parameter list is extended with `executionRequests`.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA`, 32 Bytes - List of execution layer triggered requests,
-each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
-Elements of the list **MUST** be ordered by `requestType` in ascending order.
+each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
+without `requestType` byte being a part of the encoding. Elements of the list **MUST** be ordered by `requestType` in ascending order.
 
 #### Response
 
@@ -73,7 +73,8 @@ The response of this method is extended with the `executionRequests` field.
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
   - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution,
-each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
+without `requestType` byte being a part of the encoding.
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
