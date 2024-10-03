@@ -36,8 +36,8 @@ Method parameter list is extended with `executionRequests`.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA`, 32 Bytes - List of execution layer triggered requests,
-each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
-without `requestType` byte being a part of the encoding. Elements of the list **MUST** be ordered by `requestType` in ascending order.
+each element of the list represents an SSZ encoded list of requests of a certain type as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
+Elements of the list **MUST** be ordered by `requestType` in ascending order.
 
 #### Response
 
@@ -72,9 +72,7 @@ The response of this method is extended with the `executionRequests` field.
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
-  - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution,
-each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
-without `requestType` byte being a part of the encoding.
+  - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -84,7 +82,7 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
 
 2. The call **MUST** return `executionRequests` list representing execution layer triggered requests obtained from the `executionPayload` transaction execution.
-The way the requests of different types are encoded and obtained from the execution is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+Each element of the list represents an SSZ encoded list of requests of a certain type as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 Elements of the `executionRequests` list **MUST** be ordered by the `requestType` in ascending order.
 
 ### Update the methods of previous forks
