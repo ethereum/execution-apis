@@ -35,8 +35,9 @@ Method parameter list is extended with `executionRequestsHash`.
   1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `executionRequestsHash`: `DATA`, 32 Bytes - Hash of the execution layer triggered requests,
-computed as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+  4. `executionRequests`: `Array of DATA`, 32 Bytes - List of execution layer triggered requests,
+each element of the list represents requests of a certain type encoded as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+Elements of the list **MUST** be ordered by `requestType` in ascending order.
 
 #### Response
 
@@ -48,8 +49,9 @@ This method follows the same specification as [`engine_newPayloadV3`](./cancun.m
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Prague fork.
 
-2. Client software **MUST** incorporate `executionRequestsHash` into the `blockHash` validation process.
-That is, if `executionRequestsHash` does not match the execution requests commitment in the execution layer block header
+2. Given the `executionRequests`, client software **MUST** compute the execution requests commitment
+and incorporate it into the `blockHash` validation process.
+That is, if the computed commitment does not match the corresponding commitment in the execution layer block header,
 the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
 
 ### engine_getPayloadV4
@@ -82,7 +84,7 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 
 2. The call **MUST** return `executionRequests` list representing execution layer triggered requests obtained from the `executionPayload` transaction execution.
 The way the requests of different types are encoded and obtained from the execution is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
-Elements of the `executionRequests` list **MUST** be ordered by the `requestType` (the first byte) in ascending order.
+Elements of the `executionRequests` list **MUST** be ordered by the `requestType` in ascending order.
 
 ### Update the methods of previous forks
 
