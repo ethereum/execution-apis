@@ -35,7 +35,7 @@ Method parameter list is extended with `executionRequests`.
   1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `executionRequests`: `Array of DATA`, 32 Bytes - List of execution layer triggered requests,
+  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests,
 each element of the list represents an SSZ encoded list of requests of a certain type as it is defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
 Elements of the list **MUST** be ordered by `requestType` in ascending order.
 
