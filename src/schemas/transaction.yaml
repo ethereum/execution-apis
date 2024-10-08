@@ -13,7 +13,7 @@ Transaction7702Signed:
     - maxFeePerBlobGas
     - accessList
     - chainId
-    - authorizationlist
+    - authorizationList
   properties:
     type:
       title: type
