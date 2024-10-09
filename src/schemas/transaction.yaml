@@ -10,7 +10,6 @@ Transaction7702Signed:
     - input
     - maxPriorityFeePerGas
     - maxFeePerGas
-    - maxFeePerBlobGas
     - accessList
     - chainId
     - authorizationList
@@ -41,10 +40,6 @@ Transaction7702Signed:
     maxFeePerGas:
       title: max fee per gas
       description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
-      $ref: '#/components/schemas/uint'
-    maxFeePerBlobGas:
-      title: max fee per blob gas
-      description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
       $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
