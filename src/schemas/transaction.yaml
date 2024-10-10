@@ -535,3 +535,7 @@ GenericTransaction:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
+    authorizationList:
+      title: authorizationList
+      description: EIP-7702 authorization list
+      $ref: '#/components/schemas/AuthorizationList'
