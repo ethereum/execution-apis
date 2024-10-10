@@ -1,4 +1,4 @@
-Transaction7702Signed:
+Transaction7702Unsigned:
   type: object
   title: EIP-7702 transaction
   required:
@@ -49,7 +49,7 @@ Transaction7702Signed:
       title: chainId
       description: Chain ID that this transaction is valid on
       $ref: '#/components/schemas/uint'
-    authList:
+    authorizationList:
       title: authorizationList
       $ref: '#/components/schemas/AuthorizationList'
 AuthorizationList:
@@ -316,10 +316,32 @@ TransactionLegacyUnsigned:
       $ref: '#/components/schemas/uint'
 TransactionUnsigned:
   oneOf:
+    - $ref: '#/components/schemas/Transaction7702Unsigned'
     - $ref: '#/components/schemas/Transaction4844Unsigned'
     - $ref: '#/components/schemas/Transaction1559Unsigned'
     - $ref: '#/components/schemas/Transaction2930Unsigned'
     - $ref: '#/components/schemas/TransactionLegacyUnsigned'
+Transaction7702Signed:
+  title: Signed 7702 Transaction
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/Transaction7702Unsigned'
+    - title: EIP-7702 transaction signature properties.
+      required:
+        - yParity
+        - r
+        - s
+      properties:
+        yParity:
+          title: yParity
+          description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+          $ref: '#/components/schemas/uint'
+        r:
+          title: r
+          $ref: '#/components/schemas/uint'
+        s:
+          title: s
+          $ref: '#/components/schemas/uint'
 Transaction4844Signed:
   title: Signed 4844 Transaction
   type: object
