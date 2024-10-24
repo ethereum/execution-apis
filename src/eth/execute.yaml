@@ -13,6 +13,12 @@
     name: Return data
     schema:
       $ref: '#/components/schemas/bytes'
+  errors:
+    - code: 3
+      message: "execution reverted"
+      data:
+        title: "raw EVM revert data"
+        $ref: "#/components/schemas/bytes"
   examples:
     - name: eth_call example
       params:
@@ -25,6 +31,7 @@
       result:
         name: Return data
         value: '0x'
+
 - name: eth_estimateGas
   summary: Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
   params:
@@ -40,6 +47,12 @@
     name: Gas used
     schema:
       $ref: '#/components/schemas/uint'
+  errors:
+    - code: 3
+      message: "execution reverted"
+      data:
+        title: "raw EVM revert data"
+        $ref: "#/components/schemas/bytes"
   examples:
     - name: eth_estimateGas example
       params:
@@ -51,6 +64,7 @@
       result:
         name: Gas used
         value: '0x5208'
+
 - name: eth_createAccessList
   summary: Generates an access list for a transaction.
   params:
@@ -78,6 +92,12 @@
         gasUsed:
           title: Gas used
           $ref: '#/components/schemas/uint'
+  errors:
+    - code: 3
+      message: "execution reverted"
+      data:
+        title: "raw EVM revert data"
+        $ref: "#/components/schemas/bytes"
   examples:
     - name: eth_createAccessList example
       params:
