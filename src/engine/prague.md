@@ -35,7 +35,7 @@ Method parameter list is extended with `executionRequests`.
   1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is the corresponding request type's `requests` as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` are excluded from the list.
+  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` are excluded from the list.
 
 #### Response
 
@@ -79,7 +79,7 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
 
-2. The call **MUST** return `executionRequests` list representing execution layer triggered requests obtained from the `executionPayload` transaction execution. Each element of the list corresponds to the request type's `requests` as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` are excluded from the list.
+2. The call **MUST** return `executionRequests` list representing execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` are excluded from the list.
 
 ### Update the methods of previous forks
 
