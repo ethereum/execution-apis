@@ -58,6 +58,7 @@
           blobGasUsed: '0x0'
           excessBlobGas: '0x0'
           parentBeaconBlockRoot: '0x95c4dbd5b19f6fe3cbc3183be85ff4e85ebe75c5b4fc911f1c91e5b7a554a685'
+          targetBlobCount: '0x3'
 - name: eth_getBlockByNumber
   summary: Returns information about a block by number.
   params:
@@ -118,6 +119,7 @@
           blobGasUsed: '0x0'
           excessBlobGas: '0x0'
           parentBeaconBlockRoot: '0x95c4dbd5b19f6fe3cbc3183be85ff4e85ebe75c5b4fc911f1c91e5b7a554a685'
+          targetBlobCount: '0x3'
 - name: eth_getBlockTransactionCountByHash
   summary: Returns the number of transactions in a block from a block matching the given block hash.
   params:
