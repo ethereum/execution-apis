@@ -38,7 +38,7 @@ will have all schema `#ref`s resolved.
 There are several mechanisms for testing specification contributions and client
 conformance. 
 
-First is the [OpenRPC validator][validator]. It performs some basic syntactic
+First is the [OpenRPC validator](https://open-rpc.github.io/schema-utils-js/functions/validateOpenRPCDocument.html). It performs some basic syntactic
 checks on the generated specification.
 
 ```console
