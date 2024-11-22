@@ -547,6 +547,11 @@ type Transaction {
   this is equivalent to TxType || ReceiptEncoding.
   """
   rawReceipt: Bytes!
+
+  """
+  Reason returned when transaction fails.
+  """
+  revertReason: Bytes
 }
 
 """EIP-4895"""
