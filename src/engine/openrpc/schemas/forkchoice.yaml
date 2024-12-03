@@ -85,3 +85,29 @@ PayloadAttributesV3:
     parentBeaconBlockRoot:
       title: Parent beacon block root
       $ref: '#/components/schemas/hash32'
+PayloadAttributesV4:
+  title: Payload attributes object V4
+  type: object
+  required:
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+    - withdrawals
+    - parentBeaconBlockRoot
+    - targetBlobsPerBlock
+    - maxBlobsPerBlock
+  properties:
+    timestamp:
+      $ref: '#/components/schemas/PayloadAttributesV3/properties/timestamp'
+    prevRandao:
+      $ref: '#/components/schemas/PayloadAttributesV3/properties/prevRandao'
+    suggestedFeeRecipient:
+      $ref: '#/components/schemas/PayloadAttributesV3/properties/suggestedFeeRecipient'
+    withdrawals:
+      $ref: '#/components/schemas/PayloadAttributesV3/properties/withdrawals'
+    parentBeaconBlockRoot:
+      $ref: '#/components/schemas/PayloadAttributesV3/properties/parentBeaconBlockRoot'
+    targetBlobsPerBlock:
+      $ref: '#/components/schemas/uint64'
+    maxBlobsPerBlock:
+      $ref: '#/components/schemas/uint64'
