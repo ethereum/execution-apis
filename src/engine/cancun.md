@@ -12,6 +12,7 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
 - [Structures](#structures)
   - [ExecutionPayloadV3](#executionpayloadv3)
   - [BlobsBundleV1](#blobsbundlev1)
+  - [BlobAndProofV1](#blobandproofv1)
   - [PayloadAttributesV3](#payloadattributesv3)
 - [Methods](#methods)
   - [engine_newPayloadV3](#engine_newpayloadv3)
@@ -26,7 +27,12 @@ This specification is based on and extends [Engine API - Shanghai](./shanghai.md
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_getBlobsV1](#engine_getblobsv1)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
   - [Deprecate `engine_exchangeTransitionConfigurationV1`](#deprecate-engine_exchangetransitionconfigurationv1)
+  - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -63,6 +69,13 @@ The fields are encoded as follows:
 - `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
 
 All of the above three arrays **MUST** be of same length.
+
+### BlobAndProofV1
+
+The fields are encoded as follows:
+
+- `blob`: `DATA` - `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844).
+- `proof`: `DATA` - `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes (`DATA`).
 
 ### PayloadAttributesV3
 
@@ -169,6 +182,36 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 4. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs) == len(blobsBundle.proofs)` and `assert verify_blob_kzg_proof_batch(blobsBundle.blobs, blobsBundle.commitments, blobsBundle.proofs)`.
 
 5. Client software **MAY** use any heuristics to decide whether to set `shouldOverrideBuilder` flag or not. If client software does not implement any heuristic this flag **SHOULD** be set to `false`.
+
+### engine_getBlobsV1
+
+Consensus layer clients **MAY** use this method to fetch blobs from the execution layer blob pool.
+
+*Note*: This is a new optional method introduced after Cancun. It is defined here because it is backwards-compatible with Cancun.
+
+#### Request
+
+* method: `engine_getBlobsV1`
+* params:
+  1. `Array of DATA`, 32 Bytes - Array of blob versioned hashes.
+* timeout: 1s
+
+#### Response
+
+* result: `Array of BlobAndProofV1` - Array of [`BlobAndProofV1`](#BlobAndProofV1), items of which may be `null`.
+* error: code and message set in case an error occurs during processing of the request.
+
+#### Specification
+
+1. Given an array of blob versioned hashes client software **MUST** respond with an array of `BlobAndProofV1` objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
+
+1. Client software **MUST** place responses in the order given in the request, using `null` for any missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[A, null, C]`.
+
+1. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
+
+1. Client software **MAY** return an array of all `null` entries if syncing or otherwise unable to serve blob pool data.
+
+1. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
 
 ### Deprecate `engine_exchangeTransitionConfigurationV1`
 

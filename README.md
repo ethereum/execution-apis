@@ -98,7 +98,7 @@ This repository is licensed under [CC0](LICENSE).
 
 [playground]: https://ethereum.github.io/execution-apis/api-documentation/
 [openrpc]: https://open-rpc.org
-[validator]: https://open-rpc.github.io/schema-utils-js/globals.html#validateopenrpcdocument
+[validator]: https://open-rpc.github.io/schema-utils-js/functions/validateOpenRPCDocument.html
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
 [making-changes]: docs/making-changes.md

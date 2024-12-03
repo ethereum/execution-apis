@@ -222,7 +222,7 @@ The payload build process is specified as follows:
 
     1. Verify that `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash` and return `-38003: Invalid payload attributes` on failure.
 
-    2. If `payloadAttributes` passes all valdiation steps, begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload building](#payload-building) section.
+    2. If `payloadAttributes` passes all validation steps, begin a payload build process building on top of `forkchoiceState.headBlockHash` and identified via `buildProcessId` value. The build process is specified in the [Payload building](#payload-building) section.
 
     3. If `payloadAttributes` validation fails, the `forkchoiceState` update **MUST NOT** be rolled back.
 
