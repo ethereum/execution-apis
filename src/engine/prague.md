@@ -118,7 +118,9 @@ Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_fork
 
 #### Specification
 
-This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following modifications:
+1. `payloadAttributes` **MUST** match the [`PayloadAttributesV4`](#payloadattributesv4) structure.
+2. `payloadAttributes.timestamp` **MUST** fall within the time frame of the Prague fork.
 
 ### Update the methods of previous forks
 
