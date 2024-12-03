@@ -16,11 +16,11 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
-  - [engine_getPayloadV4](#engine_getpayloadv4)
+  - [engine_forkchoiceUpdatedV4](#engine_forkchoiceupdatedv4)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
-  - [engine_forkchoiceUpdatedV4](#engine_forkchoiceupdatedv4)
+  - [engine_getPayloadV4](#engine_getpayloadv4)
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
@@ -73,6 +73,26 @@ and incorporate it into the `blockHash` validation process.
 That is, if the computed commitment does not match the corresponding commitment in the execution layer block header,
 the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
 
+### engine_forkchoiceUpdatedV4
+
+#### Request
+
+* method: `engine_forkchoiceUpdatedV4`
+* params:
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
+* timeout: 8s
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following modifications:
+1. `payloadAttributes` **MUST** match the [`PayloadAttributesV4`](#payloadattributesv4) structure.
+2. `payloadAttributes.timestamp` **MUST** fall within the time frame of the Prague fork.
+
 ### engine_getPayloadV4
 
 The response of this method is extended with the `executionRequests` field.
@@ -101,26 +121,6 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
 
 2. The call **MUST** return `executionRequests` list representing execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
-
-### engine_forkchoiceUpdatedV4
-
-#### Request
-
-* method: `engine_forkchoiceUpdatedV4`
-* params:
-  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
-  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
-* timeout: 8s
-
-#### Response
-
-Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
-
-#### Specification
-
-This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following modifications:
-1. `payloadAttributes` **MUST** match the [`PayloadAttributesV4`](#payloadattributesv4) structure.
-2. `payloadAttributes.timestamp` **MUST** fall within the time frame of the Prague fork.
 
 ### Update the methods of previous forks
 
