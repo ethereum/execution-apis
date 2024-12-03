@@ -110,15 +110,15 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 
 ### PayloadAttributesV4
 
-This structure has the syntax of `PayloadAttributesV3` and appends the fields: `targetBlobCount`, `maximumBlobCount`.
+This structure has the syntax of `PayloadAttributesV3` and appends the fields: `targetBlobsPerBlock`, `maxBlobsPerBlock`.
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
 - `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-- `targetBlobCount`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
-- `maximumBlobCount`: `QUANTITY`, 64 Bits - Maximum number of blobs allowed per payload.
+- `targetBlobsPerBlock`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
+- `maxBlobsPerBlock`: `QUANTITY`, 64 Bits - Maximum number of blobs allowed per payload.
 
 ## Methods
 
@@ -133,7 +133,7 @@ The request of this method is updated with [`ExecutionPayloadV4`](#ExecutionPayl
   1. `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `targetBlobCount`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
+  4. `targetBlobsPerBlock`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
 
 #### Response
 
@@ -183,11 +183,11 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 
 #### Response
 
-Refer to the response for [`engine_forkchoiceUpdatedV3`](./shanghai.md#engine_forkchoiceupdatedv3).
+Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
 
 #### Specification
 
-This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./shanghai.md#engine_forkchoiceupdatedv3).
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
 
 ### engine_getPayloadBodiesByHashV2
 
