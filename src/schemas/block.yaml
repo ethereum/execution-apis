@@ -85,8 +85,8 @@ Block:
     parentBeaconBlockRoot:
       title: Parent Beacon Block Root
       $ref: '#/components/schemas/hash32'
-    targetBlobCount:
-      title: Target blob count
+    targetBlobsPerBlock:
+      title: Target blobs per block
       $ref: '#/components/schemas/uint64'
     size:
       title: Block size
