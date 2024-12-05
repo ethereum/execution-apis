@@ -18,29 +18,18 @@ function sortByMethodName(methods) {
 console.log("Loading files...\n");
 
 let methods = [];
-let methodsBase = "src/eth/";
-let methodFiles = fs.readdirSync(methodsBase);
-methodFiles.forEach(file => {
-  console.log(file);
-  let raw = fs.readFileSync(methodsBase + file);
-  let parsed = yaml.load(raw);
-  methods = [
-    ...methods,
-    ...parsed,
-  ];
-});
-
-methodsBase = "src/debug/";
-methodFiles = fs.readdirSync(methodsBase);
-methodFiles.forEach(file => {
-  console.log(file);
-  let raw = fs.readFileSync(methodsBase + file);
-  let parsed = yaml.load(raw);
-  methods = [
-    ...methods,
-    ...parsed,
-  ];
-});
+for (const methodsBase of ['src/eth/', 'src/wallet/', 'src/debug/']) {
+    let methodFiles = fs.readdirSync(methodsBase);
+    methodFiles.forEach(file => {
+        console.log(file);
+        let raw = fs.readFileSync(methodsBase + file);
+        let parsed = yaml.load(raw);
+        methods = [
+            ...methods,
+            ...parsed,
+        ];
+    });
+}
 
 methodsBase = "src/engine/openrpc/methods/";
 methodFiles = fs.readdirSync(methodsBase);
