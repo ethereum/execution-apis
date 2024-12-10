@@ -9,18 +9,62 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [Structures](#structures)
+  - [ExecutionPayloadV4](#executionpayloadv4)
+  - [PayloadAttributesV4](#payloadattributesv4)
 - [Methods](#methods)
   - [engine_newPayloadV4](#engine_newpayloadv4)
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
-  - [engine_getPayloadV4](#engine_getpayloadv4)
+  - [engine_forkchoiceUpdatedV4](#engine_forkchoiceupdatedv4)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
+  - [engine_getPayloadV4](#engine_getpayloadv4)
+    - [Request](#request-2)
+    - [Response](#response-2)
+    - [Specification](#specification-2)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Structures
+
+### ExecutionPayloadV4
+
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field(s): `targetBlobsPerBlock`.
+
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `blobGasUsed`: `QUANTITY`, 64 Bits
+- `excessBlobGas`: `QUANTITY`, 64 Bits
+- `targetBlobsPerBlock`: `QUANTITY`, 64 Bits
+
+### PayloadAttributesV4
+
+This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends the fields: `targetBlobsPerBlock`, `maxBlobsPerBlock`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+- `targetBlobsPerBlock`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
+- `maxBlobsPerBlock`: `QUANTITY`, 64 Bits - Maximum number of blobs allowed per payload.
 
 ## Methods
 
@@ -32,10 +76,11 @@ Method parameter list is extended with `executionRequests`.
 
 * method: `engine_newPayloadV4`
 * params:
-  1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
+  1. `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
+  5. `targetBlobsPerBlock`: `QUANTITY`, 64 Bits - Average number of blobs to include per payload.
 
 #### Response
 
@@ -52,6 +97,26 @@ and incorporate it into the `blockHash` validation process.
 That is, if the computed commitment does not match the corresponding commitment in the execution layer block header,
 the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
 
+### engine_forkchoiceUpdatedV4
+
+#### Request
+
+* method: `engine_forkchoiceUpdatedV4`
+* params:
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
+* timeout: 8s
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following modifications:
+1. `payloadAttributes` **MUST** match the [`PayloadAttributesV4`](#payloadattributesv4) structure.
+2. `payloadAttributes.timestamp` **MUST** fall within the time frame of the Prague fork.
+
 ### engine_getPayloadV4
 
 The response of this method is extended with the `executionRequests` field.
@@ -66,7 +131,7 @@ The response of this method is extended with the `executionRequests` field.
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3)
+  - `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadv4)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
