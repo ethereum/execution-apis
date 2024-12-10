@@ -203,7 +203,7 @@
                 address: '0x00000000000000000000000000000000000010f1'
                 amount: '0x1'
             parentBeaconBlockRoot: '0x11f780a954bcba8889998e4e61deaae6388dd2391e9c810bd9c94962cc1eadc1'
-            gasLimit: '0x1c9c380'
+            targetGasLimit: '0x1c9c380'
       result:
         name: Response object
         value:
