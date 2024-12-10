@@ -94,7 +94,7 @@ PayloadAttributesV4:
     - suggestedFeeRecipient
     - withdrawals
     - parentBeaconBlockRoot
-    - gasLimit
+    - targetGasLimit
   properties:
     timestamp:
       $ref: '#/components/schemas/PayloadAttributesV2/properties/timestamp'
@@ -107,5 +107,5 @@ PayloadAttributesV4:
     parentBeaconBlockRoot:
       title: Parent beacon block root
       $ref: '#/components/schemas/hash32'
-    gasLimit:
+    targetGasLimit:
       $ref: '#/components/schemas/uint64'

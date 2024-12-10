@@ -30,7 +30,7 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 
 ### engine_forkchoiceUpdatedV4
 
-Method parameter list is extended with `gasLimit`.
+Method parameter list is extended with `targetGasLimit`.
 
 #### Request
 
@@ -48,7 +48,7 @@ Refer to the response for [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_fo
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following changes to the processing flow:
 
-1. Client software **MUST** use the gas limit supplied in `payloadAttributes.gasLimit` when constructing a payload.
+1. Client software **MUST** use the target gas limit supplied in `payloadAttributes.targetGasLimit` when constructing a payload.
 
 ### engine_newPayloadV4
 
