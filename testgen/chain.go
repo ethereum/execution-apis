@@ -45,6 +45,8 @@ type ChainTxInfo struct {
 	CallMeContract      *ContractInfo `json:"deploy-callme"`
 	CallEnvContract     *ContractInfo `json:"deploy-callenv"`
 	CallRevertContract  *ContractInfo `json:"deploy-callrevert"`
+	EIP7702             *EIP7702Info  `json:"tx-eip7702"`
+	EIP7002             *EIP7002Info  `json:"tx-request-eip7002"`
 }
 
 // TxInfo is a transaction record created by hivechain.
@@ -62,6 +64,17 @@ type TxInfo struct {
 type ContractInfo struct {
 	Addr  common.Address `json:"contract"`
 	Block hexutil.Uint64 `json:"block"`
+}
+
+type EIP7702Info struct {
+	Account     common.Address `json:"account"`
+	ProxyAddr   common.Address `json:"proxyAddr"`
+	AuthorizeTx common.Hash    `json:"authorizeTx"`
+}
+
+type EIP7002Info struct {
+	TxHash common.Hash    `json:"txhash"`
+	Block  hexutil.Uint64 `json:"block"`
 }
 
 // NewChain takes the given chain.rlp file, decodes it, and returns
