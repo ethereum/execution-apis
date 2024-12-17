@@ -108,6 +108,9 @@ Block:
       type: array
       items:
         $ref: '#/components/schemas/hash32'
+    requestsHash:
+      title: EIP-7685 requests hash
+      $ref: '#/components/schemas/hash32'
 BlockTag:
   title: Block tag
   type: string
