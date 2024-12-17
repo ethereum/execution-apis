@@ -89,6 +89,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
+	EthBlobBaseFee,
 
 	// -- header requests are not in the spec yet
 	// EthGetHeaderByNumber,
@@ -1571,6 +1572,21 @@ var EthMaxPriorityFeePerGas = MethodTests{
 					return err
 				}
 				return nil
+			},
+		},
+	},
+}
+
+var EthBlobBaseFee = MethodTests{
+	"eth_blobBaseFee",
+	[]Test{
+		{
+			Name:  "get-current-blobfee",
+			About: "gets the current blob fee in wei",
+			Run: func(ctx context.Context, t *T) error {
+				var result hexutil.Big
+				err := t.rpc.CallContext(ctx, &result, "eth_blobBaseFee")
+				return err
 			},
 		},
 	},
