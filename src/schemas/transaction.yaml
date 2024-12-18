@@ -71,13 +71,13 @@ AuthorizationList:
       yParity:
         title: yParity
         description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature
-        $ref: '#/components/schemas/uint'
+        $ref: '#/components/schemas/byte'
       r:
         title: r
-        $ref: '#/components/schemas/uint'
+        $ref: '#/components/schemas/uint256'
       s:
         title: s
-        $ref: '#/components/schemas/uint'
+        $ref: '#/components/schemas/uint256'
     required:
       - chainId
       - nonce
