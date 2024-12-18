@@ -136,7 +136,6 @@
         - name: StorageKeys
           value:
             - '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
-            - '0x283s34c8e2b1456f09832c71e5d6a0b4f8c9e1d3a2b5c7f0e6d4a8b2c1f3e5d7'
         - name: Block
           value: 'latest'
       result:
