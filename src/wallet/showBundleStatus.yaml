@@ -1,0 +1,12 @@
+- name: wallet_showBundleStatus
+  summary: Requests that the wallet show the status of the bundle with the given identifier
+  params:
+    - name: Bundle identifier
+      required: true
+      schema:
+        type: string
+        maxLength: 66
+  result:
+    name: Empty
+    schema:
+      type: "null"
