@@ -33,7 +33,9 @@
     - name: Storage slot
       required: true
       schema:
-        $ref: '#/components/schemas/uint256'
+        # this used to require strict uint256, but usage of leading zero is commonplace,
+        # so we can't disallow it.
+        $ref: '#/components/schemas/bytesMax32'
     - name: Block
       required: true
       schema:
