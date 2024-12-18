@@ -41,6 +41,10 @@ Transaction7702Unsigned:
       title: max fee per gas
       description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
       $ref: '#/components/schemas/uint'
+    gasPrice:
+      title: gas price
+      description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
+      $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
       description: EIP-2930 access lists
@@ -132,6 +136,10 @@ Transaction4844Unsigned:
     maxFeePerBlobGas:
       title: max fee per blob gas
       description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
+      $ref: '#/components/schemas/uint'
+    gasPrice:
+      title: gas price
+      description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
       $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
@@ -335,7 +343,11 @@ Transaction7702Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          $ref: '#/components/schemas/byte'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -356,7 +368,11 @@ Transaction4844Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          $ref: '#/components/schemas/byte'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -377,11 +393,11 @@ Transaction1559Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         v:
           title: v
           description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -402,11 +418,11 @@ Transaction2930Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         v:
           title: v
           description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         r:
           title: r
           $ref: '#/components/schemas/uint'
