@@ -1121,8 +1121,8 @@ var EthGetTransactionByHash = MethodTests{
 				if err != nil {
 					return err
 				}
-				if len(got.AuthList()) == 0 {
-					return fmt.Errorf("missing auth list in transaction")
+				if got.Type() != types.SetCodeTxType {
+					return fmt.Errorf("transaction is not of type %v", types.SetCodeTxType)
 				}
 				return nil
 			},
