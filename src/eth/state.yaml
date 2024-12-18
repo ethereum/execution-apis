@@ -57,7 +57,7 @@
         name: Value
         value: '0x0000000000000000000000000000000000000000000000000000000000000000'
 - name: eth_getTransactionCount
-  summary: Returns the number of transactions sent from an address.
+  summary: Returns the nonce of an account in the state. NOTE: The name eth_getTransactionCount reflects the historical fact that an account's nonce and sent transaction count were the same. After the Pectra fork, with the inclusion of EIP-7702, this is no longer true.
   params:
     - name: Address
       required: true
@@ -68,7 +68,7 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
-    name: Transaction count
+    name: Account nonce
     schema:
       $ref: '#/components/schemas/uint'
   examples:
