@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/cespare/cp v1.1.1
-	github.com/ethereum/go-ethereum v1.14.6-0.20241217141617-71c28d8d2b20
+	github.com/ethereum/go-ethereum v1.14.6-0.20241218181053-9d4b29f29165
 	github.com/holiman/uint256 v1.3.2
 	github.com/open-rpc/meta-schema v0.0.0-20210416041958-626a15d0a618
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0
@@ -109,11 +109,11 @@ require (
 	github.com/urfave/cli/v2 v2.25.7 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.uber.org/automaxprocs v1.5.2 // indirect
-	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
