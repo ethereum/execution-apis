@@ -74,8 +74,8 @@ github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7/go.mod h1:hn7BA
 github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d/go.mod h1:DngW8aVqWbuLRMHItjPUyqdj+HWPvnQe8V8y1nDpIbM=
 github.com/ethereum/c-kzg-4844 v1.0.0 h1:0X1LBXxaEtYD9xsyj9B9ctQEZIpnvVDeoBx8aHEwTNA=
 github.com/ethereum/c-kzg-4844 v1.0.0/go.mod h1:VewdlzQmpT5QSrVhbBuGoCdFJkpaJlO1aQputP83wc0=
-github.com/ethereum/go-ethereum v1.14.6-0.20241218181053-9d4b29f29165 h1:Aqg1T2mFc5qyD1nvUqvBPMlErcScCFLQX4ovFOFuue0=
-github.com/ethereum/go-ethereum v1.14.6-0.20241218181053-9d4b29f29165/go.mod h1:xmF8maAZYhsXfnZpq2FW75t1UwhBtxnmNhbR91pCPug=
+github.com/ethereum/go-ethereum v1.14.6-0.20241219150305-341647f1865d h1:6ANvowlmL7EuPryw0ZcfW1h2lYS6cykclFl9m9ivOys=
+github.com/ethereum/go-ethereum v1.14.6-0.20241219150305-341647f1865d/go.mod h1:xmF8maAZYhsXfnZpq2FW75t1UwhBtxnmNhbR91pCPug=
 github.com/ethereum/go-verkle v0.2.2 h1:I2W0WjnrFUIzzVPwm8ykY+7pL2d4VhlsePn4j7cnFk8=
 github.com/ethereum/go-verkle v0.2.2/go.mod h1:M3b90YRnzqKyyzBEWJGqj8Qff4IDeXnzFw0P9bFw3uk=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=

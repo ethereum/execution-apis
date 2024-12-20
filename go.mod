@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/cespare/cp v1.1.1
-	github.com/ethereum/go-ethereum v1.14.6-0.20241218181053-9d4b29f29165
+	github.com/ethereum/go-ethereum v1.14.6-0.20241219150305-341647f1865d
 	github.com/holiman/uint256 v1.3.2
 	github.com/open-rpc/meta-schema v0.0.0-20210416041958-626a15d0a618
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0
