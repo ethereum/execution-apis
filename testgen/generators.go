@@ -89,6 +89,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
+	EthBlobBaseFee,
 
 	// -- header requests are not in the spec yet
 	// EthGetHeaderByNumber,
@@ -202,6 +203,24 @@ var EthGetCode = MethodTests{
 					return err
 				}
 				want := t.chain.state[emitContract].Code
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
+				}
+				return nil
+			},
+		},
+		{
+			Name: "get-code-eip7702-delegation",
+			About: `requests code of an account that has an EIP-7702 delegation. the server is expected to return
+the delegation designator.`,
+			Run: func(ctx context.Context, t *T) error {
+				account := t.chain.txinfo.EIP7702.Account
+				var got hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &got, "eth_getCode", account, "latest")
+				if err != nil {
+					return err
+				}
+				want := t.chain.state[account].Code
 				if !bytes.Equal(got, want) {
 					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
 				}
@@ -473,6 +492,21 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
+			Name:  "get-block-eip7685-requests",
+			About: "retrieves a block containing non-empty EIP-7685 requests",
+			Run: func(ctx context.Context, t *T) error {
+				blocknum := t.chain.txinfo.EIP7002.Block
+				b, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(blocknum)))
+				if err != nil {
+					return err
+				}
+				if b.RequestsHash() == nil || *b.RequestsHash() == types.EmptyRequestsHash {
+					return fmt.Errorf("block hash empty or missing requestsHash")
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "get-block-notfound",
 			About: "gets block notfound",
 			Run: func(ctx context.Context, t *T) error {
@@ -553,6 +587,33 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 				}
 				if len(result) == 0 {
 					return fmt.Errorf("empty call result")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-eip7702-delegation",
+			About: `Performs a call to an account that has an EIP-7702 code delegation.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := ethereum.CallMsg{
+					To:  &t.chain.txinfo.EIP7702.Account,
+					Gas: 100000,
+				}
+				result, err := t.eth.CallContract(ctx, msg, nil)
+				if err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("empty call result")
+				}
+				expectedOutput := slices.Concat(
+					make([]byte, 12),
+					t.chain.txinfo.EIP7702.Account[:],
+					[]byte("invoked"),
+					make([]byte, 25),
+				)
+				if !bytes.Equal(result, expectedOutput) {
+					return fmt.Errorf("wrong return value: %x", result)
 				}
 				return nil
 			},
@@ -1052,6 +1113,21 @@ var EthGetTransactionByHash = MethodTests{
 			},
 		},
 		{
+			Name:  "get-setcode-tx",
+			About: "retrieves an EIP-7702 transaction",
+			Run: func(ctx context.Context, t *T) error {
+				txhash := t.chain.txinfo.EIP7702.AuthorizeTx
+				got, _, err := t.eth.TransactionByHash(ctx, txhash)
+				if err != nil {
+					return err
+				}
+				if got.Type() != types.SetCodeTxType {
+					return fmt.Errorf("transaction is not of type %v", types.SetCodeTxType)
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "get-empty-tx",
 			About: "requests the zero transaction hash",
 			Run: func(ctx context.Context, t *T) error {
@@ -1496,6 +1572,21 @@ var EthMaxPriorityFeePerGas = MethodTests{
 					return err
 				}
 				return nil
+			},
+		},
+	},
+}
+
+var EthBlobBaseFee = MethodTests{
+	"eth_blobBaseFee",
+	[]Test{
+		{
+			Name:  "get-current-blobfee",
+			About: "gets the current blob fee in wei",
+			Run: func(ctx context.Context, t *T) error {
+				var result hexutil.Big
+				err := t.rpc.CallContext(ctx, &result, "eth_blobBaseFee")
+				return err
 			},
 		},
 	},
