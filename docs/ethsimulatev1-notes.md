@@ -15,7 +15,7 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | gasLimit | The same as the base block defined as the second parameter in the call |
 | hash | Calculated normally |
 | parentHash | Previous blocks hash |
-| timestamp | The timestamp of previous block + 1 |
+| timestamp | The timestamp of previous block + `network block time` (12s on mainnet) |
 | baseFeePerGas | When validation mode is true, baseFeePerGas is calculated on what it should be according to Ethereum's spec. When validation mode is false, the baseFeePerGas is set to zero |
 | sha3Uncles | Empty trie root |
 | withdrawals | Empty array |
@@ -29,8 +29,6 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | withdrawalsRoot | Calculated normally |
 | gasUsed | Calculated normally |
 | stateRoot | Calculated normally |
-
-An interesting note here is that we decide timestamp as `previous block timestamp + 1`, while `previous block timestamp + 12` could also be an assumed default. The reasoning to use `+1` is that it's the minimum amount we have to increase the timestamp to keep them valid. While `+12` is what Mainnet uses, there are other chains that use some other values, and we didn't want to complicate the specification to consider all networks.
 
 ## Default values for transactions
 As eth_simulate is an extension to `eth_call` we want to enable the nice user experience that the user does not need to provide all required values for a transaction. We are assuming following defaults if the variable is not provided by the user:
