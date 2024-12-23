@@ -15,7 +15,7 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | gasLimit | The same as the base block defined as the second parameter in the call |
 | hash | Calculated normally |
 | parentHash | Previous blocks hash |
-| timestamp | The timestamp of previous block + `network block time` (12s on mainnet) |
+| timestamp | The timestamp of previous block + `network block time` (12s on Ethereum Mainnet) |
 | baseFeePerGas | When validation mode is true, baseFeePerGas is calculated on what it should be according to Ethereum's spec. When validation mode is false, the baseFeePerGas is set to zero |
 | sha3Uncles | Empty trie root |
 | withdrawals | Empty array |
