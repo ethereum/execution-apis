@@ -206,6 +206,21 @@ func (c *Chain) MustSignTx(from common.Address, txdata types.TxData) *types.Tran
 	return types.MustSignNewTx(acc.Key, signer, txdata)
 }
 
+// SignAuth signs a SetCode Authorization for the specified from account, so long as that
+// account was in the hivechain accounts dump.
+func (c *Chain) SignAuth(from common.Address, auth types.SetCodeAuthorization) (types.SetCodeAuthorization, error) {
+	acc, ok := c.senders[from]
+	if !ok {
+		panic(fmt.Errorf("account not available for signing: %s", from))
+	}
+
+	signedAuth, err := types.SignSetCode(acc.Key, auth)
+	if err != nil {
+		return types.SetCodeAuthorization{}, err
+	}
+	return signedAuth, nil
+}
+
 func loadGenesis(genesisFile string) (core.Genesis, error) {
 	chainConfig, err := os.ReadFile(genesisFile)
 	if err != nil {

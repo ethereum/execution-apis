@@ -1265,6 +1265,24 @@ var EthGetTransactionReceipt = MethodTests{
 			},
 		},
 		{
+			Name:  "get-setcode-tx",
+			About: "gets the receipt for a EIP-7702 setcode transaction",
+			Run: func(ctx context.Context, t *T) error {
+				txhash := t.chain.txinfo.EIP7702.AuthorizeTx
+				receipt, err := t.eth.TransactionReceipt(ctx, txhash)
+				if err != nil {
+					return err
+				}
+				if receipt.TxHash != txhash {
+					return fmt.Errorf("wrong receipt returned")
+				}
+				if receipt.Type != types.SetCodeTxType {
+					return fmt.Errorf("wrong tx type in receipt")
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "get-empty-tx",
 			About: "requests the receipt for the zero tx hash",
 			Run: func(ctx context.Context, t *T) error {
