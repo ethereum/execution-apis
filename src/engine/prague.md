@@ -79,7 +79,7 @@ This method follows the same specification as [`engine_getPayloadV3`](./cancun.m
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Prague fork.
 
-2. The call **MUST** return `executionRequests` list representing execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
+2. The call **MUST** return `executionRequests` list representing execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list. Elements **MUST** be longer than 1-byte, and each `request_type` **MUST** be unique within the list.
 
 ### Update the methods of previous forks
 
