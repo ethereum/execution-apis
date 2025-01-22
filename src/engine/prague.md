@@ -10,6 +10,10 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Methods](#methods)
+  - [engine_forkchoiceUpdatedV4](#engine_forkchoiceupdatedv4)
+    - [Request](#request)
+    - [Response](#response)
+    - [Specification](#specification)
   - [engine_newPayloadV4](#engine_newpayloadv4)
     - [Request](#request)
     - [Response](#response)
@@ -23,6 +27,28 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Methods
+
+### engine_forkchoiceUpdatedV4
+
+Method parameter list is extended with `targetGasLimit`.
+
+#### Request
+
+* method: `engine_forkchoiceUpdatedV4`
+* params:
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
+* timeout: 8s
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV2`](./shanghai.md#engine_forkchoiceupdatedv2).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following changes to the processing flow:
+
+1. Client software **MUST** use the target gas limit supplied in `payloadAttributes.targetGasLimit` when constructing a payload.
 
 ### engine_newPayloadV4
 
