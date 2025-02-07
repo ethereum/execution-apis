@@ -38,6 +38,7 @@ This enum defines a standard for specifying a client with just two letters. Clie
  - `LS`: lodestar
  - `NM`: nethermind
  - `NB`: nimbus
+ - `TE`: trin-execution
  - `TK`: teku
  - `PM`: prysm
  - `RH`: reth

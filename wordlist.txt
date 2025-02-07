@@ -15,7 +15,9 @@ ethereum
 ethereumjs
 erigon
 getclientversionv
+getblobsv
 interop
+js
 json
 mempool
 merkle
@@ -41,6 +43,8 @@ validator
 wei
 yaml
 yParity
+eips
+EIPS
 EL
 CL
 CLs
@@ -50,6 +54,7 @@ ipc
 cli
 blobsbundlev
 getblobsbundlev
+blobandproofv
 ssz
 kzg
 besu
@@ -63,4 +68,3 @@ src
 https
 forkchoiceupdatedresponsev
 exitv
-depositreceiptv

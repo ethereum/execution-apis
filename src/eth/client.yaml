@@ -5,6 +5,12 @@
     name: Chain ID
     schema:
       $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_chainId example
+      params: []
+      result:
+        name: Chain ID
+        value: '0x1'
 - name: eth_syncing
   summary: Returns an object with data about the sync status or false.
   params: []
@@ -12,6 +18,15 @@
     name: Syncing status
     schema:
       $ref: '#/components/schemas/SyncingStatus'
+  examples:
+    - name: eth_syncing example
+      params: []
+      result:
+        name: Syncing status
+        value:
+          startingBlock: '0x0'
+          currentBlock: '0x1518'
+          highestBlock: '0x9567a3'
 - name: eth_coinbase
   summary: Returns the client coinbase address.
   params: []
@@ -19,6 +34,12 @@
     name: Coinbase address
     schema:
       $ref: '#/components/schemas/address'
+  examples:
+    - name: eth_coinbase example
+      params: []
+      result:
+        name: Coinbase address
+        value: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
 - name: eth_accounts
   summary: Returns a list of addresses owned by client.
   params: []
@@ -29,6 +50,13 @@
       type: array
       items:
         $ref: '#/components/schemas/address'
+  examples:
+    - name: eth_accounts example
+      params: []
+      result:
+        name: Accounts
+        value:
+          - '0xd1f5279be4b4dd94133a23dee1b23f5bfc0db1d0'
 - name: eth_blockNumber
   summary: Returns the number of most recent block.
   params: []
@@ -36,3 +64,9 @@
     name: Block number
     schema:
       $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_blockNumber example
+      params: []
+      result:
+        name: Block number
+        value: '0x2377'

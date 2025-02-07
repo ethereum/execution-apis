@@ -1,3 +1,94 @@
+Transaction7702Unsigned:
+  type: object
+  title: EIP-7702 transaction
+  required:
+    - type
+    - nonce
+    - to
+    - gas
+    - value
+    - input
+    - maxPriorityFeePerGas
+    - maxFeePerGas
+    - accessList
+    - chainId
+    - authorizationList
+  properties:
+    type:
+      title: type
+      type: string
+      pattern: ^0x4$
+    nonce:
+      title: nonce
+      $ref: '#/components/schemas/uint'
+    to:
+      title: to address
+      $ref: '#/components/schemas/address'
+    gas:
+      title: gas limit
+      $ref: '#/components/schemas/uint'
+    value:
+      title: value
+      $ref: '#/components/schemas/uint'
+    input:
+      title: input data
+      $ref: '#/components/schemas/bytes'
+    maxPriorityFeePerGas:
+      title: max priority fee per gas
+      description: Maximum fee per gas the sender is willing to pay to miners in wei
+      $ref: '#/components/schemas/uint'
+    maxFeePerGas:
+      title: max fee per gas
+      description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+      $ref: '#/components/schemas/uint'
+    gasPrice:
+      title: gas price
+      description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
+      $ref: '#/components/schemas/uint'
+    accessList:
+      title: accessList
+      description: EIP-2930 access lists
+      $ref: '#/components/schemas/AccessList'
+    chainId:
+      title: chainId
+      description: Chain ID that this transaction is valid on
+      $ref: '#/components/schemas/uint'
+    authorizationList:
+      title: authorizationList
+      $ref: '#/components/schemas/AuthorizationList'
+AuthorizationList:
+  title: Authorization List
+  description: List of authorizations for the transaction
+  type: array
+  items:
+    type: object
+    properties:
+      chainId:
+        title: chainId
+        description: Chain ID on which this transaction is valid
+        $ref: '#/components/schemas/uint'
+      nonce:
+        title: nonce
+        $ref: '#/components/schemas/uint'
+      address:
+        $ref: '#/components/schemas/address'
+      yParity:
+        title: yParity
+        description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature
+        $ref: '#/components/schemas/byte'
+      r:
+        title: r
+        $ref: '#/components/schemas/uint256'
+      s:
+        title: s
+        $ref: '#/components/schemas/uint256'
+    required:
+      - chainId
+      - nonce
+      - address
+      - yParity
+      - r
+      - s
 Transaction4844Unsigned:
   type: object
   title: EIP-4844 transaction.
@@ -17,7 +108,8 @@ Transaction4844Unsigned:
   properties:
     type:
       title: type
-      $ref: '#/components/schemas/byte'
+      type: string
+      pattern: ^0x3$
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
@@ -45,24 +137,31 @@ Transaction4844Unsigned:
       title: max fee per blob gas
       description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
       $ref: '#/components/schemas/uint'
+    gasPrice:
+      title: gas price
+      description: The effective gas price paid by the sender in wei. For transactions not yet included in a block, this value should be set equal to the max fee per gas. This field is DEPRECATED, please transition to using effectiveGasPrice in the receipt object going forward.
+      $ref: '#/components/schemas/uint'
     accessList:
       title: accessList
       description: EIP-2930 access list
       $ref: '#/components/schemas/AccessList'
     blobVersionedHashes:
       title: blobVersionedHashes
-      description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+      description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs
       type: array
       items:
         $ref: '#/components/schemas/hash32'
     chainId:
       title: chainId
-      description: Chain ID that this transaction is valid on.
+      description: Chain ID that this transaction is valid on
       $ref: '#/components/schemas/uint'
 AccessListEntry:
   title: Access list entry
   type: object
   additionalProperties: false
+  required: 
+    - address
+    - storageKeys
   properties:
     address:
       $ref: '#/components/schemas/address'
@@ -225,10 +324,36 @@ TransactionLegacyUnsigned:
       $ref: '#/components/schemas/uint'
 TransactionUnsigned:
   oneOf:
+    - $ref: '#/components/schemas/Transaction7702Unsigned'
     - $ref: '#/components/schemas/Transaction4844Unsigned'
     - $ref: '#/components/schemas/Transaction1559Unsigned'
     - $ref: '#/components/schemas/Transaction2930Unsigned'
     - $ref: '#/components/schemas/TransactionLegacyUnsigned'
+Transaction7702Signed:
+  title: Signed 7702 Transaction
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/Transaction7702Unsigned'
+    - title: EIP-7702 transaction signature properties.
+      required:
+        - yParity
+        - r
+        - s
+      properties:
+        yParity:
+          title: yParity
+          description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
+          $ref: '#/components/schemas/byte'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          $ref: '#/components/schemas/byte'
+        r:
+          title: r
+          $ref: '#/components/schemas/uint'
+        s:
+          title: s
+          $ref: '#/components/schemas/uint'
 Transaction4844Signed:
   title: Signed 4844 Transaction
   type: object
@@ -243,7 +368,11 @@ Transaction4844Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
+        v:
+          title: v
+          description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
+          $ref: '#/components/schemas/byte'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -264,11 +393,11 @@ Transaction1559Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         v:
           title: v
           description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -289,11 +418,11 @@ Transaction2930Signed:
         yParity:
           title: yParity
           description: The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         v:
           title: v
           description: For backwards compatibility, `v` is optionally provided as an alternative to `yParity`. This field is DEPRECATED and all use of it should migrate to `yParity`.
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/byte'
         r:
           title: r
           $ref: '#/components/schemas/uint'
@@ -322,6 +451,7 @@ TransactionLegacySigned:
           $ref: '#/components/schemas/uint'
 TransactionSigned:
   oneOf:
+    - $ref: '#/components/schemas/Transaction7702Signed'
     - $ref: '#/components/schemas/Transaction4844Signed'
     - $ref: '#/components/schemas/Transaction1559Signed'
     - $ref: '#/components/schemas/Transaction2930Signed'
@@ -421,3 +551,7 @@ GenericTransaction:
       title: chainId
       description: Chain ID that this transaction is valid on.
       $ref: '#/components/schemas/uint'
+    authorizationList:
+      title: authorizationList
+      description: EIP-7702 authorization list
+      $ref: '#/components/schemas/AuthorizationList'

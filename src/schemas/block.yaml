@@ -70,9 +70,6 @@ Block:
     nonce:
       title: Nonce
       $ref: '#/components/schemas/bytes8'
-    totalDifficulty:
-      title: Total difficulty
-      $ref: '#/components/schemas/uint'
     baseFeePerGas:
       title: Base fee per gas
       $ref: '#/components/schemas/uint'
@@ -111,6 +108,9 @@ Block:
       type: array
       items:
         $ref: '#/components/schemas/hash32'
+    requestsHash:
+      title: EIP-7685 requests hash
+      $ref: '#/components/schemas/hash32'
 BlockTag:
   title: Block tag
   type: string

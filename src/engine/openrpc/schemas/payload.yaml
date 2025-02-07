@@ -243,74 +243,6 @@ ExecutionPayloadV3:
     excessBlobGas:
       title: Excess blob gas
       $ref: '#/components/schemas/uint64'
-ExecutionPayloadV4:
-  title: Execution payload object V4
-  type: object
-  required:
-    - parentHash
-    - feeRecipient
-    - stateRoot
-    - receiptsRoot
-    - logsBloom
-    - prevRandao
-    - blockNumber
-    - gasLimit
-    - gasUsed
-    - timestamp
-    - extraData
-    - baseFeePerGas
-    - blockHash
-    - transactions
-    - withdrawals
-    - blobGasUsed
-    - excessBlobGas
-    - depositRequests
-    - withdrawalRequests
-  properties:
-    parentHash:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/parentHash'
-    feeRecipient:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/feeRecipient'
-    stateRoot:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/stateRoot'
-    receiptsRoot:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/receiptsRoot'
-    logsBloom:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/logsBloom'
-    prevRandao:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/prevRandao'
-    blockNumber:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/blockNumber'
-    gasLimit:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/gasLimit'
-    gasUsed:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/gasUsed'
-    timestamp:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/timestamp'
-    extraData:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/extraData'
-    baseFeePerGas:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/baseFeePerGas'
-    blockHash:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/blockHash'
-    transactions:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/transactions'
-    withdrawals:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/withdrawals'
-    blobGasUsed:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/blobGasUsed'
-    excessBlobGas:
-      $ref: '#/components/schemas/ExecutionPayloadV3/properties/excessBlobGas'
-    depositRequests:
-      title: Deposit requests
-      type: array
-      items:
-        $ref: '#/components/schemas/DepositRequestV1'
-    withdrawalRequests:
-      title: Withdrawals requests
-      type: array
-      items:
-        $ref: '#/components/schemas/WithdrawalRequestV1'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object
@@ -326,38 +258,6 @@ ExecutionPayloadBodyV1:
         - 'null'
       items:
         $ref: '#/components/schemas/WithdrawalV1'
-ExecutionPayloadBodyV2:
-  title: Execution payload body object V2
-  type: object
-  required:
-    - transactions
-  properties:
-    transactions:
-      title: Transactions
-      type: array
-      items:
-        $ref: '#/components/schemas/bytes'
-    withdrawals:
-      title: Withdrawals
-      type:
-        - array
-        - 'null'
-      items:
-        $ref: '#/components/schemas/WithdrawalV1'
-    depositRequests:
-      title: Deposit requests
-      type:
-        - array
-        - 'null'
-      items:
-        $ref: '#/components/schemas/DepositRequestV1'
-    withdrawalRequests:
-      title: Withdrawals requests
-      type:
-        - array
-        - 'null'
-      items:
-        $ref: '#/components/schemas/WithdrawalRequestV1'
 BlobsBundleV1:
   title: Blobs bundle object V1
   type: object
@@ -411,15 +311,32 @@ WithdrawalRequestV1:
   type: object
   required:
     - sourceAddress
-    - validatorPublicKey
+    - validatorPubkey
     - amount
   properties:
     sourceAddress:
       title: Source address
       $ref: '#/components/schemas/address'
-    validatorPublicKey:
+    validatorPubkey:
       title: Validator public key
       $ref: '#/components/schemas/bytes48'
     amount:
       title: Withdraw amount
       $ref: '#/components/schemas/uint64'
+ConsolidationRequestV1:
+  title: Consolidation request object V1
+  type: object
+  required:
+    - sourceAddress
+    - sourcePubkey
+    - targetPubkey
+  properties:
+    sourceAddress:
+      title: Source address
+      $ref: '#/components/schemas/address'
+    sourcePubkey:
+      title: Source validator public key
+      $ref: '#/components/schemas/bytes48'
+    targetPubkey:
+      title: Target validator public key
+      $ref: '#/components/schemas/bytes48'
