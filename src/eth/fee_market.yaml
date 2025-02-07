@@ -55,7 +55,7 @@
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
     - name: rewardPercentiles
-      description: A monotonically increasing list of percentile values. For each block in the requested range, the transactions will be sorted in ascending order by effective tip per gas and the coresponding effective tip for the percentile will be determined, accounting for gas consumed.
+      description: A monotonically increasing list of percentile values. For each block in the requested range, the transactions will be sorted in ascending order by effective tip per gas and the corresponding effective tip for the percentile will be determined, accounting for gas consumed.
       required: true
       schema:
         title: rewardPercentiles
