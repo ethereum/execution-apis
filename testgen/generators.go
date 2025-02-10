@@ -969,6 +969,26 @@ var EthGetTransactionCount = MethodTests{
 			},
 		},
 		{
+			Name: "get-nonce-eip7702-account",
+			About: `Retrieves the nonce for an account that has an EIP-7702 code delegation applied.
+For such accounts, the nonce stored in state does not match the 'transaction count'.`,
+			Run: func(ctx context.Context, t *T) error {
+				addr := t.chain.txinfo.EIP7702.Account
+				got, err := t.eth.NonceAt(ctx, addr, nil)
+				if err != nil {
+					return err
+				}
+				want := t.chain.state[addr].Nonce
+				if got != want {
+					return fmt.Errorf("unexpected nonce (got: %d, want: %d)", got, want)
+				}
+				if want == 0 {
+					return fmt.Errorf("nonce for account %v is zero", addr)
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "get-nonce-unknown-account",
 			About: "gets nonce for a non-existent account",
 			Run: func(ctx context.Context, t *T) error {
