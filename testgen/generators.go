@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -91,10 +90,6 @@ var AllMethods = []MethodTests{
 	DebugGetRawTransaction,
 	EthBlobBaseFee,
 
-	// -- header requests are not in the spec yet
-	// EthGetHeaderByNumber,
-	// EthGetHeaderByHash,
-
 	// -- gas price tests are disabled because of non-determinism
 	// EthGasPrice,
 	// EthMaxPriorityFeePerGas,
@@ -136,52 +131,6 @@ var EthChainID = MethodTests{
 					return err
 				} else if want := t.chain.Config().ChainID.Uint64(); got.Uint64() != want {
 					return fmt.Errorf("unexpect chain id (got: %d, want: %d)", got, want)
-				}
-				return nil
-			},
-		},
-	},
-}
-
-// EthGetHeaderByNumber stores a list of all tests against the method.
-var EthGetHeaderByNumber = MethodTests{
-	"eth_getHeaderByNumber",
-	[]Test{
-		{
-			Name:  "get-header-by-number",
-			About: "gets a header by number",
-			Run: func(ctx context.Context, t *T) error {
-				var got types.Header
-				err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByNumber", "0x1")
-				if err != nil {
-					return err
-				}
-				want := t.chain.GetBlock(1)
-				if reflect.DeepEqual(got, want.Header()) {
-					return fmt.Errorf("unexpected header (got: %s, want: %s)", got.Hash(), want.Hash())
-				}
-				return nil
-			},
-		},
-	},
-}
-
-// EthGetHeaderByHash stores a list of all tests against the method.
-var EthGetHeaderByHash = MethodTests{
-	"eth_getHeaderByHash",
-	[]Test{
-		{
-			Name:  "get-header-by-hash",
-			About: "gets a header by hash",
-			Run: func(ctx context.Context, t *T) error {
-				want := t.chain.GetBlock(1).Header()
-				var got types.Header
-				err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByHash", want.Hash())
-				if err != nil {
-					return err
-				}
-				if reflect.DeepEqual(got, want) {
-					return fmt.Errorf("unexpected header (got: %s, want: %s)", got.Hash(), want.Hash())
 				}
 				return nil
 			},
@@ -420,7 +369,7 @@ var EthGetBlockByNumber = MethodTests{
 	[]Test{
 		{
 			Name:  "get-genesis",
-			About: "gets block 0",
+			About: "gets block number zero",
 			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(0))
 				if err != nil {
@@ -434,7 +383,7 @@ var EthGetBlockByNumber = MethodTests{
 		},
 		{
 			Name:  "get-latest",
-			About: "gets block latest",
+			About: "gets the block with tag \"latest\"",
 			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, nil)
 				if err != nil {
@@ -449,7 +398,7 @@ var EthGetBlockByNumber = MethodTests{
 		},
 		{
 			Name:  "get-safe",
-			About: "gets block safe",
+			About: "get the block with tag \"safe\"",
 			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.SafeBlockNumber)))
 				if err != nil {
@@ -464,7 +413,7 @@ var EthGetBlockByNumber = MethodTests{
 		},
 		{
 			Name:  "get-finalized",
-			About: "gets block finalized",
+			About: "get the block with tag \"finalized\"",
 			Run: func(ctx context.Context, t *T) error {
 				block, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(rpc.FinalizedBlockNumber)))
 				if err != nil {
@@ -478,29 +427,73 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:  "get-block-n",
-			About: "gets block 2",
+			Name:  "get-block-london-fork",
+			About: "requests a block at the London fork",
 			Run: func(ctx context.Context, t *T) error {
-				block, err := t.eth.BlockByNumber(ctx, big.NewInt(2))
+				hdr, err := t.eth.HeaderByNumber(ctx, t.chain.config.LondonBlock)
 				if err != nil {
 					return err
 				}
-				if n := block.Number().Uint64(); n != 2 {
-					return fmt.Errorf("expected block 2, got block %d", n)
+				if hdr.BaseFee == nil {
+					return fmt.Errorf("missing basefee in block")
 				}
 				return nil
 			},
 		},
 		{
-			Name:  "get-block-eip7685-requests",
-			About: "retrieves a block containing non-empty EIP-7685 requests",
+			Name:  "get-block-merge-fork",
+			About: "requests a block at the merge (Paris) fork",
 			Run: func(ctx context.Context, t *T) error {
-				blocknum := t.chain.txinfo.EIP7002.Block
-				b, err := t.eth.BlockByNumber(ctx, big.NewInt(int64(blocknum)))
+				hdr, err := t.eth.HeaderByNumber(ctx, t.chain.config.MergeNetsplitBlock)
 				if err != nil {
 					return err
 				}
-				if b.RequestsHash() == nil || *b.RequestsHash() == types.EmptyRequestsHash {
+				if hdr.Difficulty.Sign() > 0 {
+					return fmt.Errorf("block difficulty > 0")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-block-shanghai-fork",
+			About: "requests a block at the Shanghai fork",
+			Run: func(ctx context.Context, t *T) error {
+				blocknum := t.chain.BlockAtTime(*t.chain.config.ShanghaiTime).Number()
+				hdr, err := t.eth.HeaderByNumber(ctx, blocknum)
+				if err != nil {
+					return err
+				}
+				if hdr.WithdrawalsHash == nil {
+					return fmt.Errorf("block has no withdrawalsHash")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-block-cancun-fork",
+			About: "requests a block at the Cancun fork",
+			Run: func(ctx context.Context, t *T) error {
+				blocknum := t.chain.BlockAtTime(*t.chain.config.CancunTime).Number()
+				b, err := t.eth.HeaderByNumber(ctx, blocknum)
+				if err != nil {
+					return err
+				}
+				if b.BlobGasUsed == nil {
+					return fmt.Errorf("block has no blobGasUsed")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-block-prague-fork",
+			About: "requests a block at the Prague fork",
+			Run: func(ctx context.Context, t *T) error {
+				blocknum := t.chain.txinfo.EIP7002.Block
+				hdr, err := t.eth.HeaderByNumber(ctx, big.NewInt(int64(blocknum)))
+				if err != nil {
+					return err
+				}
+				if hdr.RequestsHash == nil || *hdr.RequestsHash == types.EmptyRequestsHash {
 					return fmt.Errorf("block hash empty or missing requestsHash")
 				}
 				return nil
@@ -508,11 +501,11 @@ var EthGetBlockByNumber = MethodTests{
 		},
 		{
 			Name:  "get-block-notfound",
-			About: "gets block notfound",
+			About: "requests a block number that does not exist",
 			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.BlockByNumber(ctx, big.NewInt(1000))
 				if !errors.Is(err, ethereum.NotFound) {
-					return errors.New("get a non-existent block should return notfound")
+					return errors.New("get a non-existent block should return null")
 				}
 				return nil
 			},

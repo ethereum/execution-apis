@@ -133,6 +133,16 @@ func (c *Chain) GetBlock(number int) *types.Block {
 	return c.blocks[number]
 }
 
+// BlockAtTime returns the current block at a given timestamp.
+func (c *Chain) BlockAtTime(timestamp uint64) *types.Block {
+	for _, b := range c.blocks {
+		if b.Time() >= timestamp {
+			return b
+		}
+	}
+	return nil
+}
+
 // BlockWithTransactions returns a block that has a matching transaction.
 func (c *Chain) BlockWithTransactions(matchdesc string, match func(int, *types.Transaction) bool) *types.Block {
 	for _, b := range c.blocks {
