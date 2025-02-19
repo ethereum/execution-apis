@@ -8,19 +8,18 @@ This specification is based on and extends [Engine API - Cancun](./cancun.md) sp
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
-- [Engine API -- Osaka](#engine-api----osaka)
-  - [Structures](#structures)
-    - [BlobsBundleV2](#blobsbundlev2)
-    - [BlobAndProofV2](#blobandproofv2)
-  - [Methods](#methods)
-    - [engine\_getPayloadV5](#engine_getpayloadv5)
-      - [Request](#request)
-      - [Response](#response)
-      - [Specification](#specification)
-    - [engine\_getBlobsV2](#engine_getblobsv2)
-      - [Request](#request-1)
-      - [Response](#response-1)
-      - [Specification](#specification-1)
+- [Structures](#structures)
+  - [BlobsBundleV2](#blobsbundlev2)
+  - [BlobAndProofV2](#blobandproofv2)
+- [Methods](#methods)
+  - [engine_getPayloadV5](#engine_getpayloadv5)
+    - [Request](#request)
+    - [Response](#response)
+    - [Specification](#specification)
+  - [engine_getBlobsV2](#engine_getblobsv2)
+    - [Request](#request-1)
+    - [Response](#response-1)
+    - [Specification](#specification-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
