@@ -2,7 +2,7 @@
 
 Engine API changes introduced in Osaka.
 
-This specification is based on and extends [Engine API - Cancun](./cancun.md) specification.
+This specification is based on and extends [Engine API - Prague](./prague.md) specification.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
