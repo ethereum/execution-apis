@@ -42,7 +42,7 @@ The fields are encoded as follows:
 - `blob`: `DATA` - `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844).
 - `cell_proofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 
-`cell_proofs` contains exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
+`cell_proofs` contains exactly `CELLS_PER_EXT_BLOB` cell proofs.
 
 ## Methods
 
