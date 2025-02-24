@@ -77,6 +77,8 @@ This method follows the same specification as [`engine_getPayloadV4`](./prague.m
    1. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs)` and
    2. `assert len(blobsBundle.cell_proofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
    3. `assert verify_cell_kzg_proof_batch(blobsBundle.commitments, cell_indices, cells, blobsBundle.cell_proofs)`.
+      1. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
+      2. The list of commitments should be `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`  (repeating each commitment for each cell index. All of the inputs to verify_cell_kzg_proof_batch have the same length, CELLS_PER_EXT_BLOB * num_blobs)
 
 ### engine_getBlobsV2
 
