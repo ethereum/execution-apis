@@ -1,0 +1,29 @@
+openrpcExtension: "0.0.0-development"
+name: "x-error-group"
+version: "0.0.1"
+description: "Describe an error group for OpenRPC methods"
+summary: "OpenRPC Error Groups"
+externalDocumentation:
+  description: "github"
+  url: "https://github.com/open-rpc/specification-extension-spec/blob/master/src/examples/x-error-group-ext.json"
+restricted:
+  - "methodObject"
+schema:
+  type: "array"
+  items:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        code:
+          type: "integer"
+          description: "The code of the error."
+        message:
+          type: "string"
+          description: "The message of the error."
+        data:
+          type: "string"
+          description: "The data of the error."
+      required:
+        - "code"
+        - "message"

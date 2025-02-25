@@ -79,6 +79,45 @@ schemaFiles.forEach(file => {
   };
 });
 
+let extensionSpecs = [];
+let extensionSpecsBase = "src/extensions/"
+let extensionsSpecsFiles = fs.readdirSync(extensionSpecsBase);
+extensionsSpecsFiles.forEach(file => {
+  console.log(file);
+  // skip if directory
+  if (fs.lstatSync(extensionSpecsBase + file).isDirectory()) {
+    return;
+  }
+  let raw = fs.readFileSync(extensionSpecsBase + file);
+  let parsed = yaml.load(raw);
+  extensionSpecs.push(parsed);
+});
+console.log(extensionSpecs);
+
+let extensions = [];
+let extensionsBase = "src/extensions/components/"
+let extensionsFiles = fs.readdirSync(extensionsBase);
+extensionsFiles.forEach(file => {
+  console.log(file);
+  let raw = fs.readFileSync(extensionsBase + file);
+  let parsed = yaml.load(raw);  
+  extensions.push(parsed);
+});
+
+// if extensions key matches with extensionSpecs name, then add it to an array of extensionSpec name
+let extensionsDef = {};
+extensionSpecs.forEach((extensionSpec) => {
+  extensions.forEach((extension) => {
+    if (extension.hasOwnProperty(extensionSpec.name)) {     
+      extensionsDef[extensionSpec.name] ={
+        ...extensionsDef[extensionSpec.name],
+        ...extension[extensionSpec.name]
+      }
+    }
+  });
+});
+console.log(extensionsDef)
+
 const doc = {
   openrpc: "1.2.4",
   info: {
@@ -91,7 +130,9 @@ const doc = {
     version: "0.0.0"
   },
   methods: sortByMethodName(methods),
+  "x-extensions": extensionSpecs,
   components: {
+    ...extensionsDef,
     schemas: schemas
   }
 }

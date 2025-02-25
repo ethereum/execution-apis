@@ -1,0 +1,17 @@
+x-error-group:
+  JSONRPCStandardErrors:
+      - code: -32700
+        message: "Parse error"
+        data: "An error occurred on the server while parsing the JSON text"
+      - code: -32600
+        message: "Invalid request"
+        data: "The JSON sent is not a valid request object"
+      - code: -32601
+        message: "Method not found"
+        data: "The method does not exist / is not available"
+      - code: -32602
+        message: "Invalid params"
+        data: "Invalid method parameter(s)"
+      - code: -32603
+        message: "Internal error"
+        data: "Internal JSON-RPC error"
