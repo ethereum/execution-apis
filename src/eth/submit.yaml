@@ -5,6 +5,19 @@
       required: true
       schema:
         $ref: '#/components/schemas/GenericTransaction'
+  x-error-group:
+      # Reference the predefined GasErrors
+      - $ref: '#/components/x-error-group/GasErrors'
+      - $ref: '#/components/x-error-group/JSONRPCNonStandardErrors'
+      - $ref: '#/components/x-error-group/JSONRPCStandardErrors'
+      # Inline additional errors specific to this method
+      - 
+        - code: 50002
+          message: "Insufficient Funds"
+          data: "The account does not have enough balance to cover gas costs."
+        - code: 50003
+          message: "Nonce Too Low"
+          data: "The transaction nonce is lower than expected."
   result:
     name: Transaction hash
     schema:
