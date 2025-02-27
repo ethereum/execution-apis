@@ -1,9 +1,10 @@
 - name: eth_newFilter
-  summary: Creates a filter object, based on filter options, to notify when the state changes (logs).
+  summary: Install a log filter in the server, allowing for later polling. Registers client interest in logs matching the filter, and returns an identifier.
   params:
     - name: Filter
       schema:
         $ref: '#/components/schemas/Filter'
+      required: true
   result:
     name: Filter identifier
     schema:
@@ -21,7 +22,7 @@
         name: Filter identifier
         value: '0x01'
 - name: eth_newBlockFilter
-  summary: Creates a filter in the node, to notify when a new block arrives.
+  summary: Creates a filter in the node, allowing for later polling. Registers client interest in new blocks, and returns an identifier.
   params: []
   result:
     name: Filter identifier
@@ -34,7 +35,7 @@
         name: Filter identifier
         value: '0x01'
 - name: eth_newPendingTransactionFilter
-  summary: Creates a filter in the node, to notify when new pending transactions arrive.
+  summary: Creates a filter in the node, allowing for later polling. Registers client interest in new transactions, and returns an identifier.
   params: []
   result:
     name: Filter identifier
@@ -52,6 +53,7 @@
     - name: Filter identifier
       schema:
         $ref: '#/components/schemas/uint'
+      required: true
   result:
     name: Success
     schema:
@@ -65,11 +67,12 @@
         name: Success
         value: true
 - name: eth_getFilterChanges
-  summary: Polling method for the filter with the given ID (created using `eth_newFilter`). Returns an array of logs which occurred since last poll.
+  summary: Polling method for the filter with the given ID (created using `eth_newFilter`). Returns an array of logs, block hashes, or transaction hashes since last poll, depending on the installed filter.
   params:
     - name: Filter identifier
       schema:
         $ref: '#/components/schemas/uint'
+      required: true
   result:
     name: Log objects
     schema:
@@ -108,6 +111,7 @@
     - name: Filter identifier
       schema:
         $ref: '#/components/schemas/uint'
+      required: true
   result:
     name: Log objects
     schema:
@@ -146,6 +150,7 @@
     - name: Filter
       schema:
         $ref: '#/components/schemas/Filter'
+      required: true
   result:
     name: Log objects
     schema:
