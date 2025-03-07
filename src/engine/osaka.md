@@ -29,9 +29,9 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
 
 The fields are encoded as follows:
 
-- `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
 - `commitments`: `Array of DATA` - Array of `KZGCommitment` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 - `cell_proofs`: `Array of DATA` - Array of `KZGProof` (48 bytes each, type defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), semantics defined in [EIP-7594](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7594.md)).
+- `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
 
 `blobs` and `commitments` arrays **MUST** be of same length, `cell_proofs` contains exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
 
