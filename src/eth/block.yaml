@@ -16,6 +16,9 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/Block'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getBlockByHash example
       params:
@@ -76,6 +79,9 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/Block'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getBlockByNumber example
       params:
@@ -131,6 +137,9 @@
         - $ref: '#/components/schemas/notFound'
         - title: Transaction count
           $ref: '#/components/schemas/uint'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getBlockTransactionCountByHash example
       params:
@@ -152,6 +161,9 @@
         - $ref: '#/components/schemas/notFound'
         - title: Transaction count
           $ref: '#/components/schemas/uint'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getBlockTransactionCountByNumber example
       params:
@@ -173,6 +185,9 @@
         - $ref: '#/components/schemas/notFound'
         - title: Uncle count
           $ref: '#/components/schemas/uint'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getUncleCountByBlockHash example
       params:
@@ -194,6 +209,9 @@
         - $ref: '#/components/schemas/notFound'
         - title: Uncle count
           $ref: '#/components/schemas/uint'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getUncleCountByBlockNumber example
       params:
@@ -218,6 +236,9 @@
           type: array
           items:
             $ref: '#/components/schemas/ReceiptInfo'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getBlockReceipts example
       params:
