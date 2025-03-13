@@ -30,19 +30,19 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
 The fields are encoded as follows:
 
 - `commitments`: `Array of DATA` - Array of `KZGCommitment` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
-- `cell_proofs`: `Array of DATA` - Array of `KZGProof` (48 bytes each, type defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), semantics defined in [EIP-7594](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7594.md)).
+- `cellProofs`: `Array of DATA` - Array of `KZGProof` (48 bytes each, type defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), semantics defined in [EIP-7594](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7594.md)).
 - `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
 
-`blobs` and `commitments` arrays **MUST** be of same length, `cell_proofs` contains exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
+`blobs` and `commitments` arrays **MUST** be of same length, `cellProofs` contains exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
 
 ### BlobAndProofV2
 
 The fields are encoded as follows:
 
 - `blob`: `DATA` - `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844).
-- `cell_proofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
+- `cellProofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 
-`cell_proofs` contains exactly `CELLS_PER_EXT_BLOB` cell proofs.
+`cellProofs` contains exactly `CELLS_PER_EXT_BLOB` cell proofs.
 
 ## Methods
 
@@ -71,15 +71,15 @@ This method is updated in a backward incompatible way. Instead of returning `Blo
 
 This method follows the same specification as [`engine_getPayloadV4`](./prague.md#engine_getpayloadv4) with changes of the following:
 
-1. The call **MUST** return `BlobsBundleV2` with empty `blobs`, `commitments` and `cell_proofs` if the payload doesn't contain any blob transactions.
+1. The call **MUST** return `BlobsBundleV2` with empty `blobs`, `commitments` and `cellProofs` if the payload doesn't contain any blob transactions.
 
-2. The call **MUST** return `blobs` and `cell_proofs` that match the `commitments` list, i.e. 
+2. The call **MUST** return `blobs` and `cellProofs` that match the `commitments` list, i.e. 
    1. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs)` and
-   2. `assert len(blobsBundle.cell_proofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
-   3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.cell_proofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/36d80adb44c21c66379c6207a9578f9b1dcc8a2d/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
-      1. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
-      2. `commitments` should be `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`  (repeating each commitment for each cell index)
-      3. All of the inputs to `verify_cell_kzg_proof_batch` have the same length, `CELLS_PER_EXT_BLOB * num_blobs`
+   2. `assert len(blobsBundle.cellProofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
+   3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.cellProofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/36d80adb44c21c66379c6207a9578f9b1dcc8a2d/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
+      1. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python, `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
+      2. `commitments` should list each commitment `CELLS_PER_EXT_BLOB` times, repeating it for every cell. In python, `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`
+      3. All of the inputs to `verify_cell_kzg_proof_batch` have the same length, `CELLS_PER_EXT_BLOB * len(blobsBundle.blobs)`
 
 ### engine_getBlobsV2
 
