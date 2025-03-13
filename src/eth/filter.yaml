@@ -146,6 +146,9 @@
     - name: Filter
       schema:
         $ref: '#/components/schemas/Filter'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   result:
     name: Log objects
     schema:
