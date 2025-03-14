@@ -32,7 +32,13 @@
     commitments, and KZG proofs.
     For [EIP-7594](https://eips.ethereum.org/EIPS/eip-7594) transactions, the raw format
     must be the network form. This means it includes the blobs, KZG commitments, and cell proofs.
-    Please note that at the Fusaka upgrade time, [EIP-4844] transactions will be rejected.
+    The logic for handling the new transaction during fork boundaries are
+    1. When receiving an encoded transaction with proof type 1 (cell proofs) before the PeerDAS fork activates, we reject it. Only type 0 (blob proofs) are accepted into the pool.
+    2. At the time of fork activation, the implementer has two options
+      - Drop all blob transactions from mempool.
+      - Convert all proofs to type two in the background.
+    3. After the fork has activated, only type 1 (cell proofs) are accepted via p2p relay.
+    4. On RPC (eth_sendRawTransaction), type 0 (blob proofs) may still be accepted and will be auto-converted by the node. At implementer discretion, this facility can be deprecated later when users have switched to new client libraries that can create type two proofs.
   params:
     - name: Transaction
       required: true
