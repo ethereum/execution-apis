@@ -9,7 +9,6 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
 **Table of Contents**
 
 - [Structures](#structures)
-  - [ExecutionPayloadV4](#executionpayloadv4)
   - [BlobsBundleV2](#blobsbundlev2)
   - [BlobAndProofV2](#blobandproofv2)
 - [Methods](#methods)
@@ -26,52 +25,24 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
 
 ## Structures
 
-### ExecutionPayloadV4
-
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field `proofVersion`.
-
-- `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`:  `DATA`, 20 Bytes
-- `stateRoot`: `DATA`, 32 Bytes
-- `receiptsRoot`: `DATA`, 32 Bytes
-- `logsBloom`: `DATA`, 256 Bytes
-- `prevRandao`: `DATA`, 32 Bytes
-- `blockNumber`: `QUANTITY`, 64 Bits
-- `gasLimit`: `QUANTITY`, 64 Bits
-- `gasUsed`: `QUANTITY`, 64 Bits
-- `timestamp`: `QUANTITY`, 64 Bits
-- `extraData`: `DATA`, 0 to 32 Bytes
-- `baseFeePerGas`: `QUANTITY`, 256 Bits
-- `blockHash`: `DATA`, 32 Bytes
-- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `blobGasUsed`: `QUANTITY`, 64 Bits
-- `excessBlobGas`: `QUANTITY`, 64 Bits
-- `proofVersion`: `QUANTITY`, 8 Bits
-
-Currently `proofVersion` supports two types:
-
-- `0`: original type, blob proofs
-- `1`: new type after EIP-7594, cell proofs
-
 ### BlobsBundleV2
 
 The fields are encoded as follows:
 
 - `commitments`: `Array of DATA` - Array of `KZGCommitment` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
-- `cellProofs`: `Array of DATA` - Array of `KZGProof` (48 bytes each, type defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), semantics defined in [EIP-7594](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7594.md)).
+- `proofs`: `Array of DATA` - Array of `KZGProof` (48 bytes each, type defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), semantics defined in [EIP-7594](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7594.md)).
 - `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
 
-`blobs` and `commitments` arrays **MUST** be of same length, `cellProofs` contains exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
+`blobs` and `commitments` arrays **MUST** be of same length, `proofs` contains exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
 
 ### BlobAndProofV2
 
 The fields are encoded as follows:
 
 - `blob`: `DATA` - `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844).
-- `cellProofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
+- `proofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 
-`cellProofs` contains exactly `CELLS_PER_EXT_BLOB` cell proofs.
+`proofs` contains exactly `CELLS_PER_EXT_BLOB` cell proofs.
 
 ## Methods
 
@@ -89,7 +60,7 @@ This method is updated in a backward incompatible way. Instead of returning `Blo
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV4`](#ExecutionPayloadV4)
+  - `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV2`](#BlobsBundleV2) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
@@ -100,12 +71,12 @@ This method is updated in a backward incompatible way. Instead of returning `Blo
 
 This method follows the same specification as [`engine_getPayloadV4`](./prague.md#engine_getpayloadv4) with changes of the following:
 
-1. The call **MUST** return `BlobsBundleV2` with empty `blobs`, `commitments` and `cellProofs` if the payload doesn't contain any blob transactions.
+1. The call **MUST** return `BlobsBundleV2` with empty `blobs`, `commitments` and `proofs` if the payload doesn't contain any blob transactions.
 
-2. The call **MUST** return `blobs` and `cellProofs` that match the `commitments` list, i.e. 
+2. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. 
    1. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs)` and
-   2. `assert len(blobsBundle.cellProofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
-   3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.cellProofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/36d80adb44c21c66379c6207a9578f9b1dcc8a2d/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
+   2. `assert len(blobsBundle.proofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
+   3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.proofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/36d80adb44c21c66379c6207a9578f9b1dcc8a2d/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
       1. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python, `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
       2. `commitments` should list each commitment `CELLS_PER_EXT_BLOB` times, repeating it for every cell. In python, `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`
       3. All of the inputs to `verify_cell_kzg_proof_batch` have the same length, `CELLS_PER_EXT_BLOB * len(blobsBundle.blobs)`
