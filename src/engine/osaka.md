@@ -33,7 +33,7 @@ The fields are encoded as follows:
 - `proofs`: `Array of DATA` - Array of `KZGProof` (48 bytes each, type defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), semantics defined in [EIP-7594](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7594.md)).
 - `blobs`: `Array of DATA` - Array of blobs, each blob is `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844)
 
-`blobs` and `commitments` arrays **MUST** be of same length, `proofs` contains exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
+`blobs` and `commitments` arrays **MUST** be of same length and `proofs` **MUST** contain exactly `CELLS_PER_EXT_BLOB` * `len(blobs)` cell proofs.
 
 ### BlobAndProofV2
 
@@ -42,7 +42,7 @@ The fields are encoded as follows:
 - `blob`: `DATA` - `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT = 4096 * 32 = 131072` bytes (`DATA`) representing a SSZ-encoded `Blob` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844).
 - `proofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 
-`proofs` contains exactly `CELLS_PER_EXT_BLOB` cell proofs.
+`proofs` **MUST** contain exactly `CELLS_PER_EXT_BLOB` cell proofs.
 
 ## Methods
 
@@ -77,15 +77,14 @@ This method follows the same specification as [`engine_getPayloadV4`](./prague.m
    1. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs)` and
    2. `assert len(blobsBundle.proofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
    3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.proofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/36d80adb44c21c66379c6207a9578f9b1dcc8a2d/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
-      1. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python, `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
-      2. `commitments` should list each commitment `CELLS_PER_EXT_BLOB` times, repeating it for every cell. In python, `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`
-      3. All of the inputs to `verify_cell_kzg_proof_batch` have the same length, `CELLS_PER_EXT_BLOB * len(blobsBundle.blobs)`
+      1. `commitments` should list each commitment `CELLS_PER_EXT_BLOB` times, repeating it for every cell. In python, `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`
+      2. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python, `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
+      3. `cells` is the list of cells for an extended blob. In python, `[compute_cells(blob) for blob in blobsBundle.blobs]` (see [compute_cells](https://github.com/ethereum/consensus-specs/blob/v1.5.0-beta.3/specs/fulu/polynomial-commitments-sampling.md#compute_cells) in consensus-specs)
+      4. All of the inputs to `verify_cell_kzg_proof_batch` have the same length, `CELLS_PER_EXT_BLOB * len(blobsBundle.blobs)`
 
 ### engine_getBlobsV2
 
 Consensus layer clients **MAY** use this method to fetch blobs from the execution layer blob pool.
-
-*Note*: This is a new optional method introduced after Pectra.
 
 #### Request
 
@@ -103,4 +102,8 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 
 Refer to the specification for [`engine_getBlobsV1`](./cancun.md#engine_getblobsv1) with changes of the following:
 
-1. return `BlobAndProofV2` instead of `BlobAndProofV1`
+1. Given an array of blob versioned hashes client software **MUST** respond with an array of `BlobAndProofV2` objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
+2. Client software **MUST** place responses in the order given in the request, using `null` for any missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[A, null, C]`.
+3. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
+4. Client software **MAY** return an array of all `null` entries if syncing or otherwise unable to serve blob pool data.
+5. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
