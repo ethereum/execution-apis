@@ -95,7 +95,7 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 
 #### Response
 
-* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2), items of which may be `null`.
+* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2).
 * error: code and message set in case an error occurs during processing of the request.
 
 #### Specification
@@ -103,7 +103,7 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 Refer to the specification for [`engine_getBlobsV1`](./cancun.md#engine_getblobsv1) with changes of the following:
 
 1. Given an array of blob versioned hashes client software **MUST** respond with an array of `BlobAndProofV2` objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
-2. Client software **MUST** place responses in the order given in the request, using `null` for any missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[A, null, C]`.
+2. Client software **MUST** return an empty array in case of any missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[]`.
 3. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
-4. Client software **MAY** return an array of all `null` entries if syncing or otherwise unable to serve blob pool data.
-5. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
+4. Client software **MAY** return an empty array if syncing or otherwise unable to serve blob pool data.
+5. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with an empty array if a blob has been pruned.
