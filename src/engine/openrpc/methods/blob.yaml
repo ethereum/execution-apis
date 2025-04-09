@@ -39,7 +39,7 @@
   params:
     - name: Blob versioned hashes
       required: true
-      scema:
+      schema:
         type: array
         items:
           $ref: '#/components/schemas/hash32'
