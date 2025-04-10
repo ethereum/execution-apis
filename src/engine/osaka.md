@@ -95,7 +95,7 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 
 #### Response
 
-* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2) or `null`.
+* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2) or `null` in case of any missing blobs.
 * error: code and message set in case an error occurs during processing of the request.
 
 #### Specification
