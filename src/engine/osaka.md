@@ -20,6 +20,7 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
+  - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -71,9 +72,11 @@ This method is updated in a backward incompatible way. Instead of returning `Blo
 
 This method follows the same specification as [`engine_getPayloadV4`](./prague.md#engine_getpayloadv4) with changes of the following:
 
-1. The call **MUST** return `BlobsBundleV2` with empty `blobs`, `commitments` and `proofs` if the payload doesn't contain any blob transactions.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Osaka fork.
 
-2. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. 
+2. The call **MUST** return `BlobsBundleV2` with empty `blobs`, `commitments` and `proofs` if the payload doesn't contain any blob transactions.
+
+3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. 
    1. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs)` and
    2. `assert len(blobsBundle.proofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
    3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.proofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/36d80adb44c21c66379c6207a9578f9b1dcc8a2d/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
@@ -107,3 +110,15 @@ Refer to the specification for [`engine_getBlobsV1`](./cancun.md#engine_getblobs
 3. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
 4. Client software **MUST** return `null` if syncing or otherwise unable to serve blob pool data.
 5. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
+
+### Update the methods of previous forks
+
+This section defines how Osaka payload should be handled by the ['Cancun API'](./cancun.md).
+
+For the following methods:
+
+- [`engine_getBlobsV1`](./cancun.md#engine_getblobsv1)
+
+a validation **MUST** be added:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload greater or equal to the Osaka activation timestamp.
