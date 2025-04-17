@@ -19,6 +19,8 @@
   errors:
     - code: -38004
       message: Too large request
+    - code: -38005
+      message: Unsupported fork
   examples:
     - name: engine_getBlobsV1 example
       params:
