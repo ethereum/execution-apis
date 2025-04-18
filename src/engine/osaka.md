@@ -21,6 +21,8 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
     - [Response](#response-1)
     - [Specification](#specification-1)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
+    - [Cancun API](#cancun-api)
+    - [Prague API](#prague-api)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -106,18 +108,34 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 Refer to the specification for [`engine_getBlobsV1`](./cancun.md#engine_getblobsv1) with changes of the following:
 
 1. Given an array of blob versioned hashes client software **MUST** respond with an array of `BlobAndProofV2` objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
-2. Client software **MUST** return `null` in case of any missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `null`.
+2. Client software **MUST** return `null` in case of any missing or older version blobs. For instance, 
+   1. if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `null`.
+   2. if the request is `[A_versioned_hash_for_blob_with_blob_proof]`, the response **MUST** be `null` as well.
 3. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
 4. Client software **MUST** return `null` if syncing or otherwise unable to serve blob pool data.
 5. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
 
 ### Update the methods of previous forks
 
+#### Cancun API
+
 This section defines how Osaka payload should be handled by the ['Cancun API'](./cancun.md).
 
 For the following methods:
 
 - [`engine_getBlobsV1`](./cancun.md#engine_getblobsv1)
+
+a validation **MUST** be added:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the Osaka fork has been activated.
+
+#### Prague API
+
+This section defines how Osaka payload should be handled by the ['Prague API'](./prague.md).
+
+For the following methods:
+
+- [`engine_getPayloadV4`](./prague.md#engine_getpayloadv4)
 
 a validation **MUST** be added:
 
