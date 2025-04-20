@@ -2,6 +2,7 @@ import fs from "fs";
 import yaml from "js-yaml";
 import mergeAllOf from "json-schema-merge-allof";
 import { dereferenceDocument } from "@open-rpc/schema-utils-js";
+import  {XErrorGroupsJSON} from "@open-rpc/extensions";
 
 function sortByMethodName(methods) {
   return methods.slice().sort((a, b) => {
@@ -92,6 +93,8 @@ extensionsSpecsFiles.forEach(file => {
   let parsed = yaml.load(raw);
   extensionSpecs.push(parsed);
 });
+
+extensionSpecs.push(XErrorGroupsJSON);
 console.log(extensionSpecs);
 
 let extensions = [];
@@ -111,7 +114,7 @@ extensionSpecs.forEach((extensionSpec) => {
     if (extension.hasOwnProperty(extensionSpec.name)) {     
       extensionsDef[extensionSpec.name] ={
         ...extensionsDef[extensionSpec.name],
-        ...extension[extensionSpec.name]
+        ...extension[extensionSpec.name]  
       }
     }
   });
