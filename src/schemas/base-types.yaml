@@ -1,7 +1,7 @@
 address:
   title: hex encoded address
   type: string
-  pattern: ^0x[0-9,a-f,A-F]{40}$
+  pattern: ^0x[0-9a-fA-F]{40}$
 addresses:
   title: hex encoded address
   type: array
@@ -10,7 +10,7 @@ addresses:
 byte:
   title: hex encoded byte
   type: string
-  pattern: ^0x([0-9,a-f,A-F]?){1,2}$
+  pattern: ^0x([0-9a-fA-F]?){1,2}$
 bytes:
   title: hex encoded bytes
   type: string
@@ -51,15 +51,15 @@ ratio:
 uint:
   title: hex encoded unsigned integer
   type: string
-  pattern: ^0x([1-9a-f]+[0-9a-f]*|0)$
+  pattern: ^0x(0|[1-9a-f][0-9a-f]*)$
 uint64:
   title: hex encoded 64 bit unsigned integer
   type: string
-  pattern: ^0x([1-9a-f]+[0-9a-f]{0,15})|0$
+  pattern: ^0x(0|[1-9a-f][0-9a-f]{0,15})$
 uint256:
   title: hex encoded 256 bit unsigned integer
   type: string
-  pattern: ^0x([1-9a-f]+[0-9a-f]{0,31})|0$
+  pattern: ^0x(0|[1-9a-f][0-9a-f]{0,63})$
 hash32:
   title: 32 byte hex value
   type: string

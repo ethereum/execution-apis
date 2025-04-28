@@ -11,6 +11,29 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
+  examples:
+    - name: eth_getTransactionByHash example
+      params:
+        - name: Transaction hash
+          value: '0xa52be92809541220ee0aaaede6047d9a6c5d0cd96a517c854d944ee70a0ebb44'
+      result:
+        name: Transaction information
+        value:
+          blockHash: '0x510efccf44a192e6e34bcb439a1947e24b86244280762cbb006858c237093fda'
+          blockNumber: '0x422'
+          chainId: 2018
+          from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+          gas: '0x5208'
+          gasPrice: '0x3b9aca00'
+          hash: '0xa52be92809541220ee0aaaede6047d9a6c5d0cd96a517c854d944ee70a0ebb44'
+          input: '0x'
+          nonce: '0x1'
+          to: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+          transactionIndex: '0x0'
+          value: '0x4e1003b28d9280000'
+          v: '0xfe7'
+          r: '0x84caf09aefbd5e539295acc67217563438a4efb224879b6855f56857fa2037d3'
+          s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
 - name: eth_getTransactionByBlockHashAndIndex
   summary: Returns information about a transaction by block hash and transaction index position.
   params:
@@ -28,6 +51,31 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
+  examples:
+    - name: eth_getTransactionByBlockHashAndIndex example
+      params:
+        - name: Block hash
+          value: '0xbf137c3a7a1ebdfac21252765e5d7f40d115c2757e4a4abee929be88c624fdb7'
+        - name: Transaction index
+          value: '0x2'
+      result:
+        name: Transaction information
+        value:
+          blockHash: '0x510efccf44a192e6e34bcb439a1947e24b86244280762cbb006858c237093fda'
+          blockNumber: '0x422'
+          chainId: 2018
+          from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+          gas: '0x5208'
+          gasPrice: '0x3b9aca00'
+          hash: '0xa52be92809541220ee0aaaede6047d9a6c5d0cd96a517c854d944ee70a0ebb44'
+          input: '0x'
+          nonce: '0x1'
+          to: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+          transactionIndex: '0x0'
+          value: '0x4e1003b28d9280000'
+          v: '0xfe7'
+          r: '0x84caf09aefbd5e539295acc67217563438a4efb224879b6855f56857fa2037d3'
+          s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
 - name: eth_getTransactionByBlockNumberAndIndex
   summary: Returns information about a transaction by block number and transaction index position.
   params:
@@ -45,6 +93,31 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
+  examples:
+    - name: eth_getTransactionByBlockNumberAndIndex example
+      params:
+        - name: Block
+          value: '0x1442e'
+        - name: Transaction index
+          value: '0x2'
+      result:
+        name: Transaction information
+        value:
+          blockHash: '0x510efccf44a192e6e34bcb439a1947e24b86244280762cbb006858c237093fda'
+          blockNumber: '0x422'
+          chainId: 2018
+          from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+          gas: '0x5208'
+          gasPrice: '0x3b9aca00'
+          hash: '0xa52be92809541220ee0aaaede6047d9a6c5d0cd96a517c854d944ee70a0ebb44'
+          input: '0x'
+          nonce: '0x1'
+          to: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+          transactionIndex: '0x0'
+          value: '0x4e1003b28d9280000'
+          v: '0xfe7'
+          r: '0x84caf09aefbd5e539295acc67217563438a4efb224879b6855f56857fa2037d3'
+          s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
   params:
@@ -58,3 +131,26 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/ReceiptInfo'
+  examples:
+    - name: eth_getTransactionReceipt example
+      params:
+        - name: Transaction hash
+          value: '0x504ce587a65bdbdb6414a0c6c16d86a04dd79bfcc4f2950eec9634b30ce5370f'
+      result:
+        name: Receipt information
+        value:
+          blockHash: '0xe7212a92cfb9b06addc80dec2a0dfae9ea94fd344efeb157c41e12994fcad60a'
+          blockNumber: '0x50'
+          contractAddress: null
+          cumulativeGasUsed: '0x5208'
+          from: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+          gasUsed: '0x5208'
+          blobGasUsed: '0x20000'
+          effectiveGasPrice: '0x1'
+          blobGasPrice: '0x3'
+          logs: []
+          logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+          status: '0x1'
+          to: '0xf17f52151ebef6c7334fad080c5704d77216b732'
+          transactionHash: '0xc00e97af59c6f88de163306935f7682af1a34c67245e414537d02e422815efc3'
+          transactionIndex: '0x0'

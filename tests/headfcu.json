@@ -1,12 +1,12 @@
 {
   "jsonrpc": "2.0",
-  "id": "fcu20",
+  "id": "fcu45",
   "method": "engine_forkchoiceUpdatedV3",
   "params": [
     {
-      "headBlockHash": "0x8f64c4436f7213cfdf02cfb9f45d012f1774dfb329b8803de5e7479b11586902",
-      "safeBlockHash": "0x8f64c4436f7213cfdf02cfb9f45d012f1774dfb329b8803de5e7479b11586902",
-      "finalizedBlockHash": "0x8f64c4436f7213cfdf02cfb9f45d012f1774dfb329b8803de5e7479b11586902"
+      "headBlockHash": "0xaf51811799f22260e5b4e1f95504dae760505f102dcb2e9ca7d897d8a40124a1",
+      "safeBlockHash": "0xaf51811799f22260e5b4e1f95504dae760505f102dcb2e9ca7d897d8a40124a1",
+      "finalizedBlockHash": "0xaf51811799f22260e5b4e1f95504dae760505f102dcb2e9ca7d897d8a40124a1"
     },
     null
   ]

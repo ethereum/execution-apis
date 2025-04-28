@@ -474,22 +474,6 @@
             "deprecationReason": null
           },
           {
-            "name": "totalDifficulty",
-            "description": "TotalDifficulty is the sum of all difficulty values up to and including\nthis block.",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "BigInt",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "ommerCount",
             "description": "OmmerCount is the number of ommers (AKA uncles) associated with this\nblock. If ommers are unavailable, this field will be null.",
             "args": [],
@@ -795,6 +779,30 @@
                   "ofType": null
                 }
               }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "blobGasUsed",
+            "description": "BlobGasUsed is the total amount of gas used by the transactions.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Long",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "excessBlobGas",
+            "description": "ExcessBlobGas is a running total of blob gas consumed in excess of the target, prior to the block.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Long",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1899,6 +1907,18 @@
             "deprecationReason": null
           },
           {
+            "name": "maxFeePerBlobGas",
+            "description": "MaxFeePerBlobGas is the maximum blob gas fee cap per blob the sender is willing to pay for blob transaction, in wei.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "BigInt",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "effectiveTip",
             "description": "EffectiveTip is the actual amount of reward going to miner after considering the max fee cap.",
             "args": [],
@@ -1993,6 +2013,30 @@
           {
             "name": "effectiveGasPrice",
             "description": "EffectiveGasPrice is actual value per gas deducted from the sender's\naccount. Before EIP-1559, this is equal to the transaction's gas price.\nAfter EIP-1559, it is baseFeePerGas + min(maxFeePerGas - baseFeePerGas,\nmaxPriorityFeePerGas). Legacy transactions and EIP-2930 transactions are\ncoerced into the EIP-1559 format by setting both maxFeePerGas and\nmaxPriorityFeePerGas as the transaction's gas price.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "BigInt",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "blobGasUsed",
+            "description": "BlobGasUsed is the amount of blob gas used by this transaction.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Long",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "blobGasPrice",
+            "description": "blobGasPrice is the actual value per blob gas deducted from the senders account.",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -2164,6 +2208,26 @@
                 "kind": "SCALAR",
                 "name": "Bytes",
                 "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "blobVersionedHashes",
+            "description": "BlobVersionedHashes is a set of hash outputs from the blobs in the transaction.",
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Bytes32",
+                  "ofType": null
+                }
               }
             },
             "isDeprecated": false,
