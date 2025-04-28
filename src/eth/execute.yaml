@@ -61,7 +61,7 @@
     - name: Payload
       required: true
       schema:
-        $ref: '#/components/schemas/MultiCallPayload'
+        $ref: '#/components/schemas/EthSimulatePayload'
     - name: Block tag
       required: false
       description: "default: 'latest'"
@@ -70,4 +70,4 @@
   result:
     name: Result of calls
     schema:
-      $ref: '#/components/schemas/MultiCallResult'
+      $ref: '#/components/schemas/EthSimulateResult'
