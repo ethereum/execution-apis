@@ -38,7 +38,7 @@ As eth_simulate is an extension to `eth_call` we want to enable the nice user ex
 | nonce | Take the correct nonce for the account prior eth_simulate and increment by one for each transaction by the account |
 | to | `null` |
 | from | `0x0000000000000000000000000000000000000000` |
-| gasLimit | (blockGasLimit - SumOfGasLimitOfTransactionsWithDefinedGasLimit) / NumberOfTransactionsWithoutKnownGasLimit |
+| gasLimit | blockGasLimit - soFarUsedGasInBlock |
 | value | `0x0` |
 | input | no data |
 | gasPrice | `0x0` |
