@@ -35,7 +35,7 @@ Method parameter list is extended with `executionRequests`.
   1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list. If any element is out of order, has a length of 1-byte or shorter, or more than one element has the same type byte, client software **MUST** return `-32602: Invalid params` error.
+  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list. If the list has no elements, the expected array MUST be `[]`. If any element is out of order, has a length of 1-byte or shorter, or more than one element has the same type byte, or the param is `null`, client software **MUST** return `-32602: Invalid params` error.
 
 #### Response
 
