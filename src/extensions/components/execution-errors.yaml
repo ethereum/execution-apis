@@ -1,0 +1,14 @@
+x-error-group:
+  ExecutionErrors:
+      - code: -31800
+        message: "Nonce too low"
+        data: "Transaction nonce is lower than the sender account's current nonce"
+      - code: -31801
+        message: "Nonce too high"
+        data: "Transaction nonce is higher than the sender account's current nonce"
+      - code: -31802
+        message: "Execution reverted"
+        data: "Execution is reverted by REVERT Opcode"
+      - code: -31803
+        message: "Invalid opcode"
+        data: "An invalid opcode was encountered during execution"
