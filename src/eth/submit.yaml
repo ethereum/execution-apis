@@ -5,19 +5,19 @@
       required: true
       schema:
         $ref: '#/components/schemas/GenericTransaction'
-  x-error-group:
-      # Reference the predefined GasErrors
-      - $ref: '#/components/x-error-group/GasErrors'
+  x-error-group:    
       - $ref: '#/components/x-error-group/JSONRPCNonStandardErrors'
       - $ref: '#/components/x-error-group/JSONRPCStandardErrors'
+      - $ref: '#/components/x-error-group/GasErrors'
+      - $ref: '#/components/x-error-group/ExecutionErrors'
       # Inline additional errors specific to this method
       - 
-        - code: 50002
-          message: "Insufficient Funds"
-          data: "The account does not have enough balance to cover gas costs."
-        - code: 50003
-          message: "Nonce Too Low"
-          data: "The transaction nonce is lower than expected."
+        - code: -31000
+          message: "Already known transaction"
+          data: "Transaction is already known to the transaction pool"
+        - code: -31001
+          message: "Invalid sender"
+          data: "Transaction sender is invalid."
   result:
     name: Transaction hash
     schema:
@@ -58,6 +58,19 @@
       required: true
       schema:
         $ref: '#/components/schemas/bytes'
+  x-error-group:    
+    - $ref: '#/components/x-error-group/JSONRPCNonStandardErrors'
+    - $ref: '#/components/x-error-group/JSONRPCStandardErrors'
+    - $ref: '#/components/x-error-group/GasErrors'
+    - $ref: '#/components/x-error-group/ExecutionErrors'
+    # Inline additional errors specific to this method
+    - 
+      - code: -31000
+        message: "Already known transaction"
+        data: "Transaction is already known to the transaction pool"
+      - code: -31001
+        message: "Invalid sender"
+        data: "Transaction sender is invalid."
   result:
     name: Transaction hash
     schema:

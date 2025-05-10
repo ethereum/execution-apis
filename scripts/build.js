@@ -95,7 +95,6 @@ extensionsSpecsFiles.forEach(file => {
 });
 
 extensionSpecs.push(XErrorGroupsJSON);
-console.log(extensionSpecs);
 
 let extensions = [];
 let extensionsBase = "src/extensions/components/"
@@ -119,7 +118,6 @@ extensionSpecs.forEach((extensionSpec) => {
     }
   });
 });
-console.log(extensionsDef)
 
 const doc = {
   openrpc: "1.2.4",
