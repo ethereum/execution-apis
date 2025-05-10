@@ -5,10 +5,25 @@ BlobAndProofV1:
     - blob
     - proof
   properties:
-    blob: 
+    blob:
       title: Blob
-      $ref: '#/components/schemas/bytes'
+      $ref: "#/components/schemas/bytes"
     proof:
       title: proof
-      $ref: '#/components/schemas/bytes48'
-  
+      $ref: "#/components/schemas/bytes48"
+
+BlobAndProofV2:
+  title: Blob and proof object V2
+  type: object
+  required:
+    - blob
+    - proofs
+  properties:
+    blob:
+      title: Blob
+      $ref: "#/components/schemas/bytes"
+    proofs:
+      title: Cell Proofs
+      type: array
+      items:
+        $ref: "#/components/schemas/bytes48"
