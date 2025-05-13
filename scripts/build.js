@@ -2,7 +2,7 @@ import fs from "fs";
 import yaml from "js-yaml";
 import mergeAllOf from "json-schema-merge-allof";
 import { dereferenceDocument } from "@open-rpc/schema-utils-js";
-import  {XErrorGroupsJSON} from "@open-rpc/extensions";
+import  { XErrorGroupsJSON } from "@open-rpc/extensions";
 
 function sortByMethodName(methods) {
   return methods.slice().sort((a, b) => {
