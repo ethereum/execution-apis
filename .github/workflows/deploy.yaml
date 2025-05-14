@@ -6,9 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  cwd: ${{github.workspace}}/site
-
 jobs:
   build:
     name: Build Docusaurus
@@ -23,17 +20,15 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        working-directory: ${{ env.cwd }}
         run: npm install --frozen-lockfile
         
       - name: Build website
-        working-directory: ${{ env.cwd }}
         run: npm run build
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ${{ env.cwd }}/build
+          path: build
 
   deploy:
     name: Deploy to GitHub Pages

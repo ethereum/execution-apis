@@ -7,12 +7,21 @@
   "scripts": {
     "build": "npm run build:spec",
     "build:spec": "node scripts/build.js",
-    "build:docs": "cd build/docs/gatsby && npm install --legacy-peer-deps && gatsby build --prefix-paths",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",
     "generate-clients": "mkdir -p build && open-rpc-generator generate -c open-rpc-generator-config.json",
     "graphql:schema": "node scripts/graphql.js",
-    "graphql:validate": "node scripts/graphql-validate.js"
+    "graphql:validate": "node scripts/graphql-validate.js",
+    "docusaurus": "docusaurus",
+    "start:docs": "docusaurus start",
+    "build:docs": "docusaurus build",
+    "swizzle:docs": "docusaurus swizzle",
+    "deploy:docs": "docusaurus deploy",
+    "clear:docs": "docusaurus clear",
+    "serve": "docusaurus serve",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "typecheck": "tsc"
   },
   "repository": {
     "type": "git",
@@ -33,6 +42,19 @@
     "graphql": "~16.3.0",
     "graphql-request": "~4.1.0",
     "js-yaml": "~4.1.0",
-    "json-schema-merge-allof": "~0.8.1"
+    "json-schema-merge-allof": "~0.8.1",
+    "@docusaurus/module-type-aliases": "3.7.0",
+    "@docusaurus/tsconfig": "3.7.0",
+    "@docusaurus/types": "3.7.0",
+    "typescript": "~5.6.2"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.7.0",
+    "@mdx-js/react": "^3.0.0",
+    "@metamask/docusaurus-openrpc": "^0.4.1",
+    "clsx": "^2.0.0",
+    "prism-react-renderer": "^2.3.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   }
 }
