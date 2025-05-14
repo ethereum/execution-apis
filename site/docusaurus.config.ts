@@ -38,14 +38,13 @@ const config: Config = {
       /** @type {import('@metamask/docusaurus-openrpc/dist/preset').Options} */
       {
         docs: {
-          id: 'execution-apis',
           routeBasePath: '/',
           openrpc: {
             openrpcDocument: '../refs-openrpc.json',
             path: 'Reference',
             sidebarLabel: 'JSON-RPC',
           },
-          path: '/',
+
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
