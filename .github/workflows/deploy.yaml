@@ -4,12 +4,11 @@ on:
   push:
     branches:
       - main
-    # Review gh actions docs if you want to further define triggers, paths, etc
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
   workflow_dispatch:
 
 env:
   cwd: ${{github.workspace}}/site
+
 jobs:
   build:
     name: Build Docusaurus
@@ -34,7 +33,7 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ../build
+          path: ${{ env.cwd }}/build
 
   deploy:
     name: Deploy to GitHub Pages
