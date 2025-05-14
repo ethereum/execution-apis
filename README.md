@@ -21,7 +21,7 @@ specification and the JSON schema [specification][json-schema] to get started.
 
 ### Building
 
-The specification is split into multiple files to improve readability. The 
+The specification is split into multiple files to improve readability. The
 spec can be compiled into a single document as follows:
 
 ```console
@@ -36,7 +36,7 @@ will have all schema `#ref`s resolved.
 #### Testing
 
 There are several mechanisms for testing specification contributions and client
-conformance. 
+conformance.
 
 First is the [OpenRPC validator][validator]. It performs some basic syntactic
 checks on the generated specification.
@@ -56,6 +56,13 @@ $ speccheck -v
 all passing.
 ```
 
+If you get an error that says: `speccheck: command not found`,
+ make sure that the go binary is in your $PATH:
+
+```console
+$ export PATH=$HOME/go/bin:$PATH
+```
+
 The spell checker ensures the specification is free of spelling errors.
 
 ```console
@@ -63,6 +70,10 @@ $ pip install pyspelling
 $ pyspelling -c spellcheck.yaml
 Spelling check passed :)
 ```
+
+pyspelling is a wrapper around either [Aspell](http://aspell.net/) or
+[Hunspell](https://hunspell.github.io/). You'll need to install
+one of those before running `pyspelling`.
 
 Finally, the test cases in the `tests/` directory may be run against individual
 execution client using the [`hive`] simulator [`rpc-compat`][rpc-compat].
@@ -102,7 +113,7 @@ This repository is licensed under [CC0](LICENSE).
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
 [making-changes]: docs/making-changes.md
-[json-schema]: https://json-schema.org 
+[json-schema]: https://json-schema.org
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
 [test-gen]: tests/README.md
