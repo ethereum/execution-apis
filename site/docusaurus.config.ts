@@ -17,8 +17,9 @@ const config: Config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'ethereum', // Usually your GitHub org/user name.
+  organizationName: 'acolytec3', // Usually your GitHub org/user name.
   projectName: 'execution-apis', // Usually your repo name.
+  deploymentBranch: 'gh-pages',
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -37,12 +38,14 @@ const config: Config = {
       /** @type {import('@metamask/docusaurus-openrpc/dist/preset').Options} */
       {
         docs: {
+          id: 'execution-apis',
           routeBasePath: '/',
           openrpc: {
             openrpcDocument: '../refs-openrpc.json',
             path: 'Reference',
             sidebarLabel: 'JSON-RPC',
           },
+          path: '/',
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
