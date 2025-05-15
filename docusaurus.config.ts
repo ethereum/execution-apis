@@ -73,7 +73,7 @@ const config: Config = {
           label: 'API Reference',
         },
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/ethereum/execution-apis',
           label: 'GitHub',
           position: 'right',
         },
@@ -87,12 +87,12 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/ethereum/execution-apis',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Ethereum. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
