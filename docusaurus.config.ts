@@ -91,7 +91,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Ethereum. Built with Docusaurus.`,
+      copyright: `Copyright and related rights waived via CC0.`,
     },
     prism: {
       theme: prismThemes.github,
