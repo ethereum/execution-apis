@@ -37,7 +37,6 @@ const config: Config = {
       '@metamask/docusaurus-openrpc/dist/preset',
       /** @type {import('@metamask/docusaurus-openrpc/dist/preset').Options} */
       {
-        // @ts-ignore
         docs: {
           routeBasePath: '/',
           openrpc: {
@@ -50,7 +49,7 @@ const config: Config = {
         },
         blog: false,
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: './css/custom.css',
         },
       } satisfies Preset.Options,
     ],
