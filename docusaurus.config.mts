@@ -37,7 +37,7 @@ const config: Config = {
       '@metamask/docusaurus-openrpc/dist/preset',
       /** @type {import('@metamask/docusaurus-openrpc/dist/preset').Options} */
       {
-        // @ts-ignore
+        // @ts-ignore - missing 'id' field that breaks everything when I add it
         docs: {
           routeBasePath: '/',
           openrpc: {

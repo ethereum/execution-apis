@@ -20,6 +20,7 @@ function Feature({title, Svg, description}: FeatureItem) {
         <Svg className={styles.featureSvg} role="img" />
       </div>
       <div className="text--center padding-horiz--md">
+        {/* @ts-ignore */}
         <Heading as="h3">{title}</Heading>
         <p>{description}</p>
       </div>
