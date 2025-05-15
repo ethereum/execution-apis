@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # Introduction
 
-Welcome to the Ethereum Execution APIs documentation. This documentation provides comprehensive information about the JSON-RPC APIs provided by Ethereum 1.0 clients.
+Welcome to the Ethereum JSON-RPC documentation. This site provides comprehensive information about the JSON-RPC APIs provided by Ethereum execution clients.
 
 ## What are Execution APIs?
 
