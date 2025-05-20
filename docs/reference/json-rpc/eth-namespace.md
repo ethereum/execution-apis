@@ -1,0 +1,47 @@
+---
+sidebar_position: 1
+---
+
+# ETH Namespace
+
+This page lists all JSON-RPC methods in the eth namespace.
+
+- [eth_accounts](/reference/eth_accounts)
+- [eth_blobBaseFee](/reference/eth_blobBaseFee)
+- [eth_blockNumber](/reference/eth_blockNumber)
+- [eth_call](/reference/eth_call)
+- [eth_chainId](/reference/eth_chainId)
+- [eth_coinbase](/reference/eth_coinbase)
+- [eth_createAccessList](/reference/eth_createAccessList)
+- [eth_estimateGas](/reference/eth_estimateGas)
+- [eth_feeHistory](/reference/eth_feeHistory)
+- [eth_gasPrice](/reference/eth_gasPrice)
+- [eth_getBalance](/reference/eth_getBalance)
+- [eth_getBlockByHash](/reference/eth_getBlockByHash)
+- [eth_getBlockByNumber](/reference/eth_getBlockByNumber)
+- [eth_getBlockReceipts](/reference/eth_getBlockReceipts)
+- [eth_getBlockTransactionCountByHash](/reference/eth_getBlockTransactionCountByHash)
+- [eth_getBlockTransactionCountByNumber](/reference/eth_getBlockTransactionCountByNumber)
+- [eth_getCode](/reference/eth_getCode)
+- [eth_getFilterChanges](/reference/eth_getFilterChanges)
+- [eth_getFilterLogs](/reference/eth_getFilterLogs)
+- [eth_getLogs](/reference/eth_getLogs)
+- [eth_getProof](/reference/eth_getProof)
+- [eth_getStorageAt](/reference/eth_getStorageAt)
+- [eth_getTransactionByBlockHashAndIndex](/reference/eth_getTransactionByBlockHashAndIndex)
+- [eth_getTransactionByBlockNumberAndIndex](/reference/eth_getTransactionByBlockNumberAndIndex)
+- [eth_getTransactionByHash](/reference/eth_getTransactionByHash)
+- [eth_getTransactionCount](/reference/eth_getTransactionCount)
+- [eth_getTransactionReceipt](/reference/eth_getTransactionReceipt)
+- [eth_getUncleCountByBlockHash](/reference/eth_getUncleCountByBlockHash)
+- [eth_getUncleCountByBlockNumber](/reference/eth_getUncleCountByBlockNumber)
+- [eth_maxPriorityFeePerGas](/reference/eth_maxPriorityFeePerGas)
+- [eth_newBlockFilter](/reference/eth_newBlockFilter)
+- [eth_newFilter](/reference/eth_newFilter)
+- [eth_newPendingTransactionFilter](/reference/eth_newPendingTransactionFilter)
+- [eth_sendRawTransaction](/reference/eth_sendRawTransaction)
+- [eth_sendTransaction](/reference/eth_sendTransaction)
+- [eth_sign](/reference/eth_sign)
+- [eth_signTransaction](/reference/eth_signTransaction)
+- [eth_syncing](/reference/eth_syncing)
+- [eth_uninstallFilter](/reference/eth_uninstallFilter)
