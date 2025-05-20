@@ -78,7 +78,7 @@ $ npm run graphql:validate
 This repository is licensed under [CC0](LICENSE).
 
 
-[playground]: https://ethereum.github.io/execution-apis/api-documentation/
+[playground]: https://ethereum.github.io/execution-apis/docs/reference/json-rpc-api
 [openrpc]: https://open-rpc.org
 [validator]: https://open-rpc.github.io/schema-utils-js/globals.html#validateopenrpcdocument
 [spellchecker]: https://facelessuser.github.io/pyspelling/
