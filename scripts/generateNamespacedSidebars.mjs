@@ -68,7 +68,7 @@ sidebar_position: 1
 
 This page lists all JSON-RPC methods in the ${title.toLowerCase()}.
 
-${sortedMethods.map(method => `- [${method}](/reference/${method})`).join('\n')}
+${sortedMethods.map(method => `- [${method}](/docs/reference/${method})`).join('\n')}
 `;
 }
 
@@ -84,7 +84,7 @@ sidebar_position: 1
 
 The Ethereum JSON-RPC API is organized into several namespaces, each containing related methods:
 
-${namespaces.map(namespace => `- [${namespace.charAt(0).toUpperCase() + namespace.slice(1)} Namespace](/reference/json-rpc/${namespace}-namespace)`).join('\n')}
+${namespaces.map(namespace => `- [${namespace.charAt(0).toUpperCase() + namespace.slice(1)} Namespace](/docs/reference/json-rpc/${namespace}-namespace)`).join('\n')}
 
 Each namespace contains methods with specific functionality related to different aspects of Ethereum node operation.
 `;

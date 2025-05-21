@@ -6,8 +6,8 @@ sidebar_position: 1
 
 This page lists all JSON-RPC methods in the debug namespace.
 
-- [debug_getBadBlocks](/reference/debug_getBadBlocks)
-- [debug_getRawBlock](/reference/debug_getRawBlock)
-- [debug_getRawHeader](/reference/debug_getRawHeader)
-- [debug_getRawReceipts](/reference/debug_getRawReceipts)
-- [debug_getRawTransaction](/reference/debug_getRawTransaction)
+- [debug_getBadBlocks](/docs/reference/debug_getBadBlocks)
+- [debug_getRawBlock](/docs/reference/debug_getRawBlock)
+- [debug_getRawHeader](/docs/reference/debug_getRawHeader)
+- [debug_getRawReceipts](/docs/reference/debug_getRawReceipts)
+- [debug_getRawTransaction](/docs/reference/debug_getRawTransaction)
