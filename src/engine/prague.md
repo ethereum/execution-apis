@@ -37,6 +37,8 @@ Method parameter list is extended with `executionRequests`.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list. If any element is out of order, has a length of 1-byte or shorter, or more than one element has the same type byte, client software **MUST** return `-32602: Invalid params` error.
 
+**NOTE**: Each element of `executionRequests` is the SSZ serialization of the corresponding field of [`ExecutionRequests` defined in the `consensus-specs`](https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#executionrequests), such that the 0th element is the first field of that container, 1st element is the second field, and so on.
+
 #### Response
 
 Refer to the response for [`engine_newPayloadV3`](./cancun.md#engine_newpayloadv3).
@@ -72,6 +74,8 @@ The response of this method is extended with the `executionRequests` field.
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
   - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
 * error: code and message set in case an exception happens while getting the payload.
+
+**NOTE**: Each element of `executionRequests` is the SSZ serialization of the corresponding field of [`ExecutionRequests` defined in the `consensus-specs`](https://github.com/ethereum/consensus-specs/blob/dev/specs/electra/beacon-chain.md#executionrequests), such that the 0th element is the first field of that container, 1st element is the second field, and so on.
 
 #### Specification
 
