@@ -7,12 +7,13 @@
   "scripts": {
     "build": "npm run build:spec",
     "build:spec": "node scripts/build.js",
-    "build:docs": "cd build/docs/gatsby && npm install --legacy-peer-deps && gatsby build --prefix-paths",
+    "build:docs": "cd build/docs/gatsby && npm install && gatsby build --prefix-paths",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",
     "generate-clients": "mkdir -p build && open-rpc-generator generate -c open-rpc-generator-config.json",
     "graphql:schema": "node scripts/graphql.js",
-    "graphql:validate": "node scripts/graphql-validate.js"
+    "graphql:validate": "node scripts/graphql-validate.js",
+    "serve": "cd build/docs/gatsby && gatsby serve"
   },
   "repository": {
     "type": "git",
@@ -26,9 +27,9 @@
   "homepage": "https://github.com/ethereum/execution-apis#readme",
   "devDependencies": {
     "@graphql-inspector/core": "~3.3.0",
-    "@open-rpc/generator": "1.18.6",
-    "@open-rpc/schema-utils-js": "1.15.0",
-    "gatsby": "~4.16.0",
+    "@open-rpc/generator": "^2.0.0",
+    "@open-rpc/schema-utils-js": "^2.1.2",
+    "gatsby": "^5.14.3",
     "gh-pages": "~4.0.0",
     "graphql": "~16.3.0",
     "graphql-request": "~4.1.0",
