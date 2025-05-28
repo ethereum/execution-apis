@@ -23,6 +23,9 @@ Log:
     blockNumber:
       title: block number
       $ref: '#/components/schemas/uint'
+    blockTimestamp:
+      title: block timestamp
+      $ref: '#/components/schemas/uint'
     address:
       title: address
       $ref: '#/components/schemas/address'
