@@ -1,0 +1,47 @@
+---
+sidebar_position: 1
+---
+
+# ETH Namespace
+
+This page lists all JSON-RPC methods in the eth namespace.
+
+- [eth_accounts](/docs/reference/eth_accounts)
+- [eth_blobBaseFee](/docs/reference/eth_blobBaseFee)
+- [eth_blockNumber](/docs/reference/eth_blockNumber)
+- [eth_call](/docs/reference/eth_call)
+- [eth_chainId](/docs/reference/eth_chainId)
+- [eth_coinbase](/docs/reference/eth_coinbase)
+- [eth_createAccessList](/docs/reference/eth_createAccessList)
+- [eth_estimateGas](/docs/reference/eth_estimateGas)
+- [eth_feeHistory](/docs/reference/eth_feeHistory)
+- [eth_gasPrice](/docs/reference/eth_gasPrice)
+- [eth_getBalance](/docs/reference/eth_getBalance)
+- [eth_getBlockByHash](/docs/reference/eth_getBlockByHash)
+- [eth_getBlockByNumber](/docs/reference/eth_getBlockByNumber)
+- [eth_getBlockReceipts](/docs/reference/eth_getBlockReceipts)
+- [eth_getBlockTransactionCountByHash](/docs/reference/eth_getBlockTransactionCountByHash)
+- [eth_getBlockTransactionCountByNumber](/docs/reference/eth_getBlockTransactionCountByNumber)
+- [eth_getCode](/docs/reference/eth_getCode)
+- [eth_getFilterChanges](/docs/reference/eth_getFilterChanges)
+- [eth_getFilterLogs](/docs/reference/eth_getFilterLogs)
+- [eth_getLogs](/docs/reference/eth_getLogs)
+- [eth_getProof](/docs/reference/eth_getProof)
+- [eth_getStorageAt](/docs/reference/eth_getStorageAt)
+- [eth_getTransactionByBlockHashAndIndex](/docs/reference/eth_getTransactionByBlockHashAndIndex)
+- [eth_getTransactionByBlockNumberAndIndex](/docs/reference/eth_getTransactionByBlockNumberAndIndex)
+- [eth_getTransactionByHash](/docs/reference/eth_getTransactionByHash)
+- [eth_getTransactionCount](/docs/reference/eth_getTransactionCount)
+- [eth_getTransactionReceipt](/docs/reference/eth_getTransactionReceipt)
+- [eth_getUncleCountByBlockHash](/docs/reference/eth_getUncleCountByBlockHash)
+- [eth_getUncleCountByBlockNumber](/docs/reference/eth_getUncleCountByBlockNumber)
+- [eth_maxPriorityFeePerGas](/docs/reference/eth_maxPriorityFeePerGas)
+- [eth_newBlockFilter](/docs/reference/eth_newBlockFilter)
+- [eth_newFilter](/docs/reference/eth_newFilter)
+- [eth_newPendingTransactionFilter](/docs/reference/eth_newPendingTransactionFilter)
+- [eth_sendRawTransaction](/docs/reference/eth_sendRawTransaction)
+- [eth_sendTransaction](/docs/reference/eth_sendTransaction)
+- [eth_sign](/docs/reference/eth_sign)
+- [eth_signTransaction](/docs/reference/eth_signTransaction)
+- [eth_syncing](/docs/reference/eth_syncing)
+- [eth_uninstallFilter](/docs/reference/eth_uninstallFilter)
