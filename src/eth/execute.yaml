@@ -95,3 +95,19 @@
               storageKeys:
                 - '0x0000000000000000000000000000000000000000000000000000000000000081'
           gasUsed: '0x125f8'
+- name: eth_simulateV1
+  summary: Executes a sequence of message calls building on each other's state without creating transactions on the block chain, optionally overriding block and state data
+  params:
+    - name: Payload
+      required: true
+      schema:
+        $ref: '#/components/schemas/EthSimulatePayload'
+    - name: Block tag
+      required: false
+      description: "default: 'latest'"
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+  result:
+    name: Result of calls
+    schema:
+      $ref: '#/components/schemas/EthSimulateResult'

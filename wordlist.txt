@@ -67,5 +67,11 @@ randao
 src
 https
 forkchoiceupdatedresponsev
+feeRecipient
+multicallV
+EOA
+EVM
+ERC
+VM
 exitv
 txs
