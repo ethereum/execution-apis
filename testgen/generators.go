@@ -70,6 +70,7 @@ var AllMethods = []MethodTests{
 	EthGetCode,
 	EthGetStorage,
 	EthCall,
+	EthSimulateV1,
 	EthEstimateGas,
 	EthCreateAccessList,
 	EthGetBlockTransactionCountByNumber,
@@ -2011,4 +2012,3935 @@ var DebugGetRawTransaction = MethodTests{
 			},
 		},
 	},
+}
+
+var EthSimulateV1 = MethodTests{
+	"eth_simulateV1",
+	[]Test{
+		{
+			Name:  "ethSimulate-blobs",
+			About: "simulates a simple blob transaction",
+			Run: func(ctx context.Context, t *T) error {
+				var (
+					emptyBlob          = kzg4844.Blob{}
+					emptyBlobCommit, _ = kzg4844.BlobToCommitment(&emptyBlob)
+					emptyBlobProof, _  = kzg4844.ComputeBlobProof(&emptyBlob, emptyBlobCommit)
+				)
+				sidecar := &types.BlobTxSidecar{
+					Blobs:       []kzg4844.Blob{emptyBlob},
+					Commitments: []kzg4844.Commitment{emptyBlobCommit},
+					Proofs:      []kzg4844.Proof{emptyBlobProof},
+				}
+				blobVersionedhashes := sidecar.BlobHashes()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								BlobBaseFee:   (*hexutil.Big)(big.NewInt(0)),
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(15)),
+							},
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000000000)},
+								common.Address{0xc2}: OverrideAccount{Code: getFirstThreeBlobs()},
+							},
+							Calls: []TransactionArgs{{
+								From:                &common.Address{0xc0},
+								To:                  &common.Address{0xc2},
+								MaxFeePerGas:        (*hexutil.Big)(big.NewInt(16)),
+								MaxFeePerBlobGas:    *newRPCBalance(10),
+								BlobVersionedHashes: &blobVersionedhashes,
+							}},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								BlobBaseFee: (*hexutil.Big)(big.NewInt(1)),
+							},
+							Calls: []TransactionArgs{{
+								From:                &common.Address{0xc0},
+								To:                  &common.Address{0xc2},
+								MaxFeePerGas:        (*hexutil.Big)(big.NewInt(16)),
+								MaxFeePerBlobGas:    *newRPCBalance(10),
+								BlobVersionedHashes: &blobVersionedhashes,
+							}},
+						},
+					},
+					Validation:             true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple",
+			About: "simulates a ethSimulate transfer",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000)},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							}, {
+								From:  &common.Address{0xc1},
+								To:    &common.Address{0xc2},
+								Value: *newRPCBalance(1000),
+							}},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-validation-fulltx",
+			About: "simulates a ethSimulate transfer",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(15)),
+							},
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000000000000)},
+							},
+							Calls: []TransactionArgs{{
+								From:         &common.Address{0xc0},
+								To:           &common.Address{0xc1},
+								MaxFeePerGas: (*hexutil.Big)(big.NewInt(16)),
+								Value:        *newRPCBalance(10000000000),
+							}, {
+								From:         &common.Address{0xc1},
+								To:           &common.Address{0xc2},
+								MaxFeePerGas: (*hexutil.Big)(big.NewInt(16)),
+								Value:        *newRPCBalance(1000),
+							}},
+						},
+					},
+					Validation:             true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-more-params-validate",
+			About: "simulates a simple do-nothing transaction with more fields set",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(3360000)},
+							},
+							BlockOverrides: &BlockOverrides{
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(0)),
+							},
+							Calls: []TransactionArgs{{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Gas:                  getUint64Ptr(0x52080),
+								Value:                *newRPCBalance(0),
+								MaxFeePerGas:         (*hexutil.Big)(big.NewInt(0)),
+								MaxPriorityFeePerGas: (*hexutil.Big)(big.NewInt(0)),
+								MaxFeePerBlobGas:     (*hexutil.Big)(big.NewInt(0)),
+								Nonce:                getUint64Ptr(0),
+								Input:                hex2Bytes(""),
+							}},
+						},
+					},
+					Validation:             true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty-validation",
+			About: "simulates empty with validation",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls:        []CallBatch{{}},
+					Validation:             true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty",
+			About: "simulates empty",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls:        []CallBatch{{}},
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-more-params-validate",
+			About: "simulates a simple do-nothing transaction with more fields set",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(3360000)},
+							},
+							BlockOverrides: &BlockOverrides{
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(0)),
+							},
+							Calls: []TransactionArgs{{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Gas:                  getUint64Ptr(0x52080),
+								Value:                *newRPCBalance(0),
+								MaxFeePerGas:         (*hexutil.Big)(big.NewInt(0)),
+								MaxPriorityFeePerGas: (*hexutil.Big)(big.NewInt(0)),
+								MaxFeePerBlobGas:     (*hexutil.Big)(big.NewInt(0)),
+								Nonce:                getUint64Ptr(0),
+								Input:                hex2Bytes(""),
+							}},
+						},
+					},
+					Validation:             true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-with-validation-no-funds",
+			About: "simulates a ethSimulate transfer with validation and not enough funds",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000)},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							}, {
+								From:  &common.Address{0xc1},
+								To:    &common.Address{0xc2},
+								Value: *newRPCBalance(1000),
+							}},
+						},
+					},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-no-funds",
+			About: "simulates a simple ethSimulate transfer when account has no funds",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							}, {
+								From:  &common.Address{0xc1},
+								To:    &common.Address{0xc2},
+								Value: *newRPCBalance(1000),
+							}},
+						},
+					},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-overwrite-existing-contract",
+			About: "overwrites existing contract with new contract",
+			Run: func(ctx context.Context, t *T) error {
+				contractAddr := common.HexToAddress("0000000000000000000000000000000000031ec7")
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &contractAddr,
+								Input: hex2Bytes("a9059cbb0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000a"), // transfer(address,uint256)
+							}},
+						},
+						{
+							StateOverrides: &StateOverride{
+								contractAddr: OverrideAccount{Code: getBlockProperties()},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &contractAddr,
+								Input: hex2Bytes("a9059cbb0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000a"), // transfer(address,uint256)
+							}},
+						},
+					},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+
+		{
+			Name:  "ethSimulate-overflow-nonce",
+			About: "test to overflow nonce",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Nonce: getUint64Ptr(0xFFFFFFFFFFFFFFFF)},
+							},
+							Calls: []TransactionArgs{
+								{
+									From: &common.Address{0xc0},
+									To:   &common.Address{0xc1},
+								},
+								{
+									From: &common.Address{0xc0},
+									To:   &common.Address{0xc1},
+								},
+							},
+						},
+					},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-overflow-nonce-validation",
+			About: "test to overflow nonce-validation",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Nonce: getUint64Ptr(0xFFFFFFFFFFFFFFFF)},
+							},
+							Calls: []TransactionArgs{
+								{
+									From: &common.Address{0xc0},
+									To:   &common.Address{0xc1},
+								},
+								{
+									From: &common.Address{0xc0},
+									To:   &common.Address{0xc1},
+								},
+							},
+						},
+					},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-no-funds-with-balance-querying",
+			About: "simulates a simple ethSimulate transfer when account has no funds with querying balances before and after",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								Code: getBalanceGetter(),
+							},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c000000000000000000000000000000000000000"), // gets balance of c0
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c100000000000000000000000000000000000000"), // gets balance of c1
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c000000000000000000000000000000000000000"), // gets balance of c0
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c100000000000000000000000000000000000000"), // gets balance of c1
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c000000000000000000000000000000000000000"), // gets balance of c0
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c100000000000000000000000000000000000000"), // gets balance of c1
+							},
+						},
+					}},
+					Validation:             false,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-check-that-balance-is-there-after-new-block",
+			About: "checks that balances are kept to next block",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(10000),
+							},
+							common.Address{0xc2}: OverrideAccount{
+								Code: getBalanceGetter(),
+							},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c000000000000000000000000000000000000000"), // gets balance of c0
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c100000000000000000000000000000000000000"), // gets balance of c1
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							},
+						},
+					}, {
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c000000000000000000000000000000000000000"), // gets balance of c0
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("f8b2cb4f000000000000000000000000c100000000000000000000000000000000000000"), // gets balance of c1
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-no-funds-with-validation",
+			About: "simulates a simple ethSimulate transfer when account has no funds with validation",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+								Nonce: getUint64Ptr(0),
+							}, {
+								From:  &common.Address{0xc1},
+								To:    &common.Address{0xc2},
+								Value: *newRPCBalance(1000),
+								Nonce: getUint64Ptr(1),
+							}},
+						},
+					},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-no-funds-with-validation-without-nonces",
+			About: "simulates a simple ethSimulate transfer when account has no funds with validation. This should fail as the nonce is not set for the second transaction.",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+								Nonce: getUint64Ptr(0),
+							}, {
+								From:  &common.Address{0xc1},
+								To:    &common.Address{0xc2},
+								Value: *newRPCBalance(1000),
+							}},
+						},
+					},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-send-from-contract",
+			About: "Sending eth from contract",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000), Code: getEthForwarder()},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-send-from-contract-no-balance",
+			About: "Sending eth from contract without balance",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Code: getEthForwarder()},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-send-from-contract-with-validation",
+			About: "Sending eth from contract with validation enabled",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000), Code: getEthForwarder()},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers:         true,
+					Validation:             true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-transfer-over-BlockStateCalls",
+			About: "simulates a transfering value over multiple BlockStateCalls",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(5000)},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(2000),
+							}, {
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc3},
+								Value: *newRPCBalance(2000),
+							},
+						},
+					}, {
+						StateOverrides: &StateOverride{
+							{0xc3}: OverrideAccount{Balance: newRPCBalance(5000)},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc1},
+								To:    &common.Address{0xc2},
+								Value: *newRPCBalance(1000),
+							}, {
+								From:  &common.Address{0xc3},
+								To:    &common.Address{0xc2},
+								Value: *newRPCBalance(1000),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-block-num",
+			About: "simulates calls overriding the block num",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 1)),
+						},
+						Calls: []TransactionArgs{
+							{
+								From: &common.Address{0xc0},
+								Input: &hexutil.Bytes{
+									0x43,             // NUMBER
+									0x60, 0x00, 0x52, // MSTORE offset 0
+									0x60, 0x20, 0x60, 0x00, 0xf3, // RETURN
+								},
+							},
+						},
+					}, {
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 2)),
+						},
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc1},
+							Input: &hexutil.Bytes{
+								0x43,             // NUMBER
+								0x60, 0x00, 0x52, // MSTORE offset 0
+								0x60, 0x20, 0x60, 0x00, 0xf3,
+							},
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-block-num-order-38020",
+			About: "simulates calls with invalid block num order (-38020)",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 100)),
+						},
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc1},
+							Input: &hexutil.Bytes{
+								0x43,             // NUMBER
+								0x60, 0x00, 0x52, // MSTORE offset 0
+								0x60, 0x20, 0x60, 0x00, 0xf3, // RETURN
+							},
+						}},
+					}, {
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 90)),
+						},
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc0},
+							Input: &hexutil.Bytes{
+								0x43,             // NUMBER
+								0x60, 0x00, 0x52, // MSTORE offset 0
+								0x60, 0x20, 0x60, 0x00, 0xf3, // RETURN
+							},
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-block-timestamp-order-38021",
+			About: "Error: simulates calls with invalid timestamp order (-38021)",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 12),
+							},
+						}, {
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 11),
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-block-timestamp-non-increment",
+			About: "Error: simulates calls with timestamp staying the same",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 12),
+							},
+						}, {
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 12),
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-block-timestamps-incrementing",
+			About: "checks that you can set timestamp and increment it in next block",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 11),
+							},
+						}, {
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 12),
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-block-timestamp-auto-increment",
+			About: "Error: simulates calls with timestamp incrementing over another",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 11),
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								Time: getUint64Ptr(latestBlockTime + 12),
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-set-read-storage",
+			About: "simulates calls setting and reading from storage contract",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								Code: hex2Bytes("608060405234801561001057600080fd5b50600436106100365760003560e01c80632e64cec11461003b5780636057361d14610059575b600080fd5b610043610075565b60405161005091906100d9565b60405180910390f35b610073600480360381019061006e919061009d565b61007e565b005b60008054905090565b8060008190555050565b60008135905061009781610103565b92915050565b6000602082840312156100b3576100b26100fe565b5b60006100c184828501610088565b91505092915050565b6100d3816100f4565b82525050565b60006020820190506100ee60008301846100ca565b92915050565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea2646970667358221220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033"),
+							},
+						},
+						Calls: []TransactionArgs{{
+							// Set value to 5
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("6057361d0000000000000000000000000000000000000000000000000000000000000005"),
+						}, {
+							// Read value
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("2e64cec1"),
+						},
+						},
+					}},
+				}
+				res := make([]interface{}, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-logs",
+			About: "simulates calls with logs",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								// Yul Code:
+								// object "Test" {
+								//    code {
+								//        let hash:u256 := 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+								//        log1(0, 0, hash)
+								//        return (0, 0)
+								//    }
+								// }
+								Code: hex2Bytes("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80600080a1600080f3"),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("6057361d0000000000000000000000000000000000000000000000000000000000000005"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-blockhash-simple",
+			About: "gets blockhash of block 1 (included in original chain)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								Code: blockHashCallerByteCode(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000001"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls) != 1 {
+					return fmt.Errorf("unexpected number of call results (have: %d, want: %d)", len(res[0].Calls), 1)
+				}
+				if err := checkBlockHash(common.BytesToHash(res[0].Calls[0].ReturnData), t.chain.GetBlock(1).Hash()); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-blockhash-complex",
+			About: "gets blockhash of simulated block",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(2000000),
+							},
+							common.Address{0xc2}: OverrideAccount{
+								Code: blockHashDeltaCallerByteCode(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000001"),
+						}},
+					}, {
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 30)),
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("ee82ac5e000000000000000000000000000000000000000000000000000000000000000f"),
+						}},
+					}, {
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 40)),
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("ee82ac5e000000000000000000000000000000000000000000000000000000000000001d"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-blockhash-start-before-head",
+			About: "gets blockhash of simulated block",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(2000000),
+							},
+							common.Address{0xc2}: OverrideAccount{
+								Code: blockHashDeltaCallerByteCode(),
+							},
+						},
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 5)),
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000001"),
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000002"),
+							},
+						},
+					}, {
+						BlockOverrides: &BlockOverrides{
+							Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 6)),
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000013"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty-with-block-num-set-firstblock",
+			About: "set block number otherwise empty",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, (*hexutil.Big)(big.NewInt(1)))
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty-with-block-num-set-minusone",
+			About: "set block number otherwise empty with latest - 1",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, (*hexutil.Big)(big.NewInt(latestBlockNumber-1)))
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty-with-block-num-set-current",
+			About: "set block number otherwise empty with latest",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, (*hexutil.Big)(big.NewInt(latestBlockNumber)))
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty-with-block-num-set-plus1",
+			About: "set block number otherwise empty with latest + 1",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, (*hexutil.Big)(big.NewInt(latestBlockNumber+1)))
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-self-destructing-state-override",
+			About: "when selfdestructing a state override, the state override should go away",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								Code: selfDestructor(),
+							},
+							common.Address{0xc3}: OverrideAccount{
+								Code: getCode(),
+							},
+						},
+					}, {
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc3},
+							Input: hex2Bytes("dce4a447000000000000000000000000c200000000000000000000000000000000000000"), //at(0xc2)
+						}},
+					}, {
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("83197ef0"), //destroy()
+						}},
+					}, {
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc3},
+							Input: hex2Bytes("dce4a447000000000000000000000000c200000000000000000000000000000000000000"), //at(0xc2)
+						}},
+					}, {
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								Code: selfDestructor(),
+							},
+						},
+					}, {
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc3},
+							Input: hex2Bytes("dce4a447000000000000000000000000c200000000000000000000000000000000000000"), //at(0xc2)
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-run-out-of-gas-in-block-38015",
+			About: "we should get out of gas error if a block consumes too much gas (-38015)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(2000000),
+							},
+							common.Address{0xc2}: OverrideAccount{
+								Code: gasSpender(),
+							},
+						},
+						BlockOverrides: &BlockOverrides{
+							GasLimit: getUint64Ptr(1500000),
+						},
+					}, {
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("815b8ab400000000000000000000000000000000000000000000000000000000000f4240"), //spendGas(1000000)
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("815b8ab400000000000000000000000000000000000000000000000000000000000f4240"), //spendGas(1000000)
+							},
+						}},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-run-gas-spending",
+			About: "spend a lot gas in separate blocks",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(2000000),
+								},
+								common.Address{0xc2}: OverrideAccount{
+									Code: gasSpender(),
+								},
+							},
+							BlockOverrides: &BlockOverrides{
+								GasLimit: getUint64Ptr(1500000),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("815b8ab40000000000000000000000000000000000000000000000000000000000000000"), //spendGas(0)
+								},
+							},
+						},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("815b8ab40000000000000000000000000000000000000000000000000000000000000000"), //spendGas(0)
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("815b8ab400000000000000000000000000000000000000000000000000000000000f4240"), //spendGas(1000000)
+								},
+							},
+						},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("815b8ab40000000000000000000000000000000000000000000000000000000000000000"), //spendGas(0)
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("815b8ab400000000000000000000000000000000000000000000000000000000000f4240"), //spendGas(1000000)
+								},
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-eth-send-should-produce-logs",
+			About: "when sending eth we should get ETH logs when traceTransfers is set",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				}
+				if res[0].Calls[0].Logs[0].Address.String() != "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" {
+					return fmt.Errorf("unexpected log address (have: %s, want: %s)", res[0].Calls[0].Logs[0].Address.String(), "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-address-twice",
+			About: "override address twice",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+							common.Address{0xc0}: OverrideAccount{Code: getRevertingContract()},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty-ethSimulate",
+			About: "ethSimulate without parameters",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-empty-calls-and-overrides-ethSimulate",
+			About: "ethSimulate with state overrides and calls but they are empty",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{},
+							Calls:          []TransactionArgs{{}},
+						},
+						{
+							StateOverrides: &StateOverride{},
+							Calls:          []TransactionArgs{{}},
+						},
+					},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-address-twice-in-separate-BlockStateCalls",
+			About: "override address twice in separate BlockStateCalls",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							}},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Value: *newRPCBalance(1000),
+							}},
+						},
+					},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-eth-send-should-not-produce-logs-on-revert",
+			About: "we should not be producing eth logs if the transaction reverts and ETH is not sent",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+							common.Address{0xc1}: OverrideAccount{Code: getRevertingContract()},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers:         true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls[0].Logs) != 0 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 0)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-eth-send-should-produce-more-logs-on-forward",
+			About: "we should be getting more logs if eth is forwarded",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+							common.Address{0xc1}: OverrideAccount{Code: getEthForwarder()},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+							Input: hex2Bytes("4b64e4920000000000000000000000000000000000000000000000000000000000000100"),
+						}},
+					}},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls[0].Logs) != 2 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-eth-send-should-produce-no-logs-on-forward-revert",
+			About: "we should be getting no logs if eth is forwarded but then the tx reverts",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+							common.Address{0xc1}: OverrideAccount{Code: getEthForwarder()},
+							common.Address{0xc2}: OverrideAccount{Code: getRevertingContract()},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+							Input: hex2Bytes("4b64e492c200000000000000000000000000000000000000000000000000000000000000"), //foward(0xc2)
+						}},
+					}},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls[0].Logs) != 0 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 0)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-eth-send-should-not-produce-logs-by-default",
+			About: "when sending eth we should not get ETH logs by default",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls[0].Logs) != 0 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 0)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-transaction-too-low-nonce-38010",
+			About: "Error: Nonce too low (-38010)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Nonce: getUint64Ptr(10)},
+						},
+						Calls: []TransactionArgs{{
+							Nonce: getUint64Ptr(0),
+							From:  &common.Address{0xc1},
+							To:    &common.Address{0xc1},
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-transaction-too-high-nonce",
+			About: "Error: Nonce too high",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{
+							Nonce: getUint64Ptr(100),
+							From:  &common.Address{0xc1},
+							To:    &common.Address{0xc1},
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-basefee-too-low-with-validation-38012",
+			About: "Error: BaseFeePerGas too low with validation (-38012)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+						},
+						BlockOverrides: &BlockOverrides{
+							BaseFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+						},
+						Calls: []TransactionArgs{{
+							From:                 &common.Address{0xc0},
+							To:                   &common.Address{0xc1},
+							MaxFeePerGas:         (*hexutil.Big)(big.NewInt(0)),
+							MaxPriorityFeePerGas: (*hexutil.Big)(big.NewInt(0)),
+						}},
+					}},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-basefee-too-low-without-validation-38012",
+			About: "Error: BaseFeePerGas too low with no validation (-38012)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000)},
+						},
+						BlockOverrides: &BlockOverrides{
+							BaseFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+						},
+						Calls: []TransactionArgs{{
+							From:                 &common.Address{0xc1},
+							To:                   &common.Address{0xc1},
+							MaxFeePerGas:         (*hexutil.Big)(big.NewInt(0)),
+							MaxPriorityFeePerGas: (*hexutil.Big)(big.NewInt(0)),
+						}},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-basefee-too-low-without-validation-38012-without-basefee-override",
+			About: "tries to send transaction with zero basefee",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{
+							From:                 &common.Address{0xc1},
+							To:                   &common.Address{0xc1},
+							MaxFeePerGas:         (*hexutil.Big)(big.NewInt(0)),
+							MaxPriorityFeePerGas: (*hexutil.Big)(big.NewInt(0)),
+						}},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-instrict-gas-38013",
+			About: "Error: Not enough gas provided to pay for intrinsic gas (-38013)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc1},
+							To:   &common.Address{0xc1},
+							Gas:  getUint64Ptr(0),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-gas-fees-and-value-error-38014",
+			About: "Error: Insufficient funds to pay for gas fees and value (-38014)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-gas-fees-and-value-error-38014-with-validation",
+			About: "Error: Insufficient funds to pay for gas fees and value (-38014) with validation",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-move-to-address-itself-reference-38022",
+			About: "Error: MovePrecompileToAddress referenced itself in replacement (-38022)",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(200000)},
+							common.Address{0xc1}: OverrideAccount{MovePrecompileToAddress: &common.Address{0xc1}},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Value: *newRPCBalance(1),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-move-two-non-precompiles-accounts-to-same",
+			About: "Move two non-precompiles to same adddress",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0x1}: OverrideAccount{
+								MovePrecompileToAddress: &common.Address{0xc2},
+							},
+							common.Address{0x2}: OverrideAccount{
+								MovePrecompileToAddress: &common.Address{0xc2},
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-move-two-accounts-to-same-38023",
+			About: "Move two accounts to the same destination (-38023)",
+			Run: func(ctx context.Context, t *T) error {
+				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
+				keccakAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							ecRecoverAddress: OverrideAccount{
+								MovePrecompileToAddress: &common.Address{0xc2},
+							},
+							keccakAddress: OverrideAccount{
+								MovePrecompileToAddress: &common.Address{0xc2},
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-try-to-move-non-precompile",
+			About: "try to move non-precompile",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Nonce: getUint64Ptr(5)},
+							},
+						}, {
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{MovePrecompileToAddress: &common.Address{0xc1}},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc0},
+									Nonce: getUint64Ptr(0),
+								},
+								{
+									From:  &common.Address{0xc1},
+									To:    &common.Address{0xc1},
+									Nonce: getUint64Ptr(5),
+								},
+							},
+						},
+					},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-make-call-with-future-block",
+			About: "start ethSimulate with future block",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							Calls: []TransactionArgs{{
+								From: &common.Address{0xc0},
+								To:   &common.Address{0xc0},
+							}},
+						},
+					},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "0x111")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-check-that-nonce-increases",
+			About: "check that nonce increases",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(20000000000)},
+							},
+							BlockOverrides: &BlockOverrides{
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(9)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:         &common.Address{0xc0},
+									To:           &common.Address{0xc0},
+									Nonce:        getUint64Ptr(0),
+									MaxFeePerGas: (*hexutil.Big)(big.NewInt(15)),
+								},
+								{
+									From:         &common.Address{0xc0},
+									To:           &common.Address{0xc0},
+									Nonce:        getUint64Ptr(1),
+									MaxFeePerGas: (*hexutil.Big)(big.NewInt(15)),
+								},
+								{
+									From:         &common.Address{0xc0},
+									To:           &common.Address{0xc0},
+									Nonce:        getUint64Ptr(2),
+									MaxFeePerGas: (*hexutil.Big)(big.NewInt(15)),
+								},
+							},
+						},
+					},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-check-invalid-nonce",
+			About: "check that nonce cannot decrease",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(1)),
+							},
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(20000)},
+							},
+						}, {
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc0},
+									Nonce: getUint64Ptr(0),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc0},
+									Nonce: getUint64Ptr(1),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc0},
+									Nonce: getUint64Ptr(0),
+								},
+							},
+						},
+					},
+					Validation: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-all-in-BlockStateCalls",
+			About: "override all values in block and see that they are set in return value",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				feeRecipient := common.Address{0xc2}
+				randDao := common.Hash{0xc3}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						BlockOverrides: &BlockOverrides{
+							Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
+							Time:          getUint64Ptr(latestBlockTime + 10),
+							GasLimit:      getUint64Ptr(1004),
+							FeeRecipient:  &feeRecipient,
+							PrevRandao:    &randDao,
+							BaseFeePerGas: (*hexutil.Big)(big.NewInt(1007)),
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-move-ecrecover-and-call",
+			About: "move ecrecover and try calling it",
+			Run: func(ctx context.Context, t *T) error {
+				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
+				ecRecoverMovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{ // just call ecrecover normally
+							{ // call with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+						},
+					}, {
+						StateOverrides: &StateOverride{ // move ecRecover and call it in new address
+							ecRecoverAddress: OverrideAccount{
+								MovePrecompileToAddress: &ecRecoverMovedToAddress,
+							},
+						},
+						Calls: []TransactionArgs{
+							{ // call with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+							{ // call with valid params, the old address, should fail as it was moved
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls) != len(params.BlockStateCalls[0].Calls) {
+					return fmt.Errorf("unexpected number of call results (have: %d, want: %d)", len(res[0].Calls), len(params.BlockStateCalls[0].Calls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-move-ecrecover-twice-and-call",
+			About: "move ecrecover and try calling it, then move it again and call it",
+			Run: func(ctx context.Context, t *T) error {
+				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
+				ecRecoverMovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				ecRecoverMovedToAddress2 := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123457"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{ // just call ecrecover normally
+							{ // call with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+						},
+					}, {
+						StateOverrides: &StateOverride{ // move ecRecover and call it in new address
+							ecRecoverAddress: OverrideAccount{
+								MovePrecompileToAddress: &ecRecoverMovedToAddress,
+							},
+						},
+						Calls: []TransactionArgs{
+							{ // call with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+							{ // call with valid params, the old address, should fail as it was moved
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+						},
+					}, {
+						StateOverrides: &StateOverride{ // move ecRecover and call it in new address
+							ecRecoverAddress: OverrideAccount{
+								MovePrecompileToAddress: &ecRecoverMovedToAddress2,
+							},
+						},
+						Calls: []TransactionArgs{
+							{ // call with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+							{ // call with valid params, the old address, should fail as it was moved
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress2,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-ecrecover",
+			About: "override ecrecover",
+			Run: func(ctx context.Context, t *T) error {
+				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
+				ecRecoverMovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							ecRecoverAddress: OverrideAccount{
+								Code:                    getEcRecoverOverride(),
+								MovePrecompileToAddress: &ecRecoverMovedToAddress,
+							},
+							common.Address{0xc1}: OverrideAccount{Balance: newRPCBalance(200000)},
+						},
+						Calls: []TransactionArgs{
+							{ // call with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+							{ // add override
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("c00692604554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa96045"),
+							},
+							{ // now it should resolve to 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+							{ // call with new invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554490000000000000000000000000000000000000000000000000000000000"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls) != len(params.BlockStateCalls[0].Calls) {
+					return fmt.Errorf("unexpected number of call results (have: %d, want: %d)", len(res[0].Calls), len(params.BlockStateCalls[0].Calls))
+				}
+				zeroAddr := common.Address{0x0}
+				if common.BytesToAddress(res[0].Calls[0].ReturnData) != zeroAddr {
+					return fmt.Errorf("unexpected ReturnData (have: %d, want: %d)", common.BytesToAddress(res[0].Calls[0].ReturnData), zeroAddr)
+				}
+				successReturn := common.BytesToAddress(*hex2Bytes("b11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a"))
+				if common.BytesToAddress(res[0].Calls[1].ReturnData) != successReturn {
+					return fmt.Errorf("unexpected calls 1 ReturnData (have: %d, want: %d)", common.BytesToAddress(res[0].Calls[1].ReturnData), successReturn)
+				}
+				vitalikReturn := common.BytesToAddress(*hex2Bytes("d8dA6BF26964aF9D7eEd9e03E53415D37aA96045"))
+				if common.BytesToAddress(res[0].Calls[3].ReturnData) != vitalikReturn {
+					return fmt.Errorf("unexpected calls 3 ReturnData (have: %d, want: %d)", common.BytesToAddress(res[0].Calls[3].ReturnData), vitalikReturn)
+				}
+				if common.BytesToAddress(res[0].Calls[4].ReturnData) != successReturn {
+					return fmt.Errorf("unexpected calls 4 ReturnData (have: %d, want: %d)", common.BytesToAddress(res[0].Calls[4].ReturnData), successReturn)
+				}
+				if common.BytesToAddress(res[0].Calls[5].ReturnData) != zeroAddr {
+					return fmt.Errorf("unexpected calls 5 ReturnData (have: %d, want: %d)", common.BytesToAddress(res[0].Calls[5].ReturnData), zeroAddr)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-sha256",
+			About: "override sha256 precompile",
+			Run: func(ctx context.Context, t *T) error {
+				sha256Address := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				sha256MovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							sha256Address: OverrideAccount{
+								Code:                    hex2Bytes(""),
+								MovePrecompileToAddress: &sha256MovedToAddress,
+							},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &sha256MovedToAddress,
+								Input: hex2Bytes("1234"),
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &sha256Address,
+								Input: hex2Bytes("1234"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-two-blocks-with-complete-eth-sends",
+			About: "two blocks with eth sends",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						BlockOverrides: &BlockOverrides{
+							BaseFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+						},
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(900001000)},
+							common.Address{0xc1}: OverrideAccount{Balance: newRPCBalance(900002000)},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Input:                hex2Bytes(""),
+								Gas:                  getUint64Ptr(21000),
+								MaxFeePerGas:         *newRPCBalance(20),
+								MaxPriorityFeePerGas: *newRPCBalance(1),
+								MaxFeePerBlobGas:     *newRPCBalance(0),
+								Value:                *newRPCBalance(101),
+								Nonce:                getUint64Ptr(0),
+							},
+							{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Input:                hex2Bytes(""),
+								Gas:                  getUint64Ptr(21000),
+								MaxFeePerGas:         *newRPCBalance(20),
+								MaxPriorityFeePerGas: *newRPCBalance(1),
+								MaxFeePerBlobGas:     *newRPCBalance(0),
+								Value:                *newRPCBalance(102),
+								Nonce:                getUint64Ptr(1),
+							},
+							{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Input:                hex2Bytes(""),
+								Gas:                  getUint64Ptr(21000),
+								MaxFeePerGas:         *newRPCBalance(20),
+								MaxPriorityFeePerGas: *newRPCBalance(1),
+								MaxFeePerBlobGas:     *newRPCBalance(0),
+								Value:                *newRPCBalance(103),
+								Nonce:                getUint64Ptr(2),
+							},
+							{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Input:                hex2Bytes(""),
+								Gas:                  getUint64Ptr(21000),
+								MaxFeePerGas:         *newRPCBalance(20),
+								MaxPriorityFeePerGas: *newRPCBalance(1),
+								MaxFeePerBlobGas:     *newRPCBalance(0),
+								Value:                *newRPCBalance(104),
+								Nonce:                getUint64Ptr(3),
+							},
+							{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Input:                hex2Bytes(""),
+								Gas:                  getUint64Ptr(21000),
+								MaxFeePerGas:         *newRPCBalance(20),
+								MaxPriorityFeePerGas: *newRPCBalance(1),
+								MaxFeePerBlobGas:     *newRPCBalance(0),
+								Value:                *newRPCBalance(105),
+								Nonce:                getUint64Ptr(4),
+							},
+							{
+								From:                 &common.Address{0xc0},
+								To:                   &common.Address{0xc1},
+								Input:                hex2Bytes(""),
+								Gas:                  getUint64Ptr(21000),
+								MaxFeePerGas:         *newRPCBalance(20),
+								MaxPriorityFeePerGas: *newRPCBalance(1),
+								MaxFeePerBlobGas:     *newRPCBalance(0),
+								Value:                *newRPCBalance(106),
+								Nonce:                getUint64Ptr(5),
+							},
+							{
+								From:                 &common.Address{0xc1},
+								To:                   &common.Address{0xc2},
+								Input:                hex2Bytes(""),
+								Gas:                  getUint64Ptr(21000),
+								MaxFeePerGas:         *newRPCBalance(20),
+								MaxPriorityFeePerGas: *newRPCBalance(1),
+								MaxFeePerBlobGas:     *newRPCBalance(0),
+								Value:                *newRPCBalance(106),
+								Nonce:                getUint64Ptr(0),
+							},
+						},
+					},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(20),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(101),
+									Nonce:                getUint64Ptr(6),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(20),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(102),
+									Nonce:                getUint64Ptr(7),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(20),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(103),
+									Nonce:                getUint64Ptr(8),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(20),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(104),
+									Nonce:                getUint64Ptr(9),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(20),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(105),
+									Nonce:                getUint64Ptr(10),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(20),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(106),
+									Nonce:                getUint64Ptr(11),
+								},
+								{
+									From:                 &common.Address{0xc1},
+									To:                   &common.Address{0xc2},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(20),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(106),
+									Nonce:                getUint64Ptr(1),
+								},
+							},
+						}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-identity",
+			About: "override identity precompile",
+			Run: func(ctx context.Context, t *T) error {
+				identityAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000004"))
+				identityMovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							identityAddress: OverrideAccount{
+								Code:                    hex2Bytes(""),
+								MovePrecompileToAddress: &identityMovedToAddress,
+							},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &identityMovedToAddress,
+								Input: hex2Bytes("1234"),
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &identityAddress,
+								Input: hex2Bytes("1234"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-precompile-is-sending-transaction",
+			About: "send transaction from a precompile",
+			Run: func(ctx context.Context, t *T) error {
+				identityAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000004"))
+				sha256Address := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{
+							{
+								From:  &identityAddress,
+								To:    &sha256Address,
+								Input: hex2Bytes("1234"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-state-diff",
+			About: "override one state variable with statediff",
+			Run: func(ctx context.Context, t *T) error {
+				stateChanges := make(map[common.Hash]common.Hash)
+				stateChanges[common.BytesToHash(*hex2Bytes("0000000000000000000000000000000000000000000000000000000000000000"))] = common.Hash{0x12} //slot 0 -> 0x12
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(2000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: getStorageTester(),
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"), // set storage slot 0 -> 1
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"), // set storage slot 1 -> 2
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									StateDiff: &stateChanges, // state diff override
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000000"), // gets storage slot 0, should be 0x12 as overrided
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000001"), // gets storage slot 1, should be 2
+								},
+							},
+						},
+					},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-simple-state-diff",
+			About: "override one state variable with state",
+			Run: func(ctx context.Context, t *T) error {
+				stateChanges := make(map[common.Hash]common.Hash)
+				stateChanges[common.BytesToHash(*hex2Bytes("0000000000000000000000000000000000000000000000000000000000000000"))] = common.Hash{0x12} //slot 0 -> 0x12
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(2000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: getStorageTester(),
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"), // set storage slot 0 -> 1
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"), // set storage slot 1 -> 2
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									State: &stateChanges, // state diff override
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000000"), // gets storage slot 0, should be 0x12 as overrided
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000001"), // gets storage slot 1, should be 0
+								},
+							},
+						},
+					},
+					TraceTransfers:         true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-storage-slots",
+			About: "override storage slots",
+			Run: func(ctx context.Context, t *T) error {
+				stateChanges := make(map[common.Hash]common.Hash)
+				stateChanges[common.BytesToHash(*hex2Bytes("0000000000000000000000000000000000000000000000000000000000000000"))] = common.Hash{0x12} //slot 0 -> 0x12
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(2000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: getStorageTester(),
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"), // set storage slot 0 -> 1
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"), // set storage slot 1 -> 2
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000000"), // gets storage slot 0, should be 1
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000001"), // gets storage slot 1, should be 2
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									StateDiff: &stateChanges, // state diff override
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000000"), // gets storage slot 0, should be 0x12 as overrided
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000001"), // gets storage slot 1, should be 2
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									State: &stateChanges, // whole state override
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000000"), // gets storage slot 0, should be 0x12 as overrided
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("0ff4c9160000000000000000000000000000000000000000000000000000000000000001"), // gets storage slot 1, should be 0 as the whole storage was replaced
+								},
+							},
+						},
+					},
+					TraceTransfers:         true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if res[0].Calls[2].ReturnData.String() != "0x0000000000000000000000000000000000000000000000000000000000000001" {
+					return fmt.Errorf("unexpected call result (res[0].Calls[2]) (have: %s, want: %s)", res[0].Calls[2].ReturnData.String(), "0x0000000000000000000000000000000000000000000000000000000000000001")
+				}
+				if res[0].Calls[3].ReturnData.String() != "0x0000000000000000000000000000000000000000000000000000000000000002" {
+					return fmt.Errorf("unexpected call result (res[0].Calls[3]) (have: %s, want: %s)", res[0].Calls[3].ReturnData.String(), "0x0000000000000000000000000000000000000000000000000000000000000002")
+				}
+
+				if res[1].Calls[0].ReturnData.String() != "0x1200000000000000000000000000000000000000000000000000000000000000" {
+					return fmt.Errorf("unexpected call result (res[1].Calls[0]) (have: %s, want: %s)", res[1].Calls[0].ReturnData.String(), "0x1200000000000000000000000000000000000000000000000000000000000000")
+				}
+				if res[1].Calls[1].ReturnData.String() != "0x0000000000000000000000000000000000000000000000000000000000000002" {
+					return fmt.Errorf("unexpected call result (res[1].Calls[1]) (have: %s, want: %s)", res[1].Calls[1].ReturnData.String(), "0x0000000000000000000000000000000000000000000000000000000000000002")
+				}
+
+				if res[2].Calls[0].ReturnData.String() != "0x1200000000000000000000000000000000000000000000000000000000000000" {
+					return fmt.Errorf("unexpected call result (res[2].Calls[0]) (have: %s, want: %s)", res[2].Calls[0].ReturnData.String(), "0x1200000000000000000000000000000000000000000000000000000000000000")
+				}
+				if res[2].Calls[1].ReturnData.String() != "0x0000000000000000000000000000000000000000000000000000000000000000" {
+					return fmt.Errorf("unexpected call result (res[2].Calls[1]) (have: %s, want: %s)", res[2].Calls[1].ReturnData.String(), "0x0000000000000000000000000000000000000000000000000000000000000000")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-block-override-reflected-in-contract-simple",
+			About: "Checks that block overrides are true in contract for block number and time",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 5)),
+								Time:   getUint64Ptr(latestBlockTime + 10),
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
+								Time:   getUint64Ptr(latestBlockTime + 20),
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 20)),
+								Time:   getUint64Ptr(latestBlockTime + 30),
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-get-block-properties",
+			About: "gets various block properties from chain",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-block-override-reflected-in-contract",
+			About: "Checks that block overrides are true in contract",
+			Run: func(ctx context.Context, t *T) error {
+				prevRandDao1 := common.BytesToHash(*hex2Bytes("123"))
+				prevRandDao2 := common.BytesToHash(*hex2Bytes("1234"))
+				prevRandDao3 := common.BytesToHash(*hex2Bytes("12345"))
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							BlockOverrides: &BlockOverrides{
+								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 5)),
+								Time:          getUint64Ptr(latestBlockTime + 10),
+								GasLimit:      getUint64Ptr(190000),
+								FeeRecipient:  &common.Address{0xc0},
+								PrevRandao:    &prevRandDao1,
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
+								Time:          getUint64Ptr(latestBlockTime + 10),
+								GasLimit:      getUint64Ptr(300000),
+								FeeRecipient:  &common.Address{0xc1},
+								PrevRandao:    &prevRandDao2,
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(20)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 15)),
+								Time:          getUint64Ptr(latestBlockTime + 20),
+								GasLimit:      getUint64Ptr(190002),
+								FeeRecipient:  &common.Address{0xc2},
+								PrevRandao:    &prevRandDao3,
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(30)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-add-more-non-defined-BlockStateCalls-than-fit",
+			About: "Add more BlockStateCalls between two BlockStateCalls than it actually fits there",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 100)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 101)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-add-more-non-defined-BlockStateCalls-than-fit-but-now-with-fit",
+			About: "Not all block numbers are defined",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc1}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 105)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+						{
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 120)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes(""),
+								},
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-fee-recipient-receiving-funds",
+			About: "Check that fee recipient gets funds",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(500000000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: getBalanceGetter(),
+								},
+							},
+							BlockOverrides: &BlockOverrides{
+								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 42)),
+								FeeRecipient:  &common.Address{0xc2},
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									MaxFeePerGas:         (*hexutil.Big)(big.NewInt(10)),
+									MaxPriorityFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+									Input:                hex2Bytes(""),
+									Nonce:                getUint64Ptr(0),
+								},
+								{
+									From:         &common.Address{0xc0},
+									To:           &common.Address{0xc1},
+									MaxFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+									Input:        hex2Bytes("f8b2cb4f000000000000000000000000c000000000000000000000000000000000000000"), // gets balance of c0
+									Nonce:        getUint64Ptr(1),
+								},
+								{
+									From:         &common.Address{0xc0},
+									To:           &common.Address{0xc1},
+									MaxFeePerGas: (*hexutil.Big)(big.NewInt(10)),
+									Input:        hex2Bytes("f8b2cb4f000000000000000000000000c200000000000000000000000000000000000000"), // gets balance of c2
+									Nonce:        getUint64Ptr(2),
+								},
+							},
+						},
+					},
+					Validation:             true,
+					TraceTransfers:         true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-contract-calls-itself",
+			About: "contract calls itself",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From: &common.Address{0xc0},
+									To:   &common.Address{0xc0},
+								},
+							},
+						},
+					},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-send-eth-and-delegate-call",
+			About: "sending eth and delegate calling should only produce one log",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(2000000),
+							},
+							common.Address{0xc1}: OverrideAccount{
+								Code: delegateCaller(),
+							},
+							common.Address{0xc2}: OverrideAccount{
+								Code: getBlockProperties(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes("5c19a95c000000000000000000000000c200000000000000000000000000000000000000"),
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if res[0].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-send-eth-and-delegate-call-to-payble-contract",
+			About: "sending eth and delegate calling a payable contract should only produce one log",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(2000000),
+							},
+							common.Address{0xc1}: OverrideAccount{
+								Code: delegateCaller2(),
+							},
+							common.Address{0xc2}: OverrideAccount{
+								Code: payableFallBack(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes(""),
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if res[0].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-send-eth-and-delegate-call-to-eoa",
+			About: "sending eth and delegate calling a eoa should only produce one log",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(2000000),
+							},
+							common.Address{0xc1}: OverrideAccount{
+								Code: delegateCaller2(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes(""),
+							Value: *newRPCBalance(1000),
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if res[0].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-extcodehash-override",
+			About: "test extcodehash getting of overriden contract",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{
+								Balance: newRPCBalance(2000000),
+							},
+							common.Address{0xc1}: OverrideAccount{
+								Code: extCodeHashContract(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes("b9724d63000000000000000000000000c200000000000000000000000000000000000000"), // getExtCodeHash(0xc2)
+						}},
+					}, {
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								Code: getBlockProperties(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes("b9724d63000000000000000000000000c200000000000000000000000000000000000000"), // getExtCodeHash(0xc2)
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if res[0].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if res[1].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if res[0].Calls[0].ReturnData.String() == res[1].Calls[0].ReturnData.String() {
+					return fmt.Errorf("returndata did not change (have: %s, want: %s)", res[0].Calls[0].ReturnData.String(), res[1].Calls[0].ReturnData.String())
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-extcodehash-existing-contract",
+			About: "test extcodehash getting of existing contract and then overriding it",
+			Run: func(ctx context.Context, t *T) error {
+				contractAddr := common.HexToAddress("0000000000000000000000000000000000031ec7")
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc1}: OverrideAccount{
+								Code: extCodeHashContract(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes("b9724d630000000000000000000000000000000000000000000000000000000000031ec7"), // getExtCodeHash(0000000000000000000000000000000000031ec7)
+						}},
+					}, {
+						StateOverrides: &StateOverride{
+							contractAddr: OverrideAccount{
+								Code: getBlockProperties(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes("b9724d630000000000000000000000000000000000000000000000000000000000031ec7"), // getExtCodeHash(0000000000000000000000000000000000031ec7)
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if res[0].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if res[1].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if res[0].Calls[0].ReturnData.String() == res[1].Calls[0].ReturnData.String() {
+					return fmt.Errorf("returndata did not change (have: %s, want: %s)", res[0].Calls[0].ReturnData.String(), res[1].Calls[0].ReturnData.String())
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-extcodehash-precompile",
+			About: "test extcodehash getting of precompile and then again after override",
+			Run: func(ctx context.Context, t *T) error {
+				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc1}: OverrideAccount{
+								Code: extCodeHashContract(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes("b9724d630000000000000000000000000000000000000000000000000000000000000001"), // getExtCodeHash(0x1)
+						}},
+					}, {
+						StateOverrides: &StateOverride{
+							ecRecoverAddress: OverrideAccount{
+								Code: getBlockProperties(),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc1},
+							Input: hex2Bytes("b9724d630000000000000000000000000000000000000000000000000000000000000001"), // getExtCodeHash(0x1)
+						}},
+					}},
+					TraceTransfers: true,
+					Validation:     false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if res[0].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if res[1].Calls[0].Status != 1 {
+					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
+				}
+				if res[0].Calls[0].ReturnData.String() == res[1].Calls[0].ReturnData.String() {
+					return fmt.Errorf("returndata did not change (have: %s, want: %s)", res[0].Calls[0].ReturnData.String(), res[1].Calls[0].ReturnData.String())
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-self-destructive-contract-produces-logs",
+			About: "self destructive contract produces logs",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc2}: OverrideAccount{
+								Code:    selfDestructor(),
+								Balance: newRPCBalance(2000000),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: hex2Bytes("83197ef0"), //destroy()
+						}},
+					}},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-no-fields-call",
+			About: "make a call with no fields",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{}},
+					}},
+					TraceTransfers:         true,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-only-from-transaction",
+			About: "make a call with only from field",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc0},
+						}},
+					}},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-only-from-to-transaction",
+			About: "make a call with only from and to fields",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc0},
+							To:   &common.Address{0xc1},
+						}},
+					}},
+					TraceTransfers: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-big-block-state-calls-array",
+			About: "Have a block state calls with 300 blocks",
+			Run: func(ctx context.Context, t *T) error {
+				calls := make([]CallBatch, 300)
+				params := ethSimulateOpts{BlockStateCalls: calls}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-move-ecrecover-and-call-old-and-new",
+			About: "move ecrecover and try calling the moved and non-moved version",
+			Run: func(ctx context.Context, t *T) error {
+				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
+				ecRecoverMovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{ // move ecRecover and call it in new address
+							ecRecoverAddress: OverrideAccount{
+								MovePrecompileToAddress: &ecRecoverMovedToAddress,
+							},
+						},
+						Calls: []TransactionArgs{
+							{ // call new address with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call new address with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverMovedToAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+							{ // call old address with invalid params, should fail (resolve to 0x0)
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+							},
+							{ // call old address with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+								From:  &common.Address{0xc1},
+								To:    &ecRecoverAddress,
+								Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != len(params.BlockStateCalls) {
+					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				}
+				if len(res[0].Calls) != len(params.BlockStateCalls[0].Calls) {
+					return fmt.Errorf("unexpected number of call results (have: %d, want: %d)", len(res[0].Calls), len(params.BlockStateCalls[0].Calls))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-use-as-many-features-as-possible",
+			About: "try using all eth simulates features at once",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				prevRandDao := common.BytesToHash(*hex2Bytes("12345"))
+				stateChanges := make(map[common.Hash]common.Hash)
+				stateChanges[common.BytesToHash(*hex2Bytes("0000000000000000000000000000000000000000000000000000000000000000"))] = common.Hash{0x12} //slot 0 -> 0x12
+				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
+				ecRecoverMovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
+								Time:          getUint64Ptr(latestBlockTime + 500),
+								FeeRecipient:  &common.Address{0xc2},
+								PrevRandao:    &prevRandDao,
+								BaseFeePerGas: (*hexutil.Big)(big.NewInt(1007)),
+							},
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(900001000000)},
+								common.Address{0xc1}: OverrideAccount{
+									Code:    extCodeHashContract(),
+									Balance: newRPCBalance(900002000000),
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(101),
+									Nonce:                getUint64Ptr(0),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(102),
+									Nonce:                getUint64Ptr(1),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(103),
+									Nonce:                getUint64Ptr(2),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(104),
+									Nonce:                getUint64Ptr(3),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(105),
+									Nonce:                getUint64Ptr(4),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(106),
+									Nonce:                getUint64Ptr(5),
+								},
+								{
+									From:                 &common.Address{0xc1},
+									To:                   &common.Address{0xc2},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(106),
+									Nonce:                getUint64Ptr(0),
+								},
+							},
+						},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(101),
+									Nonce:                getUint64Ptr(6),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(102),
+									Nonce:                getUint64Ptr(7),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(103),
+									Nonce:                getUint64Ptr(8),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(104),
+									Nonce:                getUint64Ptr(9),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(105),
+									Nonce:                getUint64Ptr(10),
+								},
+								{
+									From:                 &common.Address{0xc0},
+									To:                   &common.Address{0xc1},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(106),
+									Nonce:                getUint64Ptr(11),
+								},
+								{
+									From:                 &common.Address{0xc1},
+									To:                   &common.Address{0xc2},
+									Input:                hex2Bytes(""),
+									Gas:                  getUint64Ptr(21000),
+									MaxFeePerGas:         *newRPCBalance(2000),
+									MaxPriorityFeePerGas: *newRPCBalance(1),
+									MaxFeePerBlobGas:     *newRPCBalance(0),
+									Value:                *newRPCBalance(106),
+									Nonce:                getUint64Ptr(1),
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(900001000000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: delegateCaller(),
+								},
+								common.Address{0xc2}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							Calls: []TransactionArgs{{
+								From:         &common.Address{0xc0},
+								To:           &common.Address{0xc1},
+								Input:        hex2Bytes("5c19a95c000000000000000000000000c200000000000000000000000000000000000000"),
+								Value:        *newRPCBalance(1000),
+								MaxFeePerGas: *newRPCBalance(2000),
+							}},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(900001000000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: getStorageTester(),
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:         &common.Address{0xc0},
+									To:           &common.Address{0xc1},
+									Input:        hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"), // set storage slot 0 -> 1
+									MaxFeePerGas: *newRPCBalance(2000),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc1},
+									Input: hex2Bytes("7b8d56e300000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"), // set storage slot 1 -> 2
+
+									MaxFeePerGas: *newRPCBalance(2000),
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc2}: OverrideAccount{
+									Code:    selfDestructor(),
+									Balance: newRPCBalance(900001000000),
+								},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc2},
+								Input: hex2Bytes("83197ef0"), //destroy()
+							}},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(900001000000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: delegateCaller(),
+								},
+								common.Address{0xc2}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Input: hex2Bytes("5c19a95c000000000000000000000000c200000000000000000000000000000000000000"),
+								Value: *newRPCBalance(1000),
+							}},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(900001000000),
+								},
+								common.Address{0xc2}: OverrideAccount{
+									Code: blockHashCallerByteCode(),
+								},
+							},
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 30)),
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000001"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000002"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000004"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000008"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000016"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000032"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000064"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000128"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &common.Address{0xc2},
+									Input: hex2Bytes("ee82ac5e0000000000000000000000000000000000000000000000000000000000000256"),
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{
+								common.Address{0xc0}: OverrideAccount{
+									Balance: newRPCBalance(900001000000),
+								},
+								common.Address{0xc1}: OverrideAccount{
+									Code: delegateCaller(),
+								},
+								common.Address{0xc2}: OverrideAccount{
+									Code: getBlockProperties(),
+								},
+							},
+							Calls: []TransactionArgs{{
+								From:  &common.Address{0xc0},
+								To:    &common.Address{0xc1},
+								Input: hex2Bytes("5c19a95c000000000000000000000000c200000000000000000000000000000000000000"),
+								Value: *newRPCBalance(1000),
+							}},
+						},
+						{
+							Calls: []TransactionArgs{ // just call ecrecover normally
+								{ // call with invalid params, should fail (resolve to 0x0)
+									From:  &common.Address{0xc1},
+									To:    &ecRecoverAddress,
+									Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+								},
+								{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+									From:  &common.Address{0xc1},
+									To:    &ecRecoverAddress,
+									Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+								},
+							},
+						},
+						{
+							StateOverrides: &StateOverride{ // move ecRecover and call it in new address
+								ecRecoverAddress: OverrideAccount{
+									MovePrecompileToAddress: &ecRecoverMovedToAddress,
+								},
+							},
+							Calls: []TransactionArgs{
+								{ // call with invalid params, should fail (resolve to 0x0)
+									From:  &common.Address{0xc1},
+									To:    &ecRecoverMovedToAddress,
+									Input: hex2Bytes("4554480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b45544800000000000000000000000000000000000000000000000000000000004554480000000000000000000000000000000000000000000000000000000000"),
+								},
+								{ // call with valid params, should resolve to 0xb11CaD98Ad3F8114E0b3A1F6E7228bc8424dF48a
+									From:  &common.Address{0xc1},
+									To:    &ecRecoverMovedToAddress,
+									Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+								},
+								{ // call with valid params, the old address, should fail as it was moved
+									From:  &common.Address{0xc1},
+									To:    &ecRecoverAddress,
+									Input: hex2Bytes("1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8000000000000000000000000000000000000000000000000000000000000001cb7cf302145348387b9e69fde82d8e634a0f8761e78da3bfa059efced97cbed0d2a66b69167cafe0ccfc726aec6ee393fea3cf0e4f3f9c394705e0f56d9bfe1c9"),
+								},
+							},
+						},
+					},
+					TraceTransfers:         true,
+					Validation:             false,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-blocknumber-increment",
+			About: "blocknumbers should increment",
+			Run: func(ctx context.Context, t *T) error {
+				latestBlockNumber := t.chain.Head().Number().Int64()
+				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
+								Time:   getUint64Ptr(latestBlockTime + 500),
+							},
+						},
+						{}, {}, {}, {}, {},
+						{
+							BlockOverrides: &BlockOverrides{
+								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 30)),
+							},
+						},
+						{}, {}, {},
+					},
+					TraceTransfers:         true,
+					Validation:             false,
+					ReturnFullTransactions: true,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// TransactionArgs represents the arguments to construct a new transaction
+// or a message call.
+type TransactionArgs struct {
+	From                 *common.Address `json:"from,omitempty"`
+	To                   *common.Address `json:"to,omitempty"`
+	Gas                  *hexutil.Uint64 `json:"gas,omitempty"`
+	GasPrice             *hexutil.Big    `json:"gasPrice,omitempty"`
+	MaxFeePerGas         *hexutil.Big    `json:"maxFeePerGas,omitempty"`
+	MaxPriorityFeePerGas *hexutil.Big    `json:"maxPriorityFeePerGas,omitempty"`
+	MaxFeePerBlobGas     *hexutil.Big    `json:"maxFeePerBlobGas,omitempty"`
+	BlobVersionedHashes  *[]common.Hash  `json:"blobVersionedHashes,omitempty"`
+	Value                *hexutil.Big    `json:"value,omitempty"`
+	Nonce                *hexutil.Uint64 `json:"nonce,omitempty"`
+
+	// We accept "data" and "input" for backwards-compatibility reasons.
+	// "input" is the newer name and should be preferred by clients.
+	// Issue detail: https://github.com/ethereum/go-ethereum/issues/15628
+	Data  *hexutil.Bytes `json:"data,omitempty"`
+	Input *hexutil.Bytes `json:"input,omitempty"`
+
+	// Introduced by AccessListTxType transaction.
+	AccessList *types.AccessList `json:"accessList,omitempty"`
+	ChainID    *hexutil.Big      `json:"chainId,omitempty"`
+}
+
+// BlockOverrides is a set of header fields to override.
+type BlockOverrides struct {
+	Number        *hexutil.Big    `json:"number,omitempty"`
+	Time          *hexutil.Uint64 `json:"time,omitempty"`
+	GasLimit      *hexutil.Uint64 `json:"gasLimit,omitempty"`
+	FeeRecipient  *common.Address `json:"feeRecipient,omitempty"`
+	PrevRandao    *common.Hash    `json:"prevRandao,omitempty"`
+	BaseFeePerGas *hexutil.Big    `json:"baseFeePerGas,omitempty"`
+	BlobBaseFee   *hexutil.Big    `json:"blobBaseFee,omitempty"`
+}
+
+// OverrideAccount indicates the overriding fields of account during the execution
+// of a message call.
+// Note, state and stateDiff can't be specified at the same time. If state is
+// set, message execution will only use the data in the given state. Otherwise
+// if statDiff is set, all diff will be applied first and then execute the call
+// message.
+type OverrideAccount struct {
+	Nonce                   *hexutil.Uint64              `json:"nonce,omitempty"`
+	Code                    *hexutil.Bytes               `json:"code,omitempty"`
+	Balance                 **hexutil.Big                `json:"balance,omitempty"`
+	State                   *map[common.Hash]common.Hash `json:"state,omitempty"`
+	StateDiff               *map[common.Hash]common.Hash `json:"stateDiff,omitempty"`
+	MovePrecompileToAddress *common.Address              `json:"MovePrecompileToAddress,omitempty"`
+}
+
+// StateOverride is the collection of overridden accounts.
+type StateOverride map[common.Address]OverrideAccount
+
+// ethSimulateOpts is the wrapper for ethSimulate parameters.
+type ethSimulateOpts struct {
+	BlockStateCalls        []CallBatch `json:"blockStateCalls,omitempty"`
+	TraceTransfers         bool        `json:"traceTransfers,omitempty"`
+	Validation             bool        `json:"validation,omitempty"`
+	ReturnFullTransactions bool        `json:"returnFullTransactions,omitempty"`
+}
+
+// CallBatch is a batch of calls to be simulated sequentially.
+type CallBatch struct {
+	BlockOverrides *BlockOverrides   `json:"blockOverrides,omitempty"`
+	StateOverrides *StateOverride    `json:"stateOverrides,omitempty"`
+	Calls          []TransactionArgs `json:"calls,omitempty"`
+}
+
+type blockResult struct {
+	Number        hexutil.Uint64 `json:"number"`
+	Hash          common.Hash    `json:"hash"`
+	Time          hexutil.Uint64 `json:"timestamp"`
+	GasLimit      hexutil.Uint64 `json:"gasLimit"`
+	GasUsed       hexutil.Uint64 `json:"gasUsed"`
+	FeeRecipient  common.Address `json:"feeRecipient"`
+	BaseFeePerGas *hexutil.Big   `json:"baseFeePerGas"`
+	PrevRandao    *common.Hash   `json:"prevRandao,omitempty"`
+	Calls         []callResult   `json:"calls"`
+}
+
+type callResult struct {
+	ReturnData hexutil.Bytes  `json:"ReturnData"`
+	Logs       []*types.Log   `json:"logs"`
+	Transfers  []transfer     `json:"transfers,omitempty"`
+	GasUsed    hexutil.Uint64 `json:"gasUsed"`
+	Status     hexutil.Uint64 `json:"status"`
+	Error      errorResult    `json:"error,omitempty"`
+}
+
+type errorResult struct {
+	Code    *big.Int `json:"code"`
+	Message *string  `json:"message"`
+}
+
+type transfer struct {
+	From  common.Address `json:"from"`
+	To    common.Address `json:"to"`
+	Value *big.Int       `json:"value"`
+}
+
+func newRPCBalance(balance int) **hexutil.Big {
+	rpcBalance := (*hexutil.Big)(big.NewInt(int64(balance)))
+	return &rpcBalance
+}
+
+func hex2Bytes(str string) *hexutil.Bytes {
+	rpcBytes := hexutil.Bytes(common.Hex2Bytes(str))
+	return &rpcBytes
 }
