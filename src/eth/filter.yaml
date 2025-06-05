@@ -86,6 +86,7 @@
             removed: false
             blockNumber: '0x233'
             blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
+            blockTimestamp: '0x11'
             transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
             transactionIndex: '0x0'
             address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
@@ -96,6 +97,7 @@
             removed: false
             blockNumber: '0x238'
             blockHash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
+            blockTimestamp: '0x22'
             transactionHash: '0xdb17aa1c2ce609132f599155d384c0bc5334c988a6c368056d7e167e23eee058'
             transactionIndex: '0x0'
             address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
@@ -123,6 +125,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x233'
+            blockTimestamp: '0x11'
             blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
             transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
             transactionIndex: '0x0'
@@ -133,6 +136,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x238'
+            blockTimestamp: '0x22'
             blockHash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
             transactionHash: '0xdb17aa1c2ce609132f599155d384c0bc5334c988a6c368056d7e167e23eee058'
             transactionIndex: '0x0'
@@ -165,6 +169,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x233'
+            blockTimestamp: '0x11'
             blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
             transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
             transactionIndex: '0x0'
@@ -175,6 +180,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x238'
+            blockTimestamp: '0x22'
             blockHash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
             transactionHash: '0xdb17aa1c2ce609132f599155d384c0bc5334c988a6c368056d7e167e23eee058'
             transactionIndex: '0x0'
