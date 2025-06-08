@@ -1,3 +1,9 @@
+---
+title: Contributors Guide
+description: A guide for proposing changes to the Ethereum JSON-RPC API
+path: /docs/making-changes
+---
+
 # Contributors Guide
 
 This guide will explain for new and experienced contributors alike how to
