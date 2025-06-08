@@ -7,9 +7,11 @@
   "scripts": {
     "build": "npm run build:spec",
     "build:spec": "node scripts/build.js",
-    "build:docs": "cd build/docs/gatsby && npm install && gatsby build --prefix-paths",
+    "build:docs": "npm run generate-clients && npm run build:docs:gatsby && npm run copy-docs",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",
+    "copy-docs": "node scripts/prepare-docs.js",
+    "build:docs:gatsby": "cd build/docs/gatsby && npm install && gatsby build --prefix-paths",
     "generate-clients": "mkdir -p build && open-rpc-generator generate -c open-rpc-generator-config.json",
     "graphql:schema": "node scripts/graphql.js",
     "graphql:validate": "node scripts/graphql-validate.js",
