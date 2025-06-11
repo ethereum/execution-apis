@@ -35,47 +35,23 @@ function copyMarkdownFiles() {
   });
 }
 
-// Function to update menu links
-function updateMenuLinks() {
-  const configPath = path.join(__dirname, '..', 'build', 'docs', 'gatsby', 'gatsby-config.js');
-  
-  // Read the config file
-  let configContent = fs.readFileSync(configPath, 'utf8');
-  
-  // Find the menuLinks array
-  const menuLinksRegex = /menuLinks:\s*\[([\s\S]*?)\]/;
-  const match = configContent.match(menuLinksRegex);
-  
-  if (match) {
-    // Add the new menu link
-    const newMenuLink = `      {
-        name: 'Contributors Guide',
-        link: '/making-changes',
-        ignoreNextPrev: true
-      },`;
-    
-    // Remove the 'home' menu link and add the new one
-    const menuLinksContent = match[1]
-      .replace(/,\s*{\s*name:\s*'home',[^}]*},/g, '');
-    
-    // Insert the new menu link before the closing bracket
-    const updatedContent = configContent.replace(
-      menuLinksRegex,
-      `menuLinks: [${newMenuLink}${menuLinksContent}]`
-    );
-    
-    // Write the updated content back to the file
-    fs.writeFileSync(configPath, updatedContent);
-    console.log('Updated menu links in gatsby-config.js');
-  } else {
-    console.error('Could not find menuLinks array in gatsby-config.js');
-  }
+// Function to copy Gatsby config file
+function copyGatsbyConfig() {
+  const sourcePath = path.join(__dirname, '..', 'docs', 'config', 'gatsby-config.js');
+  const targetPath = path.join(__dirname, '..', 'build', 'docs', 'gatsby', 'gatsby-config.js');
+
+  // Ensure target directory exists
+  ensureDirectoryExists(path.dirname(targetPath));
+
+  // Copy the file
+  fs.copyFileSync(sourcePath, targetPath);
+  console.log(`Copied gatsby-config.js to ${targetPath}`);
 }
 
 // Execute the functions
 try {
   copyMarkdownFiles();
-  updateMenuLinks();
+  copyGatsbyConfig();
   console.log('Documentation preparation completed successfully!');
 } catch (error) {
   console.error('Error preparing documentation:', error);
