@@ -22,10 +22,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run build:docs
-      - name: setup git config
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
       - name: Deploy to GitHub Pages
         if: success()
         uses: crazy-max/ghaction-github-pages@v4
