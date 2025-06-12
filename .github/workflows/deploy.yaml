@@ -1,34 +1,53 @@
-name: Deploy specification
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
-      - master
+      - openrpc-v2
   workflow_dispatch:
 
-env:
-  # this avoids node running out of memory while building
-  NODE_OPTIONS: --max_old_space_size=20480
-
 jobs:
-  deploy-gh-pages:
+  build:
+    name: Build Docs
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - run: npm ci
-      - run: npm run build
-      - run: npm run build:docs
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --frozen-lockfile
+        
+      - name: Build specs and website
+        run: |
+          npm run build
+          npm run build:docs
+
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
-        if: success()
-        uses: crazy-max/ghaction-github-pages@v4
-        with:
-          target_branch: gh-pages
-          build_dir: build/docs/gatsby/public
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: deployment
+        uses: actions/deploy-pages@v4
