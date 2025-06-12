@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - openrpc-v2
+  workflow_dispatch:
 
 env:
   # this avoids node running out of memory while building
