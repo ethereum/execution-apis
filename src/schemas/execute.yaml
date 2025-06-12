@@ -149,7 +149,7 @@ Withdrawals:
   description: This array can have a maximum length of 16.
   type: array
   items:
-    - $ref: '#/components/schemas/Withdrawal'
+    $ref: '#/components/schemas/Withdrawal'
 Withdrawal:
   title: A withdrawal made by a validator
   type: object
