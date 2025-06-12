@@ -3,7 +3,7 @@ name: Deploy specification
 on:
   push:
     branches:
-      - openrpc-v2
+      - master
   workflow_dispatch:
 
 env:
