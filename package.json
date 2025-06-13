@@ -25,6 +25,7 @@
   "bugs": {
     "url": "https://github.com/ethereum/execution-apis/issues"
   },
+  "type": "module",
   "homepage": "https://github.com/ethereum/execution-apis#readme",
   "devDependencies": {
     "@graphql-inspector/core": "~3.3.0",
