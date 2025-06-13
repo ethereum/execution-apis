@@ -1,3 +1,9 @@
+---
+title: Contributors Guide
+description: A guide for proposing changes to the Ethereum JSON-RPC API
+path: /docs/making-changes
+---
+
 # Contributors Guide
 
 This guide will explain for new and experienced contributors alike how to
@@ -115,4 +121,4 @@ others don't.
 
 [exec-apis]: https://github.com/ethereum/execution-apis
 [pm]: https://github.com/ethereum/pm
-[test-gen]: https://github.com/ethereum/execution-apis/blob/main/tests/README.md
+[test-gen]: ../tests/README.md
