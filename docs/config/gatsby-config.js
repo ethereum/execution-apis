@@ -1,5 +1,5 @@
 module.exports = {
-  pathPrefix: "/execution-apis",
+  pathPrefix: "",
   siteMetadata: {
     title: 'Ethereum JSON-RPC Specification',
     description: 'A specification of the standard interface for Ethereum clients.',
