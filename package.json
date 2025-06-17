@@ -6,8 +6,8 @@
   "scripts": {
     "build": "npm run build:spec",
     "build:spec": "node scripts/build.js",
-    "build:docs": "npm run generate-clients && npm run build:docs:gatsby && npm run copy-docs",
-    "build:docs:gatsby": "cd build/docs/gatsby && npm install && gatsby build --prefix-paths",
+    "build:docs": "npm run generate-clients && npm run build:docs:gatsby",
+    "build:docs:gatsby": " npm run copy-docs && cd build/docs/gatsby && npm install && gatsby build --prefix-paths",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",
     "copy-docs": "node scripts/prepare-docs.js",

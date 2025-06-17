@@ -3,7 +3,7 @@ module.exports = {
   siteMetadata: {
     title: 'Ethereum JSON-RPC Specification',
     description: 'A specification of the standard interface for Ethereum clients.',
-    siteUrl: 'https://open-rpc.org',
+    siteUrl: 'https://acolytec3.github.io/execution-apis',
     logoUrl: 'https://raw.githubusercontent.com/open-rpc/design/master/icons/open-rpc-logo-noText/open-rpc-logo-noText%20(PNG)/256x256.png',
     primaryColor: '#3f51b5', //material-ui primary color
     secondaryColor: '#f50057', //material-ui secondary color
@@ -46,7 +46,7 @@ module.exports = {
       options: {
         name: 'pristine-site',
         short_name: 'pristine-site',
-        start_url: '/',
+        start_url: '/execution-apis/',
         background_color: 'transparent',
         theme_color: '#3f51b5',
         display: 'minimal-ui',
