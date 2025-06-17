@@ -1,13 +1,10 @@
-name: Deploy specification
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
-
-env:
-  # this avoids node running out of memory while building
-  NODE_OPTIONS: --max_old_space_size=20480
+  workflow_dispatch:
 
 jobs:
   deploy-gh-pages:
