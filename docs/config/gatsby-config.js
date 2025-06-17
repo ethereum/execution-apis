@@ -3,7 +3,9 @@ module.exports = {
   siteMetadata: {
     title: 'Ethereum JSON-RPC Specification',
     description: 'A specification of the standard interface for Ethereum clients.',
-    siteUrl: 'https://acolytec3.github.io/execution-apis',
+    siteUrl: process.env.GITHUB_REPOSITORY 
+      ? `https://${process.env.GITHUB_REPOSITORY.split('/')[0]}.github.io/execution-apis`
+      : 'https://ethereum.github.io/execution-apis', // fallback for local development
     logoUrl: 'https://raw.githubusercontent.com/open-rpc/design/master/icons/open-rpc-logo-noText/open-rpc-logo-noText%20(PNG)/256x256.png',
     primaryColor: '#3f51b5', //material-ui primary color
     secondaryColor: '#f50057', //material-ui secondary color
