@@ -15,11 +15,23 @@ function ensureDirectoryExists(dirPath) {
 
 // Function to copy markdown files
 function copyMarkdownFiles() {
-  const sourceDir = path.join(__dirname, '..', 'docs');
+  const sourceDir = path.join(__dirname, '..', 'docs', 'reference');
   const targetDir = path.join(__dirname, '..', 'build', 'docs', 'gatsby', 'src', 'docs');
 
   // Ensure target directory exists
   ensureDirectoryExists(targetDir);
+
+  // Delete any existing markdown files in target directory
+  if (fs.existsSync(targetDir)) {
+    const existingFiles = fs.readdirSync(targetDir);
+    existingFiles.forEach(file => {
+      if (file.endsWith('.md')) {
+        const filePath = path.join(targetDir, file);
+        fs.unlinkSync(filePath);
+        console.log(`Deleted existing file: ${file}`);
+      }
+    });
+  }
 
   // Read all files from source directory
   const files = fs.readdirSync(sourceDir);
