@@ -5,10 +5,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-deploy:    permissions:
-    pages: write
-    id-token: write
-    contents: write
+  test-deploy:    
+    permissions:
+      pages: write
+      id-token: write
+      contents: write
 
     name: Test deployment
     runs-on: ubuntu-latest
