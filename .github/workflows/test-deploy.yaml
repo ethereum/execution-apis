@@ -10,6 +10,7 @@ jobs:
       pages: write
       id-token: write
       contents: write
+      pull-requests: write
 
     name: Test deployment
     runs-on: ubuntu-latest
@@ -28,8 +29,7 @@ jobs:
         run: |
           npm run build
           npm run build:docs
-      - name: Deploy preview
-        if: github.event.action != 'closed' 
-        uses: rossjrw/pr-preview-action@v1
+      - name: Preview Pages
+        uses: rajyan/preview-pages@v1
         with:
-          source-dir: ./build/docs/gatsby/public
+          source-dir: build/docs/gatsby/public
