@@ -51,6 +51,9 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getTransactionByBlockHashAndIndex example
       params:
@@ -93,6 +96,9 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getTransactionByBlockNumberAndIndex example
       params:
@@ -131,6 +137,9 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/ReceiptInfo'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getTransactionReceipt example
       params:
