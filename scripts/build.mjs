@@ -18,12 +18,21 @@ function sortByMethodName(methods) {
 console.log("Loading files...\n");
 
 let methods = [];
+// Create a separate map for method namespaces
+let methodNamespaces = {};
+
 let methodsBase = "src/eth/";
 let methodFiles = fs.readdirSync(methodsBase);
 methodFiles.forEach(file => {
   console.log(file);
   let raw = fs.readFileSync(methodsBase + file);
   let parsed = yaml.load(raw);
+  // Store namespace mapping separately
+  parsed.forEach(method => {
+    if (method.name) {
+      methodNamespaces[method.name] = 'eth';
+    }
+  });
   methods = [
     ...methods,
     ...parsed,
@@ -36,6 +45,12 @@ methodFiles.forEach(file => {
   console.log(file);
   let raw = fs.readFileSync(methodsBase + file);
   let parsed = yaml.load(raw);
+  // Store namespace mapping separately
+  parsed.forEach(method => {
+    if (method.name) {
+      methodNamespaces[method.name] = 'debug';
+    }
+  });
   methods = [
     ...methods,
     ...parsed,
@@ -48,6 +63,12 @@ methodFiles.forEach(file => {
   console.log(file);
   let raw = fs.readFileSync(methodsBase + file);
   let parsed = yaml.load(raw);
+  // Store namespace mapping separately
+  parsed.forEach(method => {
+    if (method.name) {
+      methodNamespaces[method.name] = 'engine';
+    }
+  });
   methods = [
     ...methods,
     ...parsed,
@@ -97,6 +118,9 @@ const doc = {
 }
 
 fs.writeFileSync('refs-openrpc.json', JSON.stringify(doc, null, '\t'));
+
+// Save the method namespace mapping separately
+fs.writeFileSync('method-namespaces.json', JSON.stringify(methodNamespaces, null, '\t'));
 
 let spec = await dereferenceDocument(doc);
 
