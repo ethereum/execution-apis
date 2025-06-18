@@ -29,7 +29,10 @@ jobs:
         run: |
           npm run build
           npm run build:docs
-      - name: Preview Pages
-        uses: rajyan/preview-pages@v1
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          source-dir: build/docs/gatsby/public
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/docs/gatsby/public
+          destination_dir: preview/pr-${{ github.event.number }}
+          force_orphan: true
