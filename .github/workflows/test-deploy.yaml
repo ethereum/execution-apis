@@ -27,3 +27,8 @@ jobs:
         run: |
           npm run build
           npm run build:docs
+      - name: Deploy preview
+        if: github.event.action != 'closed' 
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./build/docs/gatsby/public
