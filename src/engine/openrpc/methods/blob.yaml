@@ -45,6 +45,11 @@
         type: array
         items:
           $ref: '#/components/schemas/hash32'
+    - name: Partial response requested
+      required: true
+      schema:
+        title: partialResponse
+        type: boolean
   result:
     name: List of blobs and corresponding cell proofs
     schema:
@@ -60,6 +65,8 @@
         - name: Blob versioned hashes
           value:
             - '0x000657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014'
+        - name: Partial response requested
+          value: true
       result:
         name: List of blobs and corresponding cell proofs
         value:
