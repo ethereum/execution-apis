@@ -1,30 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-
-// Function to get markdown files and create menu links
-function getMenuLinksFromDocs() {
-  const docsPath = path.join(__dirname, 'src/docs');
-  const menuLinks = [];
-  
-  try {
-    const files = fs.readdirSync(docsPath);
-    files.forEach(file => {
-      if (file.endsWith('.md') || file.endsWith('.mdx')) {
-        const name = file.replace(/\.(md|mdx)$/, '').replace(/-/g, ' ');
-        const link = `/${file.replace(/\.(md|mdx)$/, '')}`;
-        menuLinks.push({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
-          link: link
-        });
-      }
-    });
-  } catch (error) {
-    console.warn('Could not read docs directory:', error.message);
-  }
-  
-  return menuLinks;
-}
-
 module.exports = {
   pathPrefix: "/execution-apis",
   siteMetadata: {
@@ -38,11 +11,13 @@ module.exports = {
     secondaryColor: '#f50057', //material-ui secondary color
     author: '',
     menuLinks: [
+      { name: 'Intro', link: '/intro' },
       {
         name: 'API Documentation',
         link: '/api-documentation'
       },
-      ...getMenuLinksFromDocs() // This will add all markdown files
+      { name: 'Making changes', link: '/making-changes' },
+      { name: 'Ethsimulatev1 notes', link: '/ethsimulatev1-notes' },
     ],
     footerLinks: [
       {
@@ -93,7 +68,7 @@ module.exports = {
       resolve: "gatsby-source-filesystem",
       options: {
         name: "docs",
-        path: __dirname + '/src/docs',
+        path: __dirname + '/../../../docs/reference',
       },
     },
   ],
