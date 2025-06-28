@@ -7,6 +7,7 @@ bytecode
 clientversionv
 configurationv
 crypto
+eg
 eip
 endian
 enum
@@ -75,3 +76,6 @@ ERC
 VM
 exitv
 txs
+UX
+simulateV
+EOA's

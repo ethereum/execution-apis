@@ -5,7 +5,11 @@
         {
             "type": "docs",
             "name": "execution-apis",
-            "language": "gatsby"
+            "language": "gatsby",
+            "extraConfig": {
+                "gatsbyConfigPath": "./docs/config",
+                "docsPath": "./docs/reference"
+            }
         }
     ]
 }
