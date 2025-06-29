@@ -1,14 +1,24 @@
 x-error-group:
   ExecutionErrors:
-      - code: -31800
-        message: "Nonce too low"
-        data: "Transaction nonce is lower than the sender account's current nonce"
-      - code: -31801
-        message: "Nonce too high"
-        data: "Transaction nonce is higher than the sender account's current nonce"
-      - code: -31802
-        message: "Execution reverted"
-        data: "Execution is reverted by REVERT Opcode"
-      - code: -31803
-        message: "Invalid opcode"
-        data: "An invalid opcode was encountered during execution"
+    - code: -31800
+      message: "NONCE_TOO_LOW"
+      data: "Transaction nonce is lower than the sender account's current nonce"
+    - code: -31801
+      message: "NONCE_TOO_HIGH"
+      data: "Transaction nonce is higher than the sender account's current nonce"
+    - code: -31802
+      message: "EXECUTION_REVERTED"
+      data: "Execution is reverted by REVERT Opcode"
+    - code: -31803
+      message: "INVALID_OPCODE"
+      data: "An invalid opcode was encountered during execution"
+    - code: -31804
+      message: "OUT_OF_COUNTERS"
+      data: "Not enough step counters to continue the execution"
+      x-metadata:
+        severity: "error"
+        must-implement: true
+        clients:
+          - "polygon-cdk":
+              - message: "Out of counters"
+              - version: ">=0.5.0"
