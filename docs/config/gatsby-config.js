@@ -11,12 +11,12 @@ module.exports = {
     secondaryColor: '#f50057', //material-ui secondary color
     author: '',
     menuLinks: [
-      { name: 'Intro', link: '/intro' },
+      { name: 'Introduction', link: '/introduction' },
       {
         name: 'API Documentation',
         link: '/api-documentation'
       },
-      { name: 'Making changes', link: '/making-changes' },
+      { name: 'Contributors Guide', link: '/contributors-guide' },
       { name: 'Ethsimulatev1 notes', link: '/ethsimulatev1-notes' },
     ],
     footerLinks: [

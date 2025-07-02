@@ -11,7 +11,7 @@ Ethereum clients as modules that can be swapped at will.
 
 ### Contributing
 
-Please see the contributors guide in [`docs/making-changes.md`][making-changes]
+Please see the contributors guide in [`docs/contributors-guide.md`][contributors-guide]
 for general information about the process of standardizing new API methods and
 making changes to existing ones. Information on test generation can be found
 in [`tests/README.md`][test-gen]
@@ -112,7 +112,7 @@ This repository is licensed under [CC0](LICENSE).
 [validator]: https://open-rpc.github.io/schema-utils-js/functions/validateOpenRPCDocument.html
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
-[making-changes]: docs/making-changes.md
+[contributors-guide]: docs/contributors-guide.md
 [json-schema]: https://json-schema.org
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat

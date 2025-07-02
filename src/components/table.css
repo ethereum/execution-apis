@@ -1,0 +1,24 @@
+.table-container {
+  margin: 2em 0;
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 1em;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container th, .table-container td {
+  border: 1px solid #e0e0e0;
+  padding: 0.75em 1em;
+  text-align: left;
+}
+
+.table-container th {
+  background: #f5f5f5;
+  font-weight: 600;
+}

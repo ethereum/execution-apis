@@ -1,56 +1,75 @@
+import StyledTable from '../../src/components/StyledTable'
+
 # eth_simulate
 This document contains some extra information that couldn't be fit to the specification document directly.
 
 ## Default block values
 Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don't require user to define all the fields of the blocks so here are the defaults that are assumed for blocks parameters:
 
-| parameter name | default value |
------------------|-----------------------
-| prevRandao | `0x0000000000000000000000000000000000000000000000000000000000000000` |
-| feeRecipient | `0x0000000000000000000000000000000000000000` |
-| mixHash | `0x0000000000000000000000000000000000000000000000000000000000000000` |
-| nonce | `0x0` |
-| extraData | `0x0000000000000000000000000000000000000000000000000000000000000000` |
-| difficulty | The same as the base block defined as the second parameter in the call |
-| gasLimit | The same as the base block defined as the second parameter in the call |
-| hash | Calculated normally |
-| parentHash | Previous blocks hash |
-| timestamp | The timestamp of previous block + `network block time` (12s on Ethereum Mainnet) |
-| baseFeePerGas | When validation mode is true, baseFeePerGas is calculated on what it should be according to Ethereum's spec. When validation mode is false, the baseFeePerGas is set to zero |
-| sha3Uncles | Empty trie root |
-| withdrawals | Empty array |
-| uncles | Empty array |
-| blobBaseFee | When validation mode is true, blobBaseFee is calculated on what it should be according to EIP-4844 spec. When validation mode is false, the blobBaseFee is set to zero |
-| number | Previous block number + 1 |
-| logsBloom | Calculated normally. ETH logs are not part of the calculation |
-| receiptsRoot | Calculated normally |
-| transactionsRoot | Calculated normally |
-| size | Calculated normally |
-| withdrawalsRoot | Calculated normally |
-| gasUsed | Calculated normally |
-| stateRoot | Calculated normally |
+<StyledTable>
+  <thead>
+    <tr>
+      <th>parameter name</th>
+      <th>default value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>prevRandao</td><td><code>0x0000000000000000000000000000000000000000000000000000000000000000</code></td></tr>
+    <tr><td>feeRecipient</td><td><code>0x0000000000000000000000000000000000000000</code></td></tr>
+    <tr><td>mixHash</td><td><code>0x0000000000000000000000000000000000000000000000000000000000000000</code></td></tr>
+    <tr><td>nonce</td><td><code>0x0</code></td></tr>
+    <tr><td>extraData</td><td><code>0x0000000000000000000000000000000000000000000000000000000000000000</code></td></tr>
+    <tr><td>difficulty</td><td>The same as the base block defined as the second parameter in the call</td></tr>
+    <tr><td>gasLimit</td><td>The same as the base block defined as the second parameter in the call</td></tr>
+    <tr><td>hash</td><td>Calculated normally</td></tr>
+    <tr><td>parentHash</td><td>Previous blocks hash</td></tr>
+    <tr><td>timestamp</td><td>The timestamp of previous block + <code>network block time</code> (12s on Ethereum Mainnet)</td></tr>
+    <tr><td>baseFeePerGas</td><td>When validation mode is true, baseFeePerGas is calculated on what it should be according to Ethereum's spec. When validation mode is false, the baseFeePerGas is set to zero</td></tr>
+    <tr><td>sha3Uncles</td><td>Empty trie root</td></tr>
+    <tr><td>withdrawals</td><td>Empty array</td></tr>
+    <tr><td>uncles</td><td>Empty array</td></tr>
+    <tr><td>blobBaseFee</td><td>When validation mode is true, blobBaseFee is calculated on what it should be according to EIP-4844 spec. When validation mode is false, the blobBaseFee is set to zero</td></tr>
+    <tr><td>number</td><td>Previous block number + 1</td></tr>
+    <tr><td>logsBloom</td><td>Calculated normally. ETH logs are not part of the calculation</td></tr>
+    <tr><td>receiptsRoot</td><td>Calculated normally</td></tr>
+    <tr><td>transactionsRoot</td><td>Calculated normally</td></tr>
+    <tr><td>size</td><td>Calculated normally</td></tr>
+    <tr><td>withdrawalsRoot</td><td>Calculated normally</td></tr>
+    <tr><td>gasUsed</td><td>Calculated normally</td></tr>
+    <tr><td>stateRoot</td><td>Calculated normally</td></tr>
+  </tbody>
+</StyledTable>
 
 ## Default values for transactions
 As eth_simulate is an extension to `eth_call` we want to enable the nice user experience that the user does not need to provide all required values for a transaction. We are assuming following defaults if the variable is not provided by the user:
-| parameter name | description |
------------------|-----------------------
-| type | `0x2` |
-| nonce | Take the correct nonce for the account prior eth_simulate and increment by one for each transaction by the account |
-| to | `null` |
-| from | `0x0000000000000000000000000000000000000000` |
-| gasLimit | blockGasLimit - soFarUsedGasInBlock |
-| value | `0x0` |
-| input | no data |
-| gasPrice | `0x0` |
-| maxPriorityFeePerGas | `0x0` |
-| maxFeePerGas | `0x0` |
-| accessList | empty array |
-| blobVersionedHashes | empty array |
-| chainId | The chain id of the current chain |
-| r | `0x0` |
-| s | `0x0` |
-| yParity | even |
-| v | `0x0` |
+
+<StyledTable>
+  <thead>
+    <tr>
+      <th>parameter name</th>
+      <th>description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>type</td><td><code>0x2</code></td></tr>
+    <tr><td>nonce</td><td>Take the correct nonce for the account prior eth_simulate and increment by one for each transaction by the account</td></tr>
+    <tr><td>to</td><td><code>null</code></td></tr>
+    <tr><td>from</td><td><code>0x0000000000000000000000000000000000000000</code></td></tr>
+    <tr><td>gasLimit</td><td>blockGasLimit - soFarUsedGasInBlock</td></tr>
+    <tr><td>value</td><td><code>0x0</code></td></tr>
+    <tr><td>input</td><td>no data</td></tr>
+    <tr><td>gasPrice</td><td><code>0x0</code></td></tr>
+    <tr><td>maxPriorityFeePerGas</td><td><code>0x0</code></td></tr>
+    <tr><td>maxFeePerGas</td><td><code>0x0</code></td></tr>
+    <tr><td>accessList</td><td>empty array</td></tr>
+    <tr><td>blobVersionedHashes</td><td>empty array</td></tr>
+    <tr><td>chainId</td><td>The chain id of the current chain</td></tr>
+    <tr><td>r</td><td><code>0x0</code></td></tr>
+    <tr><td>s</td><td><code>0x0</code></td></tr>
+    <tr><td>yParity</td><td>even</td></tr>
+    <tr><td>v</td><td><code>0x0</code></td></tr>
+  </tbody>
+</StyledTable>
 
 ## Overriding default values
 The default values of blocks and transactions can be overriden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobBaseFee`:
