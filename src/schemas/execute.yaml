@@ -1,5 +1,5 @@
 EthSimulatePayload:
-  title: Arguments for multi call
+  title: Arguments for eth_simulate call
   required:
     - blockStateCalls
   properties:
@@ -167,16 +167,21 @@ Withdrawal:
       title: Amount
       $ref: '#/components/schemas/uint64'
 EthSimulateResult:
-  title: Full results of multi call
+  title: Full results of eth_simulate call
   type: object
   oneOf:
     - $ref: '#/components/schemas/EthSimulateBlockResultInvalid'
     - $ref: '#/components/schemas/EthSimulateBlockResultSuccess'
 EthSimulateBlockResultSuccess:
-  title: Full results of multi call
-  type: array
-  items:
-    $ref: '#/components/schemas/EthSimulateBlockResultSingleSuccess'
+  title: Full results of a successful eth_simulate call
+  type: object
+  required:
+    - result
+  properties:
+    result:
+      type: array
+      items:
+       - $ref: '#/components/schemas/EthSimulateBlockResultSingleSuccess'
 EthSimulateBlockResultSingleSuccess:
   title: Result of eth_simulate block-level, with array of calls
   type: object
@@ -237,7 +242,7 @@ EthSimulateBlockResultInvalid:
         - code: -38026
           message: Client adjustable limit exceeded
 CallResults:
-  title: Results of multi call within block
+  title: Results of eth_simulate call within block
   type: array
   items:
     oneOf:
