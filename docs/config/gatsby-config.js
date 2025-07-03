@@ -1,3 +1,5 @@
+const remarkGfm = require('remark-gfm');
+
 module.exports = {
   pathPrefix: "/execution-apis",
   siteMetadata: {
@@ -39,6 +41,9 @@ module.exports = {
             },
           },
         ],
+        mdxOptions: {
+          remarkPlugins: [remarkGfm],
+        },
       },
     },
     "gatsby-openrpc-theme",
