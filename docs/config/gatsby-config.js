@@ -13,12 +13,14 @@ module.exports = {
     secondaryColor: '#f50057', //material-ui secondary color
     author: '',
     menuLinks: [
-      { name: 'Introduction', link: '/introduction' },
+      { name: 'Introduction', link: '/intro' },
       {
         name: 'API Documentation',
         link: '/api-documentation'
       },
+      { name: 'Quickstart', link: '/quickstart' },
       { name: 'Contributors Guide', link: '/contributors-guide' },
+      { name: 'Testing', link: '/tests'},
       { name: 'Ethsimulatev1 notes', link: '/ethsimulatev1-notes' },
     ],
     footerLinks: [
