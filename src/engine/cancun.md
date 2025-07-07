@@ -187,7 +187,7 @@ Refer to the specification for [`engine_getPayloadV2`](./shanghai.md#engine_getp
 
 Consensus layer clients **MAY** use this method to fetch blobs from the execution layer blob pool.
 
-*Note*: This is a new optional method introduced after Cancun. It is defined here because it is backwards-compatible with Cancun.
+*Note*: This is a new method introduced after Cancun. It is defined here because it is backwards-compatible with Cancun.
 
 #### Request
 

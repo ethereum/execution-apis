@@ -66,7 +66,7 @@ The default values of blocks and transactions can be overriden. For Transactions
 	"blobBaseFee": "0x15"
 },
 ```
-All the other fields are computed automatically (eg, `stateRoot` and `gasUsed`) or kept as their default values (eg. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, new empty blocks are generated in between.
+All the other fields are computed automatically (e.g. `stateRoot` and `gasUsed`) or kept as their default values (e.g. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, new empty blocks are generated in between.
 
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
