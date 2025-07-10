@@ -11,7 +11,6 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
 - [Structures](#structures)
   - [BlobsBundleV2](#blobsbundlev2)
   - [BlobAndProofV2](#blobandproofv2)
-  - [BlobAndProofV3](#blobandproofv3)
 - [Methods](#methods)
   - [engine_getPayloadV5](#engine_getpayloadv5)
     - [Request](#request)
@@ -51,10 +50,6 @@ The fields are encoded as follows:
 - `proofs`: `Array of DATA` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`).
 
 `proofs` **MUST** contain exactly `CELLS_PER_EXT_BLOB` cell proofs.
-
-### BlobAndProofV3
-
-Alias for `BlobAndProofV2`.
 
 ## Methods
 
@@ -137,15 +132,15 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 
 #### Response
 
-* result: `Array of BlobAndProofV3` - Array of [`BlobAndProofV3`](#BlobAndProofV2), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
+* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
 * error: code and message set in case an error occurs during processing of the request.
 
 #### Specification
 
 > To assist the reader, we highlight differences against `engine_getBlobsV2` using italic.
 
-1. Given an array of blob versioned hashes client software **MUST** respond with an array of _`BlobAndProofV3`_ objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
-2. Given an array of blob versioned hashes, if client software has every one of the requested blobs, it **MUST** return an array of _`BlobAndProofV3`_ objects whose order exactly matches the input array. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has `A`, `B` and `C` available, the response **MUST** be `[A, B, C]`.
+1. Given an array of blob versioned hashes client software **MUST** respond with an array of _`BlobAndProofV2`_ objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
+2. Given an array of blob versioned hashes, if client software has every one of the requested blobs, it **MUST** return an array of _`BlobAndProofV2`_ objects whose order exactly matches the input array. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has `A`, `B` and `C` available, the response **MUST** be `[A, B, C]`.
 3. If one or more of the requested blobs are unavailable, _the client **MUST** return an array of the same length and order, inserting `null` only at the positions of the missing blobs._ For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, _the response **MUST** be `[A, null, C]`. If all blobs are missing, the client software must return an array of matching length, filled with `null` at all positions._
 4. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
 5. Client software **MUST** return `null` if syncing or otherwise unable to generally serve blob pool data.

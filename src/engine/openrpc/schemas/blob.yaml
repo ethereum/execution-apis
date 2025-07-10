@@ -27,7 +27,3 @@ BlobAndProofV2:
       type: array
       items:
         $ref: "#/components/schemas/bytes48"
-
-BlobAndProofV3:
-  title: Blob and proof object V3
-  $ref: '#/components/schemas/BlobAndProofV2'

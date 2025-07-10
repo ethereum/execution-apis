@@ -224,7 +224,7 @@
         - type: array
           items:
             anyOf:
-              - $ref: '#/components/schemas/BlobAndProofV3'
+              - $ref: '#/components/schemas/BlobAndProofV2'
               - type: 'null'
         - type: 'null'
   description: |
