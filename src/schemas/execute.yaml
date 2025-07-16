@@ -178,6 +178,7 @@ EthSimulateBlockResultSuccess:
 EthSimulateBlockResultSingleSuccess:
   title: Result of eth_simulate block-level, with array of calls
   type: object
+  unevaluatedProperties: false
   allOf:
     - $ref: '#/components/schemas/Block'
     - type: object
@@ -270,6 +271,7 @@ CallResultFailure:
             const: -32000
           message:
             type: string
+            pattern: "^execution reverted.*"
         required: [code, message]
       - type: object
         properties:
@@ -277,6 +279,7 @@ CallResultFailure:
             const: -32015
           message:
             type: string
+            pattern: "^vm execution error.*"
 CallResultSuccess:
   title: Result of call success
   type: object
