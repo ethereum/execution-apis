@@ -20,7 +20,6 @@ Block:
     - size
     - transactions
     - uncles
-  additionalProperties: false
   properties:
     hash:
       title: Hash

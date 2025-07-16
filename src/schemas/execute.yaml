@@ -1,7 +1,5 @@
 EthSimulatePayload:
   title: Arguments for multi call
-  required:
-    - blockStateCalls
   properties:
     blockStateCalls:
       title: Block State Calls
@@ -149,7 +147,7 @@ Withdrawals:
   description: This array can have a maximum length of 16.
   type: array
   items:
-    - $ref: '#/components/schemas/Withdrawal'
+    $ref: '#/components/schemas/Withdrawal'
 Withdrawal:
   title: A withdrawal made by a validator
   type: object
@@ -168,7 +166,7 @@ Withdrawal:
       $ref: '#/components/schemas/uint64'
 EthSimulateResult:
   title: Full results of multi call
-  type: object
+  type: array
   oneOf:
     - $ref: '#/components/schemas/EthSimulateBlockResultInvalid'
     - $ref: '#/components/schemas/EthSimulateBlockResultSuccess'
@@ -182,7 +180,8 @@ EthSimulateBlockResultSingleSuccess:
   type: object
   allOf:
     - $ref: '#/components/schemas/Block'
-    - title: Eth Simulate call results
+    - type: object
+      title: Eth Simulate call results
       required:
         - calls
       properties:
@@ -240,7 +239,7 @@ CallResults:
   title: Results of multi call within block
   type: array
   items:
-    oneOf:
+    anyOf:
       - $ref: '#/components/schemas/CallResultFailure'
       - $ref: '#/components/schemas/CallResultSuccess'
 CallResultFailure:
@@ -265,10 +264,19 @@ CallResultFailure:
       $ref: '#/components/schemas/uint64'
     error:
       oneOf:
-        - code: -32000
-          message: 'Execution reverted'
-        - code: -32015
-          message: 'VM execution error'
+      - type: object
+        properties:
+          code:
+            const: -32000
+          message:
+            type: string
+        required: [code, message]
+      - type: object
+        properties:
+          code:
+            const: -32015
+          message:
+            type: string
 CallResultSuccess:
   title: Result of call success
   type: object
@@ -298,7 +306,7 @@ CallResultLog:
   type: object
   required:
     - logIndex
-    - blockhash
+    - blockHash
     - blockNumber
     - transactionHash
     - transactionIndex
