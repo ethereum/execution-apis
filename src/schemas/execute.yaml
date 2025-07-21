@@ -1,5 +1,7 @@
 EthSimulatePayload:
   title: Arguments for multi call
+  required:
+    - blockStateCalls
   properties:
     blockStateCalls:
       title: Block State Calls
@@ -178,7 +180,6 @@ EthSimulateBlockResultSuccess:
 EthSimulateBlockResultSingleSuccess:
   title: Result of eth_simulate block-level, with array of calls
   type: object
-  unevaluatedProperties: false
   allOf:
     - $ref: '#/components/schemas/Block'
     - type: object
@@ -240,7 +241,7 @@ CallResults:
   title: Results of multi call within block
   type: array
   items:
-    anyOf:
+    oneOf:
       - $ref: '#/components/schemas/CallResultFailure'
       - $ref: '#/components/schemas/CallResultSuccess'
 CallResultFailure:
