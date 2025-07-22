@@ -111,3 +111,5 @@
     name: Result of calls
     schema:
       $ref: '#/components/schemas/EthSimulateResult'
+  errors:
+    $ref: '#/components/schemas/EthSimulateErrors'
