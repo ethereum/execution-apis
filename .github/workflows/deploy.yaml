@@ -6,48 +6,29 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  GITHUB_REPOSITORY: ${{ github.repository }}
+
 jobs:
-  build:
-    name: Build Docusaurus
+  deploy-gh-pages:
+    permissions:
+      pages: write
+      id-token: write
+      contents: write
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm install --frozen-lockfile
-        
-      - name: Build specs and website
-        run: |
-          npm run build
-          npm run build:docs
-
-      - name: Upload Build Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
-
-    # Deploy to the github-pages environment
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    runs-on: ubuntu-latest
-    steps:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run build:docs
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/docs/gatsby/public
+          commit_message: "Deploy to GitHub Pages"
