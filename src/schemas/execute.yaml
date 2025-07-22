@@ -1,5 +1,5 @@
 EthSimulatePayload:
-  title: Arguments for multi call
+  title: Arguments for eth_simulate
   required:
     - blockStateCalls
   properties:
@@ -149,7 +149,7 @@ Withdrawals:
   description: This array can have a maximum length of 16.
   type: array
   items:
-    - $ref: '#/components/schemas/Withdrawal'
+    $ref: '#/components/schemas/Withdrawal'
 Withdrawal:
   title: A withdrawal made by a validator
   type: object
@@ -167,13 +167,10 @@ Withdrawal:
       title: Amount
       $ref: '#/components/schemas/uint64'
 EthSimulateResult:
-  title: Full results of multi call
-  type: object
-  oneOf:
-    - $ref: '#/components/schemas/EthSimulateBlockResultInvalid'
-    - $ref: '#/components/schemas/EthSimulateBlockResultSuccess'
+  title: Full results of eth_simulate
+  $ref: '#/components/schemas/EthSimulateBlockResultSuccess'
 EthSimulateBlockResultSuccess:
-  title: Full results of multi call
+  title: Full results of eth_simulate
   type: array
   items:
     $ref: '#/components/schemas/EthSimulateBlockResultSingleSuccess'
@@ -182,62 +179,16 @@ EthSimulateBlockResultSingleSuccess:
   type: object
   allOf:
     - $ref: '#/components/schemas/Block'
-    - title: Eth Simulate call results
+    - type: object
+      title: Eth Simulate call results
       required:
         - calls
       properties:
         calls:
           title: Call Results
           $ref: '#/components/schemas/CallResults'
-EthSimulateBlockResultInvalid:
-  title: Result of eth_simulate not being valid
-  description: The error messages are suggestions and a client might decide to return a different errror message than specified here. However, the error codes are enforced by this specification.
-  type: object
-  required:
-    - error
-  properties:
-    error:
-      oneOf:
-        - code: -32000
-          message: Invalid request
-        - code: -32602
-          message: Missing or invalid parameters
-        - code: -32005
-          message: Transactions maxFeePerGas is too low
-        - code: -32015
-          messagE: Execution error
-        - code: -32016
-          message: Timeout
-        - code: -32603
-          message: The Ethereum node encountered an internal error
-        - code: -38010
-          message: Transactions nonce is too low
-        - code: -38011
-          message: Transactions nonce is too high
-        - code: -38012
-          message: Transactions baseFeePerGas is too low
-        - code: -38013
-          message: Not enough gas provided to pay for intrinsic gas for a transaction
-        - code: -38014
-          message: Insufficient funds to pay for gas fees and value for a transaction
-        - code: -38015
-          message: Block gas limit exceeded by the block's transactions
-        - code: -38020
-          message: Block number in sequence did not increase
-        - code: -38021
-          message: Block timestamp in sequence did not increase or stay the same
-        - code: -38022
-          message: MovePrecompileToAddress referenced itself in replacement
-        - code: -38023
-          message: Multiple MovePrecompileToAddress referencing the same address to replace
-        - code: -38024
-          message: Sender is not an EOA
-        - code: -38025
-          message: Max init code size exceeded
-        - code: -38026
-          message: Client adjustable limit exceeded
 CallResults:
-  title: Results of multi call within block
+  title: Results of eth_simulate within block
   type: array
   items:
     oneOf:
@@ -265,10 +216,21 @@ CallResultFailure:
       $ref: '#/components/schemas/uint64'
     error:
       oneOf:
-        - code: -32000
-          message: 'Execution reverted'
-        - code: -32015
-          message: 'VM execution error'
+      - type: object
+        properties:
+          code:
+            const: -32000
+          message:
+            type: string
+            pattern: "^execution reverted.*"
+        required: [code, message]
+      - type: object
+        properties:
+          code:
+            const: -32015
+          message:
+            type: string
+            pattern: "^vm execution error.*"
 CallResultSuccess:
   title: Result of call success
   type: object
@@ -298,7 +260,7 @@ CallResultLog:
   type: object
   required:
     - logIndex
-    - blockhash
+    - blockHash
     - blockNumber
     - transactionHash
     - transactionIndex
