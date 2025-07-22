@@ -112,4 +112,41 @@
     schema:
       $ref: '#/components/schemas/EthSimulateResult'
   errors:
-    $ref: '#/components/schemas/EthSimulateErrors'
+    - code: -32000
+      message: Invalid request
+    - code: -32602
+      message: Missing or invalid parameters
+    - code: -32005
+      message: Transactions maxFeePerGas is too low
+    - code: -32015
+      message: Execution error
+    - code: -32016
+      message: Timeout
+    - code: -32603
+      message: The Ethereum node encountered an internal error
+    - code: -38010
+      message: Transactions nonce is too low
+    - code: -38011
+      message: Transactions nonce is too high
+    - code: -38012
+      message: Transactions baseFeePerGas is too low
+    - code: -38013
+      message: Not enough gas provided to pay for intrinsic gas for a transaction
+    - code: -38014
+      message: Insufficient funds to pay for gas fees and value for a transaction
+    - code: -38015
+      message: Block gas limit exceeded by the block's transactions
+    - code: -38020
+      message: Block number in sequence did not increase
+    - code: -38021
+      message: Block timestamp in sequence did not increase or stay the same
+    - code: -38022
+      message: MovePrecompileToAddress referenced itself in replacement
+    - code: -38023
+      message: Multiple MovePrecompileToAddress referencing the same address to replace
+    - code: -38024
+      message: Sender is not an EOA
+    - code: -38025
+      message: Max init code size exceeded
+    - code: -38026
+      message: Client adjustable limit exceeded
