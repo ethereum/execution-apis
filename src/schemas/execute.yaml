@@ -168,9 +168,6 @@ Withdrawal:
       $ref: '#/components/schemas/uint64'
 EthSimulateResult:
   title: Full results of eth_simulate
-  $ref: '#/components/schemas/EthSimulateBlockResultSuccess'
-EthSimulateBlockResultSuccess:
-  title: Full results of eth_simulate
   type: array
   items:
     $ref: '#/components/schemas/EthSimulateBlockResultSingleSuccess'
