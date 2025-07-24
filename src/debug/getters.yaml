@@ -5,6 +5,9 @@
       required: true
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   result:
     name: Header RLP
     schema:
@@ -24,6 +27,9 @@
       required: true
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   result:
     name: Block RLP
     schema:
@@ -43,6 +49,9 @@
       required: true
       schema:
         $ref: '#/components/schemas/hash32'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   result:
     name: EIP-2718 binary-encoded transaction
     schema:
@@ -62,6 +71,9 @@
       required: true
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   result:
     name: Receipts
     schema:
