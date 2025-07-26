@@ -6,7 +6,6 @@
   "scripts": {
     "build": "npm run build:spec",
     "build:spec": "node scripts/build.js",
-    "build:test": "which go > /dev/null 2>&1 || (echo 'Error: Go binary not found. Please install Go first.' && exit 1) && go install github.com/lightclient/rpctestgen/cmd/speccheck@latest",
     "build:docs": "npm run generate-clients && npm run build:docs:gatsby",
     "build:docs:gatsby": "cp README.md docs/reference/quickstart.md && cd build/docs/gatsby && npm install && gatsby build --prefix-paths",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
@@ -14,8 +13,7 @@
     "generate-clients": "mkdir -p build && open-rpc-generator generate -c open-rpc-generator-config.json",
     "graphql:schema": "node scripts/graphql.js",
     "graphql:validate": "node scripts/graphql-validate.js",
-    "serve": "cd build/docs/gatsby && gatsby develop",
-    "test": "speccheck -v"
+    "serve": "cd build/docs/gatsby && gatsby develop"
   },
   "repository": {
     "type": "git",
