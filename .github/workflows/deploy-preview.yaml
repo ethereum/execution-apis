@@ -1,0 +1,116 @@
+name: Deploy Preview
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: string
+      commit_sha:
+        required: true
+        type: string
+      action:
+        required: true
+        type: string
+        description: "create or delete preview"
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+jobs:
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --frozen-lockfile
+
+      - name: Restore docs build output
+        if: inputs.action == 'create'
+        uses: actions/cache@v4
+        with:
+          path: docs/public
+          key: docs-build-${{ inputs.commit_sha }}
+          restore-keys: |
+            docs-build-
+
+      - name: Create preview directory
+        if: inputs.action == 'create'
+        run: |
+          mkdir -p gh-pages/preview/PR${{ inputs.pr_number }}
+          cp -r docs/public/* gh-pages/preview/PR${{ inputs.pr_number }}/
+
+      - name: Remove preview directory
+        if: inputs.action == 'delete'
+        run: |
+          rm -rf gh-pages/preview/PR${{ inputs.pr_number }}
+
+      - name: Commit and push changes
+        run: |
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if [ "${{ inputs.action }}" = "create" ]; then
+            git add preview/PR${{ inputs.pr_number }}
+            git commit -m "Add preview for PR #${{ inputs.pr_number }}"
+          else
+            git add -A
+            git commit -m "Remove preview for PR #${{ inputs.pr_number }}"
+          fi
+          
+          git push origin gh-pages
+
+      - name: Comment on PR
+        if: inputs.action == 'create'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previewUrl = `https://${{ github.repository_owner }}.github.io/execution-apis/preview/PR${{ inputs.pr_number }}/`;
+            github.rest.issues.createComment({
+              issue_number: ${{ inputs.pr_number }},
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}',
+              body: `🚀 **Deploy Preview Available!**
+              
+              Your changes are now available for preview at: **${previewUrl}**
+              
+              This preview will be automatically removed when the PR is merged.`
+            });
+
+      - name: Remove preview comment
+        if: inputs.action == 'delete'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: ${{ inputs.pr_number }},
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}'
+            });
+            
+            const previewComment = comments.find(comment => 
+              comment.body.includes('Deploy Preview Available!') && 
+              comment.user.login === 'github-actions[bot]'
+            );
+            
+            if (previewComment) {
+              await github.rest.issues.deleteComment({
+                comment_id: previewComment.id,
+                owner: '${{ github.repository_owner }}',
+                repo: '${{ github.event.repository.name }}'
+              });
+            } 

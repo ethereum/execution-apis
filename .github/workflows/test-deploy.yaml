@@ -4,8 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    # Review gh actions docs if you want to further define triggers, paths, etc
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
   workflow_dispatch:
 
 jobs:
@@ -30,3 +28,22 @@ jobs:
         run: |
           npm run build
           npm run build:docs
+      - name: Cache docs build output
+        uses: actions/cache@v4
+        with:
+          path: docs/public
+          key: docs-build-${{ github.sha }}
+          restore-keys: |
+            docs-build-
+
+  deploy-preview:
+    name: Deploy Preview
+    needs: test-deploy
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/deploy-preview.yaml
+    with:
+      pr_number: ${{ github.event.number }}
+      commit_sha: ${{ github.sha }}
+      action: ${{ github.event.action == 'closed' && 'delete' || 'create' }}
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
