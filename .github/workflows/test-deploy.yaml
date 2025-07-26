@@ -46,4 +46,4 @@ jobs:
       commit_sha: ${{ github.sha }}
       action: ${{ github.event.action == 'closed' && 'delete' || 'create' }}
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}

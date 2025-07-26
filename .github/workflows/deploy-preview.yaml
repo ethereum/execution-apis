@@ -14,7 +14,7 @@ on:
         type: string
         description: "create or delete preview"
     secrets:
-      GITHUB_TOKEN:
+      TOKEN:
         required: true
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
           ref: gh-pages
           path: gh-pages
 
