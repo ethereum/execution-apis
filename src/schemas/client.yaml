@@ -52,7 +52,7 @@ ConfigurationResponse:
       $ref: '#/components/schemas/ConfigObject'
     lastHash:
       title: Last configuration hash
-      description: CRC-32 hash of the the canonical JSON of the last configured fork, absent if no future forks scheduled
+      description: CRC-32 hash of the canonical JSON of the last configured fork, absent if no future forks scheduled
       $ref: '#/components/schemas/bytes4'
     lastForkId:
       title: Last fork ID
