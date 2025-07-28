@@ -81,7 +81,7 @@
     schema:
       $ref: '#/components/schemas/ConfigurationResponse'
   examples:
-    - name: eth_config example
+    - name: eth_config example with no future fork scheduled
       params: []
       result:
         name: Configuration
@@ -118,3 +118,5 @@
               DEPOSIT_CONTRACT_ADDRESS: '0x00000000219ab540356cbb839cbe05303d7705fa'
               HISTORY_STORAGE_ADDRESS: '0x0000f90827f1c53a10cb7a02335b175320002935'
               WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS: '0x00000961ef480eb55e80d19ad83579a64c007002'
+          next: null
+          last: null

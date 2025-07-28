@@ -28,14 +28,20 @@ ConfigurationResponse:
       $ref: '#/components/schemas/ConfigObject'
     next:
       title: Next configuration
-      description: Configuration for the next scheduled fork, absent if no future forks scheduled
-      $ref: '#/components/schemas/ConfigObject'
+      description: Configuration for the next scheduled fork, null if no future forks scheduled
+      oneOf:
+        - $ref: '#/components/schemas/ConfigObject'
+        - type: 'null'
     last:
       title: Last configuration
-      description: Configuration for the last configured fork, absent if no future forks scheduled
-      $ref: '#/components/schemas/ConfigObject'
+      description: Configuration for the last configured fork, null if no future forks scheduled
+      oneOf:
+        - $ref: '#/components/schemas/ConfigObject'
+        - type: 'null'
   required:
     - current
+    - next
+    - last
 ConfigObject:
   title: Configuration object
   description: Represents a specific fork configuration
