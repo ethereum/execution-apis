@@ -251,7 +251,7 @@ CallResultSuccess:
       title: Return logs
       type: array
       items:
-        $ref: '#/components/schemas/Log
+        $ref: '#/components/schemas/Log'
 GenericCallTransaction:
   type: object
   title: Transaction object type for call
