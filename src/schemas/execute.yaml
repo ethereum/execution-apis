@@ -251,52 +251,7 @@ CallResultSuccess:
       title: Return logs
       type: array
       items:
-        $ref: '#/components/schemas/CallResultLog'
-CallResultLog:
-  title: log
-  type: object
-  required:
-    - logIndex
-    - blockHash
-    - blockNumber
-    - transactionHash
-    - transactionIndex
-    - address
-    - data
-    - topics
-  properties:
-    logIndex:
-      title: log index
-      $ref: '#/components/schemas/uint256'
-    blockHash:
-      title: block hash
-      $ref: '#/components/schemas/hash32'
-    blockNumber:
-      title: block number
-      $ref: '#/components/schemas/uint64'
-    transactionHash:
-      title: transaction hash
-      $ref: '#/components/schemas/hash32'
-    transactionIndex:
-      title: transaction index
-      $ref: '#/components/schemas/uint256'
-    address:
-      title: address
-      description: When trace transfers is enabled, this field is address(0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee) for ETH transfers.
-      $ref: '#/components/schemas/address'
-    data:
-      title: data
-      $ref: '#/components/schemas/bytes'
-    topics:
-      title: topics
-      type: array
-      items:
-        $ref: '#/components/schemas/bytes32'
-    removed:
-      title: removed
-      type: boolean
-      description: |-
-        Default: False. The flag is always False if present. A flag indicating if a log was removed in a chain reorganization, which cannot happen in eth_simulateV1.
+        $ref: '#/components/schemas/Log'
 GenericCallTransaction:
   type: object
   title: Transaction object type for call
