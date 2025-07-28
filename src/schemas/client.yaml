@@ -26,42 +26,16 @@ ConfigurationResponse:
     current:
       title: Current configuration
       $ref: '#/components/schemas/ConfigObject'
-    currentHash:
-      title: Current configuration hash
-      description: CRC-32 hash of the canonical JSON of the current configuration
-      $ref: '#/components/schemas/bytes4'
-    currentForkId:
-      title: Current fork ID
-      description: Fork identifier for the current configuration
-      $ref: '#/components/schemas/bytes4'
     next:
       title: Next configuration
       description: Configuration for the next scheduled fork, absent if no future forks scheduled
       $ref: '#/components/schemas/ConfigObject'
-    nextHash:
-      title: Next configuration hash
-      description: CRC-32 hash of the the canonical JSON of the next configuration, absent if no future forks scheduled
-      $ref: '#/components/schemas/bytes4'
-    nextForkId:
-      title: Next fork ID
-      description: Fork identifier for the next configuration, absent if no future forks scheduled
-      $ref: '#/components/schemas/bytes4'
     last:
       title: Last configuration
       description: Configuration for the last configured fork, absent if no future forks scheduled
       $ref: '#/components/schemas/ConfigObject'
-    lastHash:
-      title: Last configuration hash
-      description: CRC-32 hash of the the canonical JSON of the last configured fork, absent if no future forks scheduled
-      $ref: '#/components/schemas/bytes4'
-    lastForkId:
-      title: Last fork ID
-      description: Fork identifier for the last configured fork, absent if no future forks scheduled
-      $ref: '#/components/schemas/bytes4'
   required:
     - current
-    - currentHash
-    - currentForkId
 ConfigObject:
   title: Configuration object
   description: Represents a specific fork configuration
@@ -80,15 +54,16 @@ ConfigObject:
       title: Chain ID
       description: The chain ID for this configuration
       $ref: '#/components/schemas/uint'
+    forkId:
+      title: Fork ID
+      description: The FORK_HASH value as specified in EIP-6122 of the specific fork
+      $ref: '#/components/schemas/bytes4'
     precompiles:
       title: Precompiles
-      description: Mapping of precompile addresses to their names
+      description: Mapping of precompile names to their addresses
       type: object
       additionalProperties:
-        type: string
-      patternProperties:
-        '^0x[0-9a-fA-F]{40}$':
-          type: string
+        $ref: '#/components/schemas/address'
     systemContracts:
       title: System contracts
       description: Mapping of system contract names to their addresses
@@ -99,6 +74,7 @@ ConfigObject:
     - activationTime
     - blobSchedule
     - chainId
+    - forkId
     - precompiles
     - systemContracts
 BlobSchedule:
