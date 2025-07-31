@@ -15,7 +15,8 @@
     "graphql:schema": "node scripts/graphql.js",
     "graphql:validate": "node scripts/graphql-validate.js",
     "serve": "cd build/docs/gatsby && gatsby develop",
-    "test": "speccheck -v"
+    "test": "speccheck -v",
+    "watch": "nodemon --watch src --ext yaml,md,json --exec \"npm run build && cp ./openrpc.json build/docs/gatsby/src/openrpc.json && npm run serve\""
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "graphql-request": "~4.1.0",
     "js-yaml": "~4.1.0",
     "json-schema-merge-allof": "~0.8.1",
+    "nodemon": "^3.0.0",
     "remark-gfm": "~4.0.1",
     "typescript": "~5.6.2"
   }
