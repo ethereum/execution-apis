@@ -16,7 +16,7 @@
     "graphql:validate": "node scripts/graphql-validate.js",
     "serve": "cd build/docs/gatsby && gatsby develop",
     "test": "speccheck -v",
-    "watch": "nodemon --watch src --ext yaml,md,json --exec \"npm run build && cp ./openrpc.json build/docs/gatsby/src/openrpc.json && npm run serve\""
+    "watch": "nodemon --watch src,docs --ext yaml,md,json --exec \"npm run build && cp ./openrpc.json build/docs/gatsby/src/openrpc.json && npm run serve\""
   },
   "repository": {
     "type": "git",
