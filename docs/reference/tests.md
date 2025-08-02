@@ -4,7 +4,7 @@ The Execution API has a comprehensive test suite to verify conformance of
 clients. The tests in this repository are loaded into the [`hive`][hive] test
 simulator [`rpc-compat`][rpc-compat] and validated against every major client.
 
-The test suite is run daily and results are always available [here][hivetests2]
+The test suite is run daily and results are always available [here][hivetests]
 under the tag `rpc-compat`. 
 
 To learn more about the `rpc-compat` simulator, please see its
@@ -68,6 +68,6 @@ A good final verification of tests is to run them in the hive simulator
 simulator can be found with there.
 
 [hive]: https://github.com/ethereum/hive
-[hivetests2]: https://hivetests2.ethdevops.io
+[hivetests]: https://hive.ethpandaops.io
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
 [rpctestgen]: https://github.com/lightclient/rpctestgen
