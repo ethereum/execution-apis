@@ -4,7 +4,7 @@
   "description": "Collection of JSON-RPC APIs provided by Ethereum 1.0 clients",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build:spec",
+    "build": "npm run build:spec && npm run build:docs && npm run build:test",
     "build:spec": "node scripts/build.js",
     "build:test": "which go > /dev/null 2>&1 || (echo 'Error: Go binary not found. Please install Go first.' && exit 1) && go install github.com/lightclient/rpctestgen/cmd/speccheck@latest",
     "build:docs": "npm run generate-clients && npm run build:docs:gatsby",
