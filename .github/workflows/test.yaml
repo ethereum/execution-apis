@@ -12,7 +12,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:specs
       - run: npm run lint
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
