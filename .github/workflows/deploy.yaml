@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:spec
       - run: npm run build:docs
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
