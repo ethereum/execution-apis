@@ -33,7 +33,7 @@ interface for getting intermediary trie nodes over the API. This is a great
 example of a method that became more necessary over time.
 
 Sometimes efficiency is the basis of necessity. If certain patterns of requests
-becomes popular, it can be advantageous to enshrine the behavior into the API.
+become popular, it can be advantageous to enshrine the behavior into the API.
 
 ### Implementation Complexity
 

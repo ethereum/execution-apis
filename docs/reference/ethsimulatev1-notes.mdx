@@ -54,7 +54,7 @@ As eth_simulate is an extension to `eth_call` we want to enable the nice user ex
 | v | `0x0` |
 
 ## Overriding default values
-The default values of blocks and transactions can be overriden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobBaseFee`:
+The default values of blocks and transactions can be overridden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobBaseFee`:
 ```json
 "blockOverrides": {
 	"number": "0x14",
@@ -197,7 +197,7 @@ Clients may introduce their own limits to prevent DOS attacks using the method. 
 
 When it comes to contract override behavior, specifically precompile override, there were two approaches:
 
-1. As specified above to allow replacement of precompiles by EVM code and to allow those same precompiles to be relocated to another access for fallback behavior.
+1. As specified above to allow replacement of precompiles by EVM code and to allow those same precompiles to be relocated to another address for fallback behavior.
 2. Allow users to pass in a set of pre-computed calls for an address, i.e. direct mapping of input to output.
 
 The second approach has better UX for simple use-cases such as faking a signature via ecrecover. It also allows for getting the same gas usage as a real precompile execution. The simpler UX comes at cost of flexibility. Overriding with EVM code is general. It also imposes changes to the EVM interpreter code, which has been otherwise avoided, without enabling new features. Hence the spec proposes the first alternative.
