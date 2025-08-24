@@ -7,7 +7,7 @@ Transaction7702Unsigned:
     - to
     - gas
     - value
-    - input
+    - data
     - maxPriorityFeePerGas
     - maxFeePerGas
     - accessList
@@ -30,7 +30,7 @@ Transaction7702Unsigned:
     value:
       title: value
       $ref: '#/components/schemas/uint'
-    input:
+    data:
       title: input data
       $ref: '#/components/schemas/bytes'
     maxPriorityFeePerGas:
@@ -122,7 +122,7 @@ Transaction4844Unsigned:
     value:
       title: value
       $ref: '#/components/schemas/uint'
-    input:
+    data:
       title: input data
       $ref: '#/components/schemas/bytes'
     maxPriorityFeePerGas:
