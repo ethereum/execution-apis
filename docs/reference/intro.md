@@ -36,4 +36,4 @@ Each category serves specific purposes and provides different functionalities fo
 
 ## Contributing
 
-We welcome contributions to improve this documentation. Please see our [Contributors Guide](/reference/contributors-guide) guide for more information on how to contribute. 
+We welcome contributions to improve this documentation. Please see our [Contributors Guide](/contributors-guide) guide for more information on how to contribute. 
