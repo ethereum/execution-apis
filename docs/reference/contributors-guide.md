@@ -115,4 +115,4 @@ others don't.
 
 [exec-apis]: https://github.com/ethereum/execution-apis
 [pm]: https://github.com/ethereum/pm
-[test-gen]: https://github.com/ethereum/execution-apis/blob/main/tests/README.md
+[test-gen]: https://github.com/ethereum/execution-apis/blob/main/docs/reference/tests.md
