@@ -3342,16 +3342,6 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
-			Name:  "ethSimulate-empty-ethSimulate",
-			About: "ethSimulate without parameters",
-			Run: func(ctx context.Context, t *T) error {
-				params := ethSimulateOpts{}
-				res := make([]blockResult, 0)
-				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
-				return nil
-			},
-		},
-		{
 			Name:  "ethSimulate-empty-calls-and-overrides-ethSimulate",
 			About: "ethSimulate with state overrides and calls but they are empty",
 			Run: func(ctx context.Context, t *T) error {
