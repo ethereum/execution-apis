@@ -886,3 +886,76 @@
                 validatorIndex: '0xf3'
                 address: '0x00000000000000000000000000000000000010f3'
                 amount: '0x1'
+- name: engine_newPayloadV5
+  summary: Runs execution payload validation
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip7928.md#engine_newpayloadv5
+  params:
+    - name: Execution payload
+      required: true
+      schema:
+        $ref: '#/components/schemas/ExecutionPayloadV4'
+    - name: Expected blob versioned hashes
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/hash32'
+    - name: Parent beacon block root
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Execution requests
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/bytes'
+  result:
+    name: Payload status
+    schema:
+      $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash'
+  errors:
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork
+- name: engine_getPayloadV6
+  summary: Obtains execution payload from payload build process
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip7928.md#engine_getpayloadv6
+  params:
+    - name: Payload id
+      required: true
+      schema:
+        $ref: '#/components/schemas/bytes8'
+  result:
+    name: Response object
+    schema:
+      type: object
+      required:
+        - executionPayload
+        - blockValue
+        - blobsBundle
+        - shouldOverrideBuilder
+        - executionRequests
+      properties:
+        executionPayload:
+          $ref: '#/components/schemas/ExecutionPayloadV4'
+        blockValue:
+          $ref: '#/components/schemas/uint256'
+        blobsBundle:
+          $ref: '#/components/schemas/BlobsBundleV2'
+        shouldOverrideBuilder:
+          type: boolean
+        executionRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
+  errors:
+    - code: -38001
+      message: Unknown payload
+    - code: -38005
+      message: Unsupported fork
