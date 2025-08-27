@@ -20,6 +20,9 @@ Filter:
     toBlock:
       title: to block
       $ref: '#/components/schemas/uint'
+    blockHash:
+      title: block hash
+      $ref: '#/components/schemas/hash32'
     address:
       title: Address(es)
       oneOf:
