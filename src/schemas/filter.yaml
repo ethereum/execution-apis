@@ -13,28 +13,48 @@ Filter:
   title: filter
   type: object
   additionalProperties: false
-  properties:
-    fromBlock:
-      title: from block
-      $ref: '#/components/schemas/uint'
-    toBlock:
-      title: to block
-      $ref: '#/components/schemas/uint'
-    blockHash:
-      title: block hash
-      $ref: '#/components/schemas/hash32'
-    address:
-      title: Address(es)
-      oneOf:
-        - title: Any Address
-          type: 'null'
-        - title: Address
-          $ref: '#/components/schemas/address'
-        - title: Addresses
-          $ref: '#/components/schemas/addresses'
-    topics:
-      title: Topics
-      $ref: '#/components/schemas/FilterTopics'
+  oneOf:
+    - title: Filter by block range
+      type: object
+      properties:
+        fromBlock:
+          title: from block
+          $ref: '#/components/schemas/uint'
+        toBlock:
+          title: to block
+          $ref: '#/components/schemas/uint'
+        address:
+          title: Address(es)
+          oneOf:
+            - title: Any Address
+              type: 'null'
+            - title: Address
+              $ref: '#/components/schemas/address'
+            - title: Addresses
+              $ref: '#/components/schemas/addresses'
+        topics:
+          title: Topics
+          $ref: '#/components/schemas/FilterTopics'
+    - title: Filter by block hash
+      type: object
+      properties:
+        blockHash:
+          title: block hash
+          $ref: '#/components/schemas/hash32'
+        address:
+          title: Address(es)
+          oneOf:
+            - title: Any Address
+              type: 'null'
+            - title: Address
+              $ref: '#/components/schemas/address'
+            - title: Addresses
+              $ref: '#/components/schemas/addresses'
+        topics:
+          title: Topics
+          $ref: '#/components/schemas/FilterTopics'
+      required:
+        - blockHash
 FilterTopics:
   title: Filter Topics
   oneOf:
