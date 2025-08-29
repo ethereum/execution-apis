@@ -3,16 +3,20 @@
   "version": "0.0.0",
   "description": "Collection of JSON-RPC APIs provided by Ethereum 1.0 clients",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "build": "npm run build:spec",
+    "build": "npm run build:spec && npm run build:docs && npm run build:test",
     "build:spec": "node scripts/build.js",
-    "build:docs": "cd build/docs/gatsby && npm install --legacy-peer-deps && gatsby build --prefix-paths",
+    "build:test": "which go > /dev/null 2>&1 || (echo 'Error: Go binary not found. Please install Go first.' && exit 1) && go install github.com/lightclient/rpctestgen/cmd/speccheck@latest",
+    "build:docs": "npm run generate-clients && npm run build:docs:gatsby",
+    "build:docs:gatsby": "cp README.md docs/reference/quickstart.md && cd build/docs/gatsby && npm install && gatsby build --prefix-paths",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",
     "generate-clients": "mkdir -p build && open-rpc-generator generate -c open-rpc-generator-config.json",
     "graphql:schema": "node scripts/graphql.js",
-    "graphql:validate": "node scripts/graphql-validate.js"
+    "graphql:validate": "node scripts/graphql-validate.js",
+    "serve": "cd build/docs/gatsby && gatsby develop",
+    "test": "speccheck -v",
+    "watch": "nodemon --watch src --watch docs --watch README.md --ignore docs/reference/quickstart.md --ext yaml,md,json --exec \"npm run build && cp ./openrpc.json build/docs/gatsby/src/openrpc.json && cp README.md docs/reference/quickstart.md && npm run serve\""
   },
   "repository": {
     "type": "git",
@@ -23,19 +27,23 @@
   "bugs": {
     "url": "https://github.com/ethereum/execution-apis/issues"
   },
+  "type": "module",
   "homepage": "https://github.com/ethereum/execution-apis#readme",
-  "devDependencies": {
+  "dependencies": {
+    "@mdx-js/react": "~3.0.0",
     "@graphql-inspector/core": "~3.3.0",
+    "@open-rpc/generator": "^2.1.0",
+    "@open-rpc/schema-utils-js": "^2.1.2",
     "@open-rpc/extensions": "^0.0.2",
-    "@open-rpc/generator": "^2.0.0",
-    "@open-rpc/meta-schema": "^1.14.2",
-    "@open-rpc/schema-utils-js": "2.1.0",
     "@open-rpc/specification-extension-spec": "^1.0.2",
-    "gatsby": "^5.0.0",
-    "gh-pages": "~4.0.0",
+    "@open-rpc/meta-schema": "^1.14.2",
+    "gatsby": "^5.14.3",
     "graphql": "~16.3.0",
     "graphql-request": "~4.1.0",
     "js-yaml": "~4.1.0",
-    "json-schema-merge-allof": "~0.8.1"
+    "json-schema-merge-allof": "~0.8.1",
+    "nodemon": "^3.0.0",
+    "remark-gfm": "~4.0.1",
+    "typescript": "~5.6.2"
   }
 }
