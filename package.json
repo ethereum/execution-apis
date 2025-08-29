@@ -34,6 +34,7 @@
     "@graphql-inspector/core": "~3.3.0",
     "@open-rpc/generator": "^2.1.0",
     "@open-rpc/schema-utils-js": "^2.1.2",
+    "@open-rpc/extensions": "^0.0.2",
     "@open-rpc/specification-extension-spec": "^1.0.2",
     "@open-rpc/meta-schema": "^1.14.2",
     "gatsby": "^5.14.3",
