@@ -1,9 +1,10 @@
 - name: eth_newFilter
-  summary: Creates a filter object, based on filter options, to notify when the state changes (logs).
+  summary: Install a log filter in the server, allowing for later polling. Registers client interest in logs matching the filter, and returns an identifier.
   params:
     - name: Filter
       schema:
         $ref: '#/components/schemas/Filter'
+      required: true
   result:
     name: Filter identifier
     schema:
@@ -21,7 +22,7 @@
         name: Filter identifier
         value: '0x01'
 - name: eth_newBlockFilter
-  summary: Creates a filter in the node, to notify when a new block arrives.
+  summary: Creates a filter in the node, allowing for later polling. Registers client interest in new blocks, and returns an identifier.
   params: []
   result:
     name: Filter identifier
@@ -34,7 +35,7 @@
         name: Filter identifier
         value: '0x01'
 - name: eth_newPendingTransactionFilter
-  summary: Creates a filter in the node, to notify when new pending transactions arrive.
+  summary: Creates a filter in the node, allowing for later polling. Registers client interest in new transactions, and returns an identifier.
   params: []
   result:
     name: Filter identifier
@@ -52,6 +53,7 @@
     - name: Filter identifier
       schema:
         $ref: '#/components/schemas/uint'
+      required: true
   result:
     name: Success
     schema:
@@ -65,11 +67,12 @@
         name: Success
         value: true
 - name: eth_getFilterChanges
-  summary: Polling method for the filter with the given ID (created using `eth_newFilter`). Returns an array of logs which occurred since last poll.
+  summary: Polling method for the filter with the given ID (created using `eth_newFilter`). Returns an array of logs, block hashes, or transaction hashes since last poll, depending on the installed filter.
   params:
     - name: Filter identifier
       schema:
         $ref: '#/components/schemas/uint'
+      required: true
   result:
     name: Log objects
     schema:
@@ -86,6 +89,7 @@
             removed: false
             blockNumber: '0x233'
             blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
+            blockTimestamp: '0x11'
             transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
             transactionIndex: '0x0'
             address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
@@ -96,6 +100,7 @@
             removed: false
             blockNumber: '0x238'
             blockHash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
+            blockTimestamp: '0x22'
             transactionHash: '0xdb17aa1c2ce609132f599155d384c0bc5334c988a6c368056d7e167e23eee058'
             transactionIndex: '0x0'
             address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
@@ -108,6 +113,7 @@
     - name: Filter identifier
       schema:
         $ref: '#/components/schemas/uint'
+      required: true
   result:
     name: Log objects
     schema:
@@ -123,6 +129,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x233'
+            blockTimestamp: '0x11'
             blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
             transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
             transactionIndex: '0x0'
@@ -133,6 +140,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x238'
+            blockTimestamp: '0x22'
             blockHash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
             transactionHash: '0xdb17aa1c2ce609132f599155d384c0bc5334c988a6c368056d7e167e23eee058'
             transactionIndex: '0x0'
@@ -146,6 +154,7 @@
     - name: Filter
       schema:
         $ref: '#/components/schemas/Filter'
+      required: true
   result:
     name: Log objects
     schema:
@@ -165,6 +174,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x233'
+            blockTimestamp: '0x11'
             blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
             transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
             transactionIndex: '0x0'
@@ -175,6 +185,7 @@
           - logIndex: '0x0'
             removed: false
             blockNumber: '0x238'
+            blockTimestamp: '0x22'
             blockHash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
             transactionHash: '0xdb17aa1c2ce609132f599155d384c0bc5334c988a6c368056d7e167e23eee058'
             transactionIndex: '0x0'
