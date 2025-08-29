@@ -1,13 +1,19 @@
 import fs from "fs";
 import { 
   parseOpenRPCDocument,
+  dereferenceDocument,
   validateOpenRPCDocument
 } from "@open-rpc/schema-utils-js";
+import OpenrpcDocument from "@open-rpc/meta-schema";
 
 let rawdata = fs.readFileSync("openrpc.json");
 let openrpc = JSON.parse(rawdata);
 
-const error = validateOpenRPCDocument(openrpc);
+/** @type {OpenrpcDocument} */
+const document = openrpc;
+const dereffed = await dereferenceDocument(document);
+
+const error = validateOpenRPCDocument(dereffed);
 if (error != true) {
   console.log(error.name);
   console.log(error.message);
