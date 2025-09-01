@@ -3,30 +3,40 @@ x-error-group:
     - code: -31800
       message: "GAS_TOO_LOW"
       data: "Transaction gas is too low / intrinsic gas too low"
+      x-error-category: "GAS_ERRORS"
     - code: -31801
       message: "OUT_OF_GAS"
       data: "The transaction ran out of gas"
+      x-error-category: "GAS_ERRORS"
     - code: -31802
       message: "GAS_PRICE_TOO_LOW"
       data: "Gas price too low / gas price below configured minimum gas price"
+      x-error-category: "GAS_ERRORS"
     - code: -31803
       message: "BLOCK_GAS_LIMIT_EXCEEDED"
       data: "Tx gas limit exceeds max block gas limit / intrinsic gas exceeds gas limit"
+      x-error-category: "GAS_ERRORS"
     - code: -31804
       message: "FEE_CAP_EXCEEDED"
       data: "Tx fee exceeds cap / max priority fee per gas higher than max fee per gas"
+      x-error-category: "GAS_ERRORS"
     - code: -31805
       message: "GAS_OVERFLOW"
       data: "Gas overflow error"
+      x-error-category: "GAS_ERRORS"
     - code: -31806
       message: "INSUFFICIENT_TRANSACTION_PRICE"
       data: "Transaction price must be greater than base fee / max fee per gas less than block base fee"
+      x-error-category: "GAS_ERRORS"
     - code: -31807
       message: "INVALID_MAX_PRIORITY_FEE_PER_GAS"
       data: "Max priority fee per gas higher than 2^256-1"
+      x-error-category: "GAS_ERRORS"
     - code: -31808
       message: "INVALID_MAX_FEE_PER_GAS"
       data: "Max fee per gas higher than 2^256-1"
+      x-error-category: "GAS_ERRORS"
     - code: -31809
       message: "INSUFFICIENT_FUNDS"
       data: "Insufficient funds for gas * price + value"
+      x-error-category: "GAS_ERRORS"

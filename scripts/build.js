@@ -94,6 +94,10 @@ extensionsSpecsFiles.forEach(file => {
   extensionSpecs.push(parsed);
 });
 
+// Enhance the existing XErrorGroupsJSON extension with conditional validation for different error categories
+const enhancedErrorGroupSchema = JSON.parse(fs.readFileSync('src/extensions/schemas/x-error-category-ranges.json', 'utf8'));
+XErrorGroupsJSON.schema = enhancedErrorGroupSchema;
+
 extensionSpecs.push(XErrorGroupsJSON);
 
 let extensions = [];

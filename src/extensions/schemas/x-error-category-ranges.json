@@ -1,0 +1,57 @@
+{
+  "type": "array",
+  "items": {
+    "oneOf": [
+      {
+        "type": "array",
+        "items": {
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "code": { "type": "integer", "description": "The code of the error." },
+                "message": { "type": "string", "description": "The message of the error." },
+                "data": {"description": "The data of the error." },
+                "x-error-category": { "type": "string"}
+              },
+              "required": ["code", "message"]
+            },
+            {
+              "if": {
+                "properties": {
+                  "x-error-category": { "const": "GAS_ERRORS" }
+                },
+                "required": ["x-error-category"]
+              },
+              "then": {
+                "properties": {
+                  "code": { "type": "integer", "minimum": -31999, "maximum": -31800 }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "x-error-category": { "const": "EXECUTION_ERRORS" }
+                },
+                "required": ["x-error-category"]
+              },
+              "then": {
+                "properties": {
+                  "code": { "type": "integer", "minimum": -31799, "maximum": -31600 }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "object",
+        "properties": {
+          "$ref": { "type": "string" }
+        },
+        "required": ["$ref"]
+      }
+    ]
+  }
+}
