@@ -40,3 +40,11 @@ x-error-group:
       message: "INSUFFICIENT_FUNDS"
       data: "Insufficient funds for gas * price + value"
       x-error-category: "GAS_ERRORS"
+    - code: -31810
+      message: "TRANSACTION_UNDERPRICED"
+      data: "Transaction's gas price is below the minimum for txpool"
+      x-error-category: "GAS_ERRORS"
+    - code: -31811
+      message: "REPLACEMENT_TRANSACTION_UNDERPRICED"
+      data: "Replacement transaction is sent without the required price bump."
+      x-error-category: "GAS_ERRORS"

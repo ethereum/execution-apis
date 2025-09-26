@@ -41,6 +41,19 @@
                   "code": { "type": "integer", "minimum": -31799, "maximum": -31600 }
                 }
               }
+            },
+            {
+              "if": {
+                "properties": {
+                  "x-error-category": { "const": "TXPOOL_ERRORS" }
+                },
+                "required": ["x-error-category"]
+              },
+              "then": {
+                "properties": {
+                  "code": { "type": "integer", "minimum": -31199, "maximum": -31000 }
+                }
+              }
             }
           ]
         }

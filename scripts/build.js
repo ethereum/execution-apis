@@ -81,18 +81,6 @@ schemaFiles.forEach(file => {
 });
 
 let extensionSpecs = [];
-let extensionSpecsBase = "src/extensions/"
-let extensionsSpecsFiles = fs.readdirSync(extensionSpecsBase);
-extensionsSpecsFiles.forEach(file => {
-  console.log(file);
-  // skip if directory
-  if (fs.lstatSync(extensionSpecsBase + file).isDirectory()) {
-    return;
-  }
-  let raw = fs.readFileSync(extensionSpecsBase + file);
-  let parsed = yaml.load(raw);
-  extensionSpecs.push(parsed);
-});
 
 // Enhance the existing XErrorGroupsJSON extension with conditional validation for different error categories
 const enhancedErrorGroupSchema = JSON.parse(fs.readFileSync('src/extensions/schemas/x-error-category-ranges.json', 'utf8'));
