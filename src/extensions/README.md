@@ -16,6 +16,8 @@ The corresponding PR definition frames these groups as the canonical vocabulary 
 ## Solution Layout
 - `components/` – YAML fragments exposing each error family as an OpenRPC `x-error-group` definition.
 - `schemas/x-error-category-ranges.json` – Extension to official `x-error-groups` that enforces the reserved integer windows per category during validation.
+    - This is to achieve inbuild validation of the reserved ranges per category using native `minimum` & `maximum` properties of the extended schema.
+    - Validation happens while running  `scripts/validate.js` after building the final `refs-openrpc.json` / `openrpc.json`.
 - `scripts/build.js` – Loads the schema above, augments the `XErrorGroupsJSON` extension, and merges the groups into `refs-openrpc.json` / `openrpc.json`.
 
 ## Implemented Methods
