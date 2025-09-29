@@ -52,9 +52,17 @@ func (l *ethclientHandler) RotateLog(filename string) error {
 
 // WriteComment adds the given text as a comment to the current log file.
 func (l *ethclientHandler) WriteComment(text string) error {
-	text = strings.TrimSpace(text)
-	text = "// " + strings.Replace(text, "\n", "\n// ", -1) + "\n"
-	_, err := io.WriteString(l.logFile, text)
+	var b strings.Builder
+	for line := range strings.Lines(text) {
+		b.WriteString("//")
+		line = strings.TrimSpace(line)
+		if len(line) > 0 {
+			b.WriteString(" ")
+			b.WriteString(line)
+		}
+		b.WriteString("\n")
+	}
+	_, err := l.logFile.WriteString(b.String())
 	return err
 }
 
