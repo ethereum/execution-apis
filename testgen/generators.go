@@ -698,8 +698,9 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:  "estimate-failed-call",
-			About: "estimates a contract call that reverts",
+			Name:     "estimate-failed-call",
+			About:    "estimates a contract call that reverts",
+			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
 			Run: func(ctx context.Context, t *T) error {
 				caller := common.Address{1, 2, 3}
 				callme := t.chain.txinfo.CallMeContract.Addr
@@ -1629,8 +1630,9 @@ var EthFeeHistory = MethodTests{
 	"eth_feeHistory",
 	[]Test{
 		{
-			Name:  "fee-history",
-			About: "gets fee history information",
+			Name:     "fee-history",
+			About:    "gets fee history information",
+			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				// Find a block/tx where the London fork is enabled.
 				var dftx *types.Transaction
