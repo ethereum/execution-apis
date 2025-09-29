@@ -1,8 +1,6 @@
 module github.com/lightclient/rpctestgen
 
-go 1.23.0
-
-toolchain go1.24.3
+go 1.24.0
 
 require (
 	github.com/alexflint/go-arg v1.4.3
