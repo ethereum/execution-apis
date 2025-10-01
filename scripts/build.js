@@ -2,6 +2,7 @@ import fs from "fs";
 import yaml from "js-yaml";
 import mergeAllOf from "json-schema-merge-allof";
 import { dereferenceDocument } from "@open-rpc/schema-utils-js";
+import  { XErrorGroupsJSON } from "@open-rpc/extensions";
 
 function sortByMethodName(methods) {
   return methods.slice().sort((a, b) => {
@@ -79,6 +80,37 @@ schemaFiles.forEach(file => {
   };
 });
 
+let extensionSpecs = [];
+
+// Enhance the existing XErrorGroupsJSON extension with conditional validation for different error categories
+const enhancedErrorGroupSchema = JSON.parse(fs.readFileSync('src/extensions/schemas/x-error-category-ranges.json', 'utf8'));
+XErrorGroupsJSON.schema = enhancedErrorGroupSchema;
+
+extensionSpecs.push(XErrorGroupsJSON);
+
+let extensions = [];
+let extensionsBase = "src/extensions/components/"
+let extensionsFiles = fs.readdirSync(extensionsBase);
+extensionsFiles.forEach(file => {
+  console.log(file);
+  let raw = fs.readFileSync(extensionsBase + file);
+  let parsed = yaml.load(raw);  
+  extensions.push(parsed);
+});
+
+// if extensions key matches with extensionSpecs name, then add it to an array of extensionSpec name
+let extensionsDef = {};
+extensionSpecs.forEach((extensionSpec) => {
+  extensions.forEach((extension) => {
+    if (extension.hasOwnProperty(extensionSpec.name)) {     
+      extensionsDef[extensionSpec.name] ={
+        ...extensionsDef[extensionSpec.name],
+        ...extension[extensionSpec.name]  
+      }
+    }
+  });
+});
+
 const doc = {
   openrpc: "1.2.4",
   info: {
@@ -91,7 +123,9 @@ const doc = {
     version: "0.0.0"
   },
   methods: sortByMethodName(methods),
+  "x-extensions": extensionSpecs,
   components: {
+    ...extensionsDef,
     schemas: schemas
   }
 }
