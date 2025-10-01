@@ -743,8 +743,9 @@ var EthCreateAccessList = MethodTests{
 			},
 		},
 		{
-			Name:  "create-al-contract",
-			About: "creates an access list for a contract invocation that accesses storage",
+			Name:     "create-al-contract",
+			About:    "creates an access list for a contract invocation that accesses storage",
+			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				gasprice := t.chain.Head().BaseFee()
 				sender, nonce := t.chain.GetSender(0)
@@ -779,6 +780,7 @@ var EthCreateAccessList = MethodTests{
 			Name: "create-al-contract-eip1559",
 			About: `Creates an access list for a contract invocation that accesses storage.
 This invocation uses EIP-1559 fields to specify the gas price.`,
+			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				gasprice := t.chain.Head().BaseFee()
 				sender, nonce := t.chain.GetSender(0)
