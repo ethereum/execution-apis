@@ -890,7 +890,7 @@
   summary: Runs execution payload validation
   externalDocs:
     description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip7928.md#engine_newpayloadv5
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_newpayloadv5
   params:
     - name: Execution payload
       required: true
@@ -925,7 +925,7 @@
   summary: Obtains execution payload from payload build process
   externalDocs:
     description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip7928.md#engine_getpayloadv6
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_getpayloadv6
   params:
     - name: Payload id
       required: true
