@@ -1,0 +1,46 @@
+x-error-group:
+  TxPoolErrors:
+    - code: -31000
+      message: "ALREADY_KNOWN"
+      data: "Transaction is already known to the transaction pool"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31001
+      message: "INVALID_SENDER"
+      data: "Transaction sender is invalid"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31002
+      message: "INVALID_SIGNATURE"
+      data: "Transaction signature is invalid"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31003
+      message: "TXPOOL_FULL"
+      data: "Transaction pool is full"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31004
+      message: "NEGATIVE_VALUE"
+      data: "Transaction with negative value"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31005
+      message: "OVERSIZED_DATA"
+      data: "Transaction input data exceeds the allowed limit"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31006
+      message: "SENDER_BLACKLISTED"
+      data: "Transaction sender is blacklisted"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31007
+      message: "RECEIVER_BLACKLISTED"
+      data: "Transaction receiver is blacklisted"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31008
+      message: "CHAIN_ID_MISMATCH"
+      data: "Transaction chain ID does not match the expected chain ID"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31009
+      message: "TX_NOT_PERMITTED"
+      data: "Transaction is protected and cannot be permitted for unauthorized users"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: -31010
+      message: "INVALID_RLP_DATA"
+      data: "Transaction Data contains invalid RLP encoding"
+      x-error-category: "TXPOOL_ERRORS"
