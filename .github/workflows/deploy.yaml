@@ -1,59 +1,34 @@
-name: Deploy specification
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 env:
-  # this avoids node running out of memory while building
-  NODE_OPTIONS: --max_old_space_size=20480
+  GITHUB_REPOSITORY: ${{ github.repository }}
 
 jobs:
-  deploy-spec:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js 15
-        uses: actions/setup-node@v1
-        with:
-          node-version: '15'
-      - run: npm ci
-      - run: npm run build
-      - name: setup git config
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-      - name: Deploy assembled spec
-        run: |
-          git checkout -b assembled-spec
-          git add -f openrpc.json
-          git add -f refs-openrpc.json
-          git commit -m "assemble openrpc.json"
-          git push -fu origin assembled-spec
   deploy-gh-pages:
+    permissions:
+      pages: write
+      id-token: write
+      contents: write
+
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js 15
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
         with:
-          node-version: '15'
+          node-version: '22'
       - run: npm ci
-      - run: npm run build
-      - run: npm run generate-clients
-      - run: 'sed -i -e "s|Prefix: \"\"|Prefix: \"/execution-apis\"|g" build/docs/gatsby/gatsby-config.js'
-      - run: 'sed -i -e "s|/api|api|g" build/docs/gatsby/src/pages/index.tsx'
+      - run: npm run build:spec
       - run: npm run build:docs
-      - name: setup git config
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
       - name: Deploy to GitHub Pages
-        if: success()
-        uses: crazy-max/ghaction-github-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          target_branch: gh-pages
-          build_dir: build/docs/gatsby/public
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/docs/gatsby/public
+          commit_message: "Deploy to GitHub Pages"
