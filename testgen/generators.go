@@ -716,6 +716,138 @@ var EthEstimateGas = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:     "estimate-auth-cost-increases-gas",
+			About:    "checks that including ephemeral authorizations increases gas",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				to := common.Address{0x01}
+				baseMsg := map[string]any{
+					"from":  sender,
+					"to":    to,
+					"value": hexutil.Uint64(1),
+					"nonce": hexutil.Uint64(nonce),
+				}
+
+				withAuth := map[string]any{
+					"type":  "0x4",
+					"from":  sender,
+					"to":    to,
+					"value": hexutil.Uint64(1),
+					"nonce": hexutil.Uint64(nonce),
+					"authorizationList": []map[string]any{
+						{
+							"chainId": "0x1",
+							"address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+							"nonce":   "0x0",
+							"yParity": "0x0",
+							"r":       "0x1111111111111111111111111111111111111111111111111111111111111111",
+							"s":       "0x2222222222222222222222222222222222222222222222222222222222222222",
+						},
+					},
+				}
+				var baseGas, authGas hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &baseGas, "eth_estimateGas", baseMsg); err != nil {
+					return fmt.Errorf("base estimation failed: %v", err)
+				}
+				if err := t.rpc.CallContext(ctx, &authGas, "eth_estimateGas", withAuth); err != nil {
+					return fmt.Errorf("with auth estimation failed: %v", err)
+				}
+				if authGas <= baseGas {
+					return fmt.Errorf("expected higher gas with auth (got: %d, base: %d)", authGas, baseGas)
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "estimate-floor-calldata-cost-dominates",
+			About:    "ensures floor calldata cost dominates the gas used for trivial execution",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				to := common.Address{0x01}
+				longCalldata := strings.Repeat("ff", 1024)
+				msg := map[string]any{
+					"from":  sender,
+					"to":    to,
+					"value": hexutil.Uint64(1),
+					"nonce": hexutil.Uint64(nonce),
+					"input": "0x" + longCalldata,
+				}
+				var gas hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &gas, "eth_estimateGas", msg); err != nil {
+					return fmt.Errorf("estimation failed: %v", err)
+				}
+				if gas < 21000+1024*16 {
+					return fmt.Errorf("gas too low for expected calldata cost: got %d", gas)
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "estimate-calldata-and-auth-floor",
+			About:    "checks combined effect of calldata floor and authorization gas cost",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				to := common.Address{0x01}
+				msg := map[string]any{
+					"type":  "0x4",
+					"from":  sender,
+					"to":    to,
+					"value": hexutil.Uint64(1),
+					"nonce": hexutil.Uint64(nonce),
+					"authorizationList": []map[string]any{
+						{
+							"chainId": "0x1",
+							"address": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+							"nonce":   "0x0",
+							"yParity": "0x0",
+							"r":       "0x1111111111111111111111111111111111111111111111111111111111111111",
+							"s":       "0x2222222222222222222222222222222222222222222222222222222222222222",
+						},
+					},
+				}
+				var gas hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &gas, "eth_estimateGas", msg); err != nil {
+					return fmt.Errorf("estimation failed: %v", err)
+				}
+				expectedMinGas := uint64(21000 + 1024*16 + 2500)
+				if uint64(gas) < expectedMinGas {
+					return fmt.Errorf("gas too low, expected combined floor effect, got %d, expected at least %d", gas, expectedMinGas)
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "estimate-blob-tx",
+			About:    "checks gas estimation for blob transactions (EIP-4844)",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				to := common.Address{0x01}
+				msg := map[string]any{
+					"type":             "0x5",
+					"from":             sender,
+					"to":               to,
+					"value":            hexutil.Uint64(1),
+					"nonce":            hexutil.Uint64(nonce),
+					"maxFeePerBlobGas": "0x5",
+					"blobVersionedHashes": []string{
+						"0x0100000000000000000000000000000000000000000000000000000000000000",
+					},
+				}
+				var gas hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &gas, "eth_estimateGas", msg); err != nil {
+					return fmt.Errorf("estimation failed: %v", err)
+				}
+				if gas < 21000 {
+					return fmt.Errorf("expected blob tx to require more than base gas, got %d", gas)
+				}
+				return nil
+			},
+		},
 	},
 }
 
