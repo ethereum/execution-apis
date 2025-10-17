@@ -19,6 +19,11 @@ jobs:
         with:
           go-version: ^1.18
         id: go
+      - name: Install openrpc-linter
+        run: go install github.com/shanejonas/openrpc-linter@latest
+      - name: Run openrpc-linter
+        run: openrpc-linter lint refs-openrpc.json -r openrpc-lint.yml
+
       - name: Install speccheck
         run: go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
       - name: Run speccheck
