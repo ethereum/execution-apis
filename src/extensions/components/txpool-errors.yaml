@@ -26,7 +26,7 @@ x-error-group:
       x-error-category: "TXPOOL_ERRORS"
     - code: -31006
       message: "SENDER_BLACKLISTED"
-      data: "Transaction sender is blacklisted"
+      data: "Transaction sender is denylisted"
       x-error-category: "TXPOOL_ERRORS"
     - code: -31007
       message: "RECEIVER_DENYLISTED"
