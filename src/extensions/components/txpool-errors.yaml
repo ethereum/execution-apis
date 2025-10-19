@@ -25,7 +25,7 @@ x-error-group:
       data: "Transaction input data exceeds the allowed limit"
       x-error-category: "TXPOOL_ERRORS"
     - code: -31006
-      message: "SENDER_BLACKLISTED"
+      message: "SENDER_DENYLISTED"
       data: "Transaction sender is denylisted"
       x-error-category: "TXPOOL_ERRORS"
     - code: -31007
