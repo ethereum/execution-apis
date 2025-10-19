@@ -29,7 +29,7 @@ x-error-group:
       data: "Transaction sender is blacklisted"
       x-error-category: "TXPOOL_ERRORS"
     - code: -31007
-      message: "RECEIVER_BLACKLISTED"
+      message: "RECEIVER_DENYLISTED"
       data: "Transaction receiver is blacklisted"
       x-error-category: "TXPOOL_ERRORS"
     - code: -31008
