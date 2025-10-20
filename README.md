@@ -144,3 +144,5 @@ This repository is licensed under [CC0](LICENSE).
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
 [test-gen]: docs/reference/tests.md
+<br>## Welcome to EIP Integration<br>Execution APIs standardize Ethereum calls for clients—new contributors, start with the JSON-RPC spec for your first endpoint. Tip: Use Geth for testing! 
+
