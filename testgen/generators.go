@@ -709,8 +709,25 @@ var EthEstimateGas = MethodTests{
 					To:   &callme,
 					Data: []byte{0xff, 0x03, 0x04, 0x05},
 				}
-				_, err := t.eth.EstimateGas(ctx, msg)
-				if err == nil {
+				if _, err := t.eth.EstimateGas(ctx, msg); err == nil {
+					return fmt.Errorf("expected error for failed contract call")
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "estimate-call-abi-error",
+			About:    "estimates a contract call that reverts using Solidity Error(string) data",
+			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
+			Run: func(ctx context.Context, t *T) error {
+				caller := common.Address{1, 2, 3}
+				contract := t.chain.txinfo.CallRevertContract.Addr
+				msg := ethereum.CallMsg{
+					From: caller,
+					To:   &contract,
+					Data: []byte{1}, // triggers error(string) revert
+				}
+				if _, err := t.eth.EstimateGas(ctx, msg); err == nil {
 					return fmt.Errorf("expected error for failed contract call")
 				}
 				return nil
@@ -940,6 +957,35 @@ This invocation uses EIP-1559 fields to specify the gas price.`,
 				}
 				if len(result.AccessList[0].StorageKeys) == 0 {
 					return fmt.Errorf("no storage keys in access list entry")
+				}
+				return nil
+			},
+		},
+		{
+			Name: "create-al-abi-revert",
+			About: `Creates an access list for a contract invocation that reverts.
+The server should return the accessed slots regardless of failure, and should report the failure
+in the "error" field.`,
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"to":    t.chain.txinfo.CallRevertContract.Addr,
+					"gas":   hexutil.Uint64(100000),
+					"input": "0x01", // triggers error(string) revert
+				}
+				var result struct {
+					AccessList types.AccessList
+					Error      string
+				}
+				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
+				if err != nil {
+					return fmt.Errorf("reverting call returned JSON-RPC error")
+				}
+				if len(result.AccessList) == 0 {
+					return fmt.Errorf("empty access list")
+				}
+				if len(result.Error) == 0 {
+					return fmt.Errorf("EVM revert error not signaled in response")
 				}
 				return nil
 			},
