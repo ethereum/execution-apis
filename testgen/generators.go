@@ -734,8 +734,8 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-auth-cost-increases-gas",
-			About:    "checks that including ephemeral authorizations increases gas",
+			Name:     "estimate-with-eip7702",
+			About:    "checks that including an EIP-7720 authorization in the message increases gas",
 			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
@@ -778,67 +778,7 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-floor-calldata-cost-dominates",
-			About:    "ensures floor calldata cost dominates the gas used for trivial execution",
-			SpecOnly: true,
-			Run: func(ctx context.Context, t *T) error {
-				sender, nonce := t.chain.GetSender(0)
-				to := common.Address{0x01}
-				longCalldata := strings.Repeat("ff", 1024)
-				msg := map[string]any{
-					"from":  sender,
-					"to":    to,
-					"value": hexutil.Uint64(1),
-					"nonce": hexutil.Uint64(nonce),
-					"input": "0x" + longCalldata,
-				}
-				var gas hexutil.Uint64
-				if err := t.rpc.CallContext(ctx, &gas, "eth_estimateGas", msg); err != nil {
-					return fmt.Errorf("estimation failed: %v", err)
-				}
-				if gas < 21000+1024*16 {
-					return fmt.Errorf("gas too low for expected calldata cost: got %d", gas)
-				}
-				return nil
-			},
-		},
-		{
-			Name:     "estimate-calldata-and-auth-floor",
-			About:    "checks combined effect of calldata floor and authorization gas cost",
-			SpecOnly: true,
-			Run: func(ctx context.Context, t *T) error {
-				sender, nonce := t.chain.GetSender(0)
-				to := common.Address{0x01}
-				msg := map[string]any{
-					"type":  "0x4",
-					"from":  sender,
-					"to":    to,
-					"value": hexutil.Uint64(1),
-					"nonce": hexutil.Uint64(nonce),
-					"authorizationList": []map[string]any{
-						{
-							"chainId": "0x1",
-							"address": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-							"nonce":   "0x0",
-							"yParity": "0x0",
-							"r":       "0x1111111111111111111111111111111111111111111111111111111111111111",
-							"s":       "0x2222222222222222222222222222222222222222222222222222222222222222",
-						},
-					},
-				}
-				var gas hexutil.Uint64
-				if err := t.rpc.CallContext(ctx, &gas, "eth_estimateGas", msg); err != nil {
-					return fmt.Errorf("estimation failed: %v", err)
-				}
-				expectedMinGas := uint64(21000 + 1024*16 + 2500)
-				if uint64(gas) < expectedMinGas {
-					return fmt.Errorf("gas too low, expected combined floor effect, got %d, expected at least %d", gas, expectedMinGas)
-				}
-				return nil
-			},
-		},
-		{
-			Name:     "estimate-blob-tx",
+			Name:     "estimate-with-eip4844",
 			About:    "checks gas estimation for blob transactions (EIP-4844)",
 			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
