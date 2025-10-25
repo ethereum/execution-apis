@@ -1,50 +1,34 @@
 x-error-group:
   GasErrors:
-    - code: -31800
+    - code: 800
       message: "GAS_TOO_LOW"
-      data: "Transaction gas is too low / intrinsic gas too low"
+      data: "Intrinsic gas too low / Intrinsic gas exceeds gas limit"
       x-error-category: "GAS_ERRORS"
-    - code: -31801
+    - code: 801
       message: "OUT_OF_GAS"
-      data: "The transaction ran out of gas"
+      data: "Insufficient gas for floor data gas cost"
       x-error-category: "GAS_ERRORS"
-    - code: -31802
-      message: "GAS_PRICE_TOO_LOW"
-      data: "Gas price too low / gas price below configured minimum gas price"
-      x-error-category: "GAS_ERRORS"
-    - code: -31803
+    - code: 802
       message: "BLOCK_GAS_LIMIT_EXCEEDED"
       data: "Tx gas limit exceeds max block gas limit / intrinsic gas exceeds gas limit"
       x-error-category: "GAS_ERRORS"
-    - code: -31804
-      message: "FEE_CAP_EXCEEDED"
-      data: "Tx fee exceeds cap / max priority fee per gas higher than max fee per gas"
-      x-error-category: "GAS_ERRORS"
-    - code: -31805
-      message: "GAS_OVERFLOW"
-      data: "Gas overflow error"
-      x-error-category: "GAS_ERRORS"
-    - code: -31806
-      message: "INSUFFICIENT_TRANSACTION_PRICE"
-      data: "Transaction price must be greater than base fee / max fee per gas less than block base fee"
-      x-error-category: "GAS_ERRORS"
-    - code: -31807
-      message: "INVALID_MAX_PRIORITY_FEE_PER_GAS"
-      data: "Max priority fee per gas higher than 2^256-1"
-      x-error-category: "GAS_ERRORS"
-    - code: -31808
-      message: "INVALID_MAX_FEE_PER_GAS"
-      data: "Max fee per gas higher than 2^256-1"
-      x-error-category: "GAS_ERRORS"
-    - code: -31809
+    - code: 803
+      message: "TRANSACTION_GAS_LIMIT_EXCEEDED"
+      data: "Transaction gas limit too high"
+    - code: 804
+      message: "GAS_PRICE_TOO_LOW"
+      data: "Gas price below configured minimum gas price / transaction gas price below minimum"
+      x-error-category: "GAS_ERRORS"    
+    - code: 805
       message: "INSUFFICIENT_FUNDS"
-      data: "Insufficient funds for gas * price + value"
+      data: "Insufficient funds for gas * price + value / Upfront cost exceeds account balance"
       x-error-category: "GAS_ERRORS"
-    - code: -31810
-      message: "TRANSACTION_UNDERPRICED"
-      data: "Transaction's gas price is below the minimum for txpool"
+    - code: 806
+      message: "TIP_ABOVE_FEE_CAP"
+      data: "Max priority fee per gas higher than max fee per gas"
       x-error-category: "GAS_ERRORS"
-    - code: -31811
-      message: "REPLACEMENT_TRANSACTION_UNDERPRICED"
-      data: "Replacement transaction is sent without the required price bump."
+    - code: 807
+      message: "FEE_CAP_EXCEEDED"
+      data: "Tx fee exceeds the configured cap / Transaction fee cap exceeded"
       x-error-category: "GAS_ERRORS"
+

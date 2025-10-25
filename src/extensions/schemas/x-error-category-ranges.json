@@ -25,7 +25,7 @@
               },
               "then": {
                 "properties": {
-                  "code": { "type": "integer", "minimum": -31999, "maximum": -31800 }
+                  "code": { "type": "integer", "minimum": 800, "maximum": 999 }
                 }
               }
             },
@@ -38,7 +38,7 @@
               },
               "then": {
                 "properties": {
-                  "code": { "type": "integer", "minimum": -31799, "maximum": -31600 }
+                  "code": { "type": "integer", "minimum": 1, "maximum": 199 }
                 }
               }
             },
@@ -51,7 +51,20 @@
               },
               "then": {
                 "properties": {
-                  "code": { "type": "integer", "minimum": -31199, "maximum": -31000 }
+                  "code": { "type": "integer", "minimum": 1000, "maximum": 1200 }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "x-error-category": { "const": "ZK_EXECUTION_ERRORS" }
+                },
+                "required": ["x-error-category"]
+              },
+              "then": {
+                "properties": {
+                  "code": { "type": "integer", "minimum": 2000, "maximum": 2200 }
                 }
               }
             }

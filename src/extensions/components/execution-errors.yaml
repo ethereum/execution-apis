@@ -1,22 +1,18 @@
 x-error-group:
   ExecutionErrors:
-    - code: -31600
+    - code: 1
       message: "NONCE_TOO_LOW"
-      data: "Transaction nonce is lower than the sender account's current nonce"
+      data: "Nonce too low"
       x-error-category: "EXECUTION_ERRORS"
-    - code: -31601
+    - code: 2
       message: "NONCE_TOO_HIGH"
-      data: "Transaction nonce is higher than the sender account's current nonce"
+      data: "Nonce too high"
       x-error-category: "EXECUTION_ERRORS"
-    - code: -31602
+    - code: 3
       message: "EXECUTION_REVERTED"
-      data: "Execution is reverted by REVERT Opcode"
+      data: "Execution reverted by REVERT Opcode"
       x-error-category: "EXECUTION_ERRORS"
-    - code: -31603
+    - code: 4
       message: "INVALID_OPCODE"
-      data: "An invalid opcode was encountered during execution"
-      x-error-category: "EXECUTION_ERRORS"
-    - code: -31604
-      message: "OUT_OF_COUNTERS"
-      data: "Not enough step counters to continue the execution"
+      data: "Invalid opcode"
       x-error-category: "EXECUTION_ERRORS"

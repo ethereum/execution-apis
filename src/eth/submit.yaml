@@ -11,6 +11,7 @@
       - $ref: '#/components/x-error-group/GasErrors'
       - $ref: '#/components/x-error-group/ExecutionErrors'
       - $ref: '#/components/x-error-group/TxPoolErrors'
+      - $ref: '#/components/x-error-group/ZKExecutionErrors'
   result:
     name: Transaction hash
     schema:
@@ -57,6 +58,7 @@
     - $ref: '#/components/x-error-group/GasErrors'
     - $ref: '#/components/x-error-group/ExecutionErrors'
     - $ref: '#/components/x-error-group/TxPoolErrors'
+    - $ref: '#/components/x-error-group/ZKExecutionErrors'
   result:
     name: Transaction hash
     schema:
