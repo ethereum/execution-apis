@@ -51,7 +51,7 @@
               },
               "then": {
                 "properties": {
-                  "code": { "type": "integer", "minimum": 1000, "maximum": 1200 }
+                  "code": { "type": "integer", "minimum": 1000, "maximum": 1199 }
                 }
               }
             },
@@ -64,7 +64,7 @@
               },
               "then": {
                 "properties": {
-                  "code": { "type": "integer", "minimum": 2000, "maximum": 2200 }
+                  "code": { "type": "integer", "minimum": 2000, "maximum": 2199 }
                 }
               }
             }

@@ -33,8 +33,8 @@ Currently, only below methods import all the error groups via `$ref` and may inc
 | JSON-RPC non-standard | Client-specific | $-32099$ to $-32000$ | JSON-RPC 2.0 addendum |
 | Gas errors | `GAS_ERRORS` | $800$ to $999$ | `gas-error-groups.yaml` |
 | Execution errors | `EXECUTION_ERRORS` | $1$ to $999$ | `execution-errors.yaml` |
-| TxPool errors | `TXPOOL_ERRORS` | $1000$ to $1200$ | `txpool-errors.yaml` |
-| ZK execution errors | `ZK_EXECUTION_ERRORS` | $2000$ to $2200$ | `zk-execution-errors.yaml` |
+| TxPool errors | `TXPOOL_ERRORS` | $1000$ to $1199$ | `txpool-errors.yaml` |
+| ZK execution errors | `ZK_EXECUTION_ERRORS` | $2000$ to $2199$ | `zk-execution-errors.yaml` |
 
 
 **Validation** of these bands happens through `XErrorGroupsJSON.schema` in `scripts/build.js`, so build failures flag any out-of-range additions early.
