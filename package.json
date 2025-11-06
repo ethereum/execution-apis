@@ -29,7 +29,7 @@
     "@open-rpc/generator": "2.1.0",
     "@open-rpc/schema-utils-js": "1.15.0",
     "gatsby": "~5.14.6",
-    "gh-pages": "~4.0.0",
+    "gh-pages": "~5.0.0",
     "graphql": "~16.3.0",
     "graphql-request": "~4.1.0",
     "js-yaml": "~4.1.0",
