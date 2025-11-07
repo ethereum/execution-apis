@@ -37,15 +37,15 @@ will have all schema `#ref`s resolved.
 #### Building the docs
 
 Once you've updated something in the spec, you can use the docs generation tools
-to view the updated specs locally.  
+to view the updated specs locally.
 
 ```console
 $ npm run build:docs
 $ npm run watch
 ```
 
-The `watch` command starts a local webserver serving the docs in-browser at 
-`http://0.0.0.0:8000` and it rebuilds when you update something in the specs.  
+The `watch` command starts a local webserver serving the docs in-browser at
+`http://0.0.0.0:8000` and it rebuilds when you update something in the specs.
 Please reload the page to see your changes.
 
 ### Testing
@@ -69,7 +69,7 @@ directory against the specification.  There are two npm scripts to simplify this
 
 ```console
 $ npm run build:test
-$ npm run test 
+$ npm run test
 all passing.
 ```
 
@@ -129,6 +129,37 @@ A script is included in the source code which reads and validates the given sche
 $ npm run graphql:validate
 ```
 
+## Versioning
+
+Execution-apis follows [semantic versioning][semver].
+- Major releases will include breaking changes to the [rpc-compat hive tests][rpc-compat], and other backwards incompatible changes.
+- Minor releases will include new backwards-compatible features.
+- Patch releases will include internal changes that don't impact end users and backwards-compatible bugfixes, along with fixing test cases that don't match the spec.
+
+Examples of changes by version type:
+
+**Major:**
+- Adding new RPC methods
+- Changing the parameters or return type of an existing method in an incompatible way
+- Renaming fields in responses
+- Changing error codes or error response structures
+- Removing support for previously accepted input formats
+- Adding new fields to response objects
+
+**Minor:**
+- Removing an existing RPC method
+- Adding optional parameters to existing methods
+- Adding new error codes for previously uncovered edge cases
+- Introducing new capabilities while maintaining backward compatibility
+
+**Patch:**
+- Fixing typos or improving clarity in documentation
+- Correcting examples in the specification
+- Fixing test cases that don't match the spec
+- Improving validation rules without changing the API surface
+- Updating internal tooling or build processes
+
+
 ## License
 
 This repository is licensed under [CC0](LICENSE).
@@ -144,3 +175,4 @@ This repository is licensed under [CC0](LICENSE).
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
 [test-gen]: docs/reference/tests.md
+[semver]: https://semver.org/
