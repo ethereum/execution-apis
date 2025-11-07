@@ -1,0 +1,12 @@
+x-error-group:
+  JSONRPCStandardErrors:
+      - code: -32700
+        message: "Parse error"        
+      - code: -32600
+        message: "Invalid request"        
+      - code: -32601
+        message: "Method not found"        
+      - code: -32602
+        message: "Invalid params"        
+      - code: -32603
+        message: "Internal error"        
