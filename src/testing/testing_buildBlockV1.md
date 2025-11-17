@@ -12,7 +12,7 @@ This method is considered sensitive and is intended for testing environments onl
 
    * `parentBlockHash`: `DATA, 32 Bytes` - (Required) The hash of the parent block upon which to build the new block.
 
-   * `payloadAttributes`: `OBJECT` - (Required) The `PayloadAttributesV3` object, as defined in [`engine_forkchoiceUpdated`](../engine-apis/forkchoiceUpdated.md#payloadattributesv3).
+   * `payloadAttributes`: `OBJECT` - (Required) The `PayloadAttributesV3` object, as defined in [`engine_forkchoiceUpdated`](../engine/cancun.md#payloadattributesv3).
 
    * `transactions`: `Array of DATA` - (Required) An array of raw, signed transactions (hex-encoded `0x...` strings) to forcibly include in the generated block.
 
@@ -22,7 +22,7 @@ This method is considered sensitive and is intended for testing environments onl
 
 ### Returns
 
-`result`: `OBJECT` - The constructed `ExecutionPayloadV3`, as defined in [`engine_getPayload`](../engine-apis/getPayload.md#executionpayloadv3).
+`result`: `OBJECT` - The constructed `ExecutionPayloadV3`, as defined in [`engine_getPayload`](../engine/cancun.md#executionpayloadv3).
 
 ### Behavior
 
