@@ -12,7 +12,7 @@ This method is considered sensitive and is intended for testing environments onl
 
    * `parentBlockHash`: `DATA, 32 Bytes` - (Required) The hash of the parent block upon which to build the new block.
 
-   * `payloadAttributes`: `OBJECT` - (Required) The `PayloadAttributesV3` object, as defined in [`engine_forkchoiceUpdated`](../engine/cancun.md#payloadattributesv3).
+   * `payloadAttributes`: `OBJECT` - (Required) The [`PayloadAttributesV3`](../engine/cancun.md#payloadattributesv3) object, as defined in [`engine_forkchoiceUpdatedV3`](../engine/cancun.md#engine_forkchoiceupdatedv3).
 
    * `transactions`: `Array of DATA` - (Required) An array of raw, signed transactions (hex-encoded `0x...` strings) to forcibly include in the generated block.
 
@@ -22,7 +22,7 @@ This method is considered sensitive and is intended for testing environments onl
 
 ### Returns
 
-`result`: `OBJECT` - The constructed `ExecutionPayloadV3`, as defined in [`engine_getPayload`](../engine/cancun.md#executionpayloadv3).
+`result`: `OBJECT` - The constructed object matching the response to [`engine_getPayloadV4`](../engine/prague.md#response-1).
 
 ### Behavior
 
@@ -89,27 +89,38 @@ This method is considered sensitive and is intended for testing environments onl
   "id": 1,
   "jsonrpc": "2.0",
   "result": {
-    "blockHash": "0x8980a3a7f8b16053c4dec86e1050e6378e176272517852f8c5b56f34e9a0f9b6",
-    "parentHash": "0x3b8fb240d288781d4f1e1d32f4c1550BEEFDEADBEEFDEADBEEFDEADBEEFDEAD",
-    "feeRecipient": "0x0000000000000000000000000000000000000000",
-    "stateRoot": "0xca3699d05d3369680315af1d03c6f8f73188945f3c83756bde2575ddc25c6040",
-    "receiptsRoot": "0x2e0617b0c3545d1668e8d8cb530a6c71b0a8f82875b1d0b38c352718016feff6",
-    "logsBloom": "0x00...00",
-    "prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "blockNumber": "0x1b4",
-    "gasLimit": "0x1c9c380",
-    "gasUsed": "0xa410",
-    "timestamp": "0x6705D918",
-    "extraData": "0x746573745F6E616D65",
-    "baseFeePerGas": "0x7",
-    "excessBlobGas": "0x0",
-    "blobGasUsed": "0x0",
-    "transactions": [
-      "0xf86c0a8504a817c80082520894...cb61163c917540a0c64c12b8f50015",
-      "0xf86b0f8504a817c80082520894...5443c01e69d3b0c5112101564914a2"
-    ],
-    "withdrawals": [],
-    "parentBeaconBlockRoot": "0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822"
+    "executionPayload": {
+      "blockHash": "0x8980a3a7f8b16053c4dec86e1050e6378e176272517852f8c5b56f34e9a0f9b6",
+      "parentHash": "0x3b8fb240d288781d4f1e1d32f4c15509a2b7538b8e0e719541a50a31a2631a01",
+      "feeRecipient": "0x0000000000000000000000000000000000000000",
+      "stateRoot": "0xca3699d05d3369680315af1d03c6f8f73188945f3c83756bde2575ddc25c6040",
+      "receiptsRoot": "0x2e0617b0c3545d1668e8d8cb530a6c71b0a8f82875b1d0b38c352718016feff6",
+      "logsBloom": "0x00...00",
+      "prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "blockNumber": "0x1b4",
+      "gasLimit": "0x1c9c380",
+      "gasUsed": "0xa410",
+      "timestamp": "0x6705D918",
+      "extraData": "0x746573745F6E616D65",
+      "baseFeePerGas": "0x7",
+      "excessBlobGas": "0x0",
+      "blobGasUsed": "0x0",
+      "transactions": [
+        "0xf86c0a8504a817c80082520894...cb61163c917540a0c64c12b8f50015",
+        "0xf86b0f8504a817c80082520894...5443c01e69d3b0c5112101564914a2"
+      ],
+      "parentBeaconBlockRoot": "0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822",
+      "depositRequests": [],
+      "consolidationRequests": []
+    },
+    "blockValue": "0x1b681a965684000",
+    "blobsBundle": {
+      "commitments": [],
+      "blobs": [],
+      "kzgProofs": []
+    },
+    "shouldOverrideBuilder": false,
+    "executionRequests": []
   }
 }
 ```
