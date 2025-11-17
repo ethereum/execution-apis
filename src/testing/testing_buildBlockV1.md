@@ -2,7 +2,7 @@
 
 This document specifies the `testing_buildBlockV1` RPC method. This method is a debugging and testing tool that simplifies the block production process into a single call. It is intended to replace the multi-step workflow of sending transactions, calling `engine_forkchoiceUpdated` with `payloadAttributes`, and then calling `engine_getPayload`.
 
-This method is considered sensitive and is intended for testing environments only. See [**Security Considerations**](#securityconsiderations) for more details.
+This method is considered sensitive and is intended for testing environments only. See [**Security Considerations**](#security-considerations) for more details.
 
 ## Method: `testing_buildBlockV1`
 
