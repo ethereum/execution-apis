@@ -70,3 +70,16 @@
       result:
         name: Block number
         value: '0x2377'
+- name: net_version
+  summary: Returns the current network ID.
+  params: []
+  result:
+    name: Network ID
+    schema:
+      type: string
+  examples:
+    - name: net_version example
+      params: []
+      result:
+        name: Network ID
+        value: '1'
