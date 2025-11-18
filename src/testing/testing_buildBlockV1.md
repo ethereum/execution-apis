@@ -4,8 +4,6 @@ This document specifies the `testing_buildBlockV1` RPC method. This method is a 
 
 This method is considered sensitive and is intended for testing environments only. See [**Security Considerations**](#security-considerations) for more details.
 
-## Method: `testing_buildBlockV1`
-
 ### Request
 
 * method: `testing_buildBlockV1`
