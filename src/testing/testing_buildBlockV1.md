@@ -10,8 +10,8 @@ This method is considered sensitive and is intended for testing environments onl
 * params:
   1. `parentBlockHash`: `DATA`, 32 Bytes - block hash of the parent of the requested block
   2. `payloadAttributes`: `Object` - instance of  [`PayloadAttributesV3`](../engine/cancun.md#payloadattributesv3)
-  3. `transactions`: `Array of DATA` - array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-  4. `extraData`: `DATA|null`, 0 to 32 Bytes - data to be set as the `extraData` field of the built block
+  3. `transactions`: `Array of DATA` - an array of raw, signed transactions (hex-encoded `0x...` strings) to forcibly include in the generated block
+  5. `extraData`: `DATA|null`, 0 to 32 Bytes - data to be set as the `extraData` field of the built block
 
 ### Response
 
