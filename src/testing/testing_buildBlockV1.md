@@ -4,41 +4,42 @@ This document specifies the `testing_buildBlockV1` RPC method. This method is a 
 
 This method is considered sensitive and is intended for testing environments only. See [**Security Considerations**](#security-considerations) for more details.
 
+## Structures
+
+### BuildBlockParamsV1
+
+This structure encapsulates the params for building a block. The fields are encoded as follows:
+
+- `parentBlockHash`: `DATA`, 32 Bytes - block hash of the parent of the requested block
+- `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
+- `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
+
 ## Method: `testing_buildBlockV1`
 
-### Parameters
+### Request
 
-1. `buildBlockParams`: `object` - An object containing the parameters for building the block:
+* method: `testing_buildBlockV1`
+* params:
+  1. `parentBlockHash`: `DATA`, 32 Bytes - block hash of the parent of the requested block
+  2. `payloadAttributes`: `Object` - instance of  [`PayloadAttributesV3`](../engine/cancun.md#payloadattributesv3)
+  3. `transactions`: `Array of DATA` - array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+  4. `extraData`: `DATA|null`, 0 to 32 Bytes - data to be set as the `extraData` field of the built block
 
-   * `parentBlockHash`: `DATA, 32 Bytes` - (Required) The hash of the parent block upon which to build the new block.
-
-   * `payloadAttributes`: `OBJECT` - (Required) The [`PayloadAttributesV3`](../engine/cancun.md#payloadattributesv3) object, as defined in [`engine_forkchoiceUpdatedV3`](../engine/cancun.md#engine_forkchoiceupdatedv3).
-
-   * `transactions`: `Array of DATA` - (Required) An array of raw, signed transactions (hex-encoded `0x...` strings) to forcibly include in the generated block.
-
-   * `extraData`: `DATA, 0 to 32 Bytes` - (Optional) A hex-encoded `0x...` string to be set as the `extraData` field of the built block. If this field is provided, it MUST override any default `extraData` the client would normally insert.
-
-   * `skipValidation`: `boolean` - (Optional, default: `false`) If `true`, the client MUST attempt to build the block even if the provided transactions are invalid (e.g., incorrect nonce, insufficient balance, or invalid signature). If `false`, the method MUST return an error if any transaction fails state validation.
-
-### Returns
+### Response
 
 `result`: `OBJECT` - The constructed object matching the response to [`engine_getPayloadV4`](../engine/prague.md#response-1).
 
-### Behavior
+### Specification
 
 * The client MUST build a new execution payload using the block specified by `parentBlockHash` as its parent.
 
-* The client MUST use the provided `payloadAttributes` to define the context of the new block (e.g., `timestamp`, `prevRandao`, `suggestedFeeRecipient`).
+* The client MUST use the provided `payloadAttributes` to define the context of the new block.
 
-* The client MUST include all transactions from the `transactions` array at the beginning of the block's transaction list, in the order they were provided.
+* The client MUST include all transactions from the `transactions` array on the block's transaction list, in the order they were provided.
 
 * The client MUST NOT include any transactions from its local transaction pool. The resulting block MUST only contain the transactions specified in the `transactions` array.
 
 * If `extraData` is provided, the client MUST set the `extraData` field of the resulting payload to this value.
-
-* If `skipValidation` is `false` (or omitted), the client MUST validate all transactions in the `transactions` array against the state at the `parentBlockHash`. If any transaction is invalid, the method MUST return a standard JSON-RPC error.
-
-* If `skipValidation` is `true`, the client MUST skip state-dependent validation (e.g., nonce, balance) for the transactions in the `transactions` array. The client SHOULD still perform basic format validation. The client MUST attempt to build and return the payload, even if this payload would be considered invalid by consensus rules.
 
 * This method MUST NOT modify the client's canonical chain or head block. It is a read-only method for payload generation. It does not run the equivalent of `engine_newPayload` or `engine_forkchoiceUpdated`.
 
@@ -75,8 +76,7 @@ This method is considered sensitive and is intended for testing environments onl
         "0xf86c0a8504a817c80082520894...cb61163c917540a0c64c12b8f50015",
         "0xf86b0f8504a817c80082520894...5443c01e69d3b0c5112101564914a2"
       ],
-      "extraData": "0x746573745F6E616D65",
-      "skipValidation": false
+      "extraData": "0x746573745F6E616D65"
     }
   ]
 }
