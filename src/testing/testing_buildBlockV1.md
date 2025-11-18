@@ -4,16 +4,6 @@ This document specifies the `testing_buildBlockV1` RPC method. This method is a 
 
 This method is considered sensitive and is intended for testing environments only. See [**Security Considerations**](#security-considerations) for more details.
 
-## Structures
-
-### BuildBlockParamsV1
-
-This structure encapsulates the params for building a block. The fields are encoded as follows:
-
-- `parentBlockHash`: `DATA`, 32 Bytes - block hash of the parent of the requested block
-- `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
-- `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
-
 ## Method: `testing_buildBlockV1`
 
 ### Request
