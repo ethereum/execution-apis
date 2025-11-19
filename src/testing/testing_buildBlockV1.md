@@ -36,7 +36,7 @@ This method is considered sensitive and is intended for testing environments onl
 
 * **HIGHLY SENSITIVE**: This method is a powerful debugging tool intended for testing environments ONLY.
 
-* It allows for the creation of arbitrary, and potentially invalid, blocks. It can be in used to bypass transaction pool validation and forcibly include any transaction.
+* It allows for the creation of arbitrary blocks. It can be in used to bypass transaction pool validation and forcibly include any transaction.
 
 * This method MUST NOT be exposed on public-facing RPC APIs.
 
