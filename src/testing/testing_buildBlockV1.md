@@ -16,7 +16,7 @@ This method is considered sensitive and is intended for testing environments onl
 ### Response
 
 * result: `OBJECT` - instance of [`engine_getPayloadV4`](../engine/prague.md#response-1)
-* error: code and message set in case an exception happens while building the requeste block.
+* error: code and message set in case an exception happens while building the requested block.
 
 ### Specification
 
