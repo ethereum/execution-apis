@@ -785,7 +785,7 @@ var EthEstimateGas = MethodTests{
 				sender, nonce := t.chain.GetSender(0)
 				to := common.Address{0x01}
 				msg := map[string]any{
-					"type":             "0x5",
+					"type":             "0x3",
 					"from":             sender,
 					"to":               to,
 					"value":            hexutil.Uint64(1),
@@ -1986,6 +1986,9 @@ var EthGetLogs = MethodTests{
 				return nil
 			},
 		},
+		// test for blockhash in query
+		// test for error code returned when range is reversed
+		// test for error code when range is beyond latest block
 	},
 }
 
