@@ -2066,21 +2066,36 @@ var EthGetLogs = MethodTests{
 					ToBlock:   big.NewInt(int64(len(t.chain.blocks) + 1)),
 				})
 				if err == nil {
-					return fmt.Errorf("expected error for query at future block")
+					return fmt.Errorf("expected error")
 				}
 				return nil
 			},
 		},
 		{
 			Name:  "filter-error-reversed-block-range",
-			About: "checks that an error is returned if fromBlock` is larger than `toBlock`",
+			About: "checks that an error is returned if `fromBlock` is larger than `toBlock`",
 			Run: func(ctx context.Context, t *T) error {
 				_, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
 					FromBlock: big.NewInt(int64(len(t.chain.blocks) - 5)),
 					ToBlock:   big.NewInt(int64(len(t.chain.blocks) - 8)),
 				})
 				if err == nil {
-					return fmt.Errorf("expected error for query at future block")
+					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "filter-error-blockHash-and-range",
+			About: "checks that an error is returned if `fromBlock`/`toBlock` are specified together with `blockHash`",
+			Run: func(ctx context.Context, t *T) error {
+				err := t.rpc.CallContext(ctx, nil, "eth_getLogs", map[string]string{
+					"blockHash": t.chain.blocks[10].Hash().String(),
+					"fromBlock": "0x3",
+					"toBlock":   "0x4",
+				})
+				if err == nil {
+					return fmt.Errorf("expected error")
 				}
 				return nil
 			},
