@@ -1986,9 +1986,105 @@ var EthGetLogs = MethodTests{
 				return nil
 			},
 		},
-		// test for blockhash in query
-		// test for error code returned when range is reversed
-		// test for error code when range is beyond latest block
+		{
+			Name:  "filter-with-blockHash",
+			About: "queries for all logs of a block, identified by blockHash",
+			Run: func(ctx context.Context, t *T) error {
+				// Find a block with logs.
+				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
+					return tx.Block > 2
+				})
+				if i == -1 {
+					return fmt.Errorf("no suitable tx found")
+				}
+				block := t.chain.GetBlock(int(t.chain.txinfo.LegacyEmit[i].Block))
+				hash := block.Hash()
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{BlockHash: &hash})
+				if err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("result contains no logs")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "filter-with-blockHash",
+			About: "queries for all logs of a block, identified by blockHash",
+			Run: func(ctx context.Context, t *T) error {
+				// Find a block with logs.
+				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
+					return tx.Block > 2
+				})
+				if i == -1 {
+					return fmt.Errorf("no suitable tx found")
+				}
+				hash := t.chain.GetBlock(int(t.chain.txinfo.LegacyEmit[i].Block)).Hash()
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{BlockHash: &hash})
+				if err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("result contains no logs")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "filter-with-blockHash-and-topics",
+			About: "queries for logs in a block, identified by blockHash",
+			Run: func(ctx context.Context, t *T) error {
+				// Find a block with logs.
+				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
+					return tx.Block > 2
+				})
+				if i == -1 {
+					return fmt.Errorf("no suitable tx found")
+				}
+				info := t.chain.txinfo.LegacyEmit[i]
+				hash := t.chain.GetBlock(int(info.Block)).Hash()
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					BlockHash: &hash,
+					Topics:    [][]common.Hash{{*info.LogTopic0}, {*info.LogTopic1}},
+				})
+				if err != nil {
+					return err
+				}
+				if len(result) != 1 {
+					return fmt.Errorf("expected 1 result, got %d", len(result))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "filter-error-future-block-range",
+			About: "checks that an error is returned if `toBlock` is greater than the latest block",
+			Run: func(ctx context.Context, t *T) error {
+				_, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: big.NewInt(int64(len(t.chain.blocks) - 5)),
+					ToBlock:   big.NewInt(int64(len(t.chain.blocks) + 1)),
+				})
+				if err == nil {
+					return fmt.Errorf("expected error for query at future block")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "filter-error-reversed-block-range",
+			About: "checks that an error is returned if fromBlock` is larger than `toBlock`",
+			Run: func(ctx context.Context, t *T) error {
+				_, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: big.NewInt(int64(len(t.chain.blocks) - 5)),
+					ToBlock:   big.NewInt(int64(len(t.chain.blocks) - 8)),
+				})
+				if err == nil {
+					return fmt.Errorf("expected error for query at future block")
+				}
+				return nil
+			},
+		},
 	},
 }
 
