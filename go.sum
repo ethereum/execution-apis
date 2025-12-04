@@ -87,6 +87,8 @@ github.com/ethereum/go-ethereum v1.16.3-0.20251008092951-168d699fbad6 h1:25ayyf4
 github.com/ethereum/go-ethereum v1.16.3-0.20251008092951-168d699fbad6/go.mod h1:kId9vOtlYg3PZk9VwKbGlQmSACB5ESPTBGT+M9zjmok=
 github.com/ethereum/go-ethereum v1.16.3-0.20251128102831-a122dbe45993 h1:IdHG9k0piIUtAWlqiD+/qKE1sgiBqcMsfggUWbsiAZk=
 github.com/ethereum/go-ethereum v1.16.3-0.20251128102831-a122dbe45993/go.mod h1:q9cnybcxWmytcJ6rMhLQSji1ZZ2i8TvoPNE+hXEu5bQ=
+github.com/ethereum/go-ethereum v1.16.3-0.20251204100242-73a2df2b0a7d h1:o5qOWZlWQvK3MAv+W3rpDNw6F/uFmyUmRqtU+EghCpM=
+github.com/ethereum/go-ethereum v1.16.3-0.20251204100242-73a2df2b0a7d/go.mod h1:q9cnybcxWmytcJ6rMhLQSji1ZZ2i8TvoPNE+hXEu5bQ=
 github.com/ethereum/go-verkle v0.2.2 h1:I2W0WjnrFUIzzVPwm8ykY+7pL2d4VhlsePn4j7cnFk8=
 github.com/ethereum/go-verkle v0.2.2/go.mod h1:M3b90YRnzqKyyzBEWJGqj8Qff4IDeXnzFw0P9bFw3uk=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
