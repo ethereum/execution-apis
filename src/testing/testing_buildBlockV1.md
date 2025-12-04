@@ -11,7 +11,7 @@ This method is considered sensitive and is intended for testing environments onl
   1. `parentBlockHash`: `DATA`, 32 Bytes - block hash of the parent of the requested block.
   2. `payloadAttributes`: `Object` - instance of [`PayloadAttributesV3`](../engine/cancun.md#payloadattributesv3)
   3. `transactions`: `Array of DATA` - an array of raw, signed transactions (hex-encoded `0x...` strings) to forcibly include in the generated block.
-  5. `extraData`: `DATA|null`, 0 to 32 Bytes - data to be set as the `extraData` field of the built block.
+  4. `extraData`: `DATA|null`, 0 to 32 Bytes - data to be set as the `extraData` field of the built block.
 
 ### Response
 
@@ -30,7 +30,7 @@ This method is considered sensitive and is intended for testing environments onl
 
 * If `extraData` is provided, the client MUST set the `extraData` field of the resulting payload to this value.
 
-* This method MUST NOT modify the client's canonical chain or head block. It is a read-only method for payload generation. It does not run the equivalent of `engine_newPayload` or `engine_forkchoiceUpdated`.
+* This method MUST NOT modify the client's canonical chain or head block. It is a read-only method for payload generation.
 
 ### Security Considerations
 
