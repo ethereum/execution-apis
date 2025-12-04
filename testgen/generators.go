@@ -90,6 +90,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
 	EthBlobBaseFee,
+	NetVersion,
 
 	// -- gas price tests are disabled because of non-determinism
 	// EthGasPrice,
@@ -2250,12 +2251,33 @@ var DebugGetRawTransaction = MethodTests{
 	},
 }
 
+var NetVersion = MethodTests{
+	"net_version",
+	[]Test{
+		{
+			Name:  "get-network-id",
+			About: "Calls net_version to retrieve the network ID, which is expected to be equal to the chainID of the test chain.",
+			Run: func(ctx context.Context, t *T) error {
+				id, err := t.eth.NetworkID(ctx)
+				if err != nil {
+					return err
+				}
+				if id.Cmp(t.chain.genesis.Config.ChainID) != 0 {
+					return fmt.Errorf("wrong networkID %v returned", id)
+				}
+				return nil
+			},
+		},
+	},
+}
+
 var EthSimulateV1 = MethodTests{
 	"eth_simulateV1",
 	[]Test{
 		{
 			Name:  "ethSimulate-blobs",
 			About: "simulates a simple blob transaction",
+
 			Run: func(ctx context.Context, t *T) error {
 				var (
 					emptyBlob          = kzg4844.Blob{}
