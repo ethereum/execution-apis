@@ -78,8 +78,7 @@ This method follows the same specification as [`engine_newPayloadV4`](./prague.m
 2. Client software **MUST** return `-32602: Invalid params` error if the `blockAccessList` field is missing.
 
 3. Client software **MUST** validate the `blockAccessList` field by executing the payload's transactions and verifying that the computed access list matches the provided one.
-
-4. If the `blockAccessList` field is malformed or doesn't match the computed access list, the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
+If this validation fails, the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
 
 ### engine_getPayloadV6
 
