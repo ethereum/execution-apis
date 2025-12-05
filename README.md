@@ -139,7 +139,7 @@ Execution-apis follows [semantic versioning][semver].
 Examples of changes by version type:
 
 **Major:**
-- Adding new RPC methods
+- Adding tests for a new RPC method
 - Changing the parameters or return type of an existing method in an incompatible way
 - Renaming fields in responses
 - Changing error codes or error response structures
@@ -147,16 +147,16 @@ Examples of changes by version type:
 - Adding new fields to response objects
 
 **Minor:**
-- Removing an existing RPC method
+- Removing tests for an existing RPC method
 - Adding optional parameters to existing methods
 - Adding new error codes for previously uncovered edge cases
 - Introducing new capabilities while maintaining backward compatibility
+- Fixing test cases that don't match the spec
 
 **Patch:**
 - Fixing typos or improving clarity in documentation
 - Correcting examples in the specification
-- Fixing test cases that don't match the spec
-- Improving validation rules without changing the API surface
+- Improving validation rules without changing the API
 - Updating internal tooling or build processes
 
 
