@@ -76,7 +76,7 @@
   result:
     name: Network ID
     schema:
-      type: string
+      $ref: '#/components/schemas/uintDecimal'
   examples:
     - name: net_version example
       params: []
