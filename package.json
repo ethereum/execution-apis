@@ -16,7 +16,12 @@
     "graphql:validate": "node scripts/graphql-validate.js",
     "serve": "cd build/docs/gatsby && gatsby develop",
     "test": "speccheck -v",
-    "watch": "nodemon --watch src --watch docs --watch README.md --ignore docs/reference/quickstart.md --ext yaml,md,json --exec \"npm run build && cp ./openrpc.json build/docs/gatsby/src/openrpc.json && cp README.md docs/reference/quickstart.md && npm run serve\""
+    "watch": "nodemon --watch src --watch docs --watch README.md --ignore docs/reference/quickstart.md --ext yaml,md,json --exec \"npm run build && cp ./openrpc.json build/docs/gatsby/src/openrpc.json && cp README.md docs/reference/quickstart.md && npm run serve\"",
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build:docusaurus": "docusaurus build",
+    "serve:docusaurus": "docusaurus serve",
+    "clear": "docusaurus clear"
   },
   "repository": {
     "type": "git",
@@ -27,19 +32,25 @@
   "bugs": {
     "url": "https://github.com/ethereum/execution-apis/issues"
   },
-  "type": "module",
   "homepage": "https://github.com/ethereum/execution-apis#readme",
   "dependencies": {
-    "@mdx-js/react": "~3.0.0",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
     "@graphql-inspector/core": "~3.3.0",
+    "@mdx-js/react": "^3.0.0",
+    "@open-rpc/docusaurus-plugin": "file:open-rpc-docusaurus-plugin-0.0.0-development.tgz",
     "@open-rpc/generator": "^2.1.0",
+    "@open-rpc/markdown-generator": "file:open-rpc-markdown-generator-0.0.0-development.tgz",
     "@open-rpc/schema-utils-js": "^2.1.2",
-    "gatsby": "^5.14.3",
+    "clsx": "^2.1.1",
     "graphql": "~16.3.0",
     "graphql-request": "~4.1.0",
     "js-yaml": "~4.1.0",
     "json-schema-merge-allof": "~0.8.1",
     "nodemon": "^3.0.0",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "remark-gfm": "~4.0.1",
     "typescript": "~5.6.2"
   }
