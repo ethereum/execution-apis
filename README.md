@@ -22,6 +22,7 @@ specification and the JSON schema [specification][json-schema] to get started.
 ### Updating the specs
 
 #### Compiling
+
 The specification is split into multiple files to improve readability. The
 spec can be compiled into a single document as follows:
 
@@ -37,16 +38,28 @@ will have all schema `#ref`s resolved.
 #### Building the docs
 
 Once you've updated something in the spec, you can use the docs generation tools
-to view the updated specs locally.  
+to view the updated specs locally.
 
 ```console
 $ npm run build:docs
 $ npm run watch
+$ npm run start
 ```
 
-The `watch` command starts a local webserver serving the docs in-browser at 
-`http://0.0.0.0:8000` and it rebuilds when you update something in the specs.  
-Please reload the page to see your changes.
+The `watch` command starts watching the local repository and rebuilds the spec
+and copies the `README.md` into the build. Running npm start starts a local
+development docusaurus server at `http://localhost:3000` and it rebuilds when you update something in the specs.  
+Sometimes you must reload the page to see your changes.
+
+There is also search to see the search index built you must `npm run build:docs` this builds
+a production ready version of the app, which will include a local search index. To access
+the production build call `npm run serve`
+
+For more information on the `@open-rpc/docusaurus-plugin` see the [docs](https://github.com/open-rpc/markdown-gen/blob/main/packages/docusaurus-plugin/README.md) for additional configuration options.
+
+#### Commits
+
+When the documentation build updates. The documentation updates should be committed as well.
 
 ### Testing
 
@@ -54,6 +67,7 @@ There are several mechanisms for testing specification contributions and client
 conformance.
 
 #### Linting
+
 First is the [OpenRPC validator][validator]. It performs some basic syntactic
 checks on the generated specification.
 
@@ -64,12 +78,13 @@ OpenRPC spec validated successfully.
 ```
 
 #### Spec tests
+
 Next is `speccheck`. This tool validates the test cases in the `tests`
-directory against the specification.  There are two npm scripts to simplify this.
+directory against the specification. There are two npm scripts to simplify this.
 
 ```console
 $ npm run build:test
-$ npm run test 
+$ npm run test
 all passing.
 ```
 
@@ -81,7 +96,7 @@ $ speccheck -v
 ```
 
 If you get an error that says: `speccheck: command not found`,
- make sure that the go binary is in your $PATH:
+make sure that the go binary is in your $PATH:
 
 ```console
 $ export PATH=$HOME/go/bin:$PATH
@@ -102,6 +117,7 @@ pyspelling is a wrapper around either [Aspell](http://aspell.net/) or
 one of those before running `pyspelling`.
 
 #### Hive tests
+
 Finally, the test cases in the `tests/` directory may be run against individual
 execution client using the [`hive`][hive] simulator [`rpc-compat`][rpc-compat].
 Please see the documentation in the aforementioned repositories for more
@@ -133,14 +149,14 @@ $ npm run graphql:validate
 
 This repository is licensed under [CC0](LICENSE).
 
-
 [playground]: https://ethereum.github.io/execution-apis/api-documentation/
 [openrpc]: https://open-rpc.org
 [validator]: https://open-rpc.github.io/schema-utils-js/functions/validateOpenRPCDocument.html
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
-[contributors-guide]: docs/reference/contributors-guide.md
+[contributors-guide]: docs-api/docs/contributors-guide.md
 [json-schema]: https://json-schema.org
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
-[test-gen]: docs/reference/tests.md
+[test-gen]: docs-api/docs/tests.md
+[LICENSE]: https://github.com/ethereum/execution-apis/blob/main/LICENSE
