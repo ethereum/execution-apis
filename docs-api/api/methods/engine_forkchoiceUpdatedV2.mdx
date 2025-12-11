@@ -5,28 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, RequestExample, ResponseExample, TryNow} from '@open-rpc/docusaurus-plugin/components'
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import { useState } from 'react';
 
-<TwoColumnLayout
-  sidebar={<>
-              <RequestExample 
-                title="Named Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_forkchoiceUpdatedV2\",\n  \"params\": {\n    \"Forkchoice state\": {\n      \"headBlockHash\": \"string\",\n      \"safeBlockHash\": \"string\",\n      \"finalizedBlockHash\": \"string\"\n    },\n    \"Payload attributes\": {\n      \"timestamp\": \"string\",\n      \"prevRandao\": \"string\",\n      \"suggestedFeeRecipient\": \"string\",\n      \"withdrawals\": [\n        {\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\",\n          \"address\": \"string\",\n          \"amount\": \"string\"\n        }\n      ]\n    }\n  },\n  \"id\": 1\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"payloadStatus\": {\n      \"status\": \"string\",\n      \"latestValidHash\": \"string\",\n      \"validationError\": \"string\"\n    },\n    \"payloadId\": \"string\"\n  },\n  \"id\": 1\n}"} 
-              />
-              <RequestExample 
-                title="Positional Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_forkchoiceUpdatedV2\",\n  \"params\": [\n    {\n      \"headBlockHash\": \"string\",\n      \"safeBlockHash\": \"string\",\n      \"finalizedBlockHash\": \"string\"\n    },\n    {\n      \"timestamp\": \"string\",\n      \"prevRandao\": \"string\",\n      \"suggestedFeeRecipient\": \"string\",\n      \"withdrawals\": [\n        {\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\",\n          \"address\": \"string\",\n          \"amount\": \"string\"\n        }\n      ]\n    }\n  ],\n  \"id\": 2\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"payloadStatus\": {\n      \"status\": \"string\",\n      \"latestValidHash\": \"string\",\n      \"validationError\": \"string\"\n    },\n    \"payloadId\": \"string\"\n  },\n  \"id\": 2\n}"} 
-              />
-            </>}
->
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_forkchoiceUpdatedV2\",\n  \"params\": {\n    \"Forkchoice state\": {\n      \"headBlockHash\": \"string\",\n      \"safeBlockHash\": \"string\",\n      \"finalizedBlockHash\": \"string\"\n    },\n    \"Payload attributes\": {\n      \"timestamp\": \"string\",\n      \"prevRandao\": \"string\",\n      \"suggestedFeeRecipient\": \"string\",\n      \"withdrawals\": [\n        {\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\",\n          \"address\": \"string\",\n          \"amount\": \"string\"\n        }\n      ]\n    }\n  },\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_forkchoiceUpdatedV2
 

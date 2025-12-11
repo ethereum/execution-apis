@@ -5,20 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, RequestExample, ResponseExample, TryNow} from '@open-rpc/docusaurus-plugin/components'
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import { useState } from 'react';
 
-<TwoColumnLayout
-  sidebar={<>
-              <RequestExample 
-                title="Named Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"debug_getBadBlocks\",\n  \"params\": {},\n  \"id\": 1\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": [\n    {\n      \"block\": {\n        \"hash\": \"string\",\n        \"parentHash\": \"string\",\n        \"sha3Uncles\": \"string\",\n        \"miner\": \"string\",\n        \"stateRoot\": \"string\",\n        \"transactionsRoot\": \"string\",\n        \"receiptsRoot\": \"string\",\n        \"logsBloom\": \"string\",\n        \"difficulty\": \"string\",\n        \"number\": \"string\",\n        \"gasLimit\": \"string\",\n        \"gasUsed\": \"string\",\n        \"timestamp\": \"string\",\n        \"extraData\": \"string\",\n        \"mixHash\": \"string\",\n        \"nonce\": \"string\",\n        \"baseFeePerGas\": \"string\",\n        \"withdrawalsRoot\": \"string\",\n        \"blobGasUsed\": \"string\",\n        \"excessBlobGas\": \"string\",\n        \"parentBeaconBlockRoot\": \"string\",\n        \"size\": \"string\",\n        \"transactions\": \"example\",\n        \"withdrawals\": [\n          {\n            \"index\": \"string\",\n            \"validatorIndex\": \"string\",\n            \"address\": \"string\",\n            \"amount\": \"string\"\n          }\n        ],\n        \"uncles\": [\n          \"string\"\n        ],\n        \"requestsHash\": \"string\"\n      },\n      \"hash\": \"string\",\n      \"rlp\": \"string\"\n    }\n  ],\n  \"id\": 1\n}"} 
-              />
-            </>}
->
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"debug_getBadBlocks\",\n  \"params\": [],\n  \"id\": 1\n}"} />}>
   <div>
     # debug\_getBadBlocks
 

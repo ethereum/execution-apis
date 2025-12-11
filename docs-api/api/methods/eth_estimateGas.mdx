@@ -5,28 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, RequestExample, ResponseExample, TryNow} from '@open-rpc/docusaurus-plugin/components'
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import { useState } from 'react';
 
-<TwoColumnLayout
-  sidebar={<>
-              <RequestExample 
-                title="Named Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_estimateGas\",\n  \"params\": {\n    \"Transaction\": {\n      \"type\": \"string\",\n      \"nonce\": \"string\",\n      \"to\": \"example\",\n      \"from\": \"string\",\n      \"gas\": \"string\",\n      \"value\": \"string\",\n      \"input\": \"string\",\n      \"gasPrice\": \"string\",\n      \"maxPriorityFeePerGas\": \"string\",\n      \"maxFeePerGas\": \"string\",\n      \"maxFeePerBlobGas\": \"string\",\n      \"accessList\": [\n        {\n          \"address\": \"string\",\n          \"storageKeys\": [\n            \"string\"\n          ]\n        }\n      ],\n      \"blobVersionedHashes\": [\n        \"string\"\n      ],\n      \"blobs\": [\n        \"string\"\n      ],\n      \"chainId\": \"string\",\n      \"authorizationList\": [\n        {\n          \"chainId\": \"string\",\n          \"nonce\": \"string\",\n          \"address\": \"string\",\n          \"yParity\": \"string\",\n          \"r\": \"string\",\n          \"s\": \"string\"\n        }\n      ]\n    },\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": \"string\",\n  \"id\": 1\n}"} 
-              />
-              <RequestExample 
-                title="Positional Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_estimateGas\",\n  \"params\": [\n    {\n      \"type\": \"string\",\n      \"nonce\": \"string\",\n      \"to\": \"example\",\n      \"from\": \"string\",\n      \"gas\": \"string\",\n      \"value\": \"string\",\n      \"input\": \"string\",\n      \"gasPrice\": \"string\",\n      \"maxPriorityFeePerGas\": \"string\",\n      \"maxFeePerGas\": \"string\",\n      \"maxFeePerBlobGas\": \"string\",\n      \"accessList\": [\n        {\n          \"address\": \"string\",\n          \"storageKeys\": [\n            \"string\"\n          ]\n        }\n      ],\n      \"blobVersionedHashes\": [\n        \"string\"\n      ],\n      \"blobs\": [\n        \"string\"\n      ],\n      \"chainId\": \"string\",\n      \"authorizationList\": [\n        {\n          \"chainId\": \"string\",\n          \"nonce\": \"string\",\n          \"address\": \"string\",\n          \"yParity\": \"string\",\n          \"r\": \"string\",\n          \"s\": \"string\"\n        }\n      ]\n    },\n    \"example\"\n  ],\n  \"id\": 2\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": \"string\",\n  \"id\": 2\n}"} 
-              />
-            </>}
->
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_estimateGas\",\n  \"params\": {\n    \"Transaction\": {\n      \"type\": \"string\",\n      \"nonce\": \"string\",\n      \"to\": \"example\",\n      \"from\": \"string\",\n      \"gas\": \"string\",\n      \"value\": \"string\",\n      \"input\": \"string\",\n      \"gasPrice\": \"string\",\n      \"maxPriorityFeePerGas\": \"string\",\n      \"maxFeePerGas\": \"string\",\n      \"maxFeePerBlobGas\": \"string\",\n      \"accessList\": [\n        {\n          \"address\": \"string\",\n          \"storageKeys\": [\n            \"string\"\n          ]\n        }\n      ],\n      \"blobVersionedHashes\": [\n        \"string\"\n      ],\n      \"blobs\": [\n        \"string\"\n      ],\n      \"chainId\": \"string\",\n      \"authorizationList\": [\n        {\n          \"chainId\": \"string\",\n          \"nonce\": \"string\",\n          \"address\": \"string\",\n          \"yParity\": \"string\",\n          \"r\": \"string\",\n          \"s\": \"string\"\n        }\n      ]\n    },\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_estimateGas
 

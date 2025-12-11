@@ -5,28 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, RequestExample, ResponseExample, TryNow} from '@open-rpc/docusaurus-plugin/components'
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import { useState } from 'react';
 
-<TwoColumnLayout
-  sidebar={<>
-              <RequestExample 
-                title="Named Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getBlobsV2\",\n  \"params\": {\n    \"Blob versioned hashes\": [\n      \"string\"\n    ]\n  },\n  \"id\": 1\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": [\n    {\n      \"blob\": \"string\",\n      \"proofs\": [\n        \"string\"\n      ]\n    }\n  ],\n  \"id\": 1\n}"} 
-              />
-              <RequestExample 
-                title="Positional Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getBlobsV2\",\n  \"params\": [\n    [\n      \"string\"\n    ]\n  ],\n  \"id\": 2\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": [\n    {\n      \"blob\": \"string\",\n      \"proofs\": [\n        \"string\"\n      ]\n    }\n  ],\n  \"id\": 2\n}"} 
-              />
-            </>}
->
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getBlobsV2\",\n  \"params\": {\n    \"Blob versioned hashes\": [\n      \"string\"\n    ]\n  },\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_getBlobsV2
 

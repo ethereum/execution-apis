@@ -5,28 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, RequestExample, ResponseExample, TryNow} from '@open-rpc/docusaurus-plugin/components'
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import { useState } from 'react';
 
-<TwoColumnLayout
-  sidebar={<>
-              <RequestExample 
-                title="Named Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getPayloadV3\",\n  \"params\": {\n    \"Payload id\": \"string\"\n  },\n  \"id\": 1\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"executionPayload\": {\n      \"parentHash\": \"string\",\n      \"feeRecipient\": \"string\",\n      \"stateRoot\": \"string\",\n      \"receiptsRoot\": \"string\",\n      \"logsBloom\": \"string\",\n      \"prevRandao\": \"string\",\n      \"blockNumber\": \"string\",\n      \"gasLimit\": \"string\",\n      \"gasUsed\": \"string\",\n      \"timestamp\": \"string\",\n      \"extraData\": \"string\",\n      \"baseFeePerGas\": \"string\",\n      \"blockHash\": \"string\",\n      \"transactions\": [\n        \"string\"\n      ],\n      \"withdrawals\": [\n        {\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\",\n          \"address\": \"string\",\n          \"amount\": \"string\"\n        }\n      ],\n      \"blobGasUsed\": \"string\",\n      \"excessBlobGas\": \"string\"\n    },\n    \"blockValue\": \"string\",\n    \"blobsBundle\": {\n      \"commitments\": [\n        \"string\"\n      ],\n      \"proofs\": [\n        \"string\"\n      ],\n      \"blobs\": [\n        \"string\"\n      ]\n    },\n    \"shouldOverrideBuilder\": true\n  },\n  \"id\": 1\n}"} 
-              />
-              <RequestExample 
-                title="Positional Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getPayloadV3\",\n  \"params\": [\n    \"string\"\n  ],\n  \"id\": 2\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"executionPayload\": {\n      \"parentHash\": \"string\",\n      \"feeRecipient\": \"string\",\n      \"stateRoot\": \"string\",\n      \"receiptsRoot\": \"string\",\n      \"logsBloom\": \"string\",\n      \"prevRandao\": \"string\",\n      \"blockNumber\": \"string\",\n      \"gasLimit\": \"string\",\n      \"gasUsed\": \"string\",\n      \"timestamp\": \"string\",\n      \"extraData\": \"string\",\n      \"baseFeePerGas\": \"string\",\n      \"blockHash\": \"string\",\n      \"transactions\": [\n        \"string\"\n      ],\n      \"withdrawals\": [\n        {\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\",\n          \"address\": \"string\",\n          \"amount\": \"string\"\n        }\n      ],\n      \"blobGasUsed\": \"string\",\n      \"excessBlobGas\": \"string\"\n    },\n    \"blockValue\": \"string\",\n    \"blobsBundle\": {\n      \"commitments\": [\n        \"string\"\n      ],\n      \"proofs\": [\n        \"string\"\n      ],\n      \"blobs\": [\n        \"string\"\n      ]\n    },\n    \"shouldOverrideBuilder\": true\n  },\n  \"id\": 2\n}"} 
-              />
-            </>}
->
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getPayloadV3\",\n  \"params\": {\n    \"Payload id\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_getPayloadV3
 

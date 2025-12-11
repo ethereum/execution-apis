@@ -5,28 +5,10 @@ hide_table_of_contents: true
 description: "Returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range."
 ---
 
-import {TwoColumnLayout, RequestExample, ResponseExample, TryNow} from '@open-rpc/docusaurus-plugin/components'
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import { useState } from 'react';
 
-<TwoColumnLayout
-  sidebar={<>
-              <RequestExample 
-                title="Named Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_feeHistory\",\n  \"params\": {\n    \"blockCount\": \"string\",\n    \"newestBlock\": \"example\",\n    \"rewardPercentiles\": [\n      1\n    ]\n  },\n  \"id\": 1\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"oldestBlock\": \"string\",\n    \"baseFeePerGas\": [\n      \"string\"\n    ],\n    \"baseFeePerBlobGas\": [\n      \"string\"\n    ],\n    \"gasUsedRatio\": [\n      1\n    ],\n    \"blobGasUsedRatio\": [\n      1\n    ],\n    \"reward\": [\n      [\n        \"string\"\n      ]\n    ]\n  },\n  \"id\": 1\n}"} 
-              />
-              <RequestExample 
-                title="Positional Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_feeHistory\",\n  \"params\": [\n    \"string\",\n    \"example\",\n    [\n      1\n    ]\n  ],\n  \"id\": 2\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"oldestBlock\": \"string\",\n    \"baseFeePerGas\": [\n      \"string\"\n    ],\n    \"baseFeePerBlobGas\": [\n      \"string\"\n    ],\n    \"gasUsedRatio\": [\n      1\n    ],\n    \"blobGasUsedRatio\": [\n      1\n    ],\n    \"reward\": [\n      [\n        \"string\"\n      ]\n    ]\n  },\n  \"id\": 2\n}"} 
-              />
-            </>}
->
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_feeHistory\",\n  \"params\": {\n    \"blockCount\": \"string\",\n    \"newestBlock\": \"example\",\n    \"rewardPercentiles\": [\n      1\n    ]\n  },\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_feeHistory
 

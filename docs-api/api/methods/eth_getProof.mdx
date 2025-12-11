@@ -5,28 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, RequestExample, ResponseExample, TryNow} from '@open-rpc/docusaurus-plugin/components'
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import { useState } from 'react';
 
-<TwoColumnLayout
-  sidebar={<>
-              <RequestExample 
-                title="Named Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getProof\",\n  \"params\": {\n    \"Address\": \"string\",\n    \"StorageKeys\": [\n      \"string\"\n    ],\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"address\": \"string\",\n    \"accountProof\": [\n      \"string\"\n    ],\n    \"balance\": \"string\",\n    \"codeHash\": \"string\",\n    \"nonce\": \"string\",\n    \"storageHash\": \"string\",\n    \"storageProof\": [\n      {\n        \"key\": \"string\",\n        \"value\": \"string\",\n        \"proof\": [\n          \"string\"\n        ]\n      }\n    ]\n  },\n  \"id\": 1\n}"} 
-              />
-              <RequestExample 
-                title="Positional Parameters" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getProof\",\n  \"params\": [\n    \"string\",\n    [\n      \"string\"\n    ],\n    \"example\"\n  ],\n  \"id\": 2\n}"} 
-              />
-              <ResponseExample 
-                title="Successful Response" 
-                code={"{\n  \"jsonrpc\": \"2.0\",\n  \"result\": {\n    \"address\": \"string\",\n    \"accountProof\": [\n      \"string\"\n    ],\n    \"balance\": \"string\",\n    \"codeHash\": \"string\",\n    \"nonce\": \"string\",\n    \"storageHash\": \"string\",\n    \"storageProof\": [\n      {\n        \"key\": \"string\",\n        \"value\": \"string\",\n        \"proof\": [\n          \"string\"\n        ]\n      }\n    ]\n  },\n  \"id\": 2\n}"} 
-              />
-            </>}
->
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getProof\",\n  \"params\": {\n    \"Address\": \"string\",\n    \"StorageKeys\": [\n      \"string\"\n    ],\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_getProof
 
