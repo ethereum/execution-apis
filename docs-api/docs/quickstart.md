@@ -22,6 +22,7 @@ specification and the JSON schema [specification][json-schema] to get started.
 ### Updating the specs
 
 #### Compiling
+
 The specification is split into multiple files to improve readability. The
 spec can be compiled into a single document as follows:
 
@@ -37,14 +38,14 @@ will have all schema `#ref`s resolved.
 #### Building the docs
 
 Once you've updated something in the spec, you can use the docs generation tools
-to view the updated specs locally.  
+to view the updated specs locally.
 
 ```console
 $ npm run build:docs
 $ npm run watch
 ```
 
-The `watch` command starts a local webserver serving the docs in-browser at 
+The `watch` command starts a local webserver serving the docs in-browser at
 `http://0.0.0.0:8000` and it rebuilds when you update something in the specs.  
 Please reload the page to see your changes.
 
@@ -54,6 +55,7 @@ There are several mechanisms for testing specification contributions and client
 conformance.
 
 #### Linting
+
 First is the [OpenRPC validator][validator]. It performs some basic syntactic
 checks on the generated specification.
 
@@ -64,12 +66,13 @@ OpenRPC spec validated successfully.
 ```
 
 #### Spec tests
+
 Next is `speccheck`. This tool validates the test cases in the `tests`
-directory against the specification.  There are two npm scripts to simplify this.
+directory against the specification. There are two npm scripts to simplify this.
 
 ```console
 $ npm run build:test
-$ npm run test 
+$ npm run test
 all passing.
 ```
 
@@ -81,7 +84,7 @@ $ speccheck -v
 ```
 
 If you get an error that says: `speccheck: command not found`,
- make sure that the go binary is in your $PATH:
+make sure that the go binary is in your $PATH:
 
 ```console
 $ export PATH=$HOME/go/bin:$PATH
@@ -102,6 +105,7 @@ pyspelling is a wrapper around either [Aspell](http://aspell.net/) or
 one of those before running `pyspelling`.
 
 #### Hive tests
+
 Finally, the test cases in the `tests/` directory may be run against individual
 execution client using the [`hive`][hive] simulator [`rpc-compat`][rpc-compat].
 Please see the documentation in the aforementioned repositories for more
@@ -133,15 +137,14 @@ $ npm run graphql:validate
 
 This repository is licensed under [CC0][license].
 
-
 [playground]: https://ethereum.github.io/execution-apis/api-documentation/
 [openrpc]: https://open-rpc.org
 [validator]: https://open-rpc.github.io/schema-utils-js/functions/validateOpenRPCDocument.html
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
-[contributors-guide]: ../contributors-guide
+[contributors-guide]: ./contributors-guide
 [json-schema]: https://json-schema.org
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
-[test-gen]: ../tests
+[test-gen]: ./tests
 [license]: https://github.com/ethereum/execution-apis/blob/main/LICENSE
