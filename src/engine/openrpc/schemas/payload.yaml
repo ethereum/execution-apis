@@ -264,7 +264,6 @@ ExecutionPayloadV4:
     - withdrawals
     - blobGasUsed
     - excessBlobGas
-    - blockAccessList
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV3/properties/parentHash'
@@ -300,9 +299,6 @@ ExecutionPayloadV4:
       $ref: '#/components/schemas/ExecutionPayloadV3/properties/blobGasUsed'
     excessBlobGas:
       $ref: '#/components/schemas/ExecutionPayloadV3/properties/excessBlobGas'
-    blockAccessList:
-      title: Block access list
-      $ref: '#/components/schemas/bytes'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object
