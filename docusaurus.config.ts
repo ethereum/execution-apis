@@ -9,7 +9,8 @@ const config: Config = {
 
   /*future: { v4: true },*/
 
-  url: 'https://ethereum.github.io',
+  /* TODO replace url: 'https://ethereum.github.io', */
+  url: 'https://zcstarr.github.io',
   baseUrl: '/execution-apis/',
 
   organizationName: 'ethereum',
