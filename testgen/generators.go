@@ -6130,7 +6130,7 @@ type OverrideAccount struct {
 	Balance                 **hexutil.Big                `json:"balance,omitempty"`
 	State                   *map[common.Hash]common.Hash `json:"state,omitempty"`
 	StateDiff               *map[common.Hash]common.Hash `json:"stateDiff,omitempty"`
-	MovePrecompileToAddress *common.Address              `json:"MovePrecompileToAddress,omitempty"`
+	MovePrecompileToAddress *common.Address              `json:"movePrecompileToAddress,omitempty"`
 }
 
 // StateOverride is the collection of overridden accounts.
