@@ -9,8 +9,6 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Structures](#structures)
-  - [ExecutionPayloadV4](#executionpayloadv4)
 - [Methods](#methods)
   - [engine_newPayloadV5](#engine_newpayloadv5)
     - [Request](#request)
@@ -25,41 +23,17 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Structures
-
-### ExecutionPayloadV4
-
-This structure has the same syntax as [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) (no additional fields).
-
-- `parentHash`: `DATA`, 32 Bytes
-- `feeRecipient`:  `DATA`, 20 Bytes
-- `stateRoot`: `DATA`, 32 Bytes
-- `receiptsRoot`: `DATA`, 32 Bytes
-- `logsBloom`: `DATA`, 256 Bytes
-- `prevRandao`: `DATA`, 32 Bytes
-- `blockNumber`: `QUANTITY`, 64 Bits
-- `gasLimit`: `QUANTITY`, 64 Bits
-- `gasUsed`: `QUANTITY`, 64 Bits
-- `timestamp`: `QUANTITY`, 64 Bits
-- `extraData`: `DATA`, 0 to 32 Bytes
-- `baseFeePerGas`: `QUANTITY`, 256 Bits
-- `blockHash`: `DATA`, 32 Bytes
-- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `blobGasUsed`: `QUANTITY`, 64 Bits
-- `excessBlobGas`: `QUANTITY`, 64 Bits
-
 ## Methods
 
 ### engine_newPayloadV5
 
-This method supports the `ExecutionPayloadV4` structure and block access list validation.
+This method supports the `ExecutionPayloadV3` structure and block access list validation.
 
 #### Request
 
 * method: `engine_newPayloadV5`
 * params:
-  1. `executionPayload`: [`ExecutionPayloadV4`](#executionpayloadv4).
+  1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests.
@@ -82,7 +56,7 @@ If this validation fails, the call **MUST** return `{status: INVALID, latestVali
 
 ### engine_getPayloadV6
 
-This method returns the `ExecutionPayloadV4` structure and block access list.
+This method returns the `ExecutionPayloadV3` structure and block access list.
 
 #### Request
 
@@ -94,7 +68,7 @@ This method returns the `ExecutionPayloadV4` structure and block access list.
 #### Response
 
 * result: `object`
-  - `executionPayload`: [`ExecutionPayloadV4`](#executionpayloadv4)
+  - `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
   - `blobsBundle`: [`BlobsBundleV2`](./osaka.md#blobsbundlev2) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one

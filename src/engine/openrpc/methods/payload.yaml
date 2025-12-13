@@ -895,7 +895,7 @@
     - name: Execution payload
       required: true
       schema:
-        $ref: '#/components/schemas/ExecutionPayloadV4'
+        $ref: '#/components/schemas/ExecutionPayloadV3'
     - name: Expected blob versioned hashes
       required: true
       schema:
@@ -998,7 +998,7 @@
         - blockAccessList
       properties:
         executionPayload:
-          $ref: '#/components/schemas/ExecutionPayloadV4'
+          $ref: '#/components/schemas/ExecutionPayloadV3'
         blockValue:
           $ref: '#/components/schemas/uint256'
         blobsBundle:
