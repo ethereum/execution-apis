@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_signTransaction\",\n  \"params\": {\n    \"Transaction\": {\n      \"type\": \"string\",\n      \"nonce\": \"string\",\n      \"to\": \"example\",\n      \"from\": \"string\",\n      \"gas\": \"string\",\n      \"value\": \"string\",\n      \"input\": \"string\",\n      \"gasPrice\": \"string\",\n      \"maxPriorityFeePerGas\": \"string\",\n      \"maxFeePerGas\": \"string\",\n      \"maxFeePerBlobGas\": \"string\",\n      \"accessList\": [\n        {\n          \"address\": \"string\",\n          \"storageKeys\": [\n            \"string\"\n          ]\n        }\n      ],\n      \"blobVersionedHashes\": [\n        \"string\"\n      ],\n      \"blobs\": [\n        \"string\"\n      ],\n      \"chainId\": \"string\",\n      \"authorizationList\": [\n        {\n          \"chainId\": \"string\",\n          \"nonce\": \"string\",\n          \"address\": \"string\",\n          \"yParity\": \"string\",\n          \"r\": \"string\",\n          \"s\": \"string\"\n        }\n      ]\n    }\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_signTransaction\",\n  \"params\": [\n    {\n      \"data\": \"0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675\",\n      \"from\": \"0xb60e8dd61c5d32be8058bb8eb970870f07233155\",\n      \"gas\": \"0x76c0\",\n      \"gasPrice\": \"0x9184e72a000\",\n      \"to\": \"0xd46e8dd67c5d32be8058bb8eb970870f07244567\",\n      \"value\": \"0x9184e72a\"\n    }\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_signTransaction
 
@@ -180,6 +180,10 @@ import { useState } from 'react';
                   *Match pattern:* `^0x[0-9a-f]{64}$`
 
                   ***
+
+                * **additionalProperties** `false`
+
+                  ***
               </details>
             </div>
 
@@ -270,8 +274,16 @@ import { useState } from 'react';
                   *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                   ***
+
+                * **additionalProperties** `true`
+
+                  ***
               </details>
             </div>
+
+          * **additionalProperties** `false`
+
+            ***
         </details>
       </div>
     </div>

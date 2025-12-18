@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getBlockTransactionCountByHash\",\n  \"params\": {\n    \"Block hash\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getBlockTransactionCountByHash\",\n  \"params\": [\n    \"0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_getBlockTransactionCountByHash
 

@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getProof\",\n  \"params\": {\n    \"Address\": \"string\",\n    \"StorageKeys\": [\n      \"string\"\n    ],\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getProof\",\n  \"params\": [\n    \"0xe5cB067E90D5Cd1F8052B83562Ae670bA4A211a8\",\n    [\n      \"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\"\n    ],\n    \"latest\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_getProof
 
@@ -190,8 +190,16 @@ import { useState } from 'react';
                   *Match pattern:* `^0x[0-9a-f]*$`
 
                   ***
+
+                * **additionalProperties** `false`
+
+                  ***
               </details>
             </div>
+
+          * **additionalProperties** `false`
+
+            ***
         </details>
       </div>
     </div>

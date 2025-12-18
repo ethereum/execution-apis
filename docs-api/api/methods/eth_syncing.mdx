@@ -5,7 +5,7 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
 <TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_syncing\",\n  \"params\": [],\n  \"id\": 1\n}"} />}>
@@ -72,6 +72,10 @@ import { useState } from 'react';
                 Highest block
 
                 *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                ***
+
+              * **additionalProperties** `false`
 
                 ***
             </details>

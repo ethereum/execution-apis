@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getPayloadBodiesByRangeV1\",\n  \"params\": {\n    \"Starting block number\": \"string\",\n    \"Number of blocks to return\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getPayloadBodiesByRangeV1\",\n  \"params\": [\n    \"0x20\",\n    \"0x2\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_getPayloadBodiesByRangeV1
 
@@ -54,6 +54,10 @@ import { useState } from 'react';
             ***
 
           * <div />
+
+          * **additionalProperties** `true`
+
+            ***
         </details>
       </div>
     </div>
