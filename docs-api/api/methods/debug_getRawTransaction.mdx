@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"debug_getRawTransaction\",\n  \"params\": {\n    \"Transaction hash\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"debug_getRawTransaction\",\n  \"params\": [\n    \"0x3a2fd1a5ea9ffee477f449be53a49398533d2c006a5815023920d1c397298df3\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # debug\_getRawTransaction
 

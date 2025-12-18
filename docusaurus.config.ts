@@ -22,7 +22,7 @@ const config: Config = {
   i18n: { defaultLocale: 'en', locales: ['en'] },
 
   plugins: [
-    ['open-rpc-docusaurus-plugin-beta', {
+    ['@open-rpc/docusaurus-plugin', {
       openRPCSpecPath: './execution-apis.json',
       docOutputPath: './docs-api/api',
     }],

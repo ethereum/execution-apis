@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_estimateGas\",\n  \"params\": {\n    \"Transaction\": {\n      \"type\": \"string\",\n      \"nonce\": \"string\",\n      \"to\": \"example\",\n      \"from\": \"string\",\n      \"gas\": \"string\",\n      \"value\": \"string\",\n      \"input\": \"string\",\n      \"gasPrice\": \"string\",\n      \"maxPriorityFeePerGas\": \"string\",\n      \"maxFeePerGas\": \"string\",\n      \"maxFeePerBlobGas\": \"string\",\n      \"accessList\": [\n        {\n          \"address\": \"string\",\n          \"storageKeys\": [\n            \"string\"\n          ]\n        }\n      ],\n      \"blobVersionedHashes\": [\n        \"string\"\n      ],\n      \"blobs\": [\n        \"string\"\n      ],\n      \"chainId\": \"string\",\n      \"authorizationList\": [\n        {\n          \"chainId\": \"string\",\n          \"nonce\": \"string\",\n          \"address\": \"string\",\n          \"yParity\": \"string\",\n          \"r\": \"string\",\n          \"s\": \"string\"\n        }\n      ]\n    },\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_estimateGas\",\n  \"params\": [\n    {\n      \"from\": \"0xfe3b557e8fb62b89f4916b721be55ceb828dbd73\",\n      \"to\": \"0x44aa93095d6749a706051658b970b941c72c1d53\",\n      \"value\": \"0x1\"\n    }\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_estimateGas
 
@@ -180,6 +180,10 @@ import { useState } from 'react';
                   *Match pattern:* `^0x[0-9a-f]{64}$`
 
                   ***
+
+                * **additionalProperties** `false`
+
+                  ***
               </details>
             </div>
 
@@ -270,8 +274,16 @@ import { useState } from 'react';
                   *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                   ***
+
+                * **additionalProperties** `true`
+
+                  ***
               </details>
             </div>
+
+          * **additionalProperties** `false`
+
+            ***
         </details>
       </div>
 

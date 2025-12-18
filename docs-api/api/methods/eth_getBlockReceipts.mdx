@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getBlockReceipts\",\n  \"params\": {\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getBlockReceipts\",\n  \"params\": [\n    \"latest\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_getBlockReceipts
 
@@ -366,6 +366,10 @@ import { useState } from 'react';
                       *Match pattern:* `^0x[0-9a-f]{64}$`
 
                       ***
+
+                    * **additionalProperties** `false`
+
+                      ***
                   </details>
                 </div>
 
@@ -406,6 +410,10 @@ import { useState } from 'react';
                 The actual value per gas deducted from the sender's account for blob gas. Only specified for blob transactions as defined by EIP-4844.
 
                 *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                ***
+
+              * **additionalProperties** `false`
 
                 ***
             </details>

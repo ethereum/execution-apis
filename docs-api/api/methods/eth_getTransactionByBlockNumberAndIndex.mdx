@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getTransactionByBlockNumberAndIndex\",\n  \"params\": {\n    \"Block\": \"example\",\n    \"Transaction index\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getTransactionByBlockNumberAndIndex\",\n  \"params\": [\n    \"0x1442e\",\n    \"0x2\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_getTransactionByBlockNumberAndIndex
 
@@ -222,6 +222,10 @@ import { useState } from 'react';
                           *Match pattern:* `^0x[0-9a-f]{64}$`
 
                           ***
+
+                        * **additionalProperties** `false`
+
+                          ***
                       </details>
                     </div>
 
@@ -296,6 +300,10 @@ import { useState } from 'react';
                           *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                           ***
+
+                        * **additionalProperties** `true`
+
+                          ***
                       </details>
                     </div>
 
@@ -328,6 +336,10 @@ import { useState } from 'react';
                     s
 
                     *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                    ***
+
+                  * **additionalProperties** `true`
 
                     ***
                 </details>
@@ -466,6 +478,10 @@ import { useState } from 'react';
                           *Match pattern:* `^0x[0-9a-f]{64}$`
 
                           ***
+
+                        * **additionalProperties** `false`
+
+                          ***
                       </details>
                     </div>
 
@@ -514,6 +530,10 @@ import { useState } from 'react';
                     s
 
                     *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                    ***
+
+                  * **additionalProperties** `true`
 
                     ***
                 </details>
@@ -672,6 +692,10 @@ import { useState } from 'react';
                           *Match pattern:* `^0x[0-9a-f]{64}$`
 
                           ***
+
+                        * **additionalProperties** `false`
+
+                          ***
                       </details>
                     </div>
 
@@ -712,6 +736,10 @@ import { useState } from 'react';
                     s
 
                     *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                    ***
+
+                  * **additionalProperties** `true`
 
                     ***
                 </details>
@@ -854,6 +882,10 @@ import { useState } from 'react';
                           *Match pattern:* `^0x[0-9a-f]{64}$`
 
                           ***
+
+                        * **additionalProperties** `false`
+
+                          ***
                       </details>
                     </div>
 
@@ -894,6 +926,10 @@ import { useState } from 'react';
                     s
 
                     *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                    ***
+
+                  * **additionalProperties** `true`
 
                     ***
                 </details>
@@ -1034,6 +1070,10 @@ import { useState } from 'react';
                     s
 
                     *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                    ***
+
+                  * **additionalProperties** `true`
 
                     ***
                 </details>

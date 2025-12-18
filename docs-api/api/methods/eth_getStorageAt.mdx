@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getStorageAt\",\n  \"params\": {\n    \"Address\": \"string\",\n    \"Storage slot\": \"string\",\n    \"Block\": \"example\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getStorageAt\",\n  \"params\": [\n    \"0xfe3b557e8fb62b89f4916b721be55ceb828dbd73\",\n    \"0x0\",\n    \"latest\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_getStorageAt
 

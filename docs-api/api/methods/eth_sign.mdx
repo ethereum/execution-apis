@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_sign\",\n  \"params\": {\n    \"Address\": \"string\",\n    \"Message\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_sign\",\n  \"params\": [\n    \"0x9b2055d370f73ec7d8a03e965129118dc8f5bf83\",\n    \"0xdeadbeaf\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_sign
 

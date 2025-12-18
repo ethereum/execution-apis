@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getPayloadBodiesByHashV1\",\n  \"params\": {\n    \"Array of block hashes\": [\n      \"string\"\n    ]\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getPayloadBodiesByHashV1\",\n  \"params\": [\n    [\n      \"0xd5f1812548be429cbdc6376b29611fc49e06f1359758c4ceaaa3b393e2239f9c\",\n      \"0xfe88c94d860f01a17f961bf4bdfb6e0c6cd10d3fda5cc861e805ca1240c58553\"\n    ]\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_getPayloadBodiesByHashV1
 
@@ -54,6 +54,10 @@ import { useState } from 'react';
             ***
 
           * <div />
+
+          * **additionalProperties** `true`
+
+            ***
         </details>
       </div>
     </div>
