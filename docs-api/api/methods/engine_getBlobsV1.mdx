@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getBlobsV1\",\n  \"params\": {\n    \"Blob versioned hashes\": [\n      \"string\"\n    ]\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_getBlobsV1\",\n  \"params\": [\n    [\n      \"0x000657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014\"\n    ]\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_getBlobsV1
 
@@ -58,6 +58,10 @@ import { useState } from 'react';
             proof
 
             *Match pattern:* `^0x[0-9a-f]{96}$`
+
+            ***
+
+          * **additionalProperties** `true`
 
             ***
         </details>

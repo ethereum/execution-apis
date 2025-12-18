@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_newPayloadV3\",\n  \"params\": {\n    \"Execution payload\": {\n      \"parentHash\": \"string\",\n      \"feeRecipient\": \"string\",\n      \"stateRoot\": \"string\",\n      \"receiptsRoot\": \"string\",\n      \"logsBloom\": \"string\",\n      \"prevRandao\": \"string\",\n      \"blockNumber\": \"string\",\n      \"gasLimit\": \"string\",\n      \"gasUsed\": \"string\",\n      \"timestamp\": \"string\",\n      \"extraData\": \"string\",\n      \"baseFeePerGas\": \"string\",\n      \"blockHash\": \"string\",\n      \"transactions\": [\n        \"string\"\n      ],\n      \"withdrawals\": [\n        {\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\",\n          \"address\": \"string\",\n          \"amount\": \"string\"\n        }\n      ],\n      \"blobGasUsed\": \"string\",\n      \"excessBlobGas\": \"string\"\n    },\n    \"Expected blob versioned hashes\": [\n      \"string\"\n    ],\n    \"Root of the parent beacon block\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_newPayloadV3\",\n  \"params\": [\n    {\n      \"parentHash\": \"0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a\",\n      \"feeRecipient\": \"0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b\",\n      \"stateRoot\": \"0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45\",\n      \"receiptsRoot\": \"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421\",\n      \"logsBloom\": \"0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\n      \"prevRandao\": \"0xc130d5e63c61c935f6089e61140ca9136172677cf6aa5800dcc1cf0a02152a14\",\n      \"blockNumber\": \"0x112720f\",\n      \"gasLimit\": \"0x1c9c380\",\n      \"gasUsed\": \"0xbad2e8\",\n      \"timestamp\": \"0x64e7785b\",\n      \"extraData\": \"0x\",\n      \"baseFeePerGas\": \"0x7\",\n      \"blockHash\": \"0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858\",\n      \"transactions\": [\n        \"0x03f88f0780843b9aca008506fc23ac00830186a09400000000000000000000000000000000000001008080c001e1a0010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c44401401a0840650aa8f74d2b07f40067dc33b715078d73422f01da17abdbd11e02bbdfda9a04b2260f6022bf53eadb337b3e59514936f7317d872defb891a708ee279bdca90\",\n        \"0x03f88f0701843b9aca008506fc23ac00830186a09400000000000000000000000000000000000001008080c001e1a001521d528ad0c760354a4f0496776cf14a92fe1fb5d50e959dcea1a489c7c83101a0a86c1fd8c2e74820686937f5c1bfe836e2fb622ac9fcbebdc4ab4357f2dbbc61a05c3b2b44ff8252f78d70aeb33f8ba09beaeadad1b376a57d34fa720bbc4a18ee\",\n        \"0x03f88f0702843b9aca008506fc23ac00830186a09400000000000000000000000000000000000001008080c001e1a001453362c360fdd8832e3539d463e6d64b2ee320ac6a08885df6083644a063e701a037a728aec08aefffa702a2ca620db89caf3e46ab7f25f7646fc951510991badca065d846f046357af39bb739b161233fce73ddfe0bb87f2d28ef60dfe6dbb0128d\"\n      ],\n      \"withdrawals\": [\n        {\n          \"index\": \"0xf0\",\n          \"validatorIndex\": \"0xf0\",\n          \"address\": \"0x00000000000000000000000000000000000010f0\",\n          \"amount\": \"0x1\"\n        },\n        {\n          \"index\": \"0xf1\",\n          \"validatorIndex\": \"0xf1\",\n          \"address\": \"0x00000000000000000000000000000000000010f1\",\n          \"amount\": \"0x1\"\n        }\n      ],\n      \"blobGasUsed\": \"0x0\",\n      \"excessBlobGas\": \"0x0\"\n    },\n    [\n      \"0x000657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014\"\n    ],\n    \"0x169630f535b4a41330164c6e5c92b1224c0c407f582d407d0ac3d206cd32fd52\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_newPayloadV3
 
@@ -190,6 +190,10 @@ import { useState } from 'react';
                   *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
 
                   ***
+
+                * **additionalProperties** `true`
+
+                  ***
               </details>
             </div>
 
@@ -206,6 +210,10 @@ import { useState } from 'react';
             Excess blob gas
 
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+            ***
+
+          * **additionalProperties** `true`
 
             ***
         </details>
@@ -260,6 +268,10 @@ import { useState } from 'react';
           * **validationError** `string`
 
             Validation error message
+
+            ***
+
+          * **additionalProperties** `true`
 
             ***
         </details>

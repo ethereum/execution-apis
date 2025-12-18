@@ -36,7 +36,7 @@
     "@mdx-js/react": "^3.0.0",
     "@open-rpc/generator": "^2.1.0",
     "@open-rpc/schema-utils-js": "^2.1.2",
-    "open-rpc-docusaurus-plugin-beta": "0.0.4",
+    "@open-rpc/docusaurus-plugin": "0.1.0",
     "clsx": "^2.1.1",
     "graphql": "~16.3.0",
     "graphql-request": "~4.1.0",

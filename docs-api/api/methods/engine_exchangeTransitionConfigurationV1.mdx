@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_exchangeTransitionConfigurationV1\",\n  \"params\": {\n    \"Consensus client configuration\": {\n      \"terminalTotalDifficulty\": \"string\",\n      \"terminalBlockHash\": \"string\",\n      \"terminalBlockNumber\": \"string\"\n    }\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_exchangeTransitionConfigurationV1\",\n  \"params\": [\n    {\n      \"terminalTotalDifficulty\": 0,\n      \"terminalBlockHash\": \"0x0000000000000000000000000000000000000000000000000000000000000000\",\n      \"terminalBlockNumber\": \"0x1\"\n    }\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # engine\_exchangeTransitionConfigurationV1
 
@@ -56,6 +56,10 @@ import { useState } from 'react';
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
 
             ***
+
+          * **additionalProperties** `true`
+
+            ***
         </details>
       </div>
     </div>
@@ -98,6 +102,10 @@ import { useState } from 'react';
             Terminal block number
 
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+            ***
+
+          * **additionalProperties** `true`
 
             ***
         </details>

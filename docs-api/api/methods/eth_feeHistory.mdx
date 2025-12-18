@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: "Returns transaction base fee per gas and effective priority fee per gas for the requested/supported block range."
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_feeHistory\",\n  \"params\": {\n    \"blockCount\": \"string\",\n    \"newestBlock\": \"example\",\n    \"rewardPercentiles\": [\n      1\n    ]\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_feeHistory\",\n  \"params\": [\n    \"0x5\",\n    \"latest\",\n    [\n      20,\n      30\n    ]\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_feeHistory
 
@@ -140,6 +140,10 @@ import { useState } from 'react';
             A two-dimensional array of effective priority fees per gas at the requested block percentiles.
 
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+            ***
+
+          * **additionalProperties** `false`
 
             ***
         </details>

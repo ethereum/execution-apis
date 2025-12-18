@@ -5,16 +5,16 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getFilterChanges\",\n  \"params\": {\n    \"Filter identifier\": \"string\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_getFilterChanges\",\n  \"params\": [\n    \"0x01\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_getFilterChanges
 
 
 
-    Polling method for the filter with the given ID (created using \`eth\_newFilter\`). Returns an array of logs, block hashes, or transaction hashes since last poll, depending on the installed filter.
+    Polling method for the filter with the given ID (created using `eth_newFilter`). Returns an array of logs, block hashes, or transaction hashes since last poll, depending on the installed filter.
 
     <div>
       ## Parameters (by position)
@@ -144,6 +144,10 @@ import { useState } from 'react';
                 32 hex encoded bytes
 
                 *Match pattern:* `^0x[0-9a-f]{64}$`
+
+                ***
+
+              * **additionalProperties** `false`
 
                 ***
             </details>

@@ -5,10 +5,10 @@ hide_table_of_contents: true
 description: ""
 ---
 
-import {TwoColumnLayout, InteractiveRequest, ResponseExample} from 'open-rpc-docusaurus-plugin-beta/components';
+import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_simulateV1\",\n  \"params\": {\n    \"Payload\": {\n      \"blockStateCalls\": [\n        {\n          \"blockOverrides\": {\n            \"number\": \"string\",\n            \"prevRandao\": \"string\",\n            \"time\": \"string\",\n            \"gasLimit\": \"string\",\n            \"feeRecipient\": \"string\",\n            \"baseFeePerGas\": \"string\",\n            \"withdrawals\": [\n              {\n                \"index\": \"string\",\n                \"validatorIndex\": \"string\",\n                \"address\": \"string\",\n                \"amount\": \"string\"\n              }\n            ],\n            \"blobBaseFee\": \"string\"\n          },\n          \"stateOverrides\": {},\n          \"calls\": [\n            {\n              \"type\": \"string\",\n              \"nonce\": \"string\",\n              \"to\": \"string\",\n              \"from\": \"string\",\n              \"gas\": \"string\",\n              \"value\": \"string\",\n              \"input\": \"string\",\n              \"gasPrice\": \"string\",\n              \"maxPriorityFeePerGas\": \"string\",\n              \"maxFeePerGas\": \"string\",\n              \"maxFeePerBlobGas\": \"string\",\n              \"accessList\": [\n                {\n                  \"address\": \"string\",\n                  \"storageKeys\": [\n                    \"string\"\n                  ]\n                }\n              ],\n              \"blobVersionedHashes\": \"string\"\n            }\n          ]\n        }\n      ],\n      \"traceTransfers\": true,\n      \"validation\": true,\n      \"returnFullTransactions\": true\n    },\n    \"Block tag\": \"example\"\n  },\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_simulateV1\",\n  \"params\": [\n    {\n      \"blockStateCalls\": [\n        {\n          \"blockOverrides\": {\n            \"number\": \"string\",\n            \"prevRandao\": \"string\",\n            \"time\": \"string\",\n            \"gasLimit\": \"string\",\n            \"feeRecipient\": \"string\",\n            \"baseFeePerGas\": \"string\",\n            \"withdrawals\": [\n              {\n                \"index\": \"string\",\n                \"validatorIndex\": \"string\",\n                \"address\": \"string\",\n                \"amount\": \"string\"\n              }\n            ],\n            \"blobBaseFee\": \"string\"\n          },\n          \"stateOverrides\": {},\n          \"calls\": [\n            {\n              \"type\": \"string\",\n              \"nonce\": \"string\",\n              \"to\": \"string\",\n              \"from\": \"string\",\n              \"gas\": \"string\",\n              \"value\": \"string\",\n              \"input\": \"string\",\n              \"gasPrice\": \"string\",\n              \"maxPriorityFeePerGas\": \"string\",\n              \"maxFeePerGas\": \"string\",\n              \"maxFeePerBlobGas\": \"string\",\n              \"accessList\": [\n                {\n                  \"address\": \"string\",\n                  \"storageKeys\": [\n                    \"string\"\n                  ]\n                }\n              ],\n              \"blobVersionedHashes\": \"string\"\n            }\n          ]\n        }\n      ],\n      \"traceTransfers\": true,\n      \"validation\": true,\n      \"returnFullTransactions\": true\n    },\n    \"string\"\n  ],\n  \"id\": 1\n}"} />}>
   <div>
     # eth\_simulateV1
 
@@ -162,6 +162,10 @@ import { useState } from 'react';
                               *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                               ***
+
+                            * **additionalProperties** `false`
+
+                              ***
                           </details>
                         </div>
 
@@ -170,6 +174,10 @@ import { useState } from 'react';
                         Base fee per unit of blob gas
 
                         *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+                        ***
+
+                      * **additionalProperties** `true`
 
                         ***
                     </details>
@@ -278,6 +286,10 @@ import { useState } from 'react';
                                         ***
                                     </details>
                                   </div>
+
+                                * **additionalProperties** `true`
+
+                                  ***
                               </details>
                             </div>
                           </details>
@@ -360,6 +372,10 @@ import { useState } from 'react';
                                         ***
                                     </details>
                                   </div>
+
+                                * **additionalProperties** `true`
+
+                                  ***
                               </details>
                             </div>
                           </details>
@@ -510,6 +526,10 @@ import { useState } from 'react';
                               *Match pattern:* `^0x[0-9a-f]{64}$`
 
                               ***
+
+                            * **additionalProperties** `false`
+
+                              ***
                           </details>
                         </div>
 
@@ -521,8 +541,16 @@ import { useState } from 'react';
                         *Match pattern:* `^0x[0-9a-f]{64}$`
 
                         ***
+
+                      * **additionalProperties** `true`
+
+                        ***
                     </details>
                   </div>
+
+                * **additionalProperties** `true`
+
+                  ***
               </details>
             </div>
 
@@ -543,6 +571,10 @@ import { useState } from 'react';
           * **returnFullTransactions** `boolean`
 
             When true, the method returns full transaction objects, otherwise, just hashes are returned.
+
+            ***
+
+          * **additionalProperties** `true`
 
             ***
         </details>
@@ -961,6 +993,10 @@ import { useState } from 'react';
                                 *Match pattern:* `^0x[0-9a-f]{64}$`
 
                                 ***
+
+                              * **additionalProperties** `false`
+
+                                ***
                             </details>
                           </div>
 
@@ -1035,6 +1071,10 @@ import { useState } from 'react';
                                 *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                                 ***
+
+                              * **additionalProperties** `true`
+
+                                ***
                             </details>
                           </div>
 
@@ -1067,6 +1107,10 @@ import { useState } from 'react';
                           s
 
                           *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                          ***
+
+                        * **additionalProperties** `true`
 
                           ***
                       </details>
@@ -1205,6 +1249,10 @@ import { useState } from 'react';
                                 *Match pattern:* `^0x[0-9a-f]{64}$`
 
                                 ***
+
+                              * **additionalProperties** `false`
+
+                                ***
                             </details>
                           </div>
 
@@ -1253,6 +1301,10 @@ import { useState } from 'react';
                           s
 
                           *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                          ***
+
+                        * **additionalProperties** `true`
 
                           ***
                       </details>
@@ -1411,6 +1463,10 @@ import { useState } from 'react';
                                 *Match pattern:* `^0x[0-9a-f]{64}$`
 
                                 ***
+
+                              * **additionalProperties** `false`
+
+                                ***
                             </details>
                           </div>
 
@@ -1451,6 +1507,10 @@ import { useState } from 'react';
                           s
 
                           *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                          ***
+
+                        * **additionalProperties** `true`
 
                           ***
                       </details>
@@ -1593,6 +1653,10 @@ import { useState } from 'react';
                                 *Match pattern:* `^0x[0-9a-f]{64}$`
 
                                 ***
+
+                              * **additionalProperties** `false`
+
+                                ***
                             </details>
                           </div>
 
@@ -1633,6 +1697,10 @@ import { useState } from 'react';
                           s
 
                           *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                          ***
+
+                        * **additionalProperties** `true`
 
                           ***
                       </details>
@@ -1775,6 +1843,10 @@ import { useState } from 'react';
                           *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
                           ***
+
+                        * **additionalProperties** `true`
+
+                          ***
                       </details>
                     </div>
                   </details>
@@ -1825,6 +1897,10 @@ import { useState } from 'react';
                   value contained in withdrawal
 
                   *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **additionalProperties** `false`
 
                   ***
               </details>
@@ -1929,6 +2005,10 @@ import { useState } from 'react';
                                 *Match pattern:* `^execution reverted.*`
 
                                 ***
+
+                              * **additionalProperties** `true`
+
+                                ***
                             </details>
                           </div>
                         </details>
@@ -1959,10 +2039,18 @@ import { useState } from 'react';
                                 *Match pattern:* `^vm execution error.*`
 
                                 ***
+
+                              * **additionalProperties** `true`
+
+                                ***
                             </details>
                           </div>
                         </details>
                       </div>
+
+                    * **additionalProperties** `true`
+
+                      ***
                   </details>
                 </div>
               </details>
@@ -2103,12 +2191,24 @@ import { useState } from 'react';
                             *Match pattern:* `^0x[0-9a-f]{64}$`
 
                             ***
+
+                          * **additionalProperties** `false`
+
+                            ***
                         </details>
                       </div>
+
+                    * **additionalProperties** `true`
+
+                      ***
                   </details>
                 </div>
               </details>
             </div>
+
+          * **additionalProperties** `true`
+
+            ***
         </details>
       </div>
     </div>
