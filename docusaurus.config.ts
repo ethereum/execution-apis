@@ -51,6 +51,15 @@ const config: Config = {
     } satisfies Preset.Options],
   ],
 
+  themes: [
+    ['@easyops-cn/docusaurus-search-local', {
+      hashed: true,
+      docsPluginIdForPreferredVersion: 'api',
+      docsRouteBasePath: '/',
+      indexBlog: false,
+    }],
+  ],
+
   staticDirectories: ['docs-api/static'],
 
   themeConfig: {

@@ -33,6 +33,7 @@
     "@docusaurus/core": "^3.9.2",
     "@docusaurus/plugin-client-redirects": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
+    "@easyops-cn/docusaurus-search-local": "0.52.2",
     "@graphql-inspector/core": "~3.3.0",
     "@mdx-js/react": "^3.0.0",
     "@open-rpc/docusaurus-plugin": "0.1.5",
