@@ -80,3 +80,9 @@ txs
 UX
 simulateV
 EOA's
+BLS
+BN
+FP
+MSM
+MUL
+CRC
