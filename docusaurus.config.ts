@@ -25,22 +25,22 @@ const config: Config = {
     ['@open-rpc/docusaurus-plugin', {
       openRPCSpecPath: './execution-apis.json',
       docOutputPath: './docs-api/api',
+      indexSlug: '/'
     }],
     ['@docusaurus/plugin-content-docs', {
       id: 'api',
-      path: 'docs-api/api',
-      routeBasePath: 'api',
+      path: 'docs-api',
+      routeBasePath: '/',
       sidebarPath: './docs-api/sidebars.ts',
+    }],
+    ['@docusaurus/plugin-client-redirects', {
+      redirects: [{ from: '/api', to: '/' }],
     }],
   ],
 
   presets: [
     ['classic', {
-      docs: {
-        path: 'docs-api/docs',
-        sidebarPath: './docs-api/sidebars.ts',
-        editUrl: 'https://github.com/ethereum/execution-apis/tree/main/',
-      },
+      docs: false,
       pages: {
         path: 'docs-api/src/pages',
       },
@@ -58,8 +58,7 @@ const config: Config = {
     navbar: {
       title: 'Execution APIs',
       items: [
-        { type: 'docSidebar', sidebarId: 'docsSidebar', label: 'Docs', position: 'left' },
-        { to: '/api', label: 'API Reference', position: 'left' },
+        { type: 'docSidebar', sidebarId: 'docsSidebar', docsPluginId: 'api', label: 'Docs', position: 'left' },
         { href: 'https://github.com/ethereum/execution-apis', label: 'GitHub', position: 'right' },
       ],
     },
