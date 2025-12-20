@@ -147,7 +147,7 @@ $ npm run graphql:validate
 
 ## License
 
-This repository is licensed under [CC0](LICENSE).
+This repository is licensed under [CC0][license].
 
 [playground]: https://ethereum.github.io/execution-apis/api-documentation/
 [openrpc]: https://open-rpc.org
@@ -159,4 +159,4 @@ This repository is licensed under [CC0](LICENSE).
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
 [test-gen]: docs-api/docs/tests.md
-[LICENSE]: https://github.com/ethereum/execution-apis/blob/main/LICENSE
+[license]: https://github.com/ethereum/execution-apis/blob/main/LICENSE
