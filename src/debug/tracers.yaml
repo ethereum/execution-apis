@@ -74,8 +74,6 @@
       additionalProperties: true
       description: The trace result format depends on the tracer used
   errors:
-    - code: -32000
-      message: genesis is not traceable
     - code: 3
       message: "execution reverted"
       data:
