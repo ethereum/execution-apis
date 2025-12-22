@@ -318,6 +318,14 @@ ExecutionPayloadBodyV1:
         - 'null'
       items:
         $ref: '#/components/schemas/WithdrawalV1'
+BlockAccessListBodyV1:
+  title: Block access list body object V1
+  type: object
+  properties:
+    blockAccessList:
+      title: Block access list
+      description: RLP-encoded block access list as defined in EIP-7928
+      $ref: '#/components/schemas/bytes'
 BlobsBundleV1:
   title: Blobs bundle object V1
   type: object
