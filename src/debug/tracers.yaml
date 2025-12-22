@@ -17,11 +17,56 @@
         properties:
           tracer:
             type: string
-            description: The tracer to use for the trace
+            description: |-
+              Name for built-in tracer or Javascript expression. 
+              If left empty, the opcode logger will be chosen as default.
           tracerConfig:
             type: object
             additionalProperties: true
-            description: Configuration for the tracer
+            description: |-
+              Configuration for the specified tracer formatted as a JSON object.
+              For configuration of built-in tracers refer to their respective documentation.
+          timeout:
+            type: string
+            description: |-
+              Overrides the default timeout of 5 seconds for each transaction tracing.
+              Valid values are described in Go's time.ParseDuration format.
+          reexec:
+            type: integer
+            description: |-
+              The number of blocks the tracer is willing to go back and re-execute 
+              to produce missing historical state necessary to run a specific trace.
+              Default is 128.
+          enableMemory:
+            type: boolean
+            description: |-
+              Enable memory capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          disableStack:
+            type: boolean
+            description: |-
+              Disable stack capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          disableStorage:
+            type: boolean
+            description: |-
+              Disable storage capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          enableReturnData:
+            type: boolean
+            description: |-
+              Enable return data capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          debug:
+            type: boolean
+            description: |-
+              Print output during capture end (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          limit:
+            type: integer
+            description: |-
+              Limit the number of steps captured (default = 0, no limit).
+              Used by the opcode logger when tracer field is empty or not set.
   result:
     name: Trace result
     schema:
@@ -81,11 +126,56 @@
         properties:
           tracer:
             type: string
-            description: The tracer to use for the trace
+            description: |-
+              Name for built-in tracer or Javascript expression. 
+              If left empty, the opcode logger will be chosen as default.
           tracerConfig:
             type: object
             additionalProperties: true
-            description: Configuration for the tracer
+            description: |-
+              Configuration for the specified tracer formatted as a JSON object.
+              For configuration of built-in tracers refer to their respective documentation.
+          timeout:
+            type: string
+            description: |-
+              Overrides the default timeout of 5 seconds for each transaction tracing.
+              Valid values are described in Go's time.ParseDuration format.
+          reexec:
+            type: integer
+            description: |-
+              The number of blocks the tracer is willing to go back and re-execute 
+              to produce missing historical state necessary to run a specific trace.
+              Default is 128.
+          enableMemory:
+            type: boolean
+            description: |-
+              Enable memory capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          disableStack:
+            type: boolean
+            description: |-
+              Disable stack capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          disableStorage:
+            type: boolean
+            description: |-
+              Disable storage capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          enableReturnData:
+            type: boolean
+            description: |-
+              Enable return data capture (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          debug:
+            type: boolean
+            description: |-
+              Print output during capture end (default = false).
+              Used by the opcode logger when tracer field is empty or not set.
+          limit:
+            type: integer
+            description: |-
+              Limit the number of steps captured (default = 0, no limit).
+              Used by the opcode logger when tracer field is empty or not set.
   result:
     name: Trace results
     schema:
