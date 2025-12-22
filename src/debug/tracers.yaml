@@ -1,0 +1,125 @@
+- name: debug_traceCall
+  summary: Executes a message call and returns the execution trace.
+  params:
+    - name: Transaction
+      required: true
+      schema:
+        $ref: '#/components/schemas/GenericTransaction'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+    - name: Tracer options
+      required: false
+      schema:
+        type: object
+        additionalProperties: true
+        properties:
+          tracer:
+            type: string
+            description: The tracer to use for the trace
+          tracerConfig:
+            type: object
+            additionalProperties: true
+            description: Configuration for the tracer
+  result:
+    name: Trace result
+    schema:
+      type: object
+      additionalProperties: true
+      description: The trace result format depends on the tracer used
+  errors:
+    - code: -32000
+      message: genesis is not traceable
+    - code: 3
+      message: "execution reverted"
+      data:
+        title: "raw EVM revert data"
+        $ref: "#/components/schemas/bytes"
+  examples:
+    - name: debug_traceCall example
+      params:
+        - name: Transaction
+          value:
+            from: '0x7435ed30a8b4aeb0877cef0c6e8cffe834eb865f'
+            data: '0x5a'
+            gas: '0x35a4e900'
+        - name: Block
+          value: '0x2d'
+      result:
+        name: Trace result
+        value:
+          gas: 53020
+          failed: false
+          returnValue: '0x'
+          structLogs:
+            - pc: 0
+              op: 'GAS'
+              gas: 49946982
+              gasCost: 2
+              depth: 1
+              stack: []
+            - pc: 1
+              op: 'STOP'
+              gas: 49946980
+              gasCost: 0
+              depth: 1
+              stack: ['0x2fa2164']
+
+- name: debug_traceBlockByNumber
+  summary: Returns the execution traces of all transactions included in a block, identified by block number.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+    - name: Tracer options
+      required: false
+      schema:
+        type: object
+        additionalProperties: true
+        properties:
+          tracer:
+            type: string
+            description: The tracer to use for the trace
+          tracerConfig:
+            type: object
+            additionalProperties: true
+            description: Configuration for the tracer
+  result:
+    name: Trace results
+    schema:
+      type: array
+      items:
+        type: object
+        additionalProperties: true
+        description: The trace result format depends on the tracer used
+  errors:
+    - code: -32000
+      message: genesis is not traceable
+    - code: 4444
+      message: Pruned history unavailable
+  examples:
+    - name: debug_traceBlockByNumber example
+      params:
+        - name: Block
+          value: '0x2'
+        - name: Tracer options
+          value:
+            tracer: 'callTracer'
+            tracerConfig:
+              onlyTopCall: false
+              withLog: true
+      result:
+        name: Trace results
+        value:
+          - txHash: '0x25d8b4a27c4578e5de6441f98881cf050ab2d9f28ceb28559ece0b65f555e9d8'
+            result:
+              from: '0x7435ed30a8b4aeb0877cef0c6e8cffe834eb865f'
+              gas: '0x1263c'
+              gasUsed: '0x10349'
+              to: '0x882e7e5d12617c267a72948e716f231fa79e6d51'
+              input: '0x4360005260006020525b604060002060208051600101905260206020a15a61271010600957'
+              value: '0x0'
+              type: 'CREATE'
+
