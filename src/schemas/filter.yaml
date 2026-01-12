@@ -9,10 +9,9 @@ FilterResults:
       type: array
       items:
         $ref: '#/components/schemas/Log'
+
 Filter:
   title: filter
-  type: object
-  additionalProperties: false
   oneOf:
     - title: Filter by block range
       type: object
@@ -55,6 +54,7 @@ Filter:
           $ref: '#/components/schemas/FilterTopics'
       required:
         - blockHash
+
 FilterTopics:
   title: Filter Topics
   oneOf:
