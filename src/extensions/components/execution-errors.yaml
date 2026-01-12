@@ -1,0 +1,14 @@
+x-error-group:
+  ExecutionErrors:
+    - code: 1
+      message: "Nonce too low"      
+      x-error-category: "EXECUTION_ERRORS"
+    - code: 2
+      message: "Nonce too high"      
+      x-error-category: "EXECUTION_ERRORS"
+    - code: 3
+      message: "Execution reverted by REVERT Opcode"      
+      x-error-category: "EXECUTION_ERRORS"
+    - code: 4
+      message: "Invalid opcode"      
+      x-error-category: "EXECUTION_ERRORS"

@@ -1,0 +1,16 @@
+x-error-group:
+  JSONRPCNonStandardErrors:
+      - code: -32000
+        message: "Invalid input"        
+      - code: -32001
+        message: "Resource not found"        
+      - code: -32002
+        message: "Resource unavailable"        
+      - code: -32003
+        message: "Transaction rejected"      
+      - code: -32004
+        message: "Method not supported"        
+      - code: -32005
+        message: "Limit exceeded"        
+      - code: -32006
+        message: "JSON-RPC version not supported"        
