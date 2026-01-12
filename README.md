@@ -49,7 +49,7 @@ $ npm run start
 The `watch` command starts watching the local repository and rebuilds the spec
 and copies the `README.md` into the build. Running npm start starts a local
 development docusaurus server at `http://localhost:3000` and it rebuilds when you update something in the specs.  
-Sometimes you must reload the page to see your changes.
+**Sometimes you must reload the page to see your changes.**
 
 There is also search to see the search index built you must `npm run build:docs` this builds
 a production ready version of the app, which will include a local search index. To access
@@ -145,6 +145,37 @@ A script is included in the source code which reads and validates the given sche
 $ npm run graphql:validate
 ```
 
+## Versioning
+
+Execution-apis follows [semantic versioning][semver].
+- Major releases will include breaking changes to the [rpc-compat hive tests][rpc-compat], and other backwards incompatible changes.
+- Minor releases will include new backwards-compatible features.
+- Patch releases will include internal changes that don't impact end users and backwards-compatible bugfixes, along with fixing test cases that don't match the spec.
+
+Examples of changes by version type:
+
+**Major:**
+- Adding tests for a new RPC method
+- Changing the parameters or return type of an existing method in an incompatible way
+- Renaming fields in responses
+- Changing error codes or error response structures
+- Removing support for previously accepted input formats
+- Adding new fields to response objects
+
+**Minor:**
+- Removing tests for an existing RPC method
+- Adding optional parameters to existing methods
+- Adding new error codes for previously uncovered edge cases
+- Introducing new capabilities while maintaining backward compatibility
+- Fixing test cases that don't match the spec
+
+**Patch:**
+- Fixing typos or improving clarity in documentation
+- Correcting examples in the specification
+- Improving validation rules without changing the API
+- Updating internal tooling or build processes
+
+
 ## License
 
 This repository is licensed under [CC0][license].
@@ -158,5 +189,6 @@ This repository is licensed under [CC0][license].
 [json-schema]: https://json-schema.org
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
+[semver]: https://semver.org/
 [test-gen]: docs-api/docs/tests.md
 [license]: https://github.com/ethereum/execution-apis/blob/main/LICENSE
