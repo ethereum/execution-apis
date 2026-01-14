@@ -1,0 +1,6 @@
+tests/
+ethash/
+/rpctestgen
+/geth
+/openrpc.json
+

@@ -34,6 +34,9 @@ Filter:
         topics:
           title: Topics
           $ref: '#/components/schemas/FilterTopics'
+      not:
+        required:
+          - blockHash
     - title: Filter by block hash
       type: object
       properties:

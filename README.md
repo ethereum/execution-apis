@@ -91,7 +91,7 @@ all passing.
 or
 
 ```console
-$ go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
+$ go install -C rpctestgen/ ./cmd/speccheck
 $ speccheck -v
 ```
 
