@@ -6,6 +6,7 @@ jobs:
   lint-and-check:
     runs-on: ubuntu-latest
     steps:
+      # Specification
       - uses: actions/checkout@v4
       - name: Use Node.js 22
         uses: actions/setup-node@v4
@@ -14,10 +15,23 @@ jobs:
       - run: npm ci
       - run: npm run build:spec
       - run: npm run lint
+
+      # Tests
       - name: Set up Go 1.x
         uses: actions/setup-go@v5
         with:
           go-version: ^1.24
         id: go
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - name: Lint rpctestgen
+        working-directory: ./tools
+        run: make lint
+      - name: Install geth
+        run: go install github.com/ethereum/go-ethereum/cmd/geth@latest
+      - name: Generate the tests
+        run: go run -C ./tools . --chain chain --bin $(which geth) --out ../tests
+      - name: Fail if a diff is found in the tests
+        run: git diff --exit-code ./tests
       - name: Run speccheck
-        run: go run -C=./rpctestgen ./cmd/speccheck -v --spec ../openrpc.json --tests ../tests
+        run: go run -C ./tools ./cmd/speccheck -v --spec ../openrpc.json --tests ../tests
