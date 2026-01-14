@@ -1,9 +1,9 @@
-name: Go
+name: rpctestgen
 
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
 
 jobs:
@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Fill tests
+        working-directory: ./tools
         run: make fill
 
   lint:
@@ -40,4 +41,5 @@ jobs:
         run: go install honnef.co/go/tools/cmd/staticcheck@latest
 
       - name: Lint
+        working-directory: ./tools
         run: make lint
