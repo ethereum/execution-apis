@@ -17,9 +17,7 @@ jobs:
       - name: Set up Go 1.x
         uses: actions/setup-go@v5
         with:
-          go-version: ^1.18
+          go-version: ^1.24
         id: go
-      - name: Install speccheck
-        run: go install github.com/lightclient/rpctestgen/cmd/speccheck@latest
       - name: Run speccheck
-        run: speccheck -v
+        run: go run -C=./rpctestgen ./cmd/speccheck -v --spec ../openrpc.json --tests ../tests
