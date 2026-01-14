@@ -32,6 +32,12 @@ jobs:
       - name: Generate the tests
         run: go run -C ./tools . --chain chain --bin $(which geth) --out ../tests
       - name: Fail if a diff is found in the tests
-        run: git diff --exit-code ./tests
+        # geth outputs non-deterministic responses for two tests-
+        # specifically storageKeys arrays in the responses.
+        # Filter them from the diff check until fixed.
+        run: >
+          git diff --exit-code ./tests
+          ':!tests/eth_createAccessList/create-al-contract.io'
+          ':!tests/eth_createAccessList/create-al-contract-eip1559.io'
       - name: Run speccheck
         run: go run -C ./tools ./cmd/speccheck -v --spec ../openrpc.json --tests ../tests
