@@ -141,7 +141,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./s
 
     1. `payloadAttributes` matches the [`PayloadAttributesV3`](#payloadattributesv3) structure, return `-38003: Invalid payload attributes` on failure.
 
-    2. `payloadAttributes.timestamp` falls within the time frame of the Cancun fork, return `-38005: Unsupported fork` on failure.
+    2. `payloadAttributes.timestamp` does not fall within the time frame of the Cancun fork, return `-38005: Unsupported fork` on failure.
 
     3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
 
