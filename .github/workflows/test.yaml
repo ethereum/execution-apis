@@ -31,12 +31,12 @@ jobs:
         run: go install github.com/ethereum/go-ethereum/cmd/geth@latest
       - name: Generate the tests
         run: go run -C ./tools . --chain chain --bin $(which geth) --out ../tests
-      - name: Fail if a diff is found in the tests
+      - name: Fail if any files are untracked or have changes
         # geth outputs non-deterministic responses for two tests-
         # specifically storageKeys arrays in the responses.
         # Filter them from the diff check until fixed.
         run: >
-          git diff --exit-code ./tests
+          git status --porcelain
           ':!tests/eth_createAccessList/create-al-contract.io'
           ':!tests/eth_createAccessList/create-al-contract-eip1559.io'
       - name: Run speccheck
