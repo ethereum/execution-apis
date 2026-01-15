@@ -1,0 +1,152 @@
+PublicInputV1:
+  title: Public input object V1
+  type: object
+  required:
+    - newPayloadRequestRoot
+  properties:
+    newPayloadRequestRoot:
+      title: New payload request root
+      $ref: '#/components/schemas/hash32'
+
+ExecutionProofV1:
+  title: Execution proof object V1
+  type: object
+  required:
+    - proofData
+    - proofType
+    - publicInput
+  properties:
+    proofData:
+      title: Proof data
+      $ref: '#/components/schemas/bytes'
+    proofType:
+      title: Proof type identifier
+      $ref: '#/components/schemas/uint64'
+    publicInput:
+      title: Public input
+      $ref: '#/components/schemas/PublicInputV1'
+
+ProofAttributesV1:
+  title: Proof attributes object V1
+  type: object
+  required:
+    - proofTypes
+  properties:
+    proofTypes:
+      title: Requested proof types
+      type: array
+      items:
+        $ref: '#/components/schemas/uint64'
+
+NewPayloadRequestHeaderV1:
+  title: New payload request header V1
+  type: object
+  required:
+    - executionPayloadHeader
+    - versionedHashes
+    - parentBeaconBlockRoot
+    - executionRequests
+  properties:
+    executionPayloadHeader:
+      title: Execution payload header
+      $ref: '#/components/schemas/ExecutionPayloadHeaderV1'
+    versionedHashes:
+      title: Versioned hashes
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    parentBeaconBlockRoot:
+      title: Parent beacon block root
+      $ref: '#/components/schemas/hash32'
+    executionRequests:
+      title: Execution requests
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+
+ExecutionPayloadHeaderV1:
+  title: Execution payload header V1
+  type: object
+  required:
+    - parentHash
+    - feeRecipient
+    - stateRoot
+    - receiptsRoot
+    - logsBloom
+    - prevRandao
+    - blockNumber
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - baseFeePerGas
+    - blockHash
+    - transactionsRoot
+    - withdrawalsRoot
+    - blobGasUsed
+    - excessBlobGas
+  properties:
+    parentHash:
+      title: Parent block hash
+      $ref: '#/components/schemas/hash32'
+    feeRecipient:
+      title: Recipient of transaction priority fees
+      $ref: '#/components/schemas/address'
+    stateRoot:
+      title: State root
+      $ref: '#/components/schemas/hash32'
+    receiptsRoot:
+      title: Receipts root
+      $ref: '#/components/schemas/hash32'
+    logsBloom:
+      title: Bloom filter
+      $ref: '#/components/schemas/bytes256'
+    prevRandao:
+      title: Previous randao value
+      $ref: '#/components/schemas/bytes32'
+    blockNumber:
+      title: Block number
+      $ref: '#/components/schemas/uint64'
+    gasLimit:
+      title: Gas limit
+      $ref: '#/components/schemas/uint64'
+    gasUsed:
+      title: Gas used
+      $ref: '#/components/schemas/uint64'
+    timestamp:
+      title: Timestamp
+      $ref: '#/components/schemas/uint64'
+    extraData:
+      title: Extra data
+      $ref: '#/components/schemas/bytesMax32'
+    baseFeePerGas:
+      title: Base fee per gas
+      $ref: '#/components/schemas/uint256'
+    blockHash:
+      title: Block hash
+      $ref: '#/components/schemas/hash32'
+    transactionsRoot:
+      title: Transactions root
+      $ref: '#/components/schemas/hash32'
+    withdrawalsRoot:
+      title: Withdrawals root
+      $ref: '#/components/schemas/hash32'
+    blobGasUsed:
+      title: Blob gas used
+      $ref: '#/components/schemas/uint64'
+    excessBlobGas:
+      title: Excess blob gas
+      $ref: '#/components/schemas/uint64'
+
+ProofStatusV1:
+  title: Proof verification status V1
+  type: object
+  required:
+    - valid
+  properties:
+    valid:
+      title: Proof validity
+      type: boolean
+    error:
+      title: Error message if invalid
+      type: string
