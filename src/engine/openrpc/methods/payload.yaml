@@ -886,11 +886,11 @@
                 validatorIndex: '0xf3'
                 address: '0x00000000000000000000000000000000000010f3'
                 amount: '0x1'
-- name: engine_getBlockAccessListsByHashV1
-  summary: Given block hashes returns RLP-encoded block access lists of the corresponding execution payloads
+- name: engine_getPayloadBodiesByHashV2
+  summary: Given block hashes returns bodies of the corresponding execution payloads including block access lists
   externalDocs:
     description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_getblockaccesslistsbyhashv1
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_getpayloadbodiesbyhashv2
   params:
     - name: Array of block hashes
       required: true
@@ -899,31 +899,45 @@
         items:
           $ref: '#/components/schemas/hash32'
   result:
-    name: Block access list bodies
+    name: Execution payload bodies
     schema:
       type: array
       items:
-        $ref: '#/components/schemas/BlockAccessListBodyV1'
+        $ref: '#/components/schemas/ExecutionPayloadBodyV2'
   errors:
     - code: -38004
       message: Too large request
   examples:
-    - name: engine_getBlockAccessListsByHashV1 example
+    - name: engine_getPayloadBodiesByHashV2 example
       params:
         - name: Array of block hashes
           value:
             - '0xd5f1812548be429cbdc6376b29611fc49e06f1359758c4ceaaa3b393e2239f9c'
             - '0xfe88c94d860f01a17f961bf4bdfb6e0c6cd10d3fda5cc861e805ca1240c58553'
       result:
-        name: Block access list bodies
+        name: Execution payload bodies
         value:
-          - blockAccessList: '0xf8daf8d8f8d6a000000000000000000000000000000000000000000000000000000000000000a0f8a7a02222222222222222222222222222222222222222222222222222222222222222a03333333333333333333333333333333333333333333333333333333333333333a04444444444444444444444444444444444444444444444444444444444444444'
-          - null
-- name: engine_getBlockAccessListsByRangeV1
-  summary: Given a range of block numbers returns RLP-encoded block access lists of the corresponding execution payloads
+          - transactions:
+              - '0xf865808506fc23ac00830124f8940101010101010101010101010101010101010101018031a02c4d88bfdc2f6dbf82c33d235c4e785e9fc23b2d0fc7b9d20fc5e9674f1f9d15a016d6d69b925cf26128683ab4a096e196fbb1142d6c6d4e8d3481b9bef1bd0f65'
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+            blockAccessList: '0xf8daf8d8f8d6a000000000000000000000000000000000000000000000000000000000000000a0f8a7a02222222222222222222222222222222222222222222222222222222222222222a03333333333333333333333333333333333333333333333333333333333333333a04444444444444444444444444444444444444444444444444444444444444444'
+          - transactions:
+              - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
+            withdrawals:
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+            blockAccessList: null
+- name: engine_getPayloadBodiesByRangeV2
+  summary: Given a range of block numbers returns bodies of the corresponding execution payloads including block access lists
   externalDocs:
     description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_getblockaccesslistsbyrangev1
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_getpayloadbodiesbyrangev2
   params:
     - name: Starting block number
       required: true
@@ -934,26 +948,40 @@
       schema:
         $ref: '#/components/schemas/uint64'
   result:
-    name: Block access list bodies
+    name: Execution payload bodies
     schema:
       type: array
       items:
-        $ref: '#/components/schemas/BlockAccessListBodyV1'
+        $ref: '#/components/schemas/ExecutionPayloadBodyV2'
   errors:
     - code: -38004
       message: Too large request
   examples:
-    - name: engine_getBlockAccessListsByRangeV1 example
+    - name: engine_getPayloadBodiesByRangeV2 example
       params:
         - name: Starting block number
           value: '0x20'
         - name: Number of blocks to return
           value: '0x2'
       result:
-        name: Block access list bodies
+        name: Execution payload bodies
         value:
-          - null
-          - blockAccessList: '0xf8daf8d8f8d6a000000000000000000000000000000000000000000000000000000000000000a0f8a7a05555555555555555555555555555555555555555555555555555555555555555a06666666666666666666666666666666666666666666666666666666666666666a07777777777777777777777777777777777777777777777777777777777777777'
+          - transactions:
+              - '0xf865808506fc23ac00830124f8940101010101010101010101010101010101010101018031a02c4d88bfdc2f6dbf82c33d235c4e785e9fc23b2d0fc7b9d20fc5e9674f1f9d15a016d6d69b925cf26128683ab4a096e196fbb1142d6c6d4e8d3481b9bef1bd0f65'
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+            blockAccessList: null
+          - transactions:
+              - '0xf865108506fc23ac00830124f8940101010101010101010101010101010101010101018031a0d9712a3c40ae85aea4ad1bd95a0b7cc7bd805189a9e2517403b11a00a1530f81a053b53b0267a6dcfe9f9a1652307b396b3e8a65e65707a450e60c92baefdbcfbe'
+            withdrawals:
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+            blockAccessList: '0xf8daf8d8f8d6a000000000000000000000000000000000000000000000000000000000000000a0f8a7a05555555555555555555555555555555555555555555555555555555555555555a06666666666666666666666666666666666666666666666666666666666666666a07777777777777777777777777777777777777777777777777777777777777777'
 - name: engine_newPayloadV5
   summary: Runs execution payload validation
   externalDocs:

@@ -11,6 +11,7 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
 
 - [Structures](#structures)
   - [ExecutionPayloadV4](#executionpayloadv4)
+  - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
 - [Methods](#methods)
   - [engine_newPayloadV5](#engine_newpayloadv5)
     - [Request](#request)
@@ -20,11 +21,11 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
-  - [engine_getBlockAccessListsByHashV1](#engine_getbalsbyhashv1)
+  - [engine_getPayloadBodiesByHashV2](#engine_getpayloadbodiesbyhashv2)
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
-  - [engine_getBlockAccessListsByRangeV1](#engine_getbalsbyrangev1)
+  - [engine_getPayloadBodiesByRangeV2](#engine_getpayloadbodiesbyrangev2)
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
@@ -57,6 +58,14 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
 - `blockAccessList`: `DATA` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928)
+
+### ExecutionPayloadBodyV2
+
+This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadbodyv1) and appends the new field: `blockAccessList`.
+
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
+- `blockAccessList`: `DATA|null` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928). Value is `null` for blocks produced before Amsterdam or if the data has been pruned.
 
 ## Methods
 
@@ -117,70 +126,58 @@ This method follows the same specification as [`engine_getPayloadV5`](./osaka.md
 
 2. When building the block, client software **MUST** collect all account accesses and state changes during transaction execution and populate the `blockAccessList` field in the returned `ExecutionPayloadV4` with the RLP-encoded access list.
 
-### engine_getBlockAccessListsByHashV1
+### engine_getPayloadBodiesByHashV2
 
-This method retrieves RLP-encoded block access lists for specified blocks.
+This method retrieves execution payload bodies including block access lists for specified blocks.
 
 #### Request
 
-* method: `engine_getBlockAccessListsByHashV1`
+* method: `engine_getPayloadBodiesByHashV2`
 * params:
-  1. `blockHashes`: `Array of DATA`, 32 Bytes - Array of block hashes to retrieve block access lists for
+  1. `blockHashes`: `Array of DATA`, 32 Bytes - Array of block hashes to retrieve payload bodies for
 * timeout: 10s
 
 #### Response
 
-* result: `Array` - Array of block access list body objects or `null` for blocks without block access lists
-  - `blockAccessList`: `DATA` - RLP-encoded block access list as defined in EIP-7928, or `null` if unavailable
-* error: code and message set in case an exception happens while getting the block access lists.
+* result: `Array of ExecutionPayloadBodyV2` - Array of [`ExecutionPayloadBodyV2`](#executionpayloadbodyv2) objects or `null` for blocks that are unavailable
+* error: code and message set in case an exception happens while getting the payload bodies.
 
 #### Specification
 
-1. Client software **MUST** return an array of the same length as the input array.
+This method follows the same specification as [`engine_getPayloadBodiesByHashV1`](./shanghai.md#engine_getpayloadbodiesbyhashv1) with the following additions:
 
-2. Client software **MUST** place responses in the same order as the corresponding block hashes in the input array.
+1. Client software **MUST** set the `blockAccessList` field to `null` for blocks that predate the Amsterdam fork activation.
 
-3. Client software **MUST** return `null` for any block hash that:
-   - Is unknown or unavailable
-   - Predates the Amsterdam fork activation
-   - Has been pruned from storage
+2. Client software **MUST** set the `blockAccessList` field to `null` if the block access list has been pruned from storage.
 
-4. Client software **MUST** return `-38004: Too large request` error if the requested range is too large.
+3. Client software **MUST** retain block access lists for at least 3533 epochs (the weak subjectivity period) to support synchronization with re-execution.
 
-5. Client software **MUST** retain block access lists for at least 3533 epochs (the weak subjectivity period) to support synchronization with re-execution.
+### engine_getPayloadBodiesByRangeV2
 
-### engine_getBlockAccessListsByRangeV1
-
-This method retrieves RLP-encoded block access lists for a range of blocks.
+This method retrieves execution payload bodies including block access lists for a range of blocks.
 
 #### Request
 
-* method: `engine_getBlockAccessListsByRangeV1`
+* method: `engine_getPayloadBodiesByRangeV2`
 * params:
   1. `start`: `QUANTITY`, 64 Bits - Starting block number
-  2. `count`: `QUANTITY`, 64 Bits - Number of blocks to retrieve block access lists for
+  2. `count`: `QUANTITY`, 64 Bits - Number of blocks to retrieve payload bodies for
 * timeout: 10s
 
 #### Response
 
-* result: `Array` - Array of block access list body objects or `null` for blocks without block access lists
-  - `blockAccessList`: `DATA` - RLP-encoded block access list as defined in EIP-7928, or `null` if unavailable
-* error: code and message set in case an exception happens while getting the block access lists.
+* result: `Array of ExecutionPayloadBodyV2` - Array of [`ExecutionPayloadBodyV2`](#executionpayloadbodyv2) objects or `null` for blocks that are unavailable
+* error: code and message set in case an exception happens while getting the payload bodies.
 
 #### Specification
 
-1. Client software **MUST** return block access lists for the range `[start, start + count)`.
+This method follows the same specification as [`engine_getPayloadBodiesByRangeV1`](./shanghai.md#engine_getpayloadbodiesbyrangev1) with the following additions:
 
-2. Client software **MUST** return an array of length equal to `count` or less if the range extends beyond the current head.
+1. Client software **MUST** set the `blockAccessList` field to `null` for blocks that predate the Amsterdam fork activation.
 
-3. Client software **MUST** return `null` for any block in the range that:
-   - Has not been processed yet
-   - Predates the Amsterdam fork activation
-   - Has been pruned from storage
+2. Client software **MUST** set the `blockAccessList` field to `null` if the block access list has been pruned from storage.
 
-4. Client software **MUST** return `-38004: Too large request` error if the requested range is too large.
-
-5. Client software **MUST** retain block access lists for at least 3533 epochs (the weak subjectivity period) to support synchronization with re-execution.
+3. Client software **MUST** retain block access lists for at least 3533 epochs (the weak subjectivity period) to support synchronization with re-execution.
 
 ### Update the methods of previous forks
 

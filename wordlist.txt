@@ -6,8 +6,6 @@ blobsbundlev
 blockaccesslist
 blockAccessList
 BlockAccessList
-blockaccesslistbodyv
-BlockAccessListBodyV
 bodiesbyhashv
 bodiesbyrangev
 bodyv
@@ -39,10 +37,6 @@ feeRecipient
 forkchoiceupdatedresponsev
 getblobsbundlev
 getblobsv
-getblockaccesslistsbyhashv
-getBlockAccessListsByHashV
-getblockaccesslistsbyrangev
-getBlockAccessListsByRangeV
 getclientversionv
 graphql
 gwei
