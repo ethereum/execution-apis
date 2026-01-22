@@ -1,0 +1,69 @@
+- name: wallet_getBundleStatus
+  summary: Sends a bundle of function calls from the user wallet
+  params:
+    - name: Bundle identifier
+      required: true
+      schema:
+        type: string
+        title: Bundle identifier
+  result:
+    name: Call status
+    schema:
+      type: object
+      properties:
+        calls:
+          type: array
+          items:
+            title: call status
+            description: Status of the call at the given index
+            type: object
+            status:
+              title: The current status of the call
+              enum:
+                - CONFIRMED
+                - PENDING
+            receipt:
+              type: object
+              required:
+                - success
+                - blockHash
+                - blockNumber
+                - blockTimestamp
+                - gasUsed
+                - transactionHash
+              properties:
+                logs:
+                  type: array
+                  items:
+                    title: Log object
+                    type: object
+                    properties:
+                      address:
+                        $ref: '#/components/schemas/address'
+                      data:
+                        title: data
+                        $ref: '#/components/schemas/bytes'
+                      topics:
+                        title: topics
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/bytes32'
+                success:
+                  type: boolean
+                  title: Whether the call succeeded
+                blockHash:
+                  title: The hash of the block in which the call was included
+                  $ref: '#/components/schemas/bytes32'
+                blockNumber:
+                  title: The number of the block in which the call was included
+                  $ref: '#/components/schemas/uint'
+                blockTimestamp:
+                  title: The timestamp of the block in which the call was included
+                  $ref: '#/components/schemas/uint'
+                gasUsed:
+                  title: How much gas the call actually used
+                  $ref: '#/components/schemas/uint'
+                transactionHash:
+                  title: The hash of the transaction in which the call was made
+                  $ref: '#/components/schemas/bytes32'
+
