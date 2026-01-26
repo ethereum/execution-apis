@@ -20,6 +20,10 @@ This specification is based on and extends [Engine API - Prague](./prague.md) sp
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
+  - [engine_getBlobsV3](#engine_getblobsv3)
+    - [Request](#request-2)
+    - [Response](#response-2)
+    - [Specification](#specification-2)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Cancun API](#cancun-api)
     - [Prague API](#prague-api)
@@ -114,6 +118,34 @@ Refer to the specification for [`engine_getBlobsV1`](./cancun.md#engine_getblobs
 3. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
 4. Client software **MUST** return `null` if syncing or otherwise unable to serve blob pool data.
 5. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` if a blob has been pruned.
+
+### engine_getBlobsV3
+
+Consensus layer clients **MAY** use this method to fetch blobs from the execution layer blob pool, with support for partial responses. For an all-or-nothing query style, refer to `engine_getBlobsV2`.
+
+#### Request
+
+* method: `engine_getBlobsV3`
+* params:
+  1. `Array of DATA`, 32 Bytes - Array of blob versioned hashes.
+* timeout: 1s
+
+#### Response
+
+* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
+* error: code and message set in case an error occurs during processing of the request.
+
+#### Specification
+
+> To assist the reader, we highlight differences against `engine_getBlobsV2` using italic.
+
+1. Given an array of blob versioned hashes client software **MUST** respond with an array of `BlobAndProofV2` objects with matching versioned hashes, respecting the order of versioned hashes in the input array.
+2. Given an array of blob versioned hashes, if client software has every one of the requested blobs, it **MUST** return an array of _`BlobAndProofV2`_ objects whose order exactly matches the input array. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has `A`, `B` and `C` available, the response **MUST** be `[A, B, C]`.
+3. If one or more of the requested blobs are unavailable, _the client **MUST** return an array of the same length and order, inserting `null` only at the positions of the missing blobs._ For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, _the response **MUST** be `[A, null, C]`. If all blobs are missing, the client software must return an array of matching length, filled with `null` at all positions._
+4. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
+5. Client software **MUST** return `null` if syncing or otherwise unable to generally serve blob pool data.
+6. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` at the corresponding position if a blob has been pruned.
+
 
 ### Update the methods of previous forks
 
