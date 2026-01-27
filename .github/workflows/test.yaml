@@ -16,7 +16,7 @@ jobs:
       - run: npm run build:spec
       - run: npm run lint
 
-      # Tests
+  rpctestgen:
       - name: Set up Go 1.x
         uses: actions/setup-go@v6
         with:
@@ -27,10 +27,9 @@ jobs:
       - name: Lint rpctestgen
         working-directory: ./tools
         run: make lint
-      - name: Install geth
-        run: go install github.com/ethereum/go-ethereum/cmd/geth@master
-      - name: Generate the tests
-        run: go run -C ./tools . --chain chain --bin $(which geth) --out ../tests
+      - name: Fill tests
+        working-directory: ./tools
+        run: make fill
       - name: Fail if any files are untracked or have changes
         # geth outputs non-deterministic responses for two tests-
         # specifically storageKeys arrays in the responses.
