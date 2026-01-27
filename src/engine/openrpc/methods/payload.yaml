@@ -974,7 +974,7 @@
   summary: Obtains execution payload from payload build process
   externalDocs:
     description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_getpayloadv6
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bib.md#engine_getpayloadv6
   params:
     - name: Payload id
       required: true
@@ -996,7 +996,7 @@
         blockValue:
           $ref: '#/components/schemas/uint256'
         blobsBundle:
-          $ref: '#/components/schemas/BlobsBundleV2'
+          $ref: '#/components/schemas/BlobsBundleV3'
         shouldOverrideBuilder:
           type: boolean
         executionRequests:
