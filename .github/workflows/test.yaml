@@ -16,7 +16,28 @@ jobs:
       - run: npm run build:spec
       - run: npm run lint
 
-  rpctestgen:
+      # speccheck
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ^1.24
+        id: go
+      - name: Run speccheck
+        run: go run -C ./tools ./cmd/speccheck -v --spec ../openrpc.json --tests ../tests
+
+      # check test filling
+      - name: Fill tests
+        working-directory: ./tools
+        run: make fill
+      - name: Fail if any files are untracked or have changes
+        # geth outputs non-deterministic responses for two tests-
+        # specifically storageKeys arrays in the responses.
+        # Filter them from the diff check until fixed.
+        run: >
+          git status --porcelain
+          ':!tests/eth_createAccessList/create-al-contract.io'
+          ':!tests/eth_createAccessList/create-al-contract-eip1559.io'
+
+  lint-tools:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -29,16 +50,3 @@ jobs:
       - name: Lint rpctestgen
         working-directory: ./tools
         run: make lint
-      - name: Fill tests
-        working-directory: ./tools
-        run: make fill
-      - name: Fail if any files are untracked or have changes
-        # geth outputs non-deterministic responses for two tests-
-        # specifically storageKeys arrays in the responses.
-        # Filter them from the diff check until fixed.
-        run: >
-          git status --porcelain
-          ':!tests/eth_createAccessList/create-al-contract.io'
-          ':!tests/eth_createAccessList/create-al-contract-eip1559.io'
-      - name: Run speccheck
-        run: go run -C ./tools ./cmd/speccheck -v --spec ../openrpc.json --tests ../tests
