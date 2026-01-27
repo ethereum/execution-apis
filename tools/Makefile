@@ -6,7 +6,7 @@ build:
 	go build .
 
 buildgeth:
-	go install github.com/ethereum/go-ethereum/cmd/geth@master
+	go build -o geth github.com/ethereum/go-ethereum/cmd/geth
 
 clean:
 	rm -rf rpctestgen tests
@@ -20,4 +20,4 @@ lint:
 	staticcheck ./...
 
 fill: build buildgeth
-	./rpctestgen --bin `which geth` -chain ./chain --out ../tests
+	./rpctestgen --bin ./geth -chain ./chain --out ../tests
