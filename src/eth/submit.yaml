@@ -5,6 +5,13 @@
       required: true
       schema:
         $ref: '#/components/schemas/GenericTransaction'
+  x-error-group:    
+      - $ref: '#/components/x-error-group/JSONRPCNonStandardErrors'
+      - $ref: '#/components/x-error-group/JSONRPCStandardErrors'
+      - $ref: '#/components/x-error-group/GasErrors'
+      - $ref: '#/components/x-error-group/ExecutionErrors'
+      - $ref: '#/components/x-error-group/TxPoolErrors'
+      - $ref: '#/components/x-error-group/ZKExecutionErrors'
   result:
     name: Transaction hash
     schema:
@@ -45,6 +52,13 @@
       required: true
       schema:
         $ref: '#/components/schemas/bytes'
+  x-error-group:    
+    - $ref: '#/components/x-error-group/JSONRPCNonStandardErrors'
+    - $ref: '#/components/x-error-group/JSONRPCStandardErrors'
+    - $ref: '#/components/x-error-group/GasErrors'
+    - $ref: '#/components/x-error-group/ExecutionErrors'
+    - $ref: '#/components/x-error-group/TxPoolErrors'
+    - $ref: '#/components/x-error-group/ZKExecutionErrors'
   result:
     name: Transaction hash
     schema:
