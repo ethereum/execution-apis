@@ -1,0 +1,26 @@
+x-error-group:
+  GasErrors:
+    - code: 800
+      message: "Intrinsic gas too low / Intrinsic gas exceeds gas limit"      
+      x-error-category: "GAS_ERRORS"
+    - code: 801     
+      message: "Insufficient gas for floor data gas cost"
+      x-error-category: "GAS_ERRORS"
+    - code: 802      
+      message: "Tx gas limit exceeds max block gas limit / intrinsic gas exceeds gas limit"
+      x-error-category: "GAS_ERRORS"
+    - code: 803      
+      message: "Transaction gas limit too high"
+    - code: 804      
+      message: "Gas price below configured minimum gas price / transaction gas price below minimum"
+      x-error-category: "GAS_ERRORS"
+    - code: 805      
+      message: "Insufficient funds for gas * price + value / Upfront cost exceeds account balance"
+      x-error-category: "GAS_ERRORS"
+    - code: 806      
+      message: "Max priority fee per gas higher than max fee per gas"
+      x-error-category: "GAS_ERRORS"
+    - code: 807      
+      message: "Tx fee exceeds the configured cap / Transaction fee cap exceeded"
+      x-error-category: "GAS_ERRORS"
+
