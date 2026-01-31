@@ -211,6 +211,9 @@ CallResultFailure:
     gasUsed:
       title: Return gasUsed
       $ref: '#/components/schemas/uint64'
+    maxUsedGas:
+      title: Maximum gas used during execution before refunds
+      $ref: '#/components/schemas/uint64'
     error:
       oneOf:
       - type: object
@@ -246,6 +249,9 @@ CallResultSuccess:
       $ref: '#/components/schemas/bytes'
     gasUsed:
       title: Return gasUsed
+      $ref: '#/components/schemas/uint64'
+    maxUsedGas:
+      title: Maximum gas used during execution before refunds
       $ref: '#/components/schemas/uint64'
     logs:
       title: Return logs
