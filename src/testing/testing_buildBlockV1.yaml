@@ -76,7 +76,7 @@
           $ref: '#/components/schemas/uint256'
         blobsBundle:
           title: Blobs bundle
-          $ref: '#/components/schemas/BlobsBundleV1'
+          $ref: '#/components/schemas/BlobsBundleV2'
         shouldOverrideBuilder:
           title: Should override builder flag
           type: boolean
