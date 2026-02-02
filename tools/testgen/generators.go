@@ -2272,6 +2272,118 @@ var NetVersion = MethodTests{
 	},
 }
 
+// validateBuildBlockV1Response validates the common parts of a testing_buildBlockV1 response.
+func validateBuildBlockV1Response(
+	t *T,
+	result map[string]interface{},
+	parentBlock *types.Block,
+	payloadAttrs map[string]interface{},
+	txValidator func(txs []interface{}) error,
+	extraDataValidator func(extraData string) error,
+) error {
+	// Validate response structure
+	executionPayload, ok := result["executionPayload"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("missing or invalid executionPayload in response")
+	}
+
+	parentHash := parentBlock.Hash()
+
+	// Verify parent hash matches
+	if parentHashStr, ok := executionPayload["parentHash"].(string); ok {
+		if parentHashStr != parentHash.Hex() {
+			return fmt.Errorf("parentHash mismatch: got %s, want %s", parentHashStr, parentHash.Hex())
+		}
+	} else {
+		return fmt.Errorf("missing parentHash in executionPayload")
+	}
+
+	// Verify block number is parent + 1
+	if blockNumStr, ok := executionPayload["blockNumber"].(string); ok {
+		blockNum := hexutil.MustDecodeUint64(blockNumStr)
+		expectedNum := parentBlock.NumberU64() + 1
+		if blockNum != expectedNum {
+			return fmt.Errorf("blockNumber mismatch: got %d, want %d", blockNum, expectedNum)
+		}
+	} else {
+		return fmt.Errorf("missing blockNumber in executionPayload")
+	}
+
+	// Spec: "The client MUST use the provided payloadAttributes"
+	// Verify timestamp matches payloadAttributes
+	if timestampStr, ok := executionPayload["timestamp"].(string); ok {
+		gotTimestamp := hexutil.MustDecodeUint64(timestampStr)
+		expectedTimestamp := uint64(payloadAttrs["timestamp"].(hexutil.Uint64))
+		if gotTimestamp != expectedTimestamp {
+			return fmt.Errorf("timestamp mismatch: got %d, want %d", gotTimestamp, expectedTimestamp)
+		}
+	} else {
+		return fmt.Errorf("missing timestamp in executionPayload")
+	}
+
+	// Verify prevRandao matches payloadAttributes
+	if prevRandaoStr, ok := executionPayload["prevRandao"].(string); ok {
+		expectedPrevRandao := common.HexToHash(payloadAttrs["prevRandao"].(string))
+		gotPrevRandao := common.HexToHash(prevRandaoStr)
+		if gotPrevRandao != expectedPrevRandao {
+			return fmt.Errorf("prevRandao mismatch: got %s, want %s", gotPrevRandao.Hex(), expectedPrevRandao.Hex())
+		}
+	} else {
+		return fmt.Errorf("missing prevRandao in executionPayload")
+	}
+
+	// Verify feeRecipient matches suggestedFeeRecipient from payloadAttributes
+	if feeRecipientStr, ok := executionPayload["feeRecipient"].(string); ok {
+		expectedFeeRecipient := common.HexToAddress(payloadAttrs["suggestedFeeRecipient"].(string))
+		gotFeeRecipient := common.HexToAddress(feeRecipientStr)
+		if gotFeeRecipient != expectedFeeRecipient {
+			return fmt.Errorf("feeRecipient mismatch: got %s, want %s", gotFeeRecipient.Hex(), expectedFeeRecipient.Hex())
+		}
+	} else {
+		return fmt.Errorf("missing feeRecipient in executionPayload")
+	}
+
+	// Verify parentBeaconBlockRoot if Cancun is active and it's present in response
+	if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+		if payloadBeaconRoot, hasBeaconRoot := payloadAttrs["parentBeaconBlockRoot"]; hasBeaconRoot {
+			if beaconRootStr, ok := executionPayload["parentBeaconBlockRoot"].(string); ok {
+				expectedBeaconRoot := common.HexToHash(payloadBeaconRoot.(string))
+				gotBeaconRoot := common.HexToHash(beaconRootStr)
+				if gotBeaconRoot != expectedBeaconRoot {
+					return fmt.Errorf("parentBeaconBlockRoot mismatch: got %s, want %s", gotBeaconRoot.Hex(), expectedBeaconRoot.Hex())
+				}
+			}
+		}
+	}
+
+	// Validate transactions using custom validator
+	if txs, ok := executionPayload["transactions"].([]interface{}); ok {
+		if err := txValidator(txs); err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("missing or invalid transactions array in executionPayload. Got type: %T, value: %v", executionPayload["transactions"], executionPayload["transactions"])
+	}
+
+	// Validate extraData using custom validator
+	if extraDataStr, ok := executionPayload["extraData"].(string); ok {
+		if err := extraDataValidator(extraDataStr); err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("missing extraData in executionPayload")
+	}
+
+	// Spec: "This method MUST NOT modify the client's canonical chain or head block."
+	// Verify chain head hasn't changed
+	newHead := t.chain.Head()
+	if newHead.Hash() != parentHash {
+		return fmt.Errorf("chain head changed (method should be read-only): was %s, now %s", parentHash.Hex(), newHead.Hash().Hex())
+	}
+
+	return nil
+}
+
 // TestingBuildBlockV1 stores a list of all tests against the method.
 var TestingBuildBlockV1 = MethodTests{
 	"testing_buildBlockV1",
@@ -2280,30 +2392,25 @@ var TestingBuildBlockV1 = MethodTests{
 			Name:  "build-block-with-transactions",
 			About: "builds a block with specified transactions using testing_buildBlockV1",
 			Run: func(ctx context.Context, t *T) error {
-				// Get the parent block (head of chain)
 				parentBlock := t.chain.Head()
 				parentHash := parentBlock.Hash()
 
-				// Create payload attributes
-				// PayloadAttributesV3 structure based on the spec
 				payloadAttrs := map[string]interface{}{
-					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12), // 12 seconds in the future
-					"prevRandao":            common.Hash{}.Hex(),                     // zero hash
-					"suggestedFeeRecipient": common.Address{}.Hex(),                  // zero address
+					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
+					"prevRandao":            common.Hash{}.Hex(),
+					"suggestedFeeRecipient": common.Address{}.Hex(),
 					"withdrawals":           []interface{}{},
 				}
 
-				// Add parentBeaconBlockRoot if Cancun is active
 				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
-				// Create some transactions to include
 				sender, nonce := t.chain.GetSender(0)
 				basefee := parentBlock.BaseFee()
 				if basefee == nil {
-					basefee = big.NewInt(1000000000) // 1 gwei default
+					basefee = big.NewInt(1000000000)
 				}
 				gasFeeCap := new(big.Int).Add(basefee, big.NewInt(500))
 
@@ -2317,154 +2424,64 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 				tx := t.chain.MustSignTx(sender, txdata)
 
-				// Marshal transaction to hex (raw signed transaction, same format as eth_sendRawTransaction)
-				// According to spec: "an array of raw, signed transactions (hex-encoded 0x... strings)"
 				txBytes, err := tx.MarshalBinary()
 				if err != nil {
 					return fmt.Errorf("failed to marshal transaction: %w", err)
 				}
 				txHex := hexutil.Encode(txBytes)
+				expectedTxHex := txHex
 
-				// Prepare request parameters (4 separate params per spec)
 				extraData := hexutil.Encode([]byte("test_name"))
 
-				// Call the RPC method with 4 separate parameters
-				// Per spec: transactions must be "an array of raw, signed transactions (hex-encoded 0x... strings)"
-				// We pass []string with hex-encoded strings - if implementation fails, it should error
 				var result map[string]interface{}
 				err = t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
-					parentHash.Hex(), // param 1: parentBlockHash
-					payloadAttrs,     // param 2: payloadAttributes
-					[]string{txHex},  // param 3: transactions (as hex strings per spec)
-					extraData,        // param 4: extraData
+					parentHash.Hex(),
+					payloadAttrs,
+					[]string{txHex},
+					extraData,
 				)
 				if err != nil {
 					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
 				}
 
-				// Validate response structure
-				executionPayload, ok := result["executionPayload"].(map[string]interface{})
-				if !ok {
-					return fmt.Errorf("missing or invalid executionPayload in response")
-				}
-
-				// Verify parent hash matches
-				if parentHashStr, ok := executionPayload["parentHash"].(string); ok {
-					if parentHashStr != parentHash.Hex() {
-						return fmt.Errorf("parentHash mismatch: got %s, want %s", parentHashStr, parentHash.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing parentHash in executionPayload")
-				}
-
-				// Verify block number is parent + 1
-				if blockNumStr, ok := executionPayload["blockNumber"].(string); ok {
-					blockNum := hexutil.MustDecodeUint64(blockNumStr)
-					expectedNum := parentBlock.NumberU64() + 1
-					if blockNum != expectedNum {
-						return fmt.Errorf("blockNumber mismatch: got %d, want %d", blockNum, expectedNum)
-					}
-				} else {
-					return fmt.Errorf("missing blockNumber in executionPayload")
-				}
-
-				// Spec: "The client MUST use the provided payloadAttributes"
-				// Verify timestamp matches payloadAttributes
-				if timestampStr, ok := executionPayload["timestamp"].(string); ok {
-					gotTimestamp := hexutil.MustDecodeUint64(timestampStr)
-					expectedTimestamp := uint64(payloadAttrs["timestamp"].(hexutil.Uint64))
-					if gotTimestamp != expectedTimestamp {
-						return fmt.Errorf("timestamp mismatch: got %d, want %d", gotTimestamp, expectedTimestamp)
-					}
-				} else {
-					return fmt.Errorf("missing timestamp in executionPayload")
-				}
-
-				// Verify prevRandao matches payloadAttributes
-				if prevRandaoStr, ok := executionPayload["prevRandao"].(string); ok {
-					expectedPrevRandao := common.HexToHash(payloadAttrs["prevRandao"].(string))
-					gotPrevRandao := common.HexToHash(prevRandaoStr)
-					if gotPrevRandao != expectedPrevRandao {
-						return fmt.Errorf("prevRandao mismatch: got %s, want %s", gotPrevRandao.Hex(), expectedPrevRandao.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing prevRandao in executionPayload")
-				}
-
-				// Verify feeRecipient matches suggestedFeeRecipient from payloadAttributes
-				if feeRecipientStr, ok := executionPayload["feeRecipient"].(string); ok {
-					expectedFeeRecipient := common.HexToAddress(payloadAttrs["suggestedFeeRecipient"].(string))
-					gotFeeRecipient := common.HexToAddress(feeRecipientStr)
-					if gotFeeRecipient != expectedFeeRecipient {
-						return fmt.Errorf("feeRecipient mismatch: got %s, want %s", gotFeeRecipient.Hex(), expectedFeeRecipient.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing feeRecipient in executionPayload")
-				}
-
-				// Verify parentBeaconBlockRoot if Cancun is active and it's present in response
-				// Note: Some implementations may not include this field depending on ExecutionPayload version
-				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
-					if payloadBeaconRoot, hasBeaconRoot := payloadAttrs["parentBeaconBlockRoot"]; hasBeaconRoot {
-						if beaconRootStr, ok := executionPayload["parentBeaconBlockRoot"].(string); ok {
-							expectedBeaconRoot := common.HexToHash(payloadBeaconRoot.(string))
-							gotBeaconRoot := common.HexToHash(beaconRootStr)
-							if gotBeaconRoot != expectedBeaconRoot {
-								return fmt.Errorf("parentBeaconBlockRoot mismatch: got %s, want %s", gotBeaconRoot.Hex(), expectedBeaconRoot.Hex())
-							}
+				txValidator := func(txs []interface{}) error {
+					if len(txs) == 0 {
+						return fmt.Errorf("expected 1 transaction but got 0 (transactions parameter ignored). Sent transaction: %s", expectedTxHex)
+					} else if len(txs) > 1 {
+						txDetails := make([]string, len(txs))
+						for i, tx := range txs {
+							txDetails[i] = fmt.Sprintf("%v", tx)
 						}
-						// If parentBeaconBlockRoot was provided in payloadAttributes but missing in response,
-						// this may indicate the implementation is using an older ExecutionPayload version
-					}
-				}
-
-				// Spec: "The client MUST include all transactions from the transactions array on the block's transaction list, in the order they were provided."
-				// Spec: "The client MUST NOT include any transactions from its local transaction pool. The resulting block MUST only contain the transactions specified in the transactions array."
-				if txs, ok := executionPayload["transactions"].([]interface{}); ok {
-					if len(txs) != 1 {
-						return fmt.Errorf("expected exactly 1 transaction (only from transactions array), got %d", len(txs))
+						return fmt.Errorf("expected 1 transaction but got %d (mempool transactions included when only 1 was specified). Sent: %s, Got: %v", len(txs), expectedTxHex, txDetails)
 					}
 					if txStr, ok := txs[0].(string); ok {
-						expectedTxHex := hexutil.Encode(txBytes)
 						if txStr != expectedTxHex {
-							return fmt.Errorf("transaction mismatch: got %s, want %s", txStr, expectedTxHex)
+							return fmt.Errorf("expected 1 transaction and got 1, but it's the wrong transaction. Sent: %s, Got: %s", expectedTxHex, txStr)
 						}
 					} else {
-						return fmt.Errorf("transaction is not a string")
+						return fmt.Errorf("transaction in response is not a string, got type %T", txs[0])
 					}
-				} else {
-					return fmt.Errorf("missing or invalid transactions in executionPayload")
+					return nil
 				}
 
-				// Spec: "If extraData is provided, the client MUST set the extraData field of the resulting payload to this value."
-				if extraDataStr, ok := executionPayload["extraData"].(string); ok {
+				extraDataValidator := func(extraDataStr string) error {
 					expectedExtraData := hexutil.Encode([]byte("test_name"))
 					if extraDataStr != expectedExtraData {
 						return fmt.Errorf("extraData mismatch: got %s, want %s (per spec, must match provided value)", extraDataStr, expectedExtraData)
 					}
-				} else {
-					return fmt.Errorf("missing extraData in executionPayload")
+					return nil
 				}
 
-				// Spec: "This method MUST NOT modify the client's canonical chain or head block."
-				// Verify chain head hasn't changed
-				newHead := t.chain.Head()
-				if newHead.Hash() != parentHash {
-					return fmt.Errorf("chain head changed (method should be read-only): was %s, now %s", parentHash.Hex(), newHead.Hash().Hex())
-				}
-
-				return nil
+				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
 			},
 		},
 		{
 			Name:  "build-block-no-extra-data",
 			About: "builds a block with null extraData using testing_buildBlockV1",
 			Run: func(ctx context.Context, t *T) error {
-				// Get the parent block (head of chain)
 				parentBlock := t.chain.Head()
 				parentHash := parentBlock.Hash()
 
-				// Create payload attributes
 				payloadAttrs := map[string]interface{}{
 					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
 					"prevRandao":            common.Hash{}.Hex(),
@@ -2472,128 +2489,51 @@ var TestingBuildBlockV1 = MethodTests{
 					"withdrawals":           []interface{}{},
 				}
 
-				// Add parentBeaconBlockRoot if Cancun is active
 				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
-				// Call the RPC method with 4 separate parameters (extraData is null)
 				var result map[string]interface{}
 				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
-					parentHash.Hex(), // param 1: parentBlockHash
-					payloadAttrs,     // param 2: payloadAttributes
-					[]string{},       // param 3: transactions
-					nil,              // param 4: extraData (null)
+					parentHash.Hex(),
+					payloadAttrs,
+					[]string{},
+					nil,
 				)
 				if err != nil {
 					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
 				}
 
-				// Validate response structure
-				executionPayload, ok := result["executionPayload"].(map[string]interface{})
-				if !ok {
-					return fmt.Errorf("missing or invalid executionPayload in response")
-				}
-
-				// Verify parent hash matches
-				if parentHashStr, ok := executionPayload["parentHash"].(string); ok {
-					if parentHashStr != parentHash.Hex() {
-						return fmt.Errorf("parentHash mismatch: got %s, want %s", parentHashStr, parentHash.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing parentHash in executionPayload")
-				}
-
-				// Verify block number is parent + 1
-				if blockNumStr, ok := executionPayload["blockNumber"].(string); ok {
-					blockNum := hexutil.MustDecodeUint64(blockNumStr)
-					expectedNum := parentBlock.NumberU64() + 1
-					if blockNum != expectedNum {
-						return fmt.Errorf("blockNumber mismatch: got %d, want %d", blockNum, expectedNum)
-					}
-				} else {
-					return fmt.Errorf("missing blockNumber in executionPayload")
-				}
-
-				// Spec: "The client MUST use the provided payloadAttributes"
-				// Verify timestamp matches payloadAttributes
-				if timestampStr, ok := executionPayload["timestamp"].(string); ok {
-					gotTimestamp := hexutil.MustDecodeUint64(timestampStr)
-					expectedTimestamp := uint64(payloadAttrs["timestamp"].(hexutil.Uint64))
-					if gotTimestamp != expectedTimestamp {
-						return fmt.Errorf("timestamp mismatch: got %d, want %d", gotTimestamp, expectedTimestamp)
-					}
-				} else {
-					return fmt.Errorf("missing timestamp in executionPayload")
-				}
-
-				// Verify prevRandao matches payloadAttributes
-				if prevRandaoStr, ok := executionPayload["prevRandao"].(string); ok {
-					expectedPrevRandao := common.HexToHash(payloadAttrs["prevRandao"].(string))
-					gotPrevRandao := common.HexToHash(prevRandaoStr)
-					if gotPrevRandao != expectedPrevRandao {
-						return fmt.Errorf("prevRandao mismatch: got %s, want %s", gotPrevRandao.Hex(), expectedPrevRandao.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing prevRandao in executionPayload")
-				}
-
-				// Verify feeRecipient matches suggestedFeeRecipient from payloadAttributes
-				if feeRecipientStr, ok := executionPayload["feeRecipient"].(string); ok {
-					expectedFeeRecipient := common.HexToAddress(payloadAttrs["suggestedFeeRecipient"].(string))
-					gotFeeRecipient := common.HexToAddress(feeRecipientStr)
-					if gotFeeRecipient != expectedFeeRecipient {
-						return fmt.Errorf("feeRecipient mismatch: got %s, want %s", gotFeeRecipient.Hex(), expectedFeeRecipient.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing feeRecipient in executionPayload")
-				}
-
-				// Verify parentBeaconBlockRoot if Cancun is active and it's present in response
-				// Note: Some implementations may not include this field depending on ExecutionPayload version
-				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
-					if payloadBeaconRoot, hasBeaconRoot := payloadAttrs["parentBeaconBlockRoot"]; hasBeaconRoot {
-						if beaconRootStr, ok := executionPayload["parentBeaconBlockRoot"].(string); ok {
-							expectedBeaconRoot := common.HexToHash(payloadBeaconRoot.(string))
-							gotBeaconRoot := common.HexToHash(beaconRootStr)
-							if gotBeaconRoot != expectedBeaconRoot {
-								return fmt.Errorf("parentBeaconBlockRoot mismatch: got %s, want %s", gotBeaconRoot.Hex(), expectedBeaconRoot.Hex())
-							}
-						}
-						// If parentBeaconBlockRoot was provided in payloadAttributes but missing in response,
-						// this may indicate the implementation is using an older ExecutionPayload version
-					}
-				}
-
-				// Spec: "The client MUST NOT include any transactions from its local transaction pool. The resulting block MUST only contain the transactions specified in the transactions array."
-				if txs, ok := executionPayload["transactions"].([]interface{}); ok {
+				txValidator := func(txs []interface{}) error {
 					if len(txs) != 0 {
-						return fmt.Errorf("expected 0 transactions (only from transactions array), got %d", len(txs))
+						txDetails := make([]string, len(txs))
+						for i, tx := range txs {
+							txDetails[i] = fmt.Sprintf("%v", tx)
+						}
+						return fmt.Errorf("expected 0 transactions (empty transactions array passed), but got %d unexpected transactions from mempool: %v", len(txs), txDetails)
 					}
-				} else {
-					return fmt.Errorf("missing or invalid transactions in executionPayload")
+					return nil
 				}
 
-				// Spec: "This method MUST NOT modify the client's canonical chain or head block."
-				// Verify chain head hasn't changed
-				newHead := t.chain.Head()
-				if newHead.Hash() != parentHash {
-					return fmt.Errorf("chain head changed (method should be read-only): was %s, now %s", parentHash.Hex(), newHead.Hash().Hex())
+				extraDataValidator := func(extraDataStr string) error {
+					// When null is passed, extraData should be "0x"
+					if extraDataStr != "0x" {
+						return fmt.Errorf("expected extraData to be 0x (null) but got %s", extraDataStr)
+					}
+					return nil
 				}
 
-				return nil
+				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
 			},
 		},
 		{
 			Name:  "build-block-with-extra-data",
 			About: "builds a block with extraData but no transactions using testing_buildBlockV1",
 			Run: func(ctx context.Context, t *T) error {
-				// Get the parent block (head of chain)
 				parentBlock := t.chain.Head()
 				parentHash := parentBlock.Hash()
 
-				// Create payload attributes
 				payloadAttrs := map[string]interface{}{
 					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
 					"prevRandao":            common.Hash{}.Hex(),
@@ -2601,129 +2541,43 @@ var TestingBuildBlockV1 = MethodTests{
 					"withdrawals":           []interface{}{},
 				}
 
-				// Add parentBeaconBlockRoot if Cancun is active
 				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
-				// Prepare extraData (non-null)
 				extraData := hexutil.Encode([]byte("custom_extra_data"))
 
-				// Call the RPC method with 4 separate parameters (extraData is non-null, transactions is empty)
 				var result map[string]interface{}
 				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
-					parentHash.Hex(), // param 1: parentBlockHash
-					payloadAttrs,     // param 2: payloadAttributes
-					[]string{},       // param 3: transactions (empty array)
-					extraData,        // param 4: extraData (non-null)
+					parentHash.Hex(),
+					payloadAttrs,
+					[]string{},
+					extraData,
 				)
 				if err != nil {
 					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
 				}
 
-				// Validate response structure
-				executionPayload, ok := result["executionPayload"].(map[string]interface{})
-				if !ok {
-					return fmt.Errorf("missing or invalid executionPayload in response")
-				}
-
-				// Verify parent hash matches
-				if parentHashStr, ok := executionPayload["parentHash"].(string); ok {
-					if parentHashStr != parentHash.Hex() {
-						return fmt.Errorf("parentHash mismatch: got %s, want %s", parentHashStr, parentHash.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing parentHash in executionPayload")
-				}
-
-				// Verify block number is parent + 1
-				if blockNumStr, ok := executionPayload["blockNumber"].(string); ok {
-					blockNum := hexutil.MustDecodeUint64(blockNumStr)
-					expectedNum := parentBlock.NumberU64() + 1
-					if blockNum != expectedNum {
-						return fmt.Errorf("blockNumber mismatch: got %d, want %d", blockNum, expectedNum)
-					}
-				} else {
-					return fmt.Errorf("missing blockNumber in executionPayload")
-				}
-
-				// Spec: "The client MUST use the provided payloadAttributes"
-				// Verify timestamp matches payloadAttributes
-				if timestampStr, ok := executionPayload["timestamp"].(string); ok {
-					gotTimestamp := hexutil.MustDecodeUint64(timestampStr)
-					expectedTimestamp := uint64(payloadAttrs["timestamp"].(hexutil.Uint64))
-					if gotTimestamp != expectedTimestamp {
-						return fmt.Errorf("timestamp mismatch: got %d, want %d", gotTimestamp, expectedTimestamp)
-					}
-				} else {
-					return fmt.Errorf("missing timestamp in executionPayload")
-				}
-
-				// Verify prevRandao matches payloadAttributes
-				if prevRandaoStr, ok := executionPayload["prevRandao"].(string); ok {
-					expectedPrevRandao := common.HexToHash(payloadAttrs["prevRandao"].(string))
-					gotPrevRandao := common.HexToHash(prevRandaoStr)
-					if gotPrevRandao != expectedPrevRandao {
-						return fmt.Errorf("prevRandao mismatch: got %s, want %s", gotPrevRandao.Hex(), expectedPrevRandao.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing prevRandao in executionPayload")
-				}
-
-				// Verify feeRecipient matches suggestedFeeRecipient from payloadAttributes
-				if feeRecipientStr, ok := executionPayload["feeRecipient"].(string); ok {
-					expectedFeeRecipient := common.HexToAddress(payloadAttrs["suggestedFeeRecipient"].(string))
-					gotFeeRecipient := common.HexToAddress(feeRecipientStr)
-					if gotFeeRecipient != expectedFeeRecipient {
-						return fmt.Errorf("feeRecipient mismatch: got %s, want %s", gotFeeRecipient.Hex(), expectedFeeRecipient.Hex())
-					}
-				} else {
-					return fmt.Errorf("missing feeRecipient in executionPayload")
-				}
-
-				// Verify parentBeaconBlockRoot if Cancun is active and it's present in response
-				// Note: Some implementations may not include this field depending on ExecutionPayload version
-				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
-					if payloadBeaconRoot, hasBeaconRoot := payloadAttrs["parentBeaconBlockRoot"]; hasBeaconRoot {
-						if beaconRootStr, ok := executionPayload["parentBeaconBlockRoot"].(string); ok {
-							expectedBeaconRoot := common.HexToHash(payloadBeaconRoot.(string))
-							gotBeaconRoot := common.HexToHash(beaconRootStr)
-							if gotBeaconRoot != expectedBeaconRoot {
-								return fmt.Errorf("parentBeaconBlockRoot mismatch: got %s, want %s", gotBeaconRoot.Hex(), expectedBeaconRoot.Hex())
-							}
-						}
-						// If parentBeaconBlockRoot was provided in payloadAttributes but missing in response,
-						// this may indicate the implementation is using an older ExecutionPayload version
-					}
-				}
-
-				// Spec: "The client MUST NOT include any transactions from its local transaction pool. The resulting block MUST only contain the transactions specified in the transactions array."
-				if txs, ok := executionPayload["transactions"].([]interface{}); ok {
+				txValidator := func(txs []interface{}) error {
 					if len(txs) != 0 {
-						return fmt.Errorf("expected 0 transactions (only from transactions array), got %d", len(txs))
+						txDetails := make([]string, len(txs))
+						for i, tx := range txs {
+							txDetails[i] = fmt.Sprintf("%v", tx)
+						}
+						return fmt.Errorf("expected 0 transactions (empty transactions array passed), but got %d unexpected transactions from mempool: %v", len(txs), txDetails)
 					}
-				} else {
-					return fmt.Errorf("missing or invalid transactions in executionPayload")
+					return nil
 				}
 
-				// Spec: "If extraData is provided, the client MUST set the extraData field of the resulting payload to this value."
-				if extraDataStr, ok := executionPayload["extraData"].(string); ok {
+				extraDataValidator := func(extraDataStr string) error {
 					if extraDataStr != extraData {
 						return fmt.Errorf("extraData mismatch: got %s, want %s (per spec, must match provided value)", extraDataStr, extraData)
 					}
-				} else {
-					return fmt.Errorf("missing extraData in executionPayload")
+					return nil
 				}
 
-				// Spec: "This method MUST NOT modify the client's canonical chain or head block."
-				// Verify chain head hasn't changed
-				newHead := t.chain.Head()
-				if newHead.Hash() != parentHash {
-					return fmt.Errorf("chain head changed (method should be read-only): was %s, now %s", parentHash.Hex(), newHead.Hash().Hex())
-				}
-
-				return nil
+				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
 			},
 		},
 	},
