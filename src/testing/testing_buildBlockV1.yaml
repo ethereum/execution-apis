@@ -1,5 +1,19 @@
 - name: testing_buildBlockV1
   summary: Builds a block on top of a given parentHash using the provided parameters. This is a testing-only method for generating test fixtures.
+  description: |
+    This method is a debugging and testing tool that simplifies the block production process into a single call.
+
+    **Specification:**
+    - The client MUST build a new execution payload using the block specified by `parentBlockHash` as its parent.
+    - The client MUST use the provided `payloadAttributes` to define the context of the new block.
+    - The client MUST include all transactions from the `transactions` array on the block's transaction list, in the order they were provided.
+    - The client MUST NOT include any transactions from its local transaction pool. The resulting block MUST only contain the transactions specified in the `transactions` array.
+    - If `extraData` is provided, the client MUST set the `extraData` field of the resulting payload to this value.
+    - This method MUST NOT modify the client's canonical chain or head block. It is a read-only method for payload generation.
+
+    **Security Considerations:**
+    - This method is intended for testing environments ONLY and MUST NOT be exposed on public-facing RPC APIs.
+    - It is strongly recommended that this method be disabled by default.
   params:
     - name: Parent block hash
       required: true
@@ -26,6 +40,10 @@
             $ref: '#/components/schemas/hash32'
     - name: Transactions
       required: true
+      description: |
+        An array of raw, signed transactions (hex-encoded) to forcibly include in the generated block.
+        The client MUST include ALL transactions from this array in the resulting block, in the order provided.
+        The client MUST NOT include any transactions from its local mempool.
       schema:
         title: Transactions
         type: array
@@ -33,22 +51,40 @@
           $ref: '#/components/schemas/bytes'
     - name: Extra data
       required: false
+      description: |
+        Data to be set as the extraData field of the built block. If provided, the client MUST use this exact value.
       schema:
         oneOf:
           - $ref: '#/components/schemas/bytes'
           - type: 'null'
   result:
-    name: Built block
+    name: Response object
     schema:
-      title: Built block
+      title: Response object
       type: object
+      required:
+        - executionPayload
+        - blockValue
+        - blobsBundle
+        - shouldOverrideBuilder
       properties:
-        blockHash:
-          $ref: '#/components/schemas/hash32'
+        executionPayload:
+          title: Execution payload
+          $ref: '#/components/schemas/ExecutionPayloadV3'
         blockValue:
-          $ref: '#/components/schemas/uint'
-        blobGasUsed:
-          $ref: '#/components/schemas/uint'
+          title: Expected block value
+          $ref: '#/components/schemas/uint256'
+        blobsBundle:
+          title: Blobs bundle
+          $ref: '#/components/schemas/BlobsBundleV1'
+        shouldOverrideBuilder:
+          title: Should override builder flag
+          type: boolean
+        executionRequests:
+          title: Execution requests
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
   errors:
     - code: -32602
       message: Invalid parameters
@@ -71,8 +107,29 @@
         - name: Extra data
           value: null
       result:
-        name: Built block
+        name: Response object
         value:
-          blockHash: '0x1234567890123456789012345678901234567890123456789012345678901234'
+          executionPayload:
+            parentHash: '0xe27a3e81bd7cfe2aec2cc9e832c73a17c93e7efcf659cf4b39883b96c48708c2'
+            feeRecipient: '0x0000000000000000000000000000000000000000'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            blockNumber: '0x1'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0x0'
+            timestamp: '0x1ce'
+            extraData: '0x'
+            baseFeePerGas: '0x7'
+            blockHash: '0x1234567890123456789012345678901234567890123456789012345678901234'
+            transactions: []
+            withdrawals: []
+            blobGasUsed: '0x0'
+            excessBlobGas: '0x0'
           blockValue: '0x0'
-          blobGasUsed: '0x0'
+          blobsBundle:
+            commitments: []
+            proofs: []
+            blobs: []
+          shouldOverrideBuilder: false
