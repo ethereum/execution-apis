@@ -1,0 +1,78 @@
+- name: testing_buildBlockV1
+  summary: Builds a block on top of a given parentHash using the provided parameters. This is a testing-only method for generating test fixtures.
+  params:
+    - name: Parent block hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Payload attributes
+      required: true
+      schema:
+        title: PayloadAttributesV3
+        type: object
+        properties:
+          timestamp:
+            $ref: '#/components/schemas/uint'
+          prevRandao:
+            $ref: '#/components/schemas/hash32'
+          suggestedFeeRecipient:
+            $ref: '#/components/schemas/address'
+          withdrawals:
+            title: Withdrawals
+            type: array
+            items:
+              $ref: '#/components/schemas/Withdrawal'
+          parentBeaconBlockRoot:
+            $ref: '#/components/schemas/hash32'
+    - name: Transactions
+      required: true
+      schema:
+        title: Transactions
+        type: array
+        items:
+          $ref: '#/components/schemas/bytes'
+    - name: Extra data
+      required: false
+      schema:
+        oneOf:
+          - $ref: '#/components/schemas/bytes'
+          - type: 'null'
+  result:
+    name: Built block
+    schema:
+      title: Built block
+      type: object
+      properties:
+        blockHash:
+          $ref: '#/components/schemas/hash32'
+        blockValue:
+          $ref: '#/components/schemas/uint'
+        blobGasUsed:
+          $ref: '#/components/schemas/uint'
+  errors:
+    - code: -32602
+      message: Invalid parameters
+    - code: -32603
+      message: Internal error
+  examples:
+    - name: testing_buildBlockV1 example
+      params:
+        - name: Parent block hash
+          value: '0xe27a3e81bd7cfe2aec2cc9e832c73a17c93e7efcf659cf4b39883b96c48708c2'
+        - name: Payload attributes
+          value:
+            timestamp: '0x1ce'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            suggestedFeeRecipient: '0x0000000000000000000000000000000000000000'
+            withdrawals: []
+            parentBeaconBlockRoot: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822'
+        - name: Transactions
+          value: []
+        - name: Extra data
+          value: null
+      result:
+        name: Built block
+        value:
+          blockHash: '0x1234567890123456789012345678901234567890123456789012345678901234'
+          blockValue: '0x0'
+          blobGasUsed: '0x0'

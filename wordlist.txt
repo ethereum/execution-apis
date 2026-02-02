@@ -3,6 +3,7 @@ attributesv
 bodyv
 bodiesbyrangev
 bodiesbyhashv
+buildBlockV
 bytecode
 clientversionv
 configurationv

@@ -1,0 +1,3 @@
+// builds a block with extraData but no transactions using testing_buildBlockV1
+>> {"jsonrpc":"2.0","id":1,"method":"testing_buildBlockV1","params":["0xe27a3e81bd7cfe2aec2cc9e832c73a17c93e7efcf659cf4b39883b96c48708c2",{"parentBeaconBlockRoot":"0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822","prevRandao":"0x0000000000000000000000000000000000000000000000000000000000000000","suggestedFeeRecipient":"0x0000000000000000000000000000000000000000","timestamp":"0x1ce","withdrawals":[]},[],"0x637573746f6d5f65787472615f64617461"]}
+<< {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"the method testing_buildBlockV1 does not exist/is not available"}}

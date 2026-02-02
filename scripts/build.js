@@ -54,6 +54,18 @@ methodFiles.forEach(file => {
   ];
 });
 
+methodsBase = "src/testing/";
+methodFiles = fs.readdirSync(methodsBase);
+methodFiles.forEach(file => {
+  console.log(file);
+  let raw = fs.readFileSync(methodsBase + file);
+  let parsed = yaml.load(raw);
+  methods = [
+    ...methods,
+    ...parsed,
+  ];
+});
+
 let schemas = {};
 let schemasBase = "src/schemas/"
 let schemaFiles = fs.readdirSync(schemasBase);
