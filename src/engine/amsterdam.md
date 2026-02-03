@@ -150,8 +150,6 @@ This method follows the same specification as [`engine_getPayloadBodiesByHashV1`
 
 2. Client software **MUST** set the `blockAccessList` field to `null` if the block access list has been pruned from storage.
 
-3. Client software **MUST** retain block access lists for at least 3533 epochs (the weak subjectivity period) to support synchronization with re-execution.
-
 ### engine_getPayloadBodiesByRangeV2
 
 This method retrieves execution payload bodies including block access lists for a range of blocks.
@@ -176,8 +174,6 @@ This method follows the same specification as [`engine_getPayloadBodiesByRangeV1
 1. Client software **MUST** set the `blockAccessList` field to `null` for blocks that predate the Amsterdam fork activation.
 
 2. Client software **MUST** set the `blockAccessList` field to `null` if the block access list has been pruned from storage.
-
-3. Client software **MUST** retain block access lists for at least 3533 epochs (the weak subjectivity period) to support synchronization with re-execution.
 
 ### Update the methods of previous forks
 
