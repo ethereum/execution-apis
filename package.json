@@ -1,6 +1,7 @@
 {
   "name": "execution-apis",
   "version": "0.0.0",
+  "type": "module",
   "description": "Collection of JSON-RPC APIs provided by Ethereum 1.0 clients",
   "main": "index.js",
   "scripts": {
