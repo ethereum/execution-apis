@@ -265,6 +265,7 @@ ExecutionPayloadV4:
     - blobGasUsed
     - excessBlobGas
     - blockAccessList
+    - slotNumber
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV3/properties/parentHash'
@@ -303,6 +304,9 @@ ExecutionPayloadV4:
     blockAccessList:
       title: Block access list
       $ref: '#/components/schemas/bytes'
+    slotNumber:
+      title: Slot number
+      $ref: '#/components/schemas/uint64'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object

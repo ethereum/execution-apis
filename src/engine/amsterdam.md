@@ -29,6 +29,11 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
+  - [engine_forkchoiceUpdatedV4](#engine_forkchoiceupdatedv4)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
+  - [PayloadAttributesV4](#payloadattributesv4)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Osaka API](#osaka-api)
 
@@ -58,6 +63,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 - `blobGasUsed`: `QUANTITY`, 64 Bits
 - `excessBlobGas`: `QUANTITY`, 64 Bits
 - `blockAccessList`: `DATA` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928)
+- `slotNumber`: `QUANTITY`, 64 Bits
 
 ### ExecutionPayloadBodyV2
 
@@ -175,6 +181,47 @@ This method follows the same specification as [`engine_getPayloadBodiesByRangeV1
 
 2. Client software **MUST** set the `blockAccessList` field to `null` if the block access list has been pruned from storage.
 
+### engine_forkchoiceUpdatedV4
+
+#### Request
+
+* method: `engine_forkchoiceUpdatedV4`
+* params:
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
+* timeout: 8s
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following changes to the processing flow:
+
+1. Client software **MUST** verify that `forkchoiceState` matches the [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1) structure and return `-32602: Invalid params` on failure.
+
+2. Extend point (7) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
+
+    1. `payloadAttributes` matches the [`PayloadAttributesV4`](#payloadattributesv4) structure, return `-38003: Invalid payload attributes` on failure.
+
+    2. `payloadAttributes.timestamp` does not fall within the time frame of the Amsterdam fork, return `-38005: Unsupported fork` on failure.
+
+    3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
+
+    4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
+
+### PayloadAttributesV4
+
+This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends a single field: `slotNumber`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+- `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
+
 ### Update the methods of previous forks
 
 #### Osaka API
@@ -183,10 +230,8 @@ For the following methods:
 
 - [`engine_newPayloadV4`](./prague.md#engine_newpayloadv4)
 - [`engine_getPayloadV5`](./osaka.md#engine_getpayloadv5)
+- [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3)
 
 a validation **MUST** be added:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload greater or equal to the Amsterdam activation timestamp.
-
-For the [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) the following modification **MUST** be made:
-1. Return `-38005: Unsupported fork` if `payloadAttributes.timestamp` doesn't fall within the time frame of the Cancun, Prague, Osaka *or Amsterdam* forks.

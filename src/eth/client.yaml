@@ -70,3 +70,16 @@
       result:
         name: Block number
         value: '0x2377'
+- name: net_version
+  summary: Returns the current network ID. This is usually equivalent to the chainID, but may differ from it for some legacy networks or special testnets.
+  params: []
+  result:
+    name: Network ID
+    schema:
+      $ref: '#/components/schemas/uintDecimal'
+  examples:
+    - name: net_version example
+      params: []
+      result:
+        name: Network ID
+        value: '1'
