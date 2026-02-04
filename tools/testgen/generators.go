@@ -2407,7 +2407,9 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
-				sender, nonce := t.chain.GetSender(0)
+				// Use sender index 2 so nonce matches geth state: index 0 (and 3) are used by
+				// eth_sendRawTransaction tests which call IncNonce, so they diverge from geth when run in full suite.
+				sender, nonce := t.chain.GetSender(2)
 				basefee := parentBlock.BaseFee()
 				if basefee == nil {
 					basefee = big.NewInt(1000000000)
@@ -2578,6 +2580,81 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 
 				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
+			},
+		},
+		{
+			Name:  "build-block-invalid-transaction",
+			About: "calls testing_buildBlockV1 with an unapplicable transaction (wrong nonce); client MUST return an error and not modify the chain",
+			Run: func(ctx context.Context, t *T) error {
+				parentBlock := t.chain.Head()
+				parentHash := parentBlock.Hash()
+
+				payloadAttrs := map[string]interface{}{
+					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
+					"prevRandao":            common.Hash{}.Hex(),
+					"suggestedFeeRecipient": common.Address{}.Hex(),
+					"withdrawals":           []interface{}{},
+				}
+
+				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
+					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				// Use an invalid nonce (e.g. 999) so the tx cannot be applied; client MUST fail.
+				sender, _ := t.chain.GetSender(2)
+				basefee := parentBlock.BaseFee()
+				if basefee == nil {
+					basefee = big.NewInt(1000000000)
+				}
+				gasFeeCap := new(big.Int).Add(basefee, big.NewInt(500))
+				txdata := &types.DynamicFeeTx{
+					Nonce:     999, // invalid: account will not have this nonce
+					To:        &emitContract,
+					Gas:       21000,
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: gasFeeCap,
+					Value:     big.NewInt(1000),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				txBytes, err := tx.MarshalBinary()
+				if err != nil {
+					return fmt.Errorf("failed to marshal transaction: %w", err)
+				}
+				txHex := hexutil.Encode(txBytes)
+
+				var result map[string]interface{}
+				err = t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
+					parentHash.Hex(),
+					payloadAttrs,
+					[]string{txHex},
+					nil,
+				)
+				if err == nil {
+					return fmt.Errorf("testing_buildBlockV1 must fail when a transaction cannot be applied (e.g. invalid nonce), but it succeeded")
+				}
+
+				// Spec: client MUST return an RPC error (e.g. -32602, -32603, or implementation-defined -32000).
+				var rpcErr rpc.Error
+				if !errors.As(err, &rpcErr) {
+					return fmt.Errorf("testing_buildBlockV1 must return an RPC error with a code, got: %w", err)
+				}
+				code := rpcErr.ErrorCode()
+				// -32602 Invalid parameters, -32603 Internal error, -32000 implementation-defined (common for execution failures)
+				if code != -32602 && code != -32603 && code != -32000 {
+					return fmt.Errorf("testing_buildBlockV1 must return error code -32602, -32603, or -32000 for unapplicable tx, got code %d: %w", code, err)
+				}
+
+				// Spec: method MUST NOT modify the chain; head must be unchanged.
+				headBlock, err := t.eth.BlockByNumber(ctx, nil)
+				if err != nil {
+					return fmt.Errorf("failed to get node head after failed call: %w", err)
+				}
+				if headBlock.Hash() != parentHash {
+					return fmt.Errorf("chain head must not change when testing_buildBlockV1 fails (read-only); was %s, now %s", parentHash.Hex(), headBlock.Hash().Hex())
+				}
+
+				return nil
 			},
 		},
 	},

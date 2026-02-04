@@ -88,8 +88,13 @@
   errors:
     - code: -32602
       message: Invalid parameters
+      description: Invalid or malformed request (e.g. unknown parent hash, invalid payload attributes).
     - code: -32603
       message: Internal error
+      description: |
+        Returned when one or more transactions in the `transactions` array cannot be applied
+        in the block context (e.g. invalid nonce, insufficient funds, invalid signature).
+        The method MUST NOT return a partial payload; it MUST fail and leave the chain unchanged.
   examples:
     - name: testing_buildBlockV1 example
       params:
