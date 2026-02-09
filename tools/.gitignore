@@ -1,5 +1,6 @@
 ethash/
 /rpctestgen
+/speccheck
 /geth
 /openrpc.json
 

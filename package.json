@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run build:spec && npm run build:docs && npm run build:test",
     "build:spec": "node scripts/build.js",
-    "build:test": "which go > /dev/null 2>&1 || (echo 'Error: Go binary not found. Please install Go first.' && exit 1) && go install -C rpctestgen/ ./cmd/speccheck",
+    "build:test": "which go > /dev/null 2>&1 || (echo 'Error: Go binary not found. Please install Go first.' && exit 1) && go install -C tools/ ./cmd/speccheck",
     "build:docs": "npm run build:spec && npm run docs:copy && npm run build:docusaurus",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",

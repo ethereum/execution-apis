@@ -1,15 +1,14 @@
-.PHONY: all clean build buildgeth test lint fill
-
-all: build fill
+.PHONY: clean test lint fill
 
 build:
-	go build .
+	go build -o rpctestgen ./cmd/rpctestgen
+	go build -o speccheck ./cmd/speccheck
 
-buildgeth:
+geth:
 	go build -o geth github.com/ethereum/go-ethereum/cmd/geth
 
 clean:
-	rm -f rpctestgen
+	rm -rf ./geth ./speccheck ./rpctestgen ../tests
 
 test:
 	go test ./...
@@ -19,5 +18,5 @@ lint:
 	go vet ./...
 	staticcheck ./...
 
-fill: build buildgeth
+fill: build geth
 	./rpctestgen --bin ./geth -chain ./chain --out ../tests

@@ -91,7 +91,7 @@ all passing.
 or
 
 ```console
-$ go install -C rpctestgen/ ./cmd/speccheck
+$ go install -C tools/ ./cmd/speccheck
 $ speccheck -v
 ```
 

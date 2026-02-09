@@ -1,4 +1,4 @@
-module github.com/lightclient/rpctestgen
+module github.com/ethereum/execution-apis/tools
 
 go 1.24.0
 
