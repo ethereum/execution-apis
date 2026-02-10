@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run build:spec && npm run build:docs && npm run build:test",
-    "build:spec": "node scripts/build.js",
+    "build:refs-spec": "npm run build:specgen && specgen -o refs-openrpc.json -schemas src/schemas/\\*.yaml -schemas src/engine/openrpc/schemas/\\*.yaml -methods src/eth/\\*.yaml -methods src/debug/\\*.yaml -methods src/engine/openrpc/methods/\\*.yaml",
+    "build:spec": "npm run build:refs-spec && node scripts/build.js",
     "build:test": "which go > /dev/null 2>&1 || (echo 'Error: Go binary not found. Please install Go first.' && exit 1) && go install -C tools/ ./cmd/speccheck",
+    "build:specgen": "which go > /dev/null 2>&1 || (echo 'Error: Go binary not found. Please install Go first.' && exit 1) && go install -C tools/ ./cmd/specgen",
     "build:docs": "npm run build:spec && npm run docs:copy && npm run build:docusaurus",
     "lint": "node scripts/build.js && node scripts/validate.js && node scripts/graphql-validate.js",
     "clean": "rm -rf build && mkdir -p build",
