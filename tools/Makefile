@@ -3,6 +3,7 @@
 build:
 	go build -o rpctestgen ./cmd/rpctestgen
 	go build -o speccheck ./cmd/speccheck
+	go build -o specgen ./cmd/specgen
 
 geth:
 	go build -o geth github.com/ethereum/go-ethereum/cmd/geth
