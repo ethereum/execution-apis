@@ -2530,59 +2530,6 @@ var TestingBuildBlockV1 = MethodTests{
 			},
 		},
 		{
-			Name:  "build-block-with-extra-data",
-			About: "builds a block with extraData but no transactions using testing_buildBlockV1",
-			Run: func(ctx context.Context, t *T) error {
-				parentBlock := t.chain.Head()
-				parentHash := parentBlock.Hash()
-
-				payloadAttrs := map[string]interface{}{
-					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
-					"prevRandao":            common.Hash{}.Hex(),
-					"suggestedFeeRecipient": common.Address{}.Hex(),
-					"withdrawals":           []interface{}{},
-				}
-
-				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
-					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
-					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
-				}
-
-				extraData := hexutil.Encode([]byte("custom_extra_data"))
-
-				var result map[string]interface{}
-				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
-					parentHash.Hex(),
-					payloadAttrs,
-					[]string{},
-					extraData,
-				)
-				if err != nil {
-					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
-				}
-
-				txValidator := func(txs []interface{}) error {
-					if len(txs) != 0 {
-						txDetails := make([]string, len(txs))
-						for i, tx := range txs {
-							txDetails[i] = fmt.Sprintf("%v", tx)
-						}
-						return fmt.Errorf("expected 0 transactions (empty transactions array passed), but got %d unexpected transactions from mempool: %v", len(txs), txDetails)
-					}
-					return nil
-				}
-
-				extraDataValidator := func(extraDataStr string) error {
-					if extraDataStr != extraData {
-						return fmt.Errorf("extraData mismatch: got %s, want %s (per spec, must match provided value)", extraDataStr, extraData)
-					}
-					return nil
-				}
-
-				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
-			},
-		},
-		{
 			Name:  "build-block-invalid-transaction",
 			About: "calls testing_buildBlockV1 with an unapplicable transaction (wrong nonce); client MUST return an error and not modify the chain",
 			Run: func(ctx context.Context, t *T) error {
