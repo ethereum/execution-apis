@@ -1,7 +1,7 @@
 github.com/DataDog/zstd v1.5.2 h1:vUG4lAyuPCXO0TLbXvPv7EB7cNK1QV/luu55UHLrrn8=
 github.com/DataDog/zstd v1.5.2/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
-github.com/MariusVanDerWijden/go-ethereum v0.0.0-20260212150454-828f5fa25e12 h1:4kLZkrdVtcQFSXBHpdXfD0Owa+Ge4wsSMIw7RTPSWvA=
-github.com/MariusVanDerWijden/go-ethereum v0.0.0-20260212150454-828f5fa25e12/go.mod h1:RRZTBfsoT4iNtjxzeYEzu3JWRZ8+Wq+aA5PmJygdEkQ=
+github.com/MariusVanDerWijden/go-ethereum v0.0.0-20260212152103-c654f467d58d h1:hyVqiNQJEBXUV/0GsY6mlFMGDJZGSBlFEG5qoIDsB1M=
+github.com/MariusVanDerWijden/go-ethereum v0.0.0-20260212152103-c654f467d58d/go.mod h1:RRZTBfsoT4iNtjxzeYEzu3JWRZ8+Wq+aA5PmJygdEkQ=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/ProjectZKM/Ziren/crates/go-runtime/zkvm_runtime v0.0.0-20260212005555-3a7e5700f354 h1:BgaMXBpcqcW74afzqI3iKo07K3tC+VuyWU3/FIvLlNI=
