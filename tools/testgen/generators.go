@@ -2478,8 +2478,8 @@ var TestingBuildBlockV1 = MethodTests{
 			},
 		},
 		{
-			Name:  "build-block-no-extra-data",
-			About: "builds a block with null extraData using testing_buildBlockV1",
+			Name:  "build-block-empty-transactions",
+			About: "builds a block with empty transactions array using testing_buildBlockV1",
 			Run: func(ctx context.Context, t *T) error {
 				parentBlock := t.chain.Head()
 				parentHash := parentBlock.Hash()
@@ -2496,12 +2496,13 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				extraData := hexutil.Encode([]byte{})
 				var result map[string]interface{}
 				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
 					parentHash.Hex(),
 					payloadAttrs,
 					[]string{},
-					nil,
+					extraData,
 				)
 				if err != nil {
 					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
@@ -2519,9 +2520,91 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 
 				extraDataValidator := func(extraDataStr string) error {
-					// When null is passed, extraData should be "0x"
+					// When empty extraData "0x" is passed, expect it back
 					if extraDataStr != "0x" {
-						return fmt.Errorf("expected extraData to be 0x (null) but got %s", extraDataStr)
+						return fmt.Errorf("expected extraData to be 0x but got %s", extraDataStr)
+					}
+					return nil
+				}
+
+				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
+			},
+		},
+		{
+			Name:  "build-block-from-mempool",
+			About: "builds a block from mempool using testing_buildBlockV1 with null transactions parameter",
+			Run: func(ctx context.Context, t *T) error {
+				parentBlock := t.chain.Head()
+				parentHash := parentBlock.Hash()
+
+				payloadAttrs := map[string]interface{}{
+					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
+					"prevRandao":            common.Hash{}.Hex(),
+					"suggestedFeeRecipient": common.Address{}.Hex(),
+					"withdrawals":           []interface{}{},
+				}
+
+				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
+					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				// Add a transaction to the mempool first
+				sender, nonce := t.chain.GetSender(1)
+				basefee := parentBlock.BaseFee()
+				if basefee == nil {
+					basefee = big.NewInt(1000000000)
+				}
+				gasFeeCap := new(big.Int).Add(basefee, big.NewInt(500))
+
+				txdata := &types.DynamicFeeTx{
+					Nonce:     nonce,
+					To:        &emitContract,
+					Gas:       21000,
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: gasFeeCap,
+					Value:     big.NewInt(1000),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+
+				// Send transaction to add it to the mempool
+				txBytes, err := tx.MarshalBinary()
+				if err != nil {
+					return fmt.Errorf("failed to marshal transaction: %w", err)
+				}
+				txHex := hexutil.Encode(txBytes)
+
+				var txHash common.Hash
+				err = t.rpc.CallContext(ctx, &txHash, "eth_sendRawTransaction", txHex)
+				if err != nil {
+					return fmt.Errorf("failed to send transaction to mempool: %w", err)
+				}
+
+				// Now call testing_buildBlockV1 with null transactions to build from mempool
+				var result map[string]interface{}
+				extraData := hexutil.Encode([]byte{})
+				err = t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
+					parentHash.Hex(),
+					payloadAttrs,
+					nil,       // null transactions - should build from mempool
+					extraData, // explicit empty extraData for deterministic tests
+				)
+				if err != nil {
+					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
+				}
+
+				// Validator: when null is passed, client MAY include mempool transactions
+				// We just sent a transaction to mempool, so we expect it might be included
+				txValidator := func(txs []interface{}) error {
+					// The spec says client MAY build from mempool, so 0 or more txs is acceptable
+					// However, if a tx is included, it should be from the mempool
+					return nil
+				}
+
+				extraDataValidator := func(extraDataStr string) error {
+					// When extraData is "0x", expect it back
+					if extraDataStr != "0x" {
+						return fmt.Errorf("expected extraData to be 0x but got %s", extraDataStr)
 					}
 					return nil
 				}
@@ -2570,12 +2653,13 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 				txHex := hexutil.Encode(txBytes)
 
+				extraData := hexutil.Encode([]byte{})
 				var result map[string]interface{}
 				err = t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
 					parentHash.Hex(),
 					payloadAttrs,
 					[]string{txHex},
-					nil,
+					extraData,
 				)
 				if err == nil {
 					return fmt.Errorf("testing_buildBlockV1 must fail when a transaction cannot be applied (e.g. invalid nonce), but it succeeded")

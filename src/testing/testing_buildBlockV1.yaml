@@ -6,8 +6,9 @@
     **Specification:**
     - The client MUST build a new execution payload using the block specified by `parentBlockHash` as its parent.
     - The client MUST use the provided `payloadAttributes` to define the context of the new block.
-    - The client MUST include all transactions from the `transactions` array on the block's transaction list, in the order they were provided.
-    - The client MUST NOT include any transactions from its local transaction pool. The resulting block MUST only contain the transactions specified in the `transactions` array.
+    - If the `transactions` parameter is an empty array `[]`, the client MUST build an empty block (no transactions).
+    - If the `transactions` parameter is JSON `null`, the client MAY build a block from its local transaction pool (mempool).
+    - If the `transactions` parameter is a non-empty array, the client MUST include all transactions from the array on the block's transaction list, in the order they were provided, and MUST NOT include any transactions from its local transaction pool.
     - If `extraData` is provided, the client MUST set the `extraData` field of the resulting payload to this value.
     - This method MUST NOT modify the client's canonical chain or head block. It is a read-only method for payload generation.
 
@@ -41,14 +42,17 @@
     - name: Transactions
       required: true
       description: |
-        An array of raw, signed transactions (hex-encoded) to forcibly include in the generated block.
-        The client MUST include ALL transactions from this array in the resulting block, in the order provided.
-        The client MUST NOT include any transactions from its local mempool.
+        An array of raw, signed transactions (hex-encoded) to include in the generated block, or null.
+        - If an empty array `[]`: The client MUST build an empty block (no transactions).
+        - If `null`: The client MAY build a block from its local transaction pool (mempool).
+        - If a non-empty array: The client MUST include ALL transactions from this array in the resulting block, in the order provided, and MUST NOT include any transactions from its local mempool.
       schema:
         title: Transactions
-        type: array
-        items:
-          $ref: '#/components/schemas/bytes'
+        oneOf:
+          - type: array
+            items:
+              $ref: '#/components/schemas/bytes'
+          - type: 'null'
     - name: Extra data
       required: false
       description: |
