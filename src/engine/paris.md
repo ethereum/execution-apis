@@ -40,7 +40,7 @@ Engine API structures and methods specified for Paris.
 
 ### ExecutionPayloadV1
 
-This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
+This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md#executionpayload) structure of the beacon chain spec. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
