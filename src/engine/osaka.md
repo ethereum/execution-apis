@@ -55,7 +55,7 @@ The fields are encoded as follows:
 
 ### engine_getPayloadV5
 
-This method is updated in a backward incompatible way. Instead of returning `BlobBundleV1`, it returns `BlobsBundleV2`.
+This method is updated in a backward incompatible way. Instead of returning `blobsBundle` as [`BlobsBundleV1`](./cancun.md#blobsbundlev1), it returns as [`BlobsBundleV2`](#BlobsBundleV2).
 
 #### Request
 
