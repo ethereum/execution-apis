@@ -216,7 +216,7 @@ CallResultFailure:
       - type: object
         properties:
           code:
-            const: -32000
+            const: 3
           message:
             type: string
             pattern: "^execution reverted.*"
