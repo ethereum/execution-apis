@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"os"
 	"reflect"
 	"slices"
@@ -122,7 +121,6 @@ func (s *Generator) AddSchemas(schemas []byte) error {
 }
 
 func (s *Generator) Validate() error {
-
 	// Validate base document against the openrpc schema.
 	err := metaschema.Validate(s.baseDoc)
 	if err != nil {
@@ -148,6 +146,7 @@ func (s *Generator) Validate() error {
 	return nil
 }
 
+// MarshalJSON implements json.Marshaler.
 func (s *Generator) MarshalJSON() ([]byte, error) {
 	// Sort the methods by name.
 	slices.SortFunc(s.baseDoc["methods"].([]any), func(a, b any) int {
