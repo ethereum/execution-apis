@@ -1,10 +1,11 @@
-package generator
+package specgen
 
 import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
 	"slices"
@@ -81,11 +82,11 @@ func parseMethods(content []byte) ([]any, error) {
 	return out, nil
 }
 
-type specgen struct {
+type Generator struct {
 	baseDoc map[string]any
 }
 
-func NewSpecgen() *specgen {
+func New() *Generator {
 	baseDoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(baseDocJSON))
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal base document, despite init check: %v", err))
@@ -94,12 +95,12 @@ func NewSpecgen() *specgen {
 	if !ok {
 		panic(fmt.Errorf("failed to unmarshal base document, despite init check: %v", err))
 	}
-	return &specgen{
+	return &Generator{
 		baseDoc: baseDocMap,
 	}
 }
 
-func (s *specgen) AddMethods(methods []byte) error {
+func (s *Generator) AddMethods(methods []byte) error {
 	methodSchemas, err := parseMethods(methods)
 	if err != nil {
 		return fmt.Errorf("failed to parse methods: %v", err)
@@ -108,7 +109,7 @@ func (s *specgen) AddMethods(methods []byte) error {
 	return nil
 }
 
-func (s *specgen) AddSchemas(schemas []byte) error {
+func (s *Generator) AddSchemas(schemas []byte) error {
 	parsedSchema, err := parseSchema(schemas)
 	if err != nil {
 		return fmt.Errorf("failed to parse schemas: %v", err)
@@ -120,7 +121,7 @@ func (s *specgen) AddSchemas(schemas []byte) error {
 	return nil
 }
 
-func (s *specgen) Validate() error {
+func (s *Generator) Validate() error {
 
 	// Validate base document against the openrpc schema.
 	err := metaschema.Validate(s.baseDoc)
@@ -147,7 +148,7 @@ func (s *specgen) Validate() error {
 	return nil
 }
 
-func (s *specgen) MarshalJSON() ([]byte, error) {
+func (s *Generator) MarshalJSON() ([]byte, error) {
 	// Sort the methods by name.
 	slices.SortFunc(s.baseDoc["methods"].([]any), func(a, b any) int {
 		aMap, ok := a.(map[string]any)

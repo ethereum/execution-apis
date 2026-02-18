@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	generator "github.com/ethereum/execution-apis/tools/internal/specgen"
+	"github.com/ethereum/execution-apis/tools/internal/specgen"
 )
 
 var methodFilesFlag = []string{}
@@ -83,7 +83,7 @@ func main() {
 	logger.Info("schema files", "count", len(schemaFiles))
 	logger.Debug("schema file paths", "paths", schemaFiles)
 
-	sg := generator.NewSpecgen()
+	sg := specgen.New()
 
 	// Read all the files
 	for _, filename := range methodFiles {
