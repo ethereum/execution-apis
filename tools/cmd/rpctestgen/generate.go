@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/cespare/cp"
-	"github.com/ethereum/execution-apis/tools/cmd/rpctestgen/testgen"
+	"github.com/ethereum/execution-apis/tools/testgen"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )

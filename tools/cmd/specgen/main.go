@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ethereum/execution-apis/tools/cmd/specgen/generator"
+	generator "github.com/ethereum/execution-apis/tools/internal/specgen"
 )
 
 var methodFilesFlag = []string{}

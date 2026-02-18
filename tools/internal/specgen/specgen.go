@@ -10,10 +10,9 @@ import (
 	"slices"
 	"strings"
 
-	"gopkg.in/yaml.v3"
-
-	"github.com/ethereum/execution-apis/tools/cmd/specgen/metaschema"
+	"github.com/ethereum/execution-apis/tools/internal/metaschema"
 	"github.com/santhosh-tekuri/jsonschema/v6"
+	"gopkg.in/yaml.v3"
 )
 
 //go:embed base-doc.json
