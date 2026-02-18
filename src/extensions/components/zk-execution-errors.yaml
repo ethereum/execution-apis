@@ -1,0 +1,5 @@
+x-error-group:
+  ZKExecutionErrors:
+    - code: 2000      
+      message: "Not enough step counters to continue the execution"
+      x-error-category: "ZK_EXECUTION_ERRORS"

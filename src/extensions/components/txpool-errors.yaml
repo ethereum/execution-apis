@@ -1,0 +1,35 @@
+x-error-group:
+  TxPoolErrors:
+    - code: 1000      
+      message: "Transaction is already known to the transaction pool"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1001      
+      message: "Replacement transaction is sent without the required price bump"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1002      
+      message: "Oversized data: Transaction input data exceeds the allowed limit"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1003      
+      message: "Only replay-protected (EIP-155) transactions allowed over RPC"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1004      
+      message: "Transaction pool is full"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1005      
+      message: "Transaction Data contains invalid RLP encoding"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1006      
+      message: "Transaction sender is invalid"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1007      
+      message: "Transaction with negative value"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1008      
+      message: "Transaction sender is denylisted"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1009      
+      message: "Transaction receiver is denylisted"
+      x-error-category: "TXPOOL_ERRORS"
+    - code: 1010      
+      message: "Transaction chain ID does not match the expected chain ID"
+      x-error-category: "TXPOOL_ERRORS"
