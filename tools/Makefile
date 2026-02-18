@@ -9,7 +9,8 @@ geth:
 	go build -o geth github.com/ethereum/go-ethereum/cmd/geth
 
 clean:
-	rm -rf ./geth ./speccheck ./rpctestgen ../tests
+	rm -f ./geth ./speccheck ./rpctestgen ./specgen
+	rm -fr ../tests
 
 test:
 	go test ./...
