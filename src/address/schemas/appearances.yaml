@@ -1,0 +1,38 @@
+AddressAppearances:
+  title: Transaction identifiers relevant to an address
+  type: array
+  additionalProperties: false
+  $ref: '#/components/schemas/RelevantTransaction'
+RelevantTransaction:
+  title: Relevant Transaction
+  type: object
+  description: Identifier of a transaction relevant to an address
+  required:
+    - blockNumber
+    - location
+  additionalProperties: false
+  properties:
+    blockNumber:
+      title: Block number
+      description: Block containing the relevant transactions
+      $ref: '#/components/schemas/uint'
+    location:
+      title: Location in block
+      $ref: '#/components/schemas/Location'
+BlockRange:
+  title: Block range
+  type: object
+  description: Inclusive range of blocks
+  required:
+    - firstBlock
+    - lastBlock
+  additionalProperties: false
+  properties:
+    firstBlock:
+      title: First block
+      description: Lowest block in the range
+      $ref: '#/components/schemas/BlockNumberOrTag'
+    lastBlock:
+      title: Last block
+      description: Highest block in the range
+      $ref: '#/components/schemas/BlockNumberOrTag'

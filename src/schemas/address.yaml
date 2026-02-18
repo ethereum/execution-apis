@@ -1,0 +1,17 @@
+Location:
+  title: Location in a block
+  description: A place an address appears within a block
+  oneOf:
+    - title: Transaction index
+      $ref: '#/components/schemas/uint64'
+    - title: Block field
+      $ref: '#/components/schemas/BlockField'
+BlockField:
+  title: Block field
+  description: A block field. Alloc is a genesis block field.
+  type: string
+  enum:
+    - alloc
+    - miner
+    - uncles
+    - withdrawals
