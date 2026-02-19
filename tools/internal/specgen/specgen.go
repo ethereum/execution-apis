@@ -21,9 +21,10 @@ var baseDocJSON []byte
 type object = map[string]any
 
 type Generator struct {
-	baseDoc object
-	methods map[string]object
-	types   map[string]object
+	baseDoc     object
+	methods     map[string]object
+	types       map[string]object
+	dereference bool
 }
 
 func New() *Generator {
@@ -40,6 +41,12 @@ func New() *Generator {
 		types:   make(map[string]object),
 		baseDoc: baseDocMap,
 	}
+}
+
+// SetDereference turns on 'dereferencing'. If enabled, the output contains no $ref pointers
+// and does not use the `allOf` schema feature.
+func (s *Generator) SetDereference(on bool) {
+	s.dereference = on
 }
 
 // AddMethods parses the given YAML content and adds the methods defined within it to the spec.
@@ -112,18 +119,18 @@ func (s *Generator) build() (object, error) {
 	// document does not include the schemas; components.schemas is left empty.
 	resolved := make(map[string]object, len(s.types))
 	for name, schema := range s.types {
-		exp, err := Dereference(schema, s.types)
+		exp, err := s.expandSchema(schema, s.types)
 		if err != nil {
 			return nil, fmt.Errorf("schema %s: %w", name, err)
 		}
-		resolved[name] = MergeAllOf(exp)
+		resolved[name] = exp
 	}
 	doc["components"] = object{"schemas": object{}}
 
 	// Expand $ref in method param/result/error schemas and collect methods.
 	var methods []any
 	for _, name := range slices.Sorted(maps.Keys(s.methods)) {
-		method, err := expandMethod(s.methods[name], resolved)
+		method, err := s.expandMethod(s.methods[name], resolved)
 		if err != nil {
 			return nil, fmt.Errorf("method %s: %w", name, err)
 		}
@@ -134,8 +141,12 @@ func (s *Generator) build() (object, error) {
 	return doc, nil
 }
 
-// expandSchema dereferences schema against resolved and merges allOf.
-func expandSchema(schema object, types map[string]object) (object, error) {
+// expandSchema dereferences schema using the given repository of types and also merges
+// uses of "allOf".
+func (s *Generator) expandSchema(schema object, types map[string]object) (object, error) {
+	if !s.dereference {
+		return schema, nil
+	}
 	expanded, err := Dereference(schema, types)
 	if err != nil {
 		return nil, err
@@ -144,8 +155,12 @@ func expandSchema(schema object, types map[string]object) (object, error) {
 }
 
 // expandMethod returns a copy of method with all $ref entries in param, result,
-// and error schemas expanded against resolved.
-func expandMethod(method object, types map[string]object) (object, error) {
+// and error schemas expanded using the given repository of types.
+func (s *Generator) expandMethod(method object, types map[string]object) (object, error) {
+	if !s.dereference {
+		return method, nil
+	}
+
 	out := maps.Clone(method)
 
 	// Expand each param schema.
@@ -159,7 +174,7 @@ func expandMethod(method object, types map[string]object) (object, error) {
 			}
 			param = maps.Clone(param)
 			if schema, ok := param["schema"].(object); ok {
-				exp, err := expandSchema(schema, types)
+				exp, err := s.expandSchema(schema, types)
 				if err != nil {
 					return nil, fmt.Errorf("param %d schema: %w", i, err)
 				}
@@ -174,7 +189,7 @@ func expandMethod(method object, types map[string]object) (object, error) {
 	if result, ok := method["result"].(object); ok {
 		result = maps.Clone(result)
 		if schema, ok := result["schema"].(object); ok {
-			exp, err := expandSchema(schema, types)
+			exp, err := s.expandSchema(schema, types)
 			if err != nil {
 				return nil, fmt.Errorf("result schema: %w", err)
 			}
@@ -194,7 +209,7 @@ func expandMethod(method object, types map[string]object) (object, error) {
 			}
 			errObj = maps.Clone(errObj)
 			if schema, ok := errObj["data"].(object); ok {
-				exp, err := expandSchema(schema, types)
+				exp, err := s.expandSchema(schema, types)
 				if err != nil {
 					return nil, fmt.Errorf("error %d data schema: %w", i, err)
 				}
