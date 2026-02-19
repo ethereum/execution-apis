@@ -144,28 +144,6 @@ BlockOverrides:
     blobBaseFee:
       title: Base fee per unit of blob gas
       $ref: '#/components/schemas/uint64'
-Withdrawals:
-  title: Withdrawals made by validators
-  description: This array can have a maximum length of 16.
-  type: array
-  items:
-    $ref: '#/components/schemas/Withdrawal'
-Withdrawal:
-  title: A withdrawal made by a validator
-  type: object
-  properties:
-    index:
-      title: index
-      $ref: '#/components/schemas/uint64'
-    validatorIndex:
-      title: Validator Index
-      $ref: '#/components/schemas/uint64'
-    address:
-      title: Address
-      $ref: '#/components/schemas/address'
-    amount:
-      title: Amount
-      $ref: '#/components/schemas/uint64'
 EthSimulateResult:
   title: Full results of eth_simulate
   type: array

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/cespare/cp"
+	"github.com/ethereum/execution-apis/tools/testgen"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/lightclient/rpctestgen/testgen"
 )
 
 // runGenerator generates test fixtures against the specified client and writes
