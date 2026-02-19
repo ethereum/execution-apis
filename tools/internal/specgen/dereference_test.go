@@ -254,3 +254,52 @@ func TestDereference_SubPathRefChained(t *testing.T) {
 		t.Errorf("val.type: want number, got %v", val["type"])
 	}
 }
+
+// TestDereference_RefSiblingOverride verifies that when a $ref appears
+// alongside sibling keys (e.g. title + $ref), the sibling values win over
+// the fields of the resolved schema. This matches the OpenAPI convention used
+// throughout the spec YAML files, e.g.:
+//
+//	hash:
+//	  title: Hash          ← local sibling, must win
+//	  $ref: '#/components/schemas/hash32'
+func TestDereference_RefSiblingOverride(t *testing.T) {
+	repository := repo(
+		"BaseType", object{
+			"type":    "string",
+			"title":   "generic title from base",
+			"pattern": "^0x[0-9a-f]{64}$",
+		},
+	)
+	// Property object with both a local title and a $ref.
+	schema := object{
+		"properties": map[string]any{
+			"hash": object{
+				"title": "Hash",
+				"$ref":  "#/components/schemas/BaseType",
+			},
+		},
+	}
+
+	got, err := Dereference(schema, repository)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hash := got["properties"].(map[string]any)["hash"].(map[string]any)
+
+	// Local sibling wins for title.
+	if hash["title"] != "Hash" {
+		t.Errorf("title: want 'Hash' (local sibling), got %v", hash["title"])
+	}
+	// Fields from the resolved schema that have no local sibling are present.
+	if hash["type"] != "string" {
+		t.Errorf("type: want string (from ref), got %v", hash["type"])
+	}
+	if hash["pattern"] != "^0x[0-9a-f]{64}$" {
+		t.Errorf("pattern: want ref pattern, got %v", hash["pattern"])
+	}
+	// $ref itself must not appear in the output.
+	if _, has := hash["$ref"]; has {
+		t.Error("$ref should not appear in the expanded output")
+	}
+}
