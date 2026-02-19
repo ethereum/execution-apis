@@ -71,6 +71,7 @@ func main() {
 	}
 
 	sg := specgen.New()
+	sg.SetDereference(dereferencing)
 
 	// Read all the files
 	for _, file := range methodFiles {
