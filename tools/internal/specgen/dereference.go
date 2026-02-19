@@ -128,11 +128,11 @@ func (d *dereferencer) resolveRef(ref string) (object, error) {
 // parseSchemaRef parses a $ref of the form "#/components/schemas/<Name>[/...]".
 // It returns the schema name and any remaining path segments (may be empty).
 func parseSchemaRef(ref string) (name, path string, err error) {
-	const prefix = "#/components/schemas/"
-	if !strings.HasPrefix(ref, prefix) {
+	ref, valid := strings.CutPrefix(ref, "#/components/schemas/")
+	if !valid {
 		return "", "", fmt.Errorf("unsupported $ref format: %q", ref)
 	}
-	name, path, hasPath := strings.Cut(strings.TrimPrefix(ref, prefix), "/")
+	name, path, hasPath := strings.Cut(ref, "/")
 	if hasPath {
 		path = "/" + path
 	}
