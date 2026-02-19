@@ -1,14 +1,17 @@
 .PHONY: build test fill tools
 
-build: tools
-	./tools/specgen -o refs-openrpc.json \
-                -schemas 'src/schemas' \
-                -schemas 'src/engine/openrpc/schemas' \
-                -methods 'src/eth' \
-                -methods 'src/debug' \
-                -methods 'src/engine/openrpc/methods'
+SPECFLAGS := -schemas 'src/schemas' \
+	-schemas 'src/engine/openrpc/schemas' \
+	-methods 'src/eth' \
+	-methods 'src/debug' \
+	-methods 'src/engine/openrpc/methods'
 
-test: build fill
+
+build: tools
+	./tools/specgen -o refs-openrpc.json -deref $(SPECFLAGS)
+	./tools/specgen -o openrpc.json $(SPECFLAGS)
+
+test: tools
 	./tools/speccheck -v
 
 fill:
