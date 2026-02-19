@@ -1,6 +1,6 @@
 module github.com/ethereum/execution-apis/tools
 
-go 1.24.0
+go 1.25
 
 require (
 	github.com/alexflint/go-arg v1.4.3
