@@ -1,6 +1,10 @@
 package specgen
 
-import "fmt"
+import (
+	"cmp"
+	"fmt"
+	"slices"
+)
 
 // mergeAllOf recursively walks schema, merging every allOf it encounters into
 // its containing object. It returns a deep copy with all allOf keys removed.
@@ -80,7 +84,7 @@ func mergeSchemas(dst, src object) {
 			}
 		}
 	}
-	// Merge required (deduplicated).
+	// Merge required (deduplicated, sorted).
 	if srcReq, ok := src["required"].([]any); ok {
 		existing := make(map[string]bool)
 		dstReq, _ := dst["required"].([]any)
@@ -96,6 +100,14 @@ func mergeSchemas(dst, src object) {
 			}
 		}
 		if len(dstReq) > 0 {
+			slices.SortFunc(dstReq, func(a, b any) int {
+				sa, aString := a.(string)
+				sb, bString := b.(string)
+				if aString && bString {
+					return cmp.Compare(sa, sb)
+				}
+				return 0
+			})
 			dst["required"] = dstReq
 		}
 	}
