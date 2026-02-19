@@ -55,7 +55,7 @@ The fields are encoded as follows:
 
 ### engine_getPayloadV5
 
-This method is updated in a backward incompatible way. Instead of returning `BlobBundleV1`, it returns `BlobsBundleV2`.
+This method is updated in a backward incompatible way. Instead of returning `blobsBundle` as [`BlobsBundleV1`](./cancun.md#blobsbundlev1), it returns as [`BlobsBundleV2`](#BlobsBundleV2).
 
 #### Request
 
@@ -85,10 +85,10 @@ This method follows the same specification as [`engine_getPayloadV4`](./prague.m
 3. The call **MUST** return `blobs` and `proofs` that match the `commitments` list, i.e. 
    1. `assert len(blobsBundle.commitments) == len(blobsBundle.blobs)` and
    2. `assert len(blobsBundle.proofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
-   3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.proofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/36d80adb44c21c66379c6207a9578f9b1dcc8a2d/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
+   3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.proofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch_impl))
       1. `commitments` should list each commitment `CELLS_PER_EXT_BLOB` times, repeating it for every cell. In python, `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`
       2. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python, `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
-      3. `cells` is the list of cells for an extended blob. In python, `[cell for blob in blobsBundle.blobs for cell in compute_cells(blob)]` (see [compute_cells](https://github.com/ethereum/consensus-specs/blob/v1.5.0-beta.3/specs/fulu/polynomial-commitments-sampling.md#compute_cells) in consensus-specs)
+      3. `cells` is the list of cells for an extended blob. In python, `[cell for blob in blobsBundle.blobs for cell in compute_cells(blob)]` (see [compute_cells](https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/polynomial-commitments-sampling.md#compute_cells) in consensus-specs)
       4. All of the inputs to `verify_cell_kzg_proof_batch` have the same length, `CELLS_PER_EXT_BLOB * len(blobsBundle.blobs)`
 
 ### engine_getBlobsV2
