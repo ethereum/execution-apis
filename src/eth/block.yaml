@@ -290,3 +290,49 @@
             transactionHash: '0xefb83b4e3f1c317e8da0f8e2fbb2fe964f34ee184466032aeecac79f20eacaf6'
             transactionIndex: '0x1'
             type: '0x2'
+- name: eth_getBlockAccessList
+  summary: Returns the block access list for a given block.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+  result:
+    name: Block access list
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/BlockAccessList'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
+    - code: 4445
+      message: Block access list not available for pre-Amsterdam blocks
+  examples:
+    - name: eth_getBlockAccessList example
+      params:
+        - name: Block
+          value: 'latest'
+      result:
+        name: Block access list
+        value:
+          - address: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            storageChanges:
+              - key: '0x0000000000000000000000000000000000000000000000000000000000000000'
+                changes:
+                  - index: '0x0'
+                    value: '0x0000000000000000000000000000000000000000000000000000000000000000'
+                  - index: '0x1'
+                    value: '0x0000000000000000000000000000000000000000000000000000000000000100'
+            storageReads: []
+            balanceChanges:
+              - index: '0x0'
+                value: '0x56bc75e2d63100000'
+              - index: '0x1'
+                value: '0x56bc75e2d63000000'
+            nonceChanges:
+              - index: '0x0'
+                value: '0x0'
+              - index: '0x1'
+                value: '0x1'
+            codeChanges: []
