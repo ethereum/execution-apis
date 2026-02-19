@@ -7,6 +7,7 @@ require (
 	github.com/cespare/cp v1.1.1
 	github.com/ethereum/go-ethereum v1.17.0
 	github.com/holiman/uint256 v1.3.2
+	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/meta-schema v0.0.0-20210416041958-626a15d0a618
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
@@ -82,7 +83,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-jsonpointer v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
