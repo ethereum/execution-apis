@@ -8,26 +8,21 @@ jobs:
     steps:
       # Specification
       - uses: actions/checkout@v6
-      - name: Use Node.js 22
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-      - run: npm ci
       - uses: actions/setup-go@v6
         with:
-          go-version: ^1.24
+          go-version: ^1.26
         id: go
-      - run: npm run build:spec
-      - run: npm run lint
+      - run: make build
 
       # speccheck
       - name: Run speccheck
-        run: go run -C ./tools ./cmd/speccheck -v --spec ../openrpc.json --tests ../tests
+        run: make test
 
       # check test filling
       - name: Fill tests
         working-directory: ./tools
         run: make fill
+
       - name: Fail if any files are untracked or have changes
         # geth outputs non-deterministic responses for two tests-
         # specifically storageKeys arrays in the responses.
