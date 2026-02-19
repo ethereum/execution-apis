@@ -8,8 +8,8 @@ SPECFLAGS := -schemas 'src/schemas' \
 
 
 build: tools
-	./tools/specgen -o refs-openrpc.json -deref $(SPECFLAGS)
-	./tools/specgen -o openrpc.json $(SPECFLAGS)
+	./tools/specgen -o refs-openrpc.json $(SPECFLAGS)
+	./tools/specgen -o openrpc.json -deref $(SPECFLAGS)
 
 test: tools
 	./tools/speccheck -v
