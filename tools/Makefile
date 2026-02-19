@@ -1,4 +1,4 @@
-.PHONY: clean test lint fill
+.PHONY: build geth clean test lint fill
 
 build:
 	go build -o rpctestgen ./cmd/rpctestgen
