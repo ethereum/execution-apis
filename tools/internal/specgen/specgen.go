@@ -114,11 +114,11 @@ func parseSchema(content []byte) (map[string]object, error) {
 func (s *Generator) build() (object, error) {
 	doc := maps.Clone(s.baseDoc)
 
-	// Pre-resolve all type schemas: dereference $ref and merge allOf.
-	// The resolved map is used when expanding method schemas. The output
-	// document does not include the schemas; components.schemas is left empty.
 	var types = s.types
 	if s.dereference {
+		// Pre-resolve all type schemas: dereference $ref and merge allOf.
+		// The resolved map is used when expanding method schemas. The output
+		// document does not include the schemas; "components" is left empty.
 		types := make(map[string]object, len(s.types))
 		for name, schema := range s.types {
 			exp, err := s.expandSchema(schema, s.types)
@@ -127,6 +127,7 @@ func (s *Generator) build() (object, error) {
 			}
 			types[name] = exp
 		}
+		doc["components"] = object{}
 	} else {
 		doc["components"] = object{"schemas": typesToObject(s.types)}
 	}
