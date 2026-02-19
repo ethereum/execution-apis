@@ -1,6 +1,6 @@
 # rpctestgen
 
-`rpctestgen` is a test fixture generator for the execution layer JSON-RPC API. 
+`rpctestgen` is a test fixture generator for the execution layer JSON-RPC API.
 
 Conceptually, it is similar to [`retesteth`][retesteth], in that it 1) takes
 test definitions, 2) executes them against a client, and 3) outputs the
