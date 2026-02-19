@@ -117,20 +117,24 @@ func (s *Generator) build() (object, error) {
 	// Pre-resolve all type schemas: dereference $ref and merge allOf.
 	// The resolved map is used when expanding method schemas. The output
 	// document does not include the schemas; components.schemas is left empty.
-	resolved := make(map[string]object, len(s.types))
-	for name, schema := range s.types {
-		exp, err := s.expandSchema(schema, s.types)
-		if err != nil {
-			return nil, fmt.Errorf("schema %s: %w", name, err)
+	var types = s.types
+	if s.dereference {
+		types := make(map[string]object, len(s.types))
+		for name, schema := range s.types {
+			exp, err := s.expandSchema(schema, s.types)
+			if err != nil {
+				return nil, fmt.Errorf("schema %s: %w", name, err)
+			}
+			types[name] = exp
 		}
-		resolved[name] = exp
+	} else {
+		doc["components"] = object{"schemas": typesToObject(s.types)}
 	}
-	doc["components"] = object{"schemas": object{}}
 
 	// Expand $ref in method param/result/error schemas and collect methods.
 	var methods []any
 	for _, name := range slices.Sorted(maps.Keys(s.methods)) {
-		method, err := s.expandMethod(s.methods[name], resolved)
+		method, err := s.expandMethod(s.methods[name], types)
 		if err != nil {
 			return nil, fmt.Errorf("method %s: %w", name, err)
 		}
@@ -139,6 +143,14 @@ func (s *Generator) build() (object, error) {
 	doc["methods"] = methods
 
 	return doc, nil
+}
+
+func typesToObject(t map[string]object) object {
+	o := make(object, len(t))
+	for k, v := range t {
+		o[k] = v
+	}
+	return o
 }
 
 // expandSchema dereferences schema using the given repository of types and also merges
