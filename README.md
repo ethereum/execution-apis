@@ -23,17 +23,17 @@ specification and the JSON schema [specification][json-schema] to get started.
 
 #### Compiling
 
-The specification is split into multiple files to improve readability. The
-spec can be compiled into a single document as follows:
+The specification is split into multiple YAML files to improve readability. The
+spec can be compiled into a single OpenRPC document as follows:
 
 ```console
-$ npm install
-$ npm run build
-Build successful.
+$ make build
+...
+wrote spec to openrpc.json
 ```
 
-This will output the file `openrpc.json` in the root of the project. This file
-will have all schema `#ref`s resolved.
+This will output the file `openrpc.json` in the root of the project. Notably,
+this file will have all schema `$ref`s resolved.
 
 #### Building the docs
 
@@ -66,40 +66,15 @@ When the documentation build updates. The documentation updates should be commit
 There are several mechanisms for testing specification contributions and client
 conformance.
 
-#### Linting
-
-First is the [OpenRPC validator][validator]. It performs some basic syntactic
-checks on the generated specification.
-
-```console
-$ npm install
-$ npm run lint
-OpenRPC spec validated successfully.
-```
-
-#### Spec tests
+The spec is always validated against the Open-RPC metaschema while being built.
 
 Next is `speccheck`. This tool validates the test cases in the `tests`
-directory against the specification. There are two npm scripts to simplify this.
+directory against the specification. You can run it like this:
 
 ```console
-$ npm run build:test
-$ npm run test
+$ make test
+...
 all passing.
-```
-
-or
-
-```console
-$ go install -C rpctestgen/ ./cmd/speccheck
-$ speccheck -v
-```
-
-If you get an error that says: `speccheck: command not found`,
-make sure that the go binary is in your $PATH:
-
-```console
-$ export PATH=$HOME/go/bin:$PATH
 ```
 
 #### Spelling
