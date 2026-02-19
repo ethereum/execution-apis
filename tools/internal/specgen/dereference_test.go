@@ -5,8 +5,6 @@ import (
 	"testing"
 )
 
-type schemaRepository = map[string]object
-
 // verifies that a schema that is itself a $ref gets replaced by the referenced schema
 func TestDereference_TopLevelRef(t *testing.T) {
 	repository := schemaRepository{"Foo": {"type": "string", "title": "Foo"}}

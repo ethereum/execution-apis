@@ -71,7 +71,6 @@ func main() {
 	}
 
 	sg := specgen.New()
-	sg.SetDereference(dereferencing)
 
 	// Read all the files
 	for _, file := range methodFiles {
@@ -96,6 +95,14 @@ func main() {
 		log.Println("added schemas from", file)
 	}
 
+	// Dereference the spec if requested.
+	if dereferencing {
+		if err := sg.Dereference(); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// Write output.
 	if outputFile == "" {
 		log.Printf("no output file specified, just validating spec")
 		err := sg.Validate()
