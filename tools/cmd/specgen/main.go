@@ -1,18 +1,18 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"log/slog"
+	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/ethereum/execution-apis/tools/internal/specgen"
 )
 
 var methodFilesFlag = []string{}
 var schemaFilesFlag = []string{}
-var verbose = false
 var outputFile = ""
 
 func init() {
@@ -24,116 +24,106 @@ func init() {
 		schemaFilesFlag = append(schemaFilesFlag, s)
 		return nil
 	})
-	flag.BoolVar(&verbose, "verbose", false, "verbose output")
-	flag.BoolVar(&verbose, "v", false, "verbose output")
 	flag.StringVar(&outputFile, "output", "", "output file")
 	flag.StringVar(&outputFile, "o", "", "output file")
 }
 
 func main() {
 	flag.Parse()
+	log.SetFlags(0)
 
-	var logger *slog.Logger
-	if verbose {
-		logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	} else {
-		logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	var methodFiles []string
+	for _, file := range methodFilesFlag {
+		info, err := os.Stat(file)
+		if err != nil {
+			log.Fatal("can't access method file:", err)
+		}
+		if info.IsDir() {
+			if err := filepath.WalkDir(file, addFilesWithExt(&methodFiles, "yaml")); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			methodFiles = append(methodFiles, file)
+		}
+	}
+	if len(methodFiles) == 0 {
+		log.Fatalf("must provide at least one method file")
 	}
 
-	// Must have at least one method file and one schema file.
-	if len(methodFilesFlag) == 0 {
-		logger.Error("must provide at least one method file")
-		os.Exit(1)
+	var schemaFiles []string
+	for _, file := range schemaFilesFlag {
+		info, err := os.Stat(file)
+		if err != nil {
+			log.Fatal("can't access schema file:", err)
+		}
+		if info.IsDir() {
+			if err := filepath.WalkDir(file, addFilesWithExt(&schemaFiles, "yaml")); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			schemaFiles = append(schemaFiles, file)
+		}
 	}
 	if len(schemaFilesFlag) == 0 {
-		logger.Error("must provide at least one schema file")
-		os.Exit(1)
+		log.Fatalf("must provide at least one schema file")
 	}
-
-	methodFiles := []string{}
-	for _, file := range methodFilesFlag {
-		if _, err := os.Stat(file); err == nil {
-			logger.Info("ignoring directory", "directory", file)
-			continue
-		}
-		files, err := filepath.Glob(file)
-		if err != nil {
-			logger.Error("failed to glob method files", "error", err)
-			os.Exit(1)
-		}
-		methodFiles = append(methodFiles, files...)
-	}
-
-	schemaFiles := []string{}
-	for _, file := range schemaFilesFlag {
-		if _, err := os.Stat(file); err == nil {
-			logger.Info("ignoring directory", "directory", file)
-			continue
-		}
-		files, err := filepath.Glob(file)
-		if err != nil {
-			logger.Error("failed to glob schema files", "error", err)
-			os.Exit(1)
-		}
-		schemaFiles = append(schemaFiles, files...)
-	}
-
-	logger.Info("method files", "count", len(methodFiles))
-	logger.Debug("method file paths", "paths", methodFiles)
-	logger.Info("schema files", "count", len(schemaFiles))
-	logger.Debug("schema file paths", "paths", schemaFiles)
 
 	sg := specgen.New()
 
 	// Read all the files
-	for _, filename := range methodFiles {
-		content, err := os.ReadFile(filename)
+	for _, file := range methodFiles {
+		content, err := os.ReadFile(file)
 		if err != nil {
-			logger.Error("failed to read method file", "error", err)
-			os.Exit(1)
+			log.Fatal("can't read method file:", err)
 		}
-		err = sg.AddMethods(content)
-		if err != nil {
-			logger.Error("failed to add methods", "error", err)
-			os.Exit(1)
+		if err := sg.AddMethods(content); err != nil {
+			log.Fatalf("error in %s: %v", file, err)
 		}
-		logger.Debug("added methods", "filename", filename)
+		log.Println("added methods from", file)
 	}
-	for _, filename := range schemaFiles {
-		content, err := os.ReadFile(filename)
+	for _, file := range schemaFiles {
+		content, err := os.ReadFile(file)
 		if err != nil {
-			logger.Error("failed to read schema file", "error", err)
+			log.Fatal("can't read schema file:", err)
 			os.Exit(1)
 		}
-		err = sg.AddSchemas(content)
-		if err != nil {
-			logger.Error("failed to add schemas", "error", err)
-			os.Exit(1)
+		if err := sg.AddSchemas(content); err != nil {
+			log.Fatalf("error in %s: %v", file, err)
 		}
-		logger.Debug("added schemas", "filename", filename)
+		log.Println("added schemas from", file)
 	}
 
 	if outputFile == "" {
-		logger.Info("no output file specified, just validating spec")
+		log.Printf("no output file specified, just validating spec")
 		err := sg.Validate()
 		if err != nil {
-			logger.Error("failed to validate specgen", "error", err)
+			log.Println("spec is invalid:", err)
 			os.Exit(1)
+		} else {
+			log.Println("spec is valid")
+			os.Exit(0)
 		}
-		logger.Info("spec is valid against the OpenRPC meta-schema")
-		os.Exit(0)
+	} else {
+		outputBytes, err := sg.JSON()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := os.WriteFile(outputFile, outputBytes, 0644); err != nil {
+			log.Fatal("spec write failed:", err)
+		}
+		log.Println("wrote spec to", outputFile)
 	}
+}
 
-	logger.Debug("attempting to write to output file", "file", outputFile)
-	outputBytes, err := json.MarshalIndent(sg, "", "\t")
-	if err != nil {
-		logger.Error("failed to marshal spec to json", "error", err)
-		os.Exit(1)
+func addFilesWithExt(list *[]string, ext string) fs.WalkDirFunc {
+	ext = "." + ext
+	return func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.Type().IsRegular() && strings.HasSuffix(path, ext) {
+			*list = append(*list, path)
+		}
+		return nil
 	}
-	err = os.WriteFile(outputFile, outputBytes, 0644)
-	if err != nil {
-		logger.Error("failed to write spec to output file", "error", err)
-		os.Exit(1)
-	}
-	logger.Info("wrote spec to output file", "file", outputFile)
 }

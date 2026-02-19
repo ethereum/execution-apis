@@ -5,10 +5,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"log"
+	"maps"
 	"os"
-	"reflect"
 	"slices"
-	"strings"
 
 	"github.com/ethereum/execution-apis/tools/internal/metaschema"
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -18,71 +18,12 @@ import (
 //go:embed base-doc.json
 var baseDocJSON []byte
 
-func init() {
-	// Ensure basedoc is valid json.
-	bd, err := jsonschema.UnmarshalJSON(bytes.NewReader(baseDocJSON))
-	if err != nil {
-		panic(err)
-	}
-	bdMap, ok := bd.(map[string]any)
-	if !ok {
-		panic(fmt.Errorf("base document is not a json object"))
-	}
-	if _, ok := bdMap["methods"].([]any); !ok {
-		panic(fmt.Errorf("base document is missing methods or it isn't a list"))
-	}
-	bdComponents, ok := bdMap["components"].(map[string]any)
-	if !ok {
-		panic(fmt.Errorf("base document is missing components or it isn't a map"))
-	}
-	if _, ok := bdComponents["schemas"].(map[string]any); !ok {
-		panic(fmt.Errorf("base document is missing schemas or it isn't a map"))
-	}
-}
-
-type rawSchema = map[string]any
-
-func parseSchema(content []byte) (rawSchema, error) {
-	var body any
-	err := yaml.Unmarshal(content, &body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal schema: %v", err)
-	}
-	result, ok := body.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("invalid schema format: %s", reflect.TypeOf(body))
-	}
-	return result, nil
-}
-
-func parseMethods(content []byte) ([]any, error) {
-	var body any
-	err := yaml.Unmarshal(content, &body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal methods: %v", err)
-	}
-
-	items, ok := body.([]any)
-	// Result must be a list.
-	if !ok {
-		return nil, fmt.Errorf("invalid methods format: %s", reflect.TypeOf(body))
-	}
-
-	out := make([]any, len(items))
-
-	for i, item := range items {
-		// Each element must be a rawSchema.
-		element, ok := item.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf("invalid method format: %s", reflect.TypeOf(item))
-		}
-		out[i] = element
-	}
-	return out, nil
-}
+type object = map[string]any
 
 type Generator struct {
-	baseDoc map[string]any
+	baseDoc object
+	methods map[string]object
+	types   map[string]object
 }
 
 func New() *Generator {
@@ -90,82 +31,217 @@ func New() *Generator {
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal base document, despite init check: %v", err))
 	}
-	baseDocMap, ok := baseDoc.(map[string]any)
+	baseDocMap, ok := baseDoc.(object)
 	if !ok {
 		panic(fmt.Errorf("failed to unmarshal base document, despite init check: %v", err))
 	}
 	return &Generator{
+		methods: make(map[string]object),
+		types:   make(map[string]object),
 		baseDoc: baseDocMap,
 	}
 }
 
+// AddMethods parses the given YAML content and adds the methods defined within it to the spec.
+//
+// The input is assumed to be a list of method objects.
 func (s *Generator) AddMethods(methods []byte) error {
 	methodSchemas, err := parseMethods(methods)
 	if err != nil {
 		return fmt.Errorf("failed to parse methods: %v", err)
 	}
-	s.baseDoc["methods"] = append(s.baseDoc["methods"].([]any), methodSchemas...)
+	for i, method := range methodSchemas {
+		nameVal, ok := method["name"]
+		if !ok {
+			return fmt.Errorf("method %d has no name", i)
+		}
+		name, ok := nameVal.(string)
+		if !ok {
+			return fmt.Errorf("method %d name is not a string: %v", i, nameVal)
+		}
+		if _, exists := s.methods[name]; exists {
+			return fmt.Errorf("method %s already defined", name)
+		}
+		s.methods[name] = method
+	}
 	return nil
 }
 
+func parseMethods(content []byte) ([]object, error) {
+	var body []object
+	err := yaml.Unmarshal(content, &body)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal methods: %v", err)
+	}
+	return body, err
+}
+
+// AddSchemas parses the given YAML content and adds the given schemas (type definitions)
+// to the generator.
+//
+// The input is assumed to be of object shape, i.e. it contains key-value pairs.
 func (s *Generator) AddSchemas(schemas []byte) error {
 	parsedSchema, err := parseSchema(schemas)
 	if err != nil {
 		return fmt.Errorf("failed to parse schemas: %v", err)
 	}
-	dst := s.baseDoc["components"].(map[string]any)["schemas"].(map[string]any)
 	for key, schema := range parsedSchema {
-		dst[key] = schema
+		if _, exists := s.types[key]; exists {
+			return fmt.Errorf("duplicate schema %s", key)
+		}
+		s.types[key] = schema
 	}
 	return nil
 }
 
-func (s *Generator) Validate() error {
-	// Validate base document against the openrpc schema.
-	err := metaschema.Validate(s.baseDoc)
+func parseSchema(content []byte) (map[string]object, error) {
+	var body map[string]object
+	err := yaml.Unmarshal(content, &body)
 	if err != nil {
-		// Write basedoc to a tmpfile
-		tmpfile, ierr := os.CreateTemp("", "base-doc-*.json")
-		if ierr != nil {
-			return fmt.Errorf("failed to create tmpfile: %v", ierr)
+		return nil, fmt.Errorf("invalid schema content: %v", err)
+	}
+	return body, nil
+}
+
+// build creates the spec document.
+func (s *Generator) build() (object, error) {
+	doc := maps.Clone(s.baseDoc)
+
+	// Dereference and merge allOf for each type schema.
+	schemas := make(object, len(s.types))
+	for name, schema := range s.types {
+		expanded, err := s.expandSchema(schema)
+		if err != nil {
+			return nil, fmt.Errorf("schema %s: %w", name, err)
+		}
+		schemas[name] = expanded
+	}
+	doc["components"] = object{"schemas": schemas}
+
+	// Expand $ref in method param/result/error schemas and collect methods.
+	var methods []any
+	for _, name := range slices.Sorted(maps.Keys(s.methods)) {
+		method, err := s.expandMethod(s.methods[name])
+		if err != nil {
+			return nil, fmt.Errorf("method %s: %w", name, err)
+		}
+		methods = append(methods, method)
+	}
+	doc["methods"] = methods
+
+	return doc, nil
+}
+
+// expandSchema dereferences schema against s.types and merges allOf.
+func (s *Generator) expandSchema(schema object) (object, error) {
+	expanded, err := Dereference(schema, s.types)
+	if err != nil {
+		return nil, err
+	}
+	return MergeAllOf(expanded), nil
+}
+
+// expandMethod returns a copy of method with all $ref entries in param, result,
+// and error schemas expanded against s.types.
+func (s *Generator) expandMethod(method object) (object, error) {
+	out := maps.Clone(method)
+
+	// Expand each param schema.
+	if params, ok := method["params"].([]any); ok {
+		expanded := make([]any, len(params))
+		for i, p := range params {
+			param, ok := p.(object)
+			if !ok {
+				expanded[i] = p
+				continue
+			}
+			param = maps.Clone(param)
+			if schema, ok := param["schema"].(object); ok {
+				exp, err := s.expandSchema(schema)
+				if err != nil {
+					return nil, fmt.Errorf("param %d schema: %w", i, err)
+				}
+				param["schema"] = exp
+			}
+			expanded[i] = param
+		}
+		out["params"] = expanded
+	}
+
+	// Expand result schema.
+	if result, ok := method["result"].(object); ok {
+		result = maps.Clone(result)
+		if schema, ok := result["schema"].(object); ok {
+			exp, err := s.expandSchema(schema)
+			if err != nil {
+				return nil, fmt.Errorf("result schema: %w", err)
+			}
+			result["schema"] = exp
+		}
+		out["result"] = result
+	}
+
+	// Expand error data schemas.
+	if errors, ok := method["errors"].([]any); ok {
+		expanded := make([]any, len(errors))
+		for i, e := range errors {
+			errObj, ok := e.(object)
+			if !ok {
+				expanded[i] = e
+				continue
+			}
+			errObj = maps.Clone(errObj)
+			if schema, ok := errObj["data"].(object); ok {
+				exp, err := s.expandSchema(schema)
+				if err != nil {
+					return nil, fmt.Errorf("error %d data schema: %w", i, err)
+				}
+				errObj["data"] = exp
+			}
+			expanded[i] = errObj
+		}
+		out["errors"] = expanded
+	}
+
+	return out, nil
+}
+
+// Validate builds the spec and checks it against the OpenRPC meta-schema.
+func (s *Generator) Validate() error {
+	doc, err := s.build()
+	if err != nil {
+		return fmt.Errorf("spec build error: %v", err)
+	}
+	if err := validate(doc); err != nil {
+		return fmt.Errorf("spec is invalid: %v", err)
+	}
+	return nil
+}
+
+func validate(doc object) error {
+	err := metaschema.Validate(doc)
+	if err != nil {
+		tmpfile, err := os.CreateTemp("", "doc-*.json")
+		if err != nil {
+			return fmt.Errorf("failed to create tmpfile: %v", err)
 		}
 		defer tmpfile.Close()
-		ierr = json.NewEncoder(tmpfile).Encode(s.baseDoc)
-		if ierr != nil {
-			return fmt.Errorf("failed to encode base document: %v", ierr)
+		if err := json.NewEncoder(tmpfile).Encode(doc); err != nil {
+			return fmt.Errorf("failed to encode document: %v", err)
 		}
-		ierr = tmpfile.Close()
-		if ierr != nil {
-			return fmt.Errorf("failed to close tmpfile: %v", ierr)
-		}
-		fmt.Fprintf(os.Stderr, "base document is invalid, writing to %s\n", tmpfile.Name())
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		return fmt.Errorf("failed to validate base document: %v", err)
+		log.Printf("spec is invalid, written to %s\n", tmpfile.Name())
 	}
-
-	return nil
+	return err
 }
 
-// MarshalJSON implements json.Marshaler.
-func (s *Generator) MarshalJSON() ([]byte, error) {
-	// Sort the methods by name.
-	slices.SortFunc(s.baseDoc["methods"].([]any), func(a, b any) int {
-		aMap, ok := a.(map[string]any)
-		if !ok {
-			panic(fmt.Errorf("method is not a map: %v", a))
-		}
-		bMap, ok := b.(map[string]any)
-		if !ok {
-			panic(fmt.Errorf("method is not a map: %v", b))
-		}
-		return strings.Compare(aMap["name"].(string), bMap["name"].(string))
-	})
-
-	// Make sure the spec is valid before marshalling.
-	err := s.Validate()
+// JSON creates the spec document.
+func (s *Generator) JSON() ([]byte, error) {
+	doc, err := s.build()
 	if err != nil {
-		return nil, fmt.Errorf("failed to validate spec: %v", err)
+		return nil, fmt.Errorf("spec build error: %v", err)
 	}
-
-	return json.Marshal(s.baseDoc)
+	if err := validate(doc); err != nil {
+		return nil, fmt.Errorf("spec is invalid: %v", err)
+	}
+	return json.MarshalIndent(doc, "", "  ")
 }
