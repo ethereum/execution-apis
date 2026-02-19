@@ -2,7 +2,7 @@ package specgen
 
 import "fmt"
 
-// MergeAllOf recursively walks schema, merging every allOf it encounters into
+// mergeAllOf recursively walks schema, merging every allOf it encounters into
 // its containing object. It returns a deep copy with all allOf keys removed.
 // The input schema is not modified.
 //
@@ -11,8 +11,8 @@ import "fmt"
 //   - required:   concatenated and deduplicated.
 //   - all other fields: parent object wins.
 //
-// The input must not contain any $ref entries; if one is found MergeAllOf panics.
-func MergeAllOf(schema object) object {
+// The input must not contain any $ref entries; if one is found mergeAllOf panics.
+func mergeAllOf(schema object) object {
 	return mergeObject(schema)
 }
 

@@ -159,11 +159,11 @@ func (s *Generator) expandSchema(schema object, types map[string]object) (object
 	if !s.dereference {
 		return schema, nil
 	}
-	expanded, err := Dereference(schema, types)
+	expanded, err := dereference(schema, types)
 	if err != nil {
 		return nil, err
 	}
-	return MergeAllOf(expanded), nil
+	return mergeAllOf(expanded), nil
 }
 
 // expandMethod returns a copy of method with all $ref entries in param, result,

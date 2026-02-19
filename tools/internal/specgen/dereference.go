@@ -7,13 +7,13 @@ import (
 	"github.com/mattn/go-jsonpointer"
 )
 
-// Dereference recursively expands all '$ref' entries in schema, resolving each
+// dereference recursively expands all '$ref' entries in schema, resolving each
 // reference against repository. Every '$ref' value must have the form
 // "#/components/schemas/<Name>".
 //
 // The input schema is not modified; a fully dereferenced deep copy is returned.
 // Cycles are detected and reported as errors.
-func Dereference(schema object, repository map[string]object) (object, error) {
+func dereference(schema object, repository map[string]object) (object, error) {
 	d := &dereferencer{
 		repository: repository,
 		visiting:   make(map[string]bool),

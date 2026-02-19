@@ -19,7 +19,7 @@ func TestDereference_TopLevelRef(t *testing.T) {
 	repository := repo("Foo", object{"type": "string", "title": "Foo"})
 	schema := object{"$ref": "#/components/schemas/Foo"}
 
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestDereference_NestedRef(t *testing.T) {
 		},
 	}
 
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +63,7 @@ func TestDereference_ChainedRefs(t *testing.T) {
 	)
 	schema := object{"$ref": "#/components/schemas/Outer"}
 
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func TestDereference_RefInArray(t *testing.T) {
 		},
 	}
 
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestDereference_RefInArray(t *testing.T) {
 // checks that a $ref to a missing schema returns an error
 func TestDereference_UnknownRef(t *testing.T) {
 	schema := object{"$ref": "#/components/schemas/Missing"}
-	_, err := Dereference(schema, repo())
+	_, err := dereference(schema, repo())
 	if err == nil {
 		t.Fatal("expected error for unknown $ref, got nil")
 	}
@@ -116,7 +116,7 @@ func TestDereference_UnknownRef(t *testing.T) {
 // verfies that a $ref with an unsupported format returns an error
 func TestDereference_BadRefFormat(t *testing.T) {
 	schema := object{"$ref": "http://example.com/schema"}
-	_, err := Dereference(schema, repo())
+	_, err := dereference(schema, repo())
 	if err == nil {
 		t.Fatal("expected error for bad $ref format, got nil")
 	}
@@ -131,7 +131,7 @@ func TestDereference_CycleDetection(t *testing.T) {
 	)
 	schema := object{"$ref": "#/components/schemas/A"}
 
-	_, err := Dereference(schema, repository)
+	_, err := dereference(schema, repository)
 	if err == nil {
 		t.Fatal("expected cycle error, got nil")
 	}
@@ -145,7 +145,7 @@ func TestDereference_SelfCycle(t *testing.T) {
 	repository := repo("Self", object{"$ref": "#/components/schemas/Self"})
 	schema := object{"$ref": "#/components/schemas/Self"}
 
-	_, err := Dereference(schema, repository)
+	_, err := dereference(schema, repository)
 	if err == nil {
 		t.Fatal("expected cycle error, got nil")
 	}
@@ -168,7 +168,7 @@ func TestDereference_DiamondShape(t *testing.T) {
 	)
 	schema := object{"$ref": "#/components/schemas/A"}
 
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatalf("unexpected error for diamond shape: %v", err)
 	}
@@ -204,7 +204,7 @@ func TestDereference_SubPathRef(t *testing.T) {
 			"y": object{"$ref": "#/components/schemas/Base/properties/y"},
 		},
 	}
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +242,7 @@ func TestDereference_SubPathRefChained(t *testing.T) {
 		},
 	)
 	schema := object{"$ref": "#/components/schemas/V2"}
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -281,7 +281,7 @@ func TestDereference_RefSiblingOverride(t *testing.T) {
 		},
 	}
 
-	got, err := Dereference(schema, repository)
+	got, err := dereference(schema, repository)
 	if err != nil {
 		t.Fatal(err)
 	}

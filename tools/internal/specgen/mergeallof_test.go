@@ -31,7 +31,7 @@ func TestMergeAllOf_SimpleInline(t *testing.T) {
 			},
 		},
 	}
-	got := MergeAllOf(schema)
+	got := mergeAllOf(schema)
 
 	if _, has := got["allOf"]; has {
 		t.Error("allOf should be removed")
@@ -67,7 +67,7 @@ func TestMergeAllOf_MultipleEntries(t *testing.T) {
 			},
 		},
 	}
-	got := MergeAllOf(schema)
+	got := mergeAllOf(schema)
 
 	req := toStringSlice(got["required"])
 	for _, r := range []string{"x", "y"} {
@@ -92,7 +92,7 @@ func TestMergeAllOf_ParentWins(t *testing.T) {
 			object{"type": "string", "title": "Override Title"},
 		},
 	}
-	got := MergeAllOf(schema)
+	got := mergeAllOf(schema)
 	if got["type"] != "object" {
 		t.Errorf("type: parent should win, got %v", got["type"])
 	}
@@ -116,7 +116,7 @@ func TestMergeAllOf_PropertyConflict(t *testing.T) {
 			},
 		},
 	}
-	got := MergeAllOf(schema)
+	got := mergeAllOf(schema)
 	props := got["properties"].(map[string]any)
 	shared := props["shared"].(map[string]any)
 	if shared["type"] != "integer" {
@@ -136,7 +136,7 @@ func TestMergeAllOf_RequiredDedup(t *testing.T) {
 			object{"required": []any{"b", "c"}},
 		},
 	}
-	got := MergeAllOf(schema)
+	got := mergeAllOf(schema)
 	req := toStringSlice(got["required"])
 	counts := make(map[string]int)
 	for _, r := range req {
@@ -165,7 +165,7 @@ func TestMergeAllOf_NestedAllOf(t *testing.T) {
 			},
 		},
 	}
-	got := MergeAllOf(schema)
+	got := mergeAllOf(schema)
 	inner := got["properties"].(map[string]any)["inner"].(map[string]any)
 	if _, has := inner["allOf"]; has {
 		t.Error("nested allOf should be removed")
