@@ -107,21 +107,23 @@ func parseSchema(content []byte) (map[string]object, error) {
 func (s *Generator) build() (object, error) {
 	doc := maps.Clone(s.baseDoc)
 
-	// Dereference and merge allOf for each type schema.
-	schemas := make(object, len(s.types))
+	// Pre-resolve all type schemas: dereference $ref and merge allOf.
+	// The resolved map is used when expanding method schemas. The output
+	// document does not include the schemas; components.schemas is left empty.
+	resolved := make(map[string]object, len(s.types))
 	for name, schema := range s.types {
-		expanded, err := s.expandSchema(schema)
+		exp, err := Dereference(schema, s.types)
 		if err != nil {
 			return nil, fmt.Errorf("schema %s: %w", name, err)
 		}
-		schemas[name] = expanded
+		resolved[name] = MergeAllOf(exp)
 	}
-	doc["components"] = object{"schemas": schemas}
+	doc["components"] = object{"schemas": object{}}
 
 	// Expand $ref in method param/result/error schemas and collect methods.
 	var methods []any
 	for _, name := range slices.Sorted(maps.Keys(s.methods)) {
-		method, err := s.expandMethod(s.methods[name])
+		method, err := expandMethod(s.methods[name], resolved)
 		if err != nil {
 			return nil, fmt.Errorf("method %s: %w", name, err)
 		}
@@ -132,9 +134,9 @@ func (s *Generator) build() (object, error) {
 	return doc, nil
 }
 
-// expandSchema dereferences schema against s.types and merges allOf.
-func (s *Generator) expandSchema(schema object) (object, error) {
-	expanded, err := Dereference(schema, s.types)
+// expandSchema dereferences schema against resolved and merges allOf.
+func expandSchema(schema object, types map[string]object) (object, error) {
+	expanded, err := Dereference(schema, types)
 	if err != nil {
 		return nil, err
 	}
@@ -142,8 +144,8 @@ func (s *Generator) expandSchema(schema object) (object, error) {
 }
 
 // expandMethod returns a copy of method with all $ref entries in param, result,
-// and error schemas expanded against s.types.
-func (s *Generator) expandMethod(method object) (object, error) {
+// and error schemas expanded against resolved.
+func expandMethod(method object, types map[string]object) (object, error) {
 	out := maps.Clone(method)
 
 	// Expand each param schema.
@@ -157,7 +159,7 @@ func (s *Generator) expandMethod(method object) (object, error) {
 			}
 			param = maps.Clone(param)
 			if schema, ok := param["schema"].(object); ok {
-				exp, err := s.expandSchema(schema)
+				exp, err := expandSchema(schema, types)
 				if err != nil {
 					return nil, fmt.Errorf("param %d schema: %w", i, err)
 				}
@@ -172,7 +174,7 @@ func (s *Generator) expandMethod(method object) (object, error) {
 	if result, ok := method["result"].(object); ok {
 		result = maps.Clone(result)
 		if schema, ok := result["schema"].(object); ok {
-			exp, err := s.expandSchema(schema)
+			exp, err := expandSchema(schema, types)
 			if err != nil {
 				return nil, fmt.Errorf("result schema: %w", err)
 			}
@@ -192,7 +194,7 @@ func (s *Generator) expandMethod(method object) (object, error) {
 			}
 			errObj = maps.Clone(errObj)
 			if schema, ok := errObj["data"].(object); ok {
-				exp, err := s.expandSchema(schema)
+				exp, err := expandSchema(schema, types)
 				if err != nil {
 					return nil, fmt.Errorf("error %d data schema: %w", i, err)
 				}
