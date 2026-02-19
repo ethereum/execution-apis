@@ -29,7 +29,7 @@ type dereferencer struct {
 
 func (d *dereferencer) value(v any) (any, error) {
 	switch val := v.(type) {
-	case map[string]any:
+	case object:
 		return d.object(val)
 	case []any:
 		return d.slice(val)
@@ -112,7 +112,7 @@ func (d *dereferencer) resolveRef(ref string) (object, error) {
 		if err != nil {
 			return nil, fmt.Errorf("$ref %q: %w", ref, err)
 		}
-		node, ok := val.(map[string]any)
+		node, ok := val.(object)
 		if !ok {
 			return nil, fmt.Errorf("$ref %q: pointed-to value at %q is not an object", ref, pointer)
 		}

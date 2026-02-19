@@ -27,7 +27,7 @@ func TestMergeAllOf_SimpleInline(t *testing.T) {
 		"allOf": []any{
 			object{
 				"required":   []any{"a"},
-				"properties": map[string]any{"a": object{"type": "string"}},
+				"properties": object{"a": object{"type": "string"}},
 			},
 		},
 	}
@@ -46,7 +46,7 @@ func TestMergeAllOf_SimpleInline(t *testing.T) {
 	if !slices.Contains(req, "a") {
 		t.Errorf("required should contain 'a', got %v", req)
 	}
-	props := got["properties"].(map[string]any)
+	props := got["properties"].(object)
 	if _, ok := props["a"]; !ok {
 		t.Error("property 'a' should be present")
 	}
@@ -59,11 +59,11 @@ func TestMergeAllOf_MultipleEntries(t *testing.T) {
 		"allOf": []any{
 			object{
 				"required":   []any{"x"},
-				"properties": map[string]any{"x": object{"type": "string"}},
+				"properties": object{"x": object{"type": "string"}},
 			},
 			object{
 				"required":   []any{"y"},
-				"properties": map[string]any{"y": object{"type": "integer"}},
+				"properties": object{"y": object{"type": "integer"}},
 			},
 		},
 	}
@@ -75,7 +75,7 @@ func TestMergeAllOf_MultipleEntries(t *testing.T) {
 			t.Errorf("required should contain %q, got %v", r, req)
 		}
 	}
-	props := got["properties"].(map[string]any)
+	props := got["properties"].(object)
 	for _, p := range []string{"x", "y"} {
 		if _, ok := props[p]; !ok {
 			t.Errorf("property %q should be present", p)
@@ -105,20 +105,20 @@ func TestMergeAllOf_ParentWins(t *testing.T) {
 func TestMergeAllOf_PropertyConflict(t *testing.T) {
 	schema := object{
 		"type": "object",
-		"properties": map[string]any{
+		"properties": object{
 			"shared": object{"type": "integer", "title": "From Parent"},
 		},
 		"allOf": []any{
 			object{
-				"properties": map[string]any{
+				"properties": object{
 					"shared": object{"type": "string", "title": "From AllOf"},
 				},
 			},
 		},
 	}
 	got := mergeAllOf(schema)
-	props := got["properties"].(map[string]any)
-	shared := props["shared"].(map[string]any)
+	props := got["properties"].(object)
+	shared := props["shared"].(object)
 	if shared["type"] != "integer" {
 		t.Errorf("type: parent property should win, got %v", shared["type"])
 	}
@@ -156,7 +156,7 @@ func TestMergeAllOf_RequiredDedup(t *testing.T) {
 func TestMergeAllOf_NestedAllOf(t *testing.T) {
 	schema := object{
 		"type": "object",
-		"properties": map[string]any{
+		"properties": object{
 			"inner": object{
 				"type": "object",
 				"allOf": []any{
@@ -166,7 +166,7 @@ func TestMergeAllOf_NestedAllOf(t *testing.T) {
 		},
 	}
 	got := mergeAllOf(schema)
-	inner := got["properties"].(map[string]any)["inner"].(map[string]any)
+	inner := got["properties"].(object)["inner"].(object)
 	if _, has := inner["allOf"]; has {
 		t.Error("nested allOf should be removed")
 	}
