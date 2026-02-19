@@ -2196,7 +2196,9 @@ var DebugGetRawReceipts = MethodTests{
 			Name:  "get-block-n",
 			About: "gets receipts non-zero block",
 			Run: func(ctx context.Context, t *T) error {
-				return t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "0x3")
+				// Use block 0xa (10) which is post-Byzantium (byzantiumBlock=9) to ensure
+				// receipts use EIP-658 status encoding instead of pre-Byzantium state root.
+				return t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", "0xa")
 			},
 		},
 		{
