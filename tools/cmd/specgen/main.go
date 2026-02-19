@@ -14,6 +14,7 @@ import (
 var methodFilesFlag = []string{}
 var schemaFilesFlag = []string{}
 var outputFile = ""
+var dereferencing bool
 
 func init() {
 	flag.Func("methods", "path to method files (glob syntax, repeatable)", func(s string) error {
@@ -26,6 +27,7 @@ func init() {
 	})
 	flag.StringVar(&outputFile, "output", "", "output file")
 	flag.StringVar(&outputFile, "o", "", "output file")
+	flag.BoolVar(&dereferencing, "deref", false, "Enable dereferencing of spec")
 }
 
 func main() {
