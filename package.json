@@ -8,7 +8,7 @@
     "build:spec": "make build",
     "build:test": "make test",
     "build:docs": "npm run build:spec && npm run docs:copy && npm run build:docusaurus",
-    "lint": "node scripts/validate.js && node scripts/graphql-validate.js",
+    "lint": "npm run graphql:validate",
     "clean": "rm -rf build && mkdir -p build",
     "graphql:schema": "node scripts/graphql.js",
     "graphql:validate": "node scripts/graphql-validate.js",
