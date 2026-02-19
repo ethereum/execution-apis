@@ -1,4 +1,4 @@
-.PHONY: build fill tools
+.PHONY: build test fill tools
 
 build: tools
 	./tools/specgen -o refs-openrpc.json \
@@ -7,6 +7,9 @@ build: tools
                 -methods 'src/eth' \
                 -methods 'src/debug' \
                 -methods 'src/engine/openrpc/methods'
+
+test: build fill
+	./tools/speccheck -v
 
 fill:
 	$(MAKE) -C tools fill
