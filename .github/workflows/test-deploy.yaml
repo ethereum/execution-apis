@@ -10,24 +10,22 @@ jobs:
   test-deploy:
     name: Test deployment
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20, 22, 24]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24
           cache: npm
+
       - uses: actions/setup-go@v6
         with:
-          go-version: ^1.24
+          go-version: ^1.25
         id: go
 
       - name: Install dependencies
-        run: npm install --frozen-lockfile
+        run: npm ci
+
       - name: Test build website
         run: |
           npm run build:spec
