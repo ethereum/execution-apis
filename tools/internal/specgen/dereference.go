@@ -71,7 +71,7 @@ func (d *dereferencer) object(obj object) (object, error) {
 }
 
 func (d *dereferencer) resolveRef(ref string) (object, error) {
-	name, path, err := parseSchemaRef(ref)
+	name, pointer, err := parseSchemaRef(ref)
 	if err != nil {
 		return nil, err
 	}
@@ -88,18 +88,15 @@ func (d *dereferencer) resolveRef(ref string) (object, error) {
 	}
 
 	// Navigate into sub-path if present.
-	if len(path) > 0 {
-		pointer := "/" + strings.Join(path, "/")
+	if pointer != "" {
 		val, err := jsonpointer.Get(schema, pointer)
 		if err != nil {
 			return nil, fmt.Errorf("$ref %q: %w", ref, err)
 		}
 		node, ok := val.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("$ref %q: value at %q is not an object", ref, pointer)
+			return nil, fmt.Errorf("$ref %q: pointed-to value at %q is not an object", ref, pointer)
 		}
-		// Dereference the sub-node without cycle-guard (it's a value, not a
-		// whole schema definition, so cycles through it are impossible).
 		return d.object(node)
 	}
 
@@ -111,33 +108,14 @@ func (d *dereferencer) resolveRef(ref string) (object, error) {
 
 // parseSchemaRef parses a $ref of the form "#/components/schemas/<Name>[/...]".
 // It returns the schema name and any remaining path segments (may be empty).
-func parseSchemaRef(ref string) (name string, path []string, err error) {
+func parseSchemaRef(ref string) (name, path string, err error) {
 	const prefix = "#/components/schemas/"
 	if !strings.HasPrefix(ref, prefix) {
-		return "", nil, fmt.Errorf("unsupported $ref format: %q", ref)
+		return "", "", fmt.Errorf("unsupported $ref format: %q", ref)
 	}
-	rest := strings.TrimPrefix(ref, prefix)
-	parts := strings.SplitN(rest, "/", 2)
-	name = parts[0]
-	if name == "" {
-		return "", nil, fmt.Errorf("unsupported $ref format: %q", ref)
-	}
-	if len(parts) == 2 && parts[1] != "" {
-		path = strings.Split(parts[1], "/")
+	name, path, hasPath := strings.Cut(strings.TrimPrefix(ref, prefix), "/")
+	if hasPath {
+		path = "/" + path
 	}
 	return name, path, nil
-}
-
-// extractSchemaName parses a local $ref like "#/components/schemas/Foo" and
-// returns the schema name ("Foo"). Returns an error for unsupported formats or
-// if a sub-path is present.
-func extractSchemaName(ref string) (string, error) {
-	name, path, err := parseSchemaRef(ref)
-	if err != nil {
-		return "", err
-	}
-	if len(path) > 0 {
-		return "", fmt.Errorf("unsupported $ref format: %q", ref)
-	}
-	return name, nil
 }
