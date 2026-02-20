@@ -1,0 +1,145 @@
+- name: engine_verifyExecutionProofV1
+  summary: Verifies an execution proof
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip8025.md#engine_verifyexecutionproofv1
+  params:
+    - name: Execution proof
+      required: true
+      schema:
+        $ref: '#/components/schemas/ExecutionProofV1'
+  result:
+    name: Proof status
+    schema:
+      $ref: '#/components/schemas/ProofStatusV1'
+  errors:
+    - code: -39001
+      message: Invalid proof format
+  examples:
+    - name: engine_verifyExecutionProofV1 example
+      params:
+        - name: Execution proof
+          value:
+            proofData: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            proofType: '0x1'
+            publicInput:
+              newPayloadRequestRoot: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+      result:
+        name: Proof status
+        value:
+          valid: true
+
+- name: engine_verifyNewPayloadRequestHeaderV1
+  summary: Verifies a new payload request header has sufficient proof coverage
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip8025.md#engine_verifynewpayloadrequestheaderv1
+  params:
+    - name: New payload request header
+      required: true
+      schema:
+        $ref: '#/components/schemas/NewPayloadRequestHeaderV1'
+  result:
+    name: Verification status
+    schema:
+      $ref: '#/components/schemas/ProofStatusV1'
+  errors:
+    - code: -39002
+      message: Invalid header format
+  examples:
+    - name: engine_verifyNewPayloadRequestHeaderV1 example
+      params:
+        - name: New payload request header
+          value:
+            executionPayloadHeader:
+              parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+              feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+              stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+              receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+              logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+              prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+              blockNumber: '0x1'
+              gasLimit: '0x1c9c380'
+              gasUsed: '0x0'
+              timestamp: '0x5'
+              extraData: '0x'
+              baseFeePerGas: '0x7'
+              blockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+              transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+              withdrawalsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+              blobGasUsed: '0x0'
+              excessBlobGas: '0x0'
+            versionedHashes: []
+            parentBeaconBlockRoot: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            executionRequests: []
+      result:
+        name: Verification status
+        value:
+          valid: true
+
+- name: engine_requestProofsV1
+  summary: Requests proof generation for a new payload request
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip8025.md#engine_requestproofsv1
+  params:
+    - name: Execution payload
+      required: true
+      schema:
+        $ref: '#/components/schemas/ExecutionPayloadV3'
+    - name: Versioned hashes
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/hash32'
+    - name: Parent beacon block root
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Proof attributes
+      required: true
+      schema:
+        $ref: '#/components/schemas/ProofAttributesV1'
+  result:
+    name: Proof generation ID
+    schema:
+      $ref: '#/components/schemas/bytes8'
+  errors:
+    - code: -39003
+      message: Invalid payload
+    - code: -39004
+      message: Proof generation unavailable
+  examples:
+    - name: engine_requestProofsV1 example
+      params:
+        - name: Execution payload
+          value:
+            parentHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+            feeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            stateRoot: '0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            blockNumber: '0x1'
+            gasLimit: '0x1c9c380'
+            gasUsed: '0x0'
+            timestamp: '0x5'
+            extraData: '0x'
+            baseFeePerGas: '0x7'
+            blockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            transactions: []
+            withdrawals: []
+            blobGasUsed: '0x0'
+            excessBlobGas: '0x0'
+        - name: Versioned hashes
+          value: []
+        - name: Parent beacon block root
+          value: '0x0000000000000000000000000000000000000000000000000000000000000000'
+        - name: Proof attributes
+          value:
+            proofTypes:
+              - '0x1'
+      result:
+        name: Proof generation ID
+        value: '0x0000000000000001'
