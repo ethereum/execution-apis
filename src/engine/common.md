@@ -99,6 +99,7 @@ The list of error codes introduced by this specification can be found below.
 | -38003 | Invalid payload attributes | Payload attributes are invalid / inconsistent. |
 | -38004 | Too large request | Number of requested entities is too large. |
 | -38005 | Unsupported fork | Payload belongs to a fork that is not supported. |
+| -38006 | Unknown parent | Parent does not exist / is not available. |
 
 Each error returns a `null` `data` value, except `-32000` which returns the `data` object with a `err` member that explains the error encountered.
 
