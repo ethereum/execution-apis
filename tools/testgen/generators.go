@@ -69,6 +69,7 @@ var AllMethods = []MethodTests{
 	EthGetBalance,
 	EthGetCode,
 	EthGetStorage,
+	EthGetStorageValues,
 	EthCall,
 	EthSimulateV1,
 	EthEstimateGas,
@@ -257,6 +258,108 @@ var EthGetStorage = MethodTests{
 				err := t.rpc.CallContext(ctx, nil, "eth_getStorageAt", "0xaa00000000000000000000000000000000000000", "0xasdf", "latest")
 				if err == nil {
 					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetStorageValues stores a list of all tests against the method.
+var EthGetStorageValues = MethodTests{
+	"eth_getStorageValues",
+	[]Test{
+		{
+			Name:  "get-storage-values",
+			About: "gets storage values for a contract",
+			Run: func(ctx context.Context, t *T) error {
+				addr := emitContract
+				key := common.Hash{}
+				requests := map[common.Address][]common.Hash{
+					addr: {key},
+				}
+				var result map[common.Address][]hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &result, "eth_getStorageValues", requests, "latest")
+				if err != nil {
+					return err
+				}
+				if len(result) != 1 {
+					return fmt.Errorf("expected 1 address in result, got %d", len(result))
+				}
+				values, ok := result[addr]
+				if !ok {
+					return fmt.Errorf("missing address in result")
+				}
+				if len(values) != 1 {
+					return fmt.Errorf("expected 1 value, got %d", len(values))
+				}
+				if len(values[0]) != 32 {
+					return fmt.Errorf("expected 32 byte value, got %d", len(values[0]))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-storage-values-multiple-addresses",
+			About: "gets storage values for slots across multiple addresses",
+			Run: func(ctx context.Context, t *T) error {
+				requests := map[common.Address][]common.Hash{
+					emitContract: {common.Hash{}},
+					nonAccount:   {common.Hash{1}},
+				}
+				var result map[common.Address][]hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &result, "eth_getStorageValues", requests, "latest")
+				if err != nil {
+					return err
+				}
+				if len(result) != 2 {
+					return fmt.Errorf("expected 2 addresses in result, got %d", len(result))
+				}
+				for addr, keys := range requests {
+					values, ok := result[addr]
+					if !ok {
+						return fmt.Errorf("missing address %s in result", addr)
+					}
+					if len(values) != len(keys) {
+						return fmt.Errorf("expected %d values for %s, got %d", len(keys), addr, len(values))
+					}
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-storage-values-unknown-account",
+			About: "gets storage values for a non-existent account",
+			Run: func(ctx context.Context, t *T) error {
+				requests := map[common.Address][]common.Hash{
+					nonAccount: {common.Hash{1}},
+				}
+				var result map[common.Address][]hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &result, "eth_getStorageValues", requests, "latest")
+				if err != nil {
+					return err
+				}
+				if len(result) != 1 {
+					return fmt.Errorf("expected 1 address in result, got %d", len(result))
+				}
+				values, ok := result[nonAccount]
+				if !ok {
+					return fmt.Errorf("missing address in result")
+				}
+				if len(values) != 1 {
+					return fmt.Errorf("expected 1 value, got %d", len(values))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-storage-values-empty-request",
+			About: "requests with an empty map",
+			Run: func(ctx context.Context, t *T) error {
+				requests := map[common.Address][]common.Hash{}
+				err := t.rpc.CallContext(ctx, nil, "eth_getStorageValues", requests, "latest")
+				if err == nil {
+					return fmt.Errorf("expected error for empty request")
 				}
 				return nil
 			},
