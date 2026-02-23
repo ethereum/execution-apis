@@ -22,7 +22,7 @@ func mergeAllOf(schema object) object {
 
 func mergeValue(v any) any {
 	switch val := v.(type) {
-	case map[string]any:
+	case object:
 		return mergeObject(val)
 	case []any:
 		return mergeSlice(val)
@@ -56,7 +56,7 @@ func mergeObject(obj object) object {
 	// Merge allOf entries into out, if present.
 	if allOf, ok := obj["allOf"].([]any); ok {
 		for i, entry := range allOf {
-			sub, ok := entry.(map[string]any)
+			sub, ok := entry.(object)
 			if !ok {
 				panic(fmt.Sprintf("mergeObject: allOf[%d]: unexpected type %T", i, entry))
 			}
@@ -73,11 +73,11 @@ func mergeObject(obj object) object {
 //   - all other fields: dst wins (src value only copied when dst key is absent).
 func mergeSchemas(dst, src object) {
 	// Merge properties.
-	if srcProps, ok := src["properties"].(map[string]any); ok {
+	if srcProps, ok := src["properties"].(object); ok {
 		if dst["properties"] == nil {
-			dst["properties"] = make(map[string]any)
+			dst["properties"] = make(object)
 		}
-		dstProps := dst["properties"].(map[string]any)
+		dstProps := dst["properties"].(object)
 		for k, v := range srcProps {
 			if _, exists := dstProps[k]; !exists {
 				dstProps[k] = v

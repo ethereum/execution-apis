@@ -13,7 +13,7 @@ import (
 //
 // The input schema is not modified; a fully dereferenced deep copy is returned.
 // Cycles are detected and reported as errors.
-func dereference(schema object, repository map[string]object) (object, error) {
+func dereference(schema object, repository schemaRepository) (object, error) {
 	d := &dereferencer{
 		repository: repository,
 		visiting:   make(map[string]bool),
@@ -23,13 +23,13 @@ func dereference(schema object, repository map[string]object) (object, error) {
 
 // dereferencer holds the state needed to recursively expand $ref entries.
 type dereferencer struct {
-	repository map[string]object
+	repository schemaRepository
 	visiting   map[string]bool
 }
 
 func (d *dereferencer) value(v any) (any, error) {
 	switch val := v.(type) {
-	case map[string]any:
+	case object:
 		return d.object(val)
 	case []any:
 		return d.slice(val)
@@ -112,7 +112,7 @@ func (d *dereferencer) resolveRef(ref string) (object, error) {
 		if err != nil {
 			return nil, fmt.Errorf("$ref %q: %w", ref, err)
 		}
-		node, ok := val.(map[string]any)
+		node, ok := val.(object)
 		if !ok {
 			return nil, fmt.Errorf("$ref %q: pointed-to value at %q is not an object", ref, pointer)
 		}

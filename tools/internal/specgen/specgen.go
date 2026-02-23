@@ -20,11 +20,12 @@ var baseDocJSON []byte
 
 type object = map[string]any
 
+type schemaRepository = map[string]object
+
 type Generator struct {
-	baseDoc     object
-	methods     map[string]object
-	types       map[string]object
-	dereference bool
+	baseDoc object
+	methods map[string]object
+	types   schemaRepository
 }
 
 func New() *Generator {
@@ -38,15 +39,9 @@ func New() *Generator {
 	}
 	return &Generator{
 		methods: make(map[string]object),
-		types:   make(map[string]object),
+		types:   make(schemaRepository),
 		baseDoc: baseDocMap,
 	}
-}
-
-// SetDereference turns on 'dereferencing'. If enabled, the output contains no $ref pointers
-// and does not use the `allOf` schema feature.
-func (s *Generator) SetDereference(on bool) {
-	s.dereference = on
 }
 
 // AddMethods parses the given YAML content and adds the methods defined within it to the spec.
@@ -110,56 +105,39 @@ func parseSchema(content []byte) (map[string]object, error) {
 	return body, nil
 }
 
-// build creates the spec document.
-func (s *Generator) build() (object, error) {
-	doc := maps.Clone(s.baseDoc)
-
-	var types = s.types
-	if s.dereference {
-		// Pre-resolve all type schemas: dereference $ref and merge allOf.
-		// The resolved map is used when expanding method schemas. The output
-		// document does not include the schemas; "components" is left empty.
-		types := make(map[string]object, len(s.types))
-		for name, schema := range s.types {
-			exp, err := s.expandSchema(schema, s.types)
-			if err != nil {
-				return nil, fmt.Errorf("schema %s: %w", name, err)
-			}
-			types[name] = exp
+// Dereference removes all $ref pointers and ensures the spec and does not use the `allOf`
+// schema feature. This exists to simplify the spec for compatibility with some tools.
+func (s *Generator) Dereference() error {
+	// Pre-resolve all type schemas: dereference $ref and merge allOf.
+	// The resolved map is used when expanding method schemas. The output
+	// document does not include the schemas; "components" is left empty.
+	types := make(schemaRepository, len(s.types))
+	for name, schema := range s.types {
+		exp, err := s.expandSchema(schema, s.types)
+		if err != nil {
+			return fmt.Errorf("schema %s: %w", name, err)
 		}
-		doc["components"] = object{}
-	} else {
-		doc["components"] = object{"schemas": typesToObject(s.types)}
+		types[name] = exp
 	}
 
 	// Expand $ref in method param/result/error schemas and collect methods.
-	var methods []any
+	methods := make(schemaRepository, len(s.methods))
 	for _, name := range slices.Sorted(maps.Keys(s.methods)) {
 		method, err := s.expandMethod(s.methods[name], types)
 		if err != nil {
-			return nil, fmt.Errorf("method %s: %w", name, err)
+			return fmt.Errorf("method %s: %w", name, err)
 		}
-		methods = append(methods, method)
+		methods[name] = method
 	}
-	doc["methods"] = methods
 
-	return doc, nil
-}
-
-func typesToObject(t map[string]object) object {
-	o := make(object, len(t))
-	for k, v := range t {
-		o[k] = v
-	}
-	return o
+	clear(s.types)
+	s.methods = methods
+	return nil
 }
 
 // expandSchema dereferences schema using the given repository of types and also merges
 // uses of "allOf".
 func (s *Generator) expandSchema(schema object, types map[string]object) (object, error) {
-	if !s.dereference {
-		return schema, nil
-	}
 	expanded, err := dereference(schema, types)
 	if err != nil {
 		return nil, err
@@ -170,10 +148,6 @@ func (s *Generator) expandSchema(schema object, types map[string]object) (object
 // expandMethod returns a copy of method with all $ref entries in param, result,
 // and error schemas expanded using the given repository of types.
 func (s *Generator) expandMethod(method object, types map[string]object) (object, error) {
-	if !s.dereference {
-		return method, nil
-	}
-
 	out := maps.Clone(method)
 
 	// Expand each param schema.
@@ -236,12 +210,29 @@ func (s *Generator) expandMethod(method object, types map[string]object) (object
 	return out, nil
 }
 
+// build creates the spec document.
+func (s *Generator) build() object {
+	doc := maps.Clone(s.baseDoc)
+	doc["components"] = object{"schemas": repo2object(s.types)}
+	var methods []any
+	for _, name := range slices.Sorted(maps.Keys(s.methods)) {
+		methods = append(methods, s.methods[name])
+	}
+	doc["methods"] = methods
+	return doc
+}
+
+func repo2object(r schemaRepository) object {
+	obj := make(object, len(r))
+	for k, v := range r {
+		obj[k] = v
+	}
+	return obj
+}
+
 // Validate builds the spec and checks it against the OpenRPC meta-schema.
 func (s *Generator) Validate() error {
-	doc, err := s.build()
-	if err != nil {
-		return fmt.Errorf("spec build error: %v", err)
-	}
+	doc := s.build()
 	if err := validate(doc); err != nil {
 		return fmt.Errorf("spec is invalid: %v", err)
 	}
@@ -266,10 +257,7 @@ func validate(doc object) error {
 
 // JSON creates the spec document.
 func (s *Generator) JSON() ([]byte, error) {
-	doc, err := s.build()
-	if err != nil {
-		return nil, fmt.Errorf("spec build error: %v", err)
-	}
+	doc := s.build()
 	if err := validate(doc); err != nil {
 		return nil, fmt.Errorf("spec is invalid: %v", err)
 	}
