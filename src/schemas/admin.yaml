@@ -1,0 +1,81 @@
+AdminCapabilities:
+  title: Admin capabilities
+  type: object
+  additionalProperties: false
+  required:
+    - config
+    - effective
+  properties:
+    config:
+      $ref: '#/components/schemas/AdminCapabilitiesConfig'
+    effective:
+      $ref: '#/components/schemas/AdminCapabilitiesEffective'
+
+AdminCapabilitiesConfig:
+  title: Client config snapshot
+  type: object
+  additionalProperties:
+    type: object
+
+AdminCapabilitiesEffective:
+  title: Effective routing capabilities
+  type: object
+  additionalProperties: false
+  required:
+    - state
+    - tx
+    - logs
+    - blocks
+  properties:
+    state:
+      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+    tx:
+      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+    logs:
+      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+    blocks:
+      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+
+AdminCapabilitiesEffectiveResource:
+  title: Effective resource capability
+  type: object
+  additionalProperties: false
+  required:
+    - disabled
+    - oldestBlock
+    - deleteStrategy
+  properties:
+    disabled:
+      type: boolean
+    oldestBlock:
+      $ref: '#/components/schemas/uint'
+    deleteStrategy:
+      $ref: '#/components/schemas/AdminCapabilitiesDeleteStrategy'
+
+AdminCapabilitiesDeleteStrategy:
+  title: Delete strategy
+  oneOf:
+    - title: No deletion
+      type: object
+      additionalProperties: false
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - none
+    - title: Sliding window deletion
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - retentionBlocks
+      properties:
+        type:
+          type: string
+          enum:
+            - window
+        retentionBlocks:
+          type: integer
+          minimum: 0

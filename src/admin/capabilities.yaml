@@ -1,0 +1,41 @@
+- name: admin_capabilities
+  summary: Returns a client-specific config snapshot and effective capabilities for routing decisions.
+  params: []
+  result:
+    name: Capabilities
+    schema:
+      $ref: '#/components/schemas/AdminCapabilities'
+  examples:
+    - name: admin_capabilities example
+      params: []
+      result:
+        name: Capabilities
+        value:
+          config:
+            gethCli:
+              --state.scheme: path
+              --history.state: 90000
+          effective:
+            state:
+              disabled: false
+              oldestBlock: '0x12ab34'
+              deleteStrategy:
+                type: window
+                retentionBlocks: 90000
+            tx:
+              disabled: false
+              oldestBlock: '0xf00aa'
+              deleteStrategy:
+                type: window
+                retentionBlocks: 2350000
+            logs:
+              disabled: false
+              oldestBlock: '0xf00aa'
+              deleteStrategy:
+                type: window
+                retentionBlocks: 2350000
+            blocks:
+              disabled: false
+              oldestBlock: '0x0'
+              deleteStrategy:
+                type: none
