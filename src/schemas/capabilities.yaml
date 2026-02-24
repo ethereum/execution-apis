@@ -1,5 +1,5 @@
-AdminCapabilities:
-  title: Admin capabilities
+EthCapabilities:
+  title: Eth capabilities
   type: object
   additionalProperties: false
   required:
@@ -7,17 +7,17 @@ AdminCapabilities:
     - effective
   properties:
     config:
-      $ref: '#/components/schemas/AdminCapabilitiesConfig'
+      $ref: '#/components/schemas/EthCapabilitiesConfig'
     effective:
-      $ref: '#/components/schemas/AdminCapabilitiesEffective'
+      $ref: '#/components/schemas/EthCapabilitiesEffective'
 
-AdminCapabilitiesConfig:
+EthCapabilitiesConfig:
   title: Client config snapshot
   type: object
   additionalProperties:
     type: object
 
-AdminCapabilitiesEffective:
+EthCapabilitiesEffective:
   title: Effective routing capabilities
   type: object
   additionalProperties: false
@@ -25,18 +25,24 @@ AdminCapabilitiesEffective:
     - state
     - tx
     - logs
+    - receipts
     - blocks
+    - trienodes
   properties:
     state:
-      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
     tx:
-      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
     logs:
-      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+    receipts:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
     blocks:
-      $ref: '#/components/schemas/AdminCapabilitiesEffectiveResource'
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+    trienodes:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
 
-AdminCapabilitiesEffectiveResource:
+EthCapabilitiesEffectiveResource:
   title: Effective resource capability
   type: object
   additionalProperties: false
@@ -50,9 +56,9 @@ AdminCapabilitiesEffectiveResource:
     oldestBlock:
       $ref: '#/components/schemas/uint'
     deleteStrategy:
-      $ref: '#/components/schemas/AdminCapabilitiesDeleteStrategy'
+      $ref: '#/components/schemas/EthCapabilitiesDeleteStrategy'
 
-AdminCapabilitiesDeleteStrategy:
+EthCapabilitiesDeleteStrategy:
   title: Delete strategy
   oneOf:
     - title: No deletion

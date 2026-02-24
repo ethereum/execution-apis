@@ -1,3 +1,0 @@
-// Returns routing-focused effective capabilities when logs are unavailable.
->> {"jsonrpc":"2.0","id":1,"method":"admin_capabilities"}
-<< {"jsonrpc":"2.0","id":1,"result":{"config":{"gethCli":{"--state.scheme":"path","--history.state":50000}},"effective":{"state":{"disabled":false,"oldestBlock":"0x1a2b3c","deleteStrategy":{"type":"window","retentionBlocks":50000}},"tx":{"disabled":false,"oldestBlock":"0x10203","deleteStrategy":{"type":"window","retentionBlocks":1200000}},"logs":{"disabled":true,"oldestBlock":"0x0","deleteStrategy":{"type":"none"}},"blocks":{"disabled":false,"oldestBlock":"0x0","deleteStrategy":{"type":"none"}}}}}

@@ -1,3 +1,0 @@
-// Returns effective routing capabilities and a client-specific config snapshot.
->> {"jsonrpc":"2.0","id":1,"method":"admin_capabilities"}
-<< {"jsonrpc":"2.0","id":1,"result":{"config":{"gethCli":{"--state.scheme":"path","--history.state":90000}},"effective":{"state":{"disabled":false,"oldestBlock":"0x12ab34","deleteStrategy":{"type":"window","retentionBlocks":90000}},"tx":{"disabled":false,"oldestBlock":"0xf00aa","deleteStrategy":{"type":"window","retentionBlocks":2350000}},"logs":{"disabled":false,"oldestBlock":"0xf00aa","deleteStrategy":{"type":"window","retentionBlocks":2350000}},"blocks":{"disabled":false,"oldestBlock":"0x0","deleteStrategy":{"type":"none"}}}}}
