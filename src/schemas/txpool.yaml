@@ -15,12 +15,46 @@ TxpoolStatus:
       description: Number of transactions scheduled for future execution (nonce gaps)
       $ref: '#/components/schemas/uint'
 
+PendingTransactionInfo:
+  type: object
+  title: Pending transaction information
+  description: Transaction in the pool, not yet included in a block.
+  allOf:
+    - title: Contextual information
+      required:
+        - from
+        - hash
+      properties:
+        blockHash:
+          title: block hash
+          description: Always null for pending transactions
+          type: "null"
+        blockNumber:
+          title: block number
+          description: Always null for pending transactions
+          type: "null"
+        blockTimestamp:
+          title: block timestamp
+          description: Always null for pending transactions
+          type: "null"
+        from:
+          title: from address
+          $ref: '#/components/schemas/address'
+        hash:
+          title: transaction hash
+          $ref: '#/components/schemas/hash32'
+        transactionIndex:
+          title: transaction index
+          description: Always null for pending transactions
+          type: "null"
+    - $ref: '#/components/schemas/TransactionSigned'
+
 TxpoolContentByAddress:
   type: object
   title: Transactions by nonce
   description: Map of nonce to transaction object
   additionalProperties:
-    $ref: '#/components/schemas/TransactionInfo'
+    $ref: '#/components/schemas/PendingTransactionInfo'
 
 TxpoolContentAddressMap:
   type: object
