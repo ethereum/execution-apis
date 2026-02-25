@@ -144,7 +144,7 @@ The end-to-end process from proposal to deployment:
   PRs with CI exceptions. The spec and speccheck must still pass.
 
 For detailed instructions on running these tools locally, see the
-[Tools README](../tools/README.md).
+[Tools README][tools-readme].
 
 ## Hive rpc-compat Integration
 
@@ -162,6 +162,7 @@ clients via the [rpc-compat][rpc-compat] simulator. How it works:
 
 [exec-apis]: https://github.com/ethereum/execution-apis
 [pm]: https://github.com/ethereum/pm
+[tools-readme]: https://github.com/ethereum/execution-apis/blob/main/tools/README.md
 [wordlist]: https://github.com/ethereum/execution-apis/blob/main/wordlist.txt
 [test-gen]: ./tests.md
 [discord]: https://discord.gg/tWQwJSaqEE
