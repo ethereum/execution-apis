@@ -1,0 +1,66 @@
+- name: txpool_status
+  summary: Returns the number of pending and queued transactions in the pool.
+  description: |
+    Returns an object containing the count of transactions currently pending for
+    inclusion in the next block(s), as well as ones that are scheduled for future
+    execution (transactions with nonce gaps).
+  params: []
+  result:
+    name: Transaction pool status
+    schema:
+      $ref: '#/components/schemas/TxpoolStatus'
+  examples:
+    - name: txpool_status example
+      params: []
+      result:
+        name: Transaction pool status
+        value:
+          pending: '0xa'
+          queued: '0x7'
+
+- name: txpool_content
+  summary: Returns the contents of the transaction pool.
+  description: |
+    Returns an object containing all pending and queued transactions in the pool,
+    grouped by origin address and sorted by nonce. Pending transactions are ready
+    for inclusion in the next block(s). Queued transactions have nonce gaps and
+    are scheduled for future execution.
+  params: []
+  result:
+    name: Transaction pool content
+    schema:
+      $ref: '#/components/schemas/TxpoolContent'
+  examples:
+    - name: txpool_content example
+      params: []
+      result:
+        name: Transaction pool content
+        value:
+          pending:
+            '0x0216d5032f356960cd3749c31ab34eeff21b3395':
+              '806':
+                blockHash: null
+                blockNumber: null
+                from: '0x0216d5032f356960cd3749c31ab34eeff21b3395'
+                gas: '0x5208'
+                gasPrice: '0xba43b7400'
+                hash: '0xaf953a2d01f55cfe080c0c94150a60105e8ac3d51153058a1f03dd239dd08586'
+                input: '0x'
+                nonce: '0x326'
+                to: '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8'
+                transactionIndex: null
+                value: '0x19a99f0cf456000'
+          queued:
+            '0x0216d5032f356960cd3749c31ab34eeff21b3395':
+              '808':
+                blockHash: null
+                blockNumber: null
+                from: '0x0216d5032f356960cd3749c31ab34eeff21b3395'
+                gas: '0x5208'
+                gasPrice: '0xba43b7400'
+                hash: '0x593f723c6f7abc7878c4927d2f1a0e6c5a6c0b4c9f5a7b2e3d4c5f6a7b8c9d0e'
+                input: '0x'
+                nonce: '0x328'
+                to: '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8'
+                transactionIndex: null
+                value: '0x19a99f0cf456000'

@@ -1,0 +1,47 @@
+TxpoolStatus:
+  type: object
+  title: Transaction pool status
+  description: The number of pending and queued transactions in the pool.
+  required:
+    - pending
+    - queued
+  properties:
+    pending:
+      title: pending count
+      description: Number of transactions ready for inclusion in the next block(s)
+      $ref: '#/components/schemas/uint'
+    queued:
+      title: queued count
+      description: Number of transactions scheduled for future execution (nonce gaps)
+      $ref: '#/components/schemas/uint'
+
+TxpoolContentByAddress:
+  type: object
+  title: Transactions by nonce
+  description: Map of nonce to transaction object
+  additionalProperties:
+    $ref: '#/components/schemas/TransactionInfo'
+
+TxpoolContentAddressMap:
+  type: object
+  title: Transactions by address
+  description: Map of address to transactions grouped by nonce
+  additionalProperties:
+    $ref: '#/components/schemas/TxpoolContentByAddress'
+
+TxpoolContent:
+  type: object
+  title: Transaction pool content
+  description: All pending and queued transactions in the pool, grouped by address and nonce.
+  required:
+    - pending
+    - queued
+  properties:
+    pending:
+      title: pending transactions
+      description: Transactions ready for inclusion in the next block(s)
+      $ref: '#/components/schemas/TxpoolContentAddressMap'
+    queued:
+      title: queued transactions
+      description: Transactions scheduled for future execution (nonce gaps)
+      $ref: '#/components/schemas/TxpoolContentAddressMap'
