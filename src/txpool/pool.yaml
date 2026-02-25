@@ -64,3 +64,64 @@
                 to: '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8'
                 transactionIndex: null
                 value: '0x19a99f0cf456000'
+
+- name: txpool_contentFrom
+  summary: Returns the transactions in the pool from a specific address.
+  description: |
+    Returns an object containing pending and queued transactions from the specified
+    address, grouped by nonce. This is a filtered version of txpool_content.
+  params:
+    - name: address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+  result:
+    name: Transaction pool content from address
+    schema:
+      $ref: '#/components/schemas/TxpoolContentFromResult'
+  examples:
+    - name: txpool_contentFrom example
+      params:
+        - name: address
+          value: '0x0216d5032f356960cd3749c31ab34eeff21b3395'
+      result:
+        name: Transaction pool content from address
+        value:
+          pending:
+            '806':
+              blockHash: null
+              blockNumber: null
+              from: '0x0216d5032f356960cd3749c31ab34eeff21b3395'
+              gas: '0x5208'
+              gasPrice: '0xba43b7400'
+              hash: '0xaf953a2d01f55cfe080c0c94150a60105e8ac3d51153058a1f03dd239dd08586'
+              input: '0x'
+              nonce: '0x326'
+              to: '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8'
+              transactionIndex: null
+              value: '0x19a99f0cf456000'
+          queued: {}
+
+- name: txpool_inspect
+  summary: Returns a textual summary of all transactions in the pool.
+  description: |
+    Returns an object containing a textual summary of all pending and queued
+    transactions in the pool, grouped by origin address and sorted by nonce.
+    This is useful for quick inspection without full transaction details.
+  params: []
+  result:
+    name: Transaction pool inspection
+    schema:
+      $ref: '#/components/schemas/TxpoolInspect'
+  examples:
+    - name: txpool_inspect example
+      params: []
+      result:
+        name: Transaction pool inspection
+        value:
+          pending:
+            '0x0216d5032f356960cd3749c31ab34eeff21b3395':
+              '806': '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8: 115000000000000000 wei + 21000 gas × 50000000000 wei'
+          queued:
+            '0x0216d5032f356960cd3749c31ab34eeff21b3395':
+              '808': '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8: 115000000000000000 wei + 21000 gas × 50000000000 wei'

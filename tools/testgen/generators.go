@@ -95,6 +95,8 @@ var AllMethods = []MethodTests{
 	TestingBuildBlockV1,
 	TxpoolStatus,
 	TxpoolContent,
+	TxpoolContentFrom,
+	TxpoolInspect,
 
 	// -- gas price tests are disabled because of non-determinism
 	// EthGasPrice,
@@ -6753,6 +6755,50 @@ var TxpoolContent = MethodTests{
 					Queued  map[common.Address]map[string]any `json:"queued"`
 				}
 				if err := t.rpc.CallContext(ctx, &result, "txpool_content"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// TxpoolContentFrom stores a list of all tests against the method.
+var TxpoolContentFrom = MethodTests{
+	"txpool_contentFrom",
+	[]Test{
+		{
+			Name:  "get-content-from-address",
+			About: "retrieves pending transactions from a specific address",
+			Run: func(ctx context.Context, t *T) error {
+				var result struct {
+					Pending map[string]any `json:"pending"`
+					Queued  map[string]any `json:"queued"`
+				}
+				// Use a known address from the test chain
+				addr := common.HexToAddress("0x0000000000000000000000000000000000000000")
+				if err := t.rpc.CallContext(ctx, &result, "txpool_contentFrom", addr); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// TxpoolInspect stores a list of all tests against the method.
+var TxpoolInspect = MethodTests{
+	"txpool_inspect",
+	[]Test{
+		{
+			Name:  "get-inspect",
+			About: "retrieves a textual summary of the transaction pool",
+			Run: func(ctx context.Context, t *T) error {
+				var result struct {
+					Pending map[common.Address]map[string]string `json:"pending"`
+					Queued  map[common.Address]map[string]string `json:"queued"`
+				}
+				if err := t.rpc.CallContext(ctx, &result, "txpool_inspect"); err != nil {
 					return err
 				}
 				return nil

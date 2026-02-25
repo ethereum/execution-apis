@@ -79,3 +79,51 @@ TxpoolContent:
       title: queued transactions
       description: Transactions scheduled for future execution (nonce gaps)
       $ref: '#/components/schemas/TxpoolContentAddressMap'
+
+TxpoolContentFromResult:
+  type: object
+  title: Transaction pool content from address
+  description: Pending and queued transactions from a specific address, grouped by nonce.
+  required:
+    - pending
+    - queued
+  properties:
+    pending:
+      title: pending transactions
+      description: Transactions ready for inclusion in the next block(s)
+      $ref: '#/components/schemas/TxpoolContentByAddress'
+    queued:
+      title: queued transactions
+      description: Transactions scheduled for future execution (nonce gaps)
+      $ref: '#/components/schemas/TxpoolContentByAddress'
+
+TxpoolInspectSummaryByNonce:
+  type: object
+  title: Transaction summaries by nonce
+  description: Map of nonce to textual transaction summary
+  additionalProperties:
+    type: string
+
+TxpoolInspectAddressMap:
+  type: object
+  title: Transaction summaries by address
+  description: Map of address to transaction summaries grouped by nonce
+  additionalProperties:
+    $ref: '#/components/schemas/TxpoolInspectSummaryByNonce'
+
+TxpoolInspect:
+  type: object
+  title: Transaction pool inspection
+  description: Textual summary of all pending and queued transactions, grouped by address and nonce.
+  required:
+    - pending
+    - queued
+  properties:
+    pending:
+      title: pending transaction summaries
+      description: Summaries of transactions ready for inclusion
+      $ref: '#/components/schemas/TxpoolInspectAddressMap'
+    queued:
+      title: queued transaction summaries
+      description: Summaries of transactions scheduled for future execution
+      $ref: '#/components/schemas/TxpoolInspectAddressMap'
