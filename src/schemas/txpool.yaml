@@ -12,7 +12,7 @@ TxpoolStatus:
       $ref: '#/components/schemas/uint'
     queued:
       title: queued count
-      description: Number of transactions scheduled for future execution (nonce gaps)
+      description: Number of transactions with nonce gaps awaiting preceding transactions before they can be executed
       $ref: '#/components/schemas/uint'
 
 PendingTransactionInfo:
@@ -77,7 +77,7 @@ TxpoolContent:
       $ref: '#/components/schemas/TxpoolContentAddressMap'
     queued:
       title: queued transactions
-      description: Transactions scheduled for future execution (nonce gaps)
+      description: Transactions with nonce gaps awaiting preceding transactions before they can be executed
       $ref: '#/components/schemas/TxpoolContentAddressMap'
 
 TxpoolContentFromResult:
@@ -94,7 +94,7 @@ TxpoolContentFromResult:
       $ref: '#/components/schemas/TxpoolContentByAddress'
     queued:
       title: queued transactions
-      description: Transactions scheduled for future execution (nonce gaps)
+      description: Transactions with nonce gaps awaiting preceding transactions before they can be executed
       $ref: '#/components/schemas/TxpoolContentByAddress'
 
 TxpoolInspectSummaryByNonce:
@@ -125,5 +125,5 @@ TxpoolInspect:
       $ref: '#/components/schemas/TxpoolInspectAddressMap'
     queued:
       title: queued transaction summaries
-      description: Summaries of transactions scheduled for future execution
+      description: Summaries of transactions with nonce gaps awaiting preceding transactions
       $ref: '#/components/schemas/TxpoolInspectAddressMap'
