@@ -6168,6 +6168,7 @@ type callResult struct {
 	Logs       []*types.Log   `json:"logs"`
 	Transfers  []transfer     `json:"transfers,omitempty"`
 	GasUsed    hexutil.Uint64 `json:"gasUsed"`
+	MaxUsedGas hexutil.Uint64 `json:"maxUsedGas"`
 	Status     hexutil.Uint64 `json:"status"`
 	Error      errorResult    `json:"error,omitempty"`
 }
