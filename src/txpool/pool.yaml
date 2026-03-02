@@ -108,6 +108,11 @@
     Returns an object containing a textual summary of all pending and queued
     transactions in the pool, grouped by origin address and sorted by nonce.
     This is useful for quick inspection without full transaction details.
+
+    Note: The response structure (nested maps of address to nonce to string) is
+    standardized, but the string content format is informational and may vary
+    between implementations. This method is intended for human-readable debugging
+    output rather than programmatic parsing.
   params: []
   result:
     name: Transaction pool inspection
