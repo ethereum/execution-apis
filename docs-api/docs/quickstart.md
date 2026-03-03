@@ -11,10 +11,12 @@ Ethereum clients as modules that can be swapped at will.
 
 ### Contributing
 
-Please see the [contributors guide][contributors-guide]
-for general information about the process of standardizing new API methods and
-making changes to existing ones. Information on test generation can be found
-in [test-gen][test-gen]
+Please see
+[CONTRIBUTING.md](https://github.com/ethereum/execution-apis/blob/main/CONTRIBUTING.md)
+for a concise workflow overview, and the [contributors guide][contributors-guide]
+for the full process of standardizing new API methods and making changes to
+existing ones. Information on test generation can be found in
+[test-gen][test-gen].
 
 The specification itself is written in [OpenRPC][openrpc]. Refer to the OpenRPC
 specification and the JSON schema [specification][json-schema] to get started.
@@ -23,17 +25,17 @@ specification and the JSON schema [specification][json-schema] to get started.
 
 #### Compiling
 
-The specification is split into multiple files to improve readability. The
-spec can be compiled into a single document as follows:
+The specification is split into multiple YAML files to improve readability. The
+spec can be compiled into a single OpenRPC document as follows:
 
 ```console
-$ npm install
-$ npm run build
-Build successful.
+$ make build
+...
+wrote spec to openrpc.json
 ```
 
-This will output the file `openrpc.json` in the root of the project. This file
-will have all schema `#ref`s resolved.
+This will output the file `openrpc.json` in the root of the project. Notably,
+this file will have all schema `$ref`s resolved.
 
 #### Building the docs
 
@@ -41,65 +43,48 @@ Once you've updated something in the spec, you can use the docs generation tools
 to view the updated specs locally.
 
 ```console
-npm run build:docs
-npm run watch
-npm run start
+$ npm run build:docs
+...
+$ npm run watch
+...
+$ npm run start
+...
 ```
 
 The `watch` command starts watching the local repository and rebuilds the spec
 and copies the `README.md` into the build. Running npm start starts a local
-development docusaurus server at `http://localhost:3000` and it rebuilds when you update something in the specs.  
+development docusaurus server at `http://localhost:3000` and it rebuilds when
+you update something in the specs.
+
 **Sometimes you must reload the page to see your changes.**
 
-There is also search to see the search index built you must `npm run build:docs` this builds
-a production ready version of the app, which will include a local search index. To access
-the production build call `npm run serve`
+There is also search. To see the search index built you must `npm run build:docs`;
+this builds a production ready version of the app, which will include a local
+search index. To access the production build call `npm run serve`.
 
-For more information on the `@open-rpc/docusaurus-plugin` see the [docs](https://github.com/open-rpc/markdown-gen/blob/main/packages/docusaurus-plugin/README.md) for additional configuration options.
+For more information on the `@open-rpc/docusaurus-plugin` see the
+[docs](https://github.com/open-rpc/markdown-gen/blob/main/packages/docusaurus-plugin/README.md)
+for additional configuration options.
 
 #### Commits
 
-When the documentation build updates. The documentation updates should be committed as well.
+When the documentation build updates. The documentation updates should be
+committed as well.
 
 ### Testing
 
 There are several mechanisms for testing specification contributions and client
 conformance.
 
-#### Linting
-
-First is the [OpenRPC validator][validator]. It performs some basic syntactic
-checks on the generated specification.
-
-```console
-$ npm install
-$ npm run lint
-OpenRPC spec validated successfully.
-```
-
-#### Spec tests
+The spec is always validated against the Open-RPC metaschema while being built.
 
 Next is `speccheck`. This tool validates the test cases in the `tests`
-directory against the specification. There are two npm scripts to simplify this.
+directory against the specification. You can run it like this:
 
 ```console
-$ npm run build:test
-$ npm run test
+$ make test
+...
 all passing.
-```
-
-or
-
-```console
-go install -C rpctestgen/ ./cmd/speccheck
-speccheck -v
-```
-
-If you get an error that says: `speccheck: command not found`,
-make sure that the go binary is in your $PATH:
-
-```console
-export PATH=$HOME/go/bin:$PATH
 ```
 
 #### Spelling
@@ -118,47 +103,65 @@ one of those before running `pyspelling`.
 
 #### Hive tests
 
-Finally, the test cases in the `tests/` directory may be run against individual
-execution client using the [`hive`][hive] simulator [`rpc-compat`][rpc-compat].
-Please see the documentation in the aforementioned repositories for more
-information.
+The test cases in the `tests/` directory are run against execution clients using
+the [`hive`][hive] simulator [`rpc-compat`][rpc-compat]. During Docker build,
+rpc-compat clones this repository and copies the `tests/` directory into the
+simulator container. By default it fetches `main`; the `branch` build arg can
+target a specific ref. Results are published at
+[hive.ethpandaops.io][hivetests] under the `rpc-compat` tag. Versioned releases
+are planned so hive can target specific execution-apis versions. See the
+[tests documentation][test-gen] for more details.
 
 ## GraphQL
 
 [View the spec][graphql-schema]
 
-[EIP-1767][eip-1767] proposed a GraphQL schema for interacting with Ethereum clients. Since then Besu and Geth have implemented the interface. This repo contains a live specification to integrate changes to the protocol as well as other improvements into the GraphQL schema.
+[EIP-1767][eip-1767] proposed a GraphQL schema for interacting with Ethereum
+clients. Since then Besu and Geth have implemented the interface. This repo
+contains a live specification to integrate changes to the protocol as well as
+other improvements into the GraphQL schema.
 
 ### Generation
 
-The schema in this repo is generated by issuing a meta GraphQL query against a live node. This can be done as follows:
+The schema in this repo is generated by issuing a meta GraphQL query against a
+live node. This can be done as follows:
 
 ```console
-npm run graphql:schema
+$ npm run graphql:schema
+...
 ```
 
-### Validating the schema
+### GraphQL Schema Validation
 
-A script is included in the source code which reads and validates the given schema to be a valid one. It is recommended to perform this check after modifying the schema by:
+A script is included in the source code which reads and validates the given
+schema to be a valid one. It is recommended to perform this check after
+modifying the schema by:
 
 ```console
-npm run graphql:validate
+$ npm run graphql:validate
+Schema is valid.
 ```
 
 ## Versioning
 
-Execution-apis follows [semantic versioning][semver].
+Execution-apis follows [semantic versioning][semver]. Versioned releases will
+enable hive to target specific execution-apis versions (currently hive uses
+`main` by default).
 
-- Major releases will include breaking changes to the [rpc-compat hive tests][rpc-compat], and other backwards incompatible changes.
+- Major releases will include breaking changes to the
+  [rpc-compat hive tests][rpc-compat], and other backwards incompatible changes.
 - Minor releases will include new backwards-compatible features.
-- Patch releases will include internal changes that don't impact end users and backwards-compatible bugfixes, along with fixing test cases that don't match the spec.
+- Patch releases will include internal changes that don't impact end users and
+  backwards-compatible bugfixes, along with fixing test cases that don't match
+  the spec.
 
 Examples of changes by version type:
 
 **Major:**
 
 - Adding tests for a new RPC method
-- Changing the parameters or return type of an existing method in an incompatible way
+- Changing the parameters or return type of an existing method in an
+  incompatible way
 - Renaming fields in responses
 - Changing error codes or error response structures
 - Removing support for previously accepted input formats
@@ -185,13 +188,13 @@ This repository is licensed under [CC0][license].
 
 [playground]: https://ethereum.github.io/execution-apis
 [openrpc]: https://open-rpc.org
-[validator]: https://open-rpc.github.io/schema-utils-js/functions/validateOpenRPCDocument.html
 [graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
-[contributors-guide]: ./contributors-guide.md
+[contributors-guide]: https://github.com/ethereum/execution-apis/blob/main/docs-api/docs/contributors-guide.md
 [json-schema]: https://json-schema.org
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
+[hivetests]: https://hive.ethpandaops.io
 [semver]: https://semver.org/
-[test-gen]: ./tests.md
+[test-gen]: https://github.com/ethereum/execution-apis/blob/main/docs-api/docs/tests.md
 [license]: https://github.com/ethereum/execution-apis/blob/main/LICENSE
