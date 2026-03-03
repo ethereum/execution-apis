@@ -15,6 +15,7 @@ This document specifies common definitions and requirements affecting Engine API
 - [Errors](#errors)
 - [Timeouts](#timeouts)
 - [Encoding](#encoding)
+  - [SSZ encoding](#ssz-encoding)
 - [Capabilities](#capabilities)
   - [engine_exchangeCapabilities](#engine_exchangecapabilities)
     - [Request](#request)
@@ -135,6 +136,14 @@ Values of a field of `DATA` type **MUST** be encoded as a hexadecimal string wit
 Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string with a `0x` prefix and the leading 0s stripped (except for the case of encoding the value `0`) matching the regular expression `^0x(?:0|(?:[a-fA-F1-9][a-fA-F0-9]*))$`.
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
+
+### SSZ encoding
+
+Clients **MAY** optionally support SSZ encoding for Engine API payloads as an alternative to JSON encoding. SSZ encoding is not tied to any specific hard fork and can be implemented independently by any client team at any time.
+
+When both the consensus layer and execution layer clients support SSZ encoding, they **SHOULD** use it for reduced serialization overhead. When either client does not support SSZ, both **MUST** fall back to JSON encoding.
+
+SSZ encoding support is negotiated via standard HTTP content-type headers. The full specification is defined in the [SSZ Encoding](./ssz-encoding.md) document.
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
 
