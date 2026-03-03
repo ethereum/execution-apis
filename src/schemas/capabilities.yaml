@@ -1,23 +1,4 @@
 EthCapabilities:
-  title: Eth capabilities
-  type: object
-  additionalProperties: false
-  required:
-    - config
-    - effective
-  properties:
-    config:
-      $ref: '#/components/schemas/EthCapabilitiesConfig'
-    effective:
-      $ref: '#/components/schemas/EthCapabilitiesEffective'
-
-EthCapabilitiesConfig:
-  title: Client config snapshot
-  type: object
-  additionalProperties:
-    type: object
-
-EthCapabilitiesEffective:
   title: Effective routing capabilities
   type: object
   additionalProperties: false

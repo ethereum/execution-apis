@@ -1,5 +1,5 @@
 - name: eth_capabilities
-  summary: Returns a client-specific config snapshot and effective capabilities for routing decisions.
+  summary: Returns effective capabilities for routing decisions.
   params: []
   result:
     name: Capabilities
@@ -11,43 +11,38 @@
       result:
         name: Capabilities
         value:
-          config:
-            gethCli:
-              --state.scheme: path
-              --history.state: 90000
-          effective:
-            state:
-              disabled: false
-              oldestBlock: '0x12ab34'
-              deleteStrategy:
-                type: window
-                retentionBlocks: 90000
-            tx:
-              disabled: false
-              oldestBlock: '0xf00aa'
-              deleteStrategy:
-                type: window
-                retentionBlocks: 2350000
-            logs:
-              disabled: false
-              oldestBlock: '0xf00aa'
-              deleteStrategy:
-                type: window
-                retentionBlocks: 2350000
-            receipts:
-              disabled: false
-              oldestBlock: '0xf00aa'
-              deleteStrategy:
-                type: window
-                retentionBlocks: 2350000
-            blocks:
-              disabled: false
-              oldestBlock: '0x0'
-              deleteStrategy:
-                type: none
-            trienodes:
-              disabled: false
-              oldestBlock: '0x120000'
-              deleteStrategy:
-                type: window
-                retentionBlocks: 90000
+          state:
+            disabled: false
+            oldestBlock: '0x12ab34'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 90000
+          tx:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          logs:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          receipts:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          blocks:
+            disabled: false
+            oldestBlock: '0x0'
+            deleteStrategy:
+              type: none
+          trienodes:
+            disabled: false
+            oldestBlock: '0x120000'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 90000
