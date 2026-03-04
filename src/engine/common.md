@@ -15,7 +15,7 @@ This document specifies common definitions and requirements affecting Engine API
 - [Errors](#errors)
 - [Timeouts](#timeouts)
 - [Encoding](#encoding)
-  - [SSZ encoding](#ssz-encoding)
+  - [Binary SSZ transport](#binary-ssz-transport)
 - [Capabilities](#capabilities)
   - [engine_exchangeCapabilities](#engine_exchangecapabilities)
     - [Request](#request)
@@ -137,13 +137,13 @@ Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
 
-### SSZ encoding
+### Binary SSZ transport
 
-Clients **MAY** optionally support SSZ encoding for Engine API payloads as an alternative to JSON encoding. SSZ encoding is not tied to any specific hard fork and can be implemented independently by any client team at any time.
+Clients **MAY** support a binary SSZ transport as an alternative to JSON-RPC. The binary transport uses raw SSZ bytes over HTTP with path-based method routing, eliminating JSON and hex-encoding overhead for fast CL-EL communication.
 
-When both the consensus layer and execution layer clients support SSZ encoding, they **SHOULD** use it for reduced serialization overhead. When either client does not support SSZ, both **MUST** fall back to JSON encoding.
+When both the consensus layer and execution layer clients support the binary SSZ transport, they **SHOULD** use it. When either client does not support it, both **MUST** fall back to JSON-RPC encoding.
 
-SSZ encoding support is negotiated via standard HTTP content-type headers. The full specification is defined in the [SSZ Encoding](./ssz-encoding.md) document.
+The full specification is defined in the [Binary SSZ Transport](./ssz-encoding.md) document.
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
 

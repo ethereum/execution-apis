@@ -1,6 +1,6 @@
-# Engine API -- SSZ Encoding
+# Engine API -- Binary SSZ Transport
 
-This document specifies an optional SSZ encoding for Engine API payloads as an alternative to the default JSON encoding. SSZ encoding reduces serialization overhead and aligns the Engine API with the native encoding format used by the consensus layer.
+This document specifies a binary SSZ transport for Engine API communication between consensus layer (CL) and execution layer (EL) clients. The binary transport replaces JSON-RPC with raw SSZ over HTTP for fast, efficient CL-EL communication.
 
 SSZ container definitions are provided for all Engine API structures and methods across all forks for backwards compatibility.
 
@@ -10,7 +10,10 @@ SSZ container definitions are provided for all Engine API structures and methods
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Motivation](#motivation)
-- [Encoding negotiation](#encoding-negotiation)
+- [Transport](#transport)
+  - [Request format](#request-format)
+  - [Response format](#response-format)
+  - [Negotiation and fallback](#negotiation-and-fallback)
 - [Constants](#constants)
 - [SSZ type mappings](#ssz-type-mappings)
 - [Container definitions](#container-definitions)
@@ -38,6 +41,12 @@ SSZ container definitions are provided for all Engine API structures and methods
   - [GetPayloadResponseV4](#getpayloadresponsev4)
   - [GetPayloadResponseV5](#getpayloadresponsev5)
   - [GetPayloadResponseV6](#getpayloadresponsev6)
+  - [PayloadBodiesV1Response](#payloadbodiesv1response)
+  - [PayloadBodiesV2Response](#payloadbodiesv2response)
+  - [GetBlobsV1Response](#getblobsv1response)
+  - [GetBlobsV2Response](#getblobsv2response)
+  - [GetBlobsV3Response](#getblobsv3response)
+  - [ErrorResponse](#errorresponse)
 - [Method definitions](#method-definitions)
   - [Paris methods](#paris-methods)
   - [Shanghai methods](#shanghai-methods)
@@ -45,7 +54,6 @@ SSZ container definitions are provided for all Engine API structures and methods
   - [Prague methods](#prague-methods)
   - [Osaka methods](#osaka-methods)
   - [Amsterdam methods](#amsterdam-methods)
-- [Request and response format](#request-and-response-format)
 - [Example](#example)
 - [Error handling](#error-handling)
 - [Security considerations](#security-considerations)
@@ -54,34 +62,68 @@ SSZ container definitions are provided for all Engine API structures and methods
 
 ## Motivation
 
-The current JSON-RPC encoding introduces serialization overhead that grows with payload size. Binary data (hashes, addresses, bytecode) must be hex-encoded, doubling their size. As Ethereum scales through increased gas limits and blob transactions, this overhead becomes a bottleneck for block propagation and validation timing.
+Fast communication between the consensus layer and execution layer is critical for block propagation and validation timing. The JSON-RPC transport introduces unnecessary overhead in this critical path:
 
-The consensus layer already uses SSZ for all internal data structures and network communication. The current architecture requires converting between SSZ and JSON at the Engine API boundary in both directions. SSZ encoding for the Engine API eliminates this double conversion, reduces payload sizes by 40-60%, and provides deterministic encoding.
+- Binary data (hashes, addresses, transactions, blobs) is hex-encoded, doubling wire size.
+- JSON parsing and generation adds CPU overhead on both sides.
+- The CL uses SSZ natively, forcing a round-trip conversion (SSZ to JSON, then JSON to internal types) at the Engine API boundary.
 
-## Encoding negotiation
+Binary SSZ eliminates all of this. The CL sends raw SSZ bytes over HTTP; the EL deserializes directly. No hex encoding, no JSON parsing, no intermediate representations. Payload sizes are reduced by 50% or more compared to JSON-RPC, and serialization is no longer a bottleneck in the critical path between CL and EL.
 
-SSZ encoding support is negotiated via standard HTTP content negotiation headers. No additional capability exchange is required.
+## Transport
 
-| Header | Value | Meaning |
-| - | - | - |
-| `Content-Type` | `application/ssz` | The request body is SSZ-encoded |
-| `Content-Type` | `application/json` | The request body is JSON-encoded (default) |
-| `Accept` | `application/ssz` | The client prefers an SSZ-encoded response |
-| `Accept` | `application/json` | The client prefers a JSON-encoded response (default) |
+Binary SSZ uses HTTP with path-based method routing. Each Engine API method has a dedicated URL path. Request and response bodies are raw SSZ bytes.
 
-The negotiation works as follows:
+### Request format
 
-1. The consensus layer client sends a request with `Accept: application/ssz` to indicate it can handle SSZ-encoded responses.
+```
+POST /engine/<methodName> HTTP/1.1
+Content-Type: application/ssz
 
-2. If the execution layer client supports SSZ encoding, it **SHOULD** respond with `Content-Type: application/ssz` and an SSZ-encoded body.
+<raw SSZ bytes of the method's request container>
+```
 
-3. If the execution layer client does not support SSZ encoding, it **MUST** respond with `Content-Type: application/json` and a JSON-encoded body as usual. The `Accept` header is silently ignored.
+The URL path is `/engine/<methodName>` where `<methodName>` corresponds to the JSON-RPC method name with the `engine_` prefix removed. For example, `engine_newPayloadV5` maps to `POST /engine/newPayloadV5`.
 
-4. A client receiving a request with `Content-Type: application/ssz` that does not support SSZ encoding **MUST** respond with HTTP status `415 Unsupported Media Type`. The requesting client **MUST** then fall back to JSON encoding for subsequent requests.
+The request body is the SSZ serialization of the method's request container. Each method defines a request container that wraps all parameters into a single SSZ object.
 
-5. Clients **MUST** continue to support JSON encoding regardless of SSZ support. SSZ encoding is an optimization, not a replacement.
+### Response format
 
-6. If no `Content-Type` header is present, the request **MUST** be parsed as JSON. If no `Accept` header is present, the response **SHOULD** use the same encoding as the request.
+**Success with data:**
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/ssz
+
+<raw SSZ bytes of the method's response type>
+```
+
+**Null result** (e.g., syncing):
+
+```
+HTTP/1.1 204 No Content
+```
+
+Methods that can return `null` at the JSON-RPC level use HTTP `204 No Content` with an empty body.
+
+**Error:**
+
+```
+HTTP/1.1 <status> <reason>
+Content-Type: application/ssz
+
+<raw SSZ bytes of ErrorResponse>
+```
+
+### Negotiation and fallback
+
+1. The CL sends a request to the method's URL path with `Content-Type: application/ssz` and a raw SSZ request body.
+
+2. If the EL supports the binary SSZ transport, it **MUST** respond with `Content-Type: application/ssz` and a raw SSZ response body.
+
+3. If the EL does not support the binary SSZ transport, it **MUST** respond with HTTP status `404 Not Found` or `415 Unsupported Media Type`. The CL **MUST** then fall back to JSON-RPC (`POST /`) for subsequent requests.
+
+4. Clients **MUST** continue to support JSON-RPC encoding as a fallback. Both the binary SSZ endpoint and the JSON-RPC endpoint coexist on the same port.
 
 ## Constants
 
@@ -120,6 +162,9 @@ Each JSON-encoded base type used in the Engine API maps to a specific SSZ type. 
 | `bytes` (variable-length) | `ByteList[MAX_LENGTH]` (context-dependent) |
 | `bytesMax32` (0 to 32 bytes) | `ByteList[32]` |
 | `Array of T` | `List[T, MAX_LENGTH]` (context-dependent) |
+| `T or null` | `Optional[T]` (encoded as `List[T, 1]`) |
+
+`Optional[T]` is represented as `List[T, 1]` in SSZ encoding. An empty list (0 elements) denotes absence (`null`). A list with one element denotes presence.
 
 ## Container definitions
 
@@ -467,418 +512,431 @@ class GetPayloadResponseV6(Container):
     execution_requests: List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_EXECUTION_REQUESTS]
 ```
 
+### PayloadBodiesV1Response
+
+Response container for `engine_getPayloadBodiesByHashV1` and `engine_getPayloadBodiesByRangeV1`.
+
+```python
+class PayloadBodiesV1Response(Container):
+    payload_bodies: List[List[ExecutionPayloadBodyV1, 1], MAX_PAYLOAD_BODIES_REQUEST]
+```
+
+*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
+
+### PayloadBodiesV2Response
+
+Response container for `engine_getPayloadBodiesByHashV2` and `engine_getPayloadBodiesByRangeV2`.
+
+```python
+class PayloadBodiesV2Response(Container):
+    payload_bodies: List[List[ExecutionPayloadBodyV2, 1], MAX_PAYLOAD_BODIES_REQUEST]
+```
+
+*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
+
+### GetBlobsV1Response
+
+Response container for `engine_getBlobsV1`.
+
+```python
+class GetBlobsV1Response(Container):
+    blobs_and_proofs: List[BlobAndProofV1, MAX_BLOB_HASHES_REQUEST]
+```
+
+### GetBlobsV2Response
+
+Response container for `engine_getBlobsV2`.
+
+```python
+class GetBlobsV2Response(Container):
+    blobs_and_proofs: List[BlobAndProofV2, MAX_BLOB_HASHES_REQUEST]
+```
+
+### GetBlobsV3Response
+
+Response container for `engine_getBlobsV3`.
+
+```python
+class GetBlobsV3Response(Container):
+    blobs_and_proofs: List[List[BlobAndProofV2, 1], MAX_BLOB_HASHES_REQUEST]
+```
+
+*Note:* Each inner list has 0 elements for a missing blob and 1 element for a present blob.
+
+### ErrorResponse
+
+Used for error responses across all methods.
+
+```python
+class ErrorResponse(Container):
+    code: uint64
+    message: ByteList[MAX_ERROR_MESSAGE_LENGTH]
+```
+
+*Note:* Engine API error codes are negative integers in JSON-RPC. The `code` field stores the absolute value. For example, JSON-RPC error code `-38005` is encoded as `38005`.
+
 ## Method definitions
 
-This section defines the SSZ types for each method's parameters and result, organized by fork. Each parameter is individually SSZ-encoded in the JSON-RPC `params` array. Nullable parameters remain `null` when absent.
+Each Engine API method has a dedicated URL path, a request container, and a response type. The request body is the SSZ serialization of the request container. The response body is the SSZ serialization of the response type.
 
 ### Paris methods
 
 #### engine_newPayloadV1
 
-| Parameter | SSZ Type |
-| - | - |
-| `executionPayload` | [`ExecutionPayloadV1`](#executionpayloadv1) |
+`POST /engine/newPayloadV1`
 
-| Result | SSZ Type |
-| - | - |
-| Payload status | [`PayloadStatusV1`](#payloadstatusv1) |
+```python
+class NewPayloadV1Request(Container):
+    execution_payload: ExecutionPayloadV1
+```
+
+**Response:** [`PayloadStatusV1`](#payloadstatusv1)
 
 #### engine_forkchoiceUpdatedV1
 
-| Parameter | SSZ Type |
-| - | - |
-| `forkchoiceState` | [`ForkchoiceStateV1`](#forkchoicestatev1) |
-| `payloadAttributes` | [`PayloadAttributesV1`](#payloadattributesv1) or `null` |
+`POST /engine/forkchoiceUpdatedV1`
 
-| Result | SSZ Type |
-| - | - |
-| Forkchoice updated response | [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1) |
+```python
+class ForkchoiceUpdatedV1Request(Container):
+    forkchoice_state: ForkchoiceStateV1
+    payload_attributes: Optional[PayloadAttributesV1]
+```
+
+**Response:** [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1)
 
 #### engine_getPayloadV1
 
-| Parameter | SSZ Type |
-| - | - |
-| `payloadId` | `Bytes8` |
+`POST /engine/getPayloadV1`
 
-| Result | SSZ Type |
-| - | - |
-| Execution payload | [`ExecutionPayloadV1`](#executionpayloadv1) |
+```python
+class GetPayloadV1Request(Container):
+    payload_id: Bytes8
+```
+
+**Response:** [`ExecutionPayloadV1`](#executionpayloadv1)
 
 #### engine_exchangeTransitionConfigurationV1
 
+`POST /engine/exchangeTransitionConfigurationV1`
+
 Deprecated in Cancun.
 
-| Parameter | SSZ Type |
-| - | - |
-| `transitionConfiguration` | [`TransitionConfigurationV1`](#transitionconfigurationv1) |
+```python
+class ExchangeTransitionConfigurationV1Request(Container):
+    transition_configuration: TransitionConfigurationV1
+```
 
-| Result | SSZ Type |
-| - | - |
-| Transition configuration | [`TransitionConfigurationV1`](#transitionconfigurationv1) |
+**Response:** [`TransitionConfigurationV1`](#transitionconfigurationv1)
 
 ### Shanghai methods
 
 #### engine_newPayloadV2
 
-| Parameter | SSZ Type |
-| - | - |
-| `executionPayload` | [`ExecutionPayloadV1`](#executionpayloadv1) or [`ExecutionPayloadV2`](#executionpayloadv2) (by timestamp) |
+`POST /engine/newPayloadV2`
 
-| Result | SSZ Type |
-| - | - |
-| Payload status | [`PayloadStatusV1`](#payloadstatusv1) |
+```python
+class NewPayloadV2Request(Container):
+    execution_payload: ExecutionPayloadV2
+```
+
+*Note:* Always uses `ExecutionPayloadV2`. Pre-Shanghai payloads have an empty `withdrawals` list.
+
+**Response:** [`PayloadStatusV1`](#payloadstatusv1)
 
 #### engine_forkchoiceUpdatedV2
 
-| Parameter | SSZ Type |
-| - | - |
-| `forkchoiceState` | [`ForkchoiceStateV1`](#forkchoicestatev1) |
-| `payloadAttributes` | [`PayloadAttributesV1`](#payloadattributesv1), [`PayloadAttributesV2`](#payloadattributesv2), or `null` |
+`POST /engine/forkchoiceUpdatedV2`
 
-| Result | SSZ Type |
-| - | - |
-| Forkchoice updated response | [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1) |
+```python
+class ForkchoiceUpdatedV2Request(Container):
+    forkchoice_state: ForkchoiceStateV1
+    payload_attributes: Optional[PayloadAttributesV2]
+```
+
+*Note:* Always uses `PayloadAttributesV2`. Pre-Shanghai attributes have an empty `withdrawals` list.
+
+**Response:** [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1)
 
 #### engine_getPayloadV2
 
-| Parameter | SSZ Type |
-| - | - |
-| `payloadId` | `Bytes8` |
+`POST /engine/getPayloadV2`
 
-| Result | SSZ Type |
-| - | - |
-| Get payload response | [`GetPayloadResponseV2`](#getpayloadresponsev2) |
+```python
+class GetPayloadV2Request(Container):
+    payload_id: Bytes8
+```
+
+**Response:** [`GetPayloadResponseV2`](#getpayloadresponsev2)
 
 #### engine_getPayloadBodiesByHashV1
 
-| Parameter | SSZ Type |
-| - | - |
-| `blockHashes` | `List[Bytes32, MAX_PAYLOAD_BODIES_REQUEST]` |
+`POST /engine/getPayloadBodiesByHashV1`
 
-| Result | SSZ Type |
-| - | - |
-| Payload bodies | `List[List[`[`ExecutionPayloadBodyV1`](#executionpayloadbodyv1)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+```python
+class GetPayloadBodiesByHashV1Request(Container):
+    block_hashes: List[Bytes32, MAX_PAYLOAD_BODIES_REQUEST]
+```
 
-*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
+**Response:** [`PayloadBodiesV1Response`](#payloadbodiesv1response)
 
 #### engine_getPayloadBodiesByRangeV1
 
-| Parameter | SSZ Type |
-| - | - |
-| `start` | `uint64` |
-| `count` | `uint64` |
+`POST /engine/getPayloadBodiesByRangeV1`
 
-| Result | SSZ Type |
-| - | - |
-| Payload bodies | `List[List[`[`ExecutionPayloadBodyV1`](#executionpayloadbodyv1)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+```python
+class GetPayloadBodiesByRangeV1Request(Container):
+    start: uint64
+    count: uint64
+```
 
-*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
+**Response:** [`PayloadBodiesV1Response`](#payloadbodiesv1response)
 
 ### Cancun methods
 
 #### engine_newPayloadV3
 
-| Parameter | SSZ Type |
-| - | - |
-| `executionPayload` | [`ExecutionPayloadV3`](#executionpayloadv3) |
-| `expectedBlobVersionedHashes` | `List[Bytes32, MAX_BLOB_COMMITMENTS_PER_BLOCK]` |
-| `parentBeaconBlockRoot` | `Bytes32` |
+`POST /engine/newPayloadV3`
 
-| Result | SSZ Type |
-| - | - |
-| Payload status | [`PayloadStatusV1`](#payloadstatusv1) |
+```python
+class NewPayloadV3Request(Container):
+    execution_payload: ExecutionPayloadV3
+    expected_blob_versioned_hashes: List[Bytes32, MAX_BLOB_COMMITMENTS_PER_BLOCK]
+    parent_beacon_block_root: Bytes32
+```
+
+**Response:** [`PayloadStatusV1`](#payloadstatusv1)
 
 #### engine_forkchoiceUpdatedV3
 
-| Parameter | SSZ Type |
-| - | - |
-| `forkchoiceState` | [`ForkchoiceStateV1`](#forkchoicestatev1) |
-| `payloadAttributes` | [`PayloadAttributesV3`](#payloadattributesv3) or `null` |
+`POST /engine/forkchoiceUpdatedV3`
 
-| Result | SSZ Type |
-| - | - |
-| Forkchoice updated response | [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1) |
+```python
+class ForkchoiceUpdatedV3Request(Container):
+    forkchoice_state: ForkchoiceStateV1
+    payload_attributes: Optional[PayloadAttributesV3]
+```
+
+**Response:** [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1)
 
 #### engine_getPayloadV3
 
-| Parameter | SSZ Type |
-| - | - |
-| `payloadId` | `Bytes8` |
+`POST /engine/getPayloadV3`
 
-| Result | SSZ Type |
-| - | - |
-| Get payload response | [`GetPayloadResponseV3`](#getpayloadresponsev3) |
+```python
+class GetPayloadV3Request(Container):
+    payload_id: Bytes8
+```
+
+**Response:** [`GetPayloadResponseV3`](#getpayloadresponsev3)
 
 #### engine_getBlobsV1
 
+`POST /engine/getBlobsV1`
+
 Deprecated in Osaka.
 
-| Parameter | SSZ Type |
-| - | - |
-| `blobVersionedHashes` | `List[Bytes32, MAX_BLOB_HASHES_REQUEST]` |
+```python
+class GetBlobsV1Request(Container):
+    blob_versioned_hashes: List[Bytes32, MAX_BLOB_HASHES_REQUEST]
+```
 
-| Result | SSZ Type |
-| - | - |
-| Blobs and proofs | `List[`[`BlobAndProofV1`](#blobandproofv1)`, MAX_BLOB_HASHES_REQUEST]` |
-
-*Note:* Returns `null` at the JSON-RPC level when syncing (SSZ encoding only applies to non-null results).
+**Response:** [`GetBlobsV1Response`](#getblobsv1response) or HTTP `204 No Content` when syncing.
 
 ### Prague methods
 
 #### engine_newPayloadV4
 
-| Parameter | SSZ Type |
-| - | - |
-| `executionPayload` | [`ExecutionPayloadV3`](#executionpayloadv3) |
-| `expectedBlobVersionedHashes` | `List[Bytes32, MAX_BLOB_COMMITMENTS_PER_BLOCK]` |
-| `parentBeaconBlockRoot` | `Bytes32` |
-| `executionRequests` | `List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_EXECUTION_REQUESTS]` |
+`POST /engine/newPayloadV4`
 
-| Result | SSZ Type |
-| - | - |
-| Payload status | [`PayloadStatusV1`](#payloadstatusv1) |
+```python
+class NewPayloadV4Request(Container):
+    execution_payload: ExecutionPayloadV3
+    expected_blob_versioned_hashes: List[Bytes32, MAX_BLOB_COMMITMENTS_PER_BLOCK]
+    parent_beacon_block_root: Bytes32
+    execution_requests: List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_EXECUTION_REQUESTS]
+```
+
+**Response:** [`PayloadStatusV1`](#payloadstatusv1)
 
 #### engine_getPayloadV4
 
-| Parameter | SSZ Type |
-| - | - |
-| `payloadId` | `Bytes8` |
+`POST /engine/getPayloadV4`
 
-| Result | SSZ Type |
-| - | - |
-| Get payload response | [`GetPayloadResponseV4`](#getpayloadresponsev4) |
+```python
+class GetPayloadV4Request(Container):
+    payload_id: Bytes8
+```
+
+**Response:** [`GetPayloadResponseV4`](#getpayloadresponsev4)
 
 ### Osaka methods
 
 #### engine_getPayloadV5
 
-| Parameter | SSZ Type |
-| - | - |
-| `payloadId` | `Bytes8` |
+`POST /engine/getPayloadV5`
 
-| Result | SSZ Type |
-| - | - |
-| Get payload response | [`GetPayloadResponseV5`](#getpayloadresponsev5) |
+```python
+class GetPayloadV5Request(Container):
+    payload_id: Bytes8
+```
+
+**Response:** [`GetPayloadResponseV5`](#getpayloadresponsev5)
 
 #### engine_getBlobsV2
 
-Returns `null` for the entire result if any blob is missing or if syncing.
+`POST /engine/getBlobsV2`
 
-| Parameter | SSZ Type |
-| - | - |
-| `blobVersionedHashes` | `List[Bytes32, MAX_BLOB_HASHES_REQUEST]` |
+```python
+class GetBlobsV2Request(Container):
+    blob_versioned_hashes: List[Bytes32, MAX_BLOB_HASHES_REQUEST]
+```
 
-| Result | SSZ Type |
-| - | - |
-| Blobs and proofs | `List[`[`BlobAndProofV2`](#blobandproofv2)`, MAX_BLOB_HASHES_REQUEST]` |
-
-*Note:* Returns `null` at the JSON-RPC level when syncing or any blob is missing (SSZ encoding only applies to non-null results).
+**Response:** [`GetBlobsV2Response`](#getblobsv2response) or HTTP `204 No Content` when syncing or any blob is missing.
 
 #### engine_getBlobsV3
 
-Returns per-element `null` for missing blobs, or `null` for the entire result if syncing.
+`POST /engine/getBlobsV3`
 
-| Parameter | SSZ Type |
-| - | - |
-| `blobVersionedHashes` | `List[Bytes32, MAX_BLOB_HASHES_REQUEST]` |
+```python
+class GetBlobsV3Request(Container):
+    blob_versioned_hashes: List[Bytes32, MAX_BLOB_HASHES_REQUEST]
+```
 
-| Result | SSZ Type |
-| - | - |
-| Blobs and proofs | `List[List[`[`BlobAndProofV2`](#blobandproofv2)`, 1], MAX_BLOB_HASHES_REQUEST]` |
-
-*Note:* Returns `null` at the JSON-RPC level when syncing. Each inner list has 0 elements for a missing blob and 1 element for a present blob.
+**Response:** [`GetBlobsV3Response`](#getblobsv3response) or HTTP `204 No Content` when syncing.
 
 ### Amsterdam methods
 
 #### engine_newPayloadV5
 
-| Parameter | SSZ Type |
-| - | - |
-| `executionPayload` | [`ExecutionPayloadV4`](#executionpayloadv4) |
-| `expectedBlobVersionedHashes` | `List[Bytes32, MAX_BLOB_COMMITMENTS_PER_BLOCK]` |
-| `parentBeaconBlockRoot` | `Bytes32` |
-| `executionRequests` | `List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_EXECUTION_REQUESTS]` |
+`POST /engine/newPayloadV5`
 
-| Result | SSZ Type |
-| - | - |
-| Payload status | [`PayloadStatusV1`](#payloadstatusv1) |
+```python
+class NewPayloadV5Request(Container):
+    execution_payload: ExecutionPayloadV4
+    expected_blob_versioned_hashes: List[Bytes32, MAX_BLOB_COMMITMENTS_PER_BLOCK]
+    parent_beacon_block_root: Bytes32
+    execution_requests: List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_EXECUTION_REQUESTS]
+```
+
+**Response:** [`PayloadStatusV1`](#payloadstatusv1)
 
 #### engine_getPayloadV6
 
-| Parameter | SSZ Type |
-| - | - |
-| `payloadId` | `Bytes8` |
+`POST /engine/getPayloadV6`
 
-| Result | SSZ Type |
-| - | - |
-| Get payload response | [`GetPayloadResponseV6`](#getpayloadresponsev6) |
+```python
+class GetPayloadV6Request(Container):
+    payload_id: Bytes8
+```
+
+**Response:** [`GetPayloadResponseV6`](#getpayloadresponsev6)
 
 #### engine_forkchoiceUpdatedV4
 
-| Parameter | SSZ Type |
-| - | - |
-| `forkchoiceState` | [`ForkchoiceStateV1`](#forkchoicestatev1) |
-| `payloadAttributes` | [`PayloadAttributesV4`](#payloadattributesv4) or `null` |
+`POST /engine/forkchoiceUpdatedV4`
 
-| Result | SSZ Type |
-| - | - |
-| Forkchoice updated response | [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1) |
+```python
+class ForkchoiceUpdatedV4Request(Container):
+    forkchoice_state: ForkchoiceStateV1
+    payload_attributes: Optional[PayloadAttributesV4]
+```
+
+**Response:** [`ForkchoiceUpdatedResponseV1`](#forkchoiceupdatedresponsev1)
 
 #### engine_getPayloadBodiesByHashV2
 
-| Parameter | SSZ Type |
-| - | - |
-| `blockHashes` | `List[Bytes32, MAX_PAYLOAD_BODIES_REQUEST]` |
+`POST /engine/getPayloadBodiesByHashV2`
 
-| Result | SSZ Type |
-| - | - |
-| Payload bodies | `List[List[`[`ExecutionPayloadBodyV2`](#executionpayloadbodyv2)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+```python
+class GetPayloadBodiesByHashV2Request(Container):
+    block_hashes: List[Bytes32, MAX_PAYLOAD_BODIES_REQUEST]
+```
 
-*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
+**Response:** [`PayloadBodiesV2Response`](#payloadbodiesv2response)
 
 #### engine_getPayloadBodiesByRangeV2
 
-| Parameter | SSZ Type |
-| - | - |
-| `start` | `uint64` |
-| `count` | `uint64` |
+`POST /engine/getPayloadBodiesByRangeV2`
 
-| Result | SSZ Type |
-| - | - |
-| Payload bodies | `List[List[`[`ExecutionPayloadBodyV2`](#executionpayloadbodyv2)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+```python
+class GetPayloadBodiesByRangeV2Request(Container):
+    start: uint64
+    count: uint64
+```
 
-*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
-
-## Request and response format
-
-SSZ-encoded Engine API requests and responses follow the existing JSON-RPC method semantics. The SSZ encoding applies to the method parameters and result values — the JSON-RPC envelope (`jsonrpc`, `id`, `method`) remains JSON-encoded.
-
-Specifically, when SSZ encoding is in use:
-
-1. The HTTP request body is a JSON-RPC request where each element of `params` is replaced with its SSZ-encoded hexadecimal representation (a `DATA` string). Parameters that are `null` remain `null`.
-
-2. The HTTP response body is a JSON-RPC response where the `result` field is replaced with the SSZ-encoded hexadecimal representation of the result value. A `null` result remains `null`.
-
-This approach preserves compatibility with JSON-RPC tooling while encoding the payload data in SSZ.
-
-*Note:* Future versions of this specification may define a fully binary request/response format that replaces the JSON-RPC envelope.
+**Response:** [`PayloadBodiesV2Response`](#payloadbodiesv2response)
 
 ## Example
 
-The following example shows an `engine_newPayloadV5` call, first using JSON encoding and then using SSZ encoding.
+The following example shows an `engine_newPayloadV5` call using the binary SSZ transport.
 
-### JSON-encoded request (current behavior)
+### Request
 
-```console
-$ curl https://localhost:8551 \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -d '{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "engine_newPayloadV5",
-  "params": [
-    {
-      "parentHash": "0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a",
-      "feeRecipient": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
-      "stateRoot": "0xca3149fa9e37db08d1cd49c9061db1002ef1cd58db2210f2115c8c989b2bdf45",
-      "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
-      "logsBloom": "0x0000...0000",
-      "prevRandao": "0x0000000000000000000000000000000000000000000000000000000000000000",
-      "blockNumber": "0x1",
-      "gasLimit": "0x1c9c380",
-      "gasUsed": "0x0",
-      "timestamp": "0x5",
-      "extraData": "0x",
-      "baseFeePerGas": "0x7",
-      "blockHash": "0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858",
-      "transactions": [],
-      "withdrawals": [],
-      "blobGasUsed": "0x0",
-      "excessBlobGas": "0x0",
-      "blockAccessList": "0x",
-      "slotNumber": "0x1"
-    },
-    [],
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
-    []
-  ]
-}'
+```
+POST /engine/newPayloadV5 HTTP/1.1
+Host: localhost:8551
+Content-Type: application/ssz
+Content-Length: 604
+
+<604 bytes: SSZ(NewPayloadV5Request)>
 ```
 
-### JSON-encoded response
+The request body is the SSZ serialization of `NewPayloadV5Request` containing:
+- `execution_payload`: an `ExecutionPayloadV4` with empty transactions, withdrawals, and block access list
+- `expected_blob_versioned_hashes`: empty list
+- `parent_beacon_block_root`: `0x0000000000000000000000000000000000000000000000000000000000000000`
+- `execution_requests`: empty list
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "status": "VALID",
-    "latestValidHash": "0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858",
-    "validationError": null
-  }
-}
+### Response (success)
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/ssz
+Content-Length: 69
+
+<69 bytes: SSZ(PayloadStatusV1)>
 ```
 
-### SSZ-encoded request
+The response body is the SSZ serialization of `PayloadStatusV1` containing:
+- `status`: `0` (VALID)
+- `latest_valid_hash`: `0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858`
+- `validation_error`: empty
 
-The consensus layer client sends the same call with `Content-Type: application/ssz` and `Accept: application/ssz`. Each element of the `params` array is individually SSZ-encoded as a hex `DATA` string:
+### Response (error)
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "engine_newPayloadV5",
-  "params": [
-    "0x3b8fb240d288781d4aac94d3fd16809ee413bc99...",
-    "0x",
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "0x"
-  ]
-}
+```
+HTTP/1.1 400 Bad Request
+Content-Type: application/ssz
+Content-Length: 48
+
+<48 bytes: SSZ(ErrorResponse)>
 ```
 
-- `params[0]`: SSZ-serialized `ExecutionPayloadV4` container
-- `params[1]`: SSZ-serialized `List[Bytes32, MAX_BLOB_COMMITMENTS_PER_BLOCK]` (empty list)
-- `params[2]`: SSZ-serialized `Bytes32` (parent beacon block root)
-- `params[3]`: SSZ-serialized `List[ByteList, MAX_EXECUTION_REQUESTS]` (empty list)
-
-### SSZ-encoded response
-
-The execution layer responds with `Content-Type: application/ssz`. The `result` field contains the SSZ-serialized `PayloadStatusV1`:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": "0x00013559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858"
-}
-```
-
-Where the binary data encodes:
-- `status`: `0x00` (VALID)
-- `latest_valid_hash`: present, `0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858`
-- `validation_error`: absent
+The response body is the SSZ serialization of `ErrorResponse` containing:
+- `code`: `32602` (absolute value of `-32602`, invalid params)
+- `message`: `"Invalid execution payload"`
 
 ### Fallback behavior
 
-If the execution layer does not support SSZ, the same request with `Accept: application/ssz` returns a standard JSON response with `Content-Type: application/json`. The consensus layer detects this and continues using JSON for subsequent requests.
-
-If the consensus layer sends `Content-Type: application/ssz` to an execution layer that does not support it, the execution layer responds with HTTP `415 Unsupported Media Type`. The consensus layer **MUST** retry the request using JSON encoding.
+If the EL does not support the binary SSZ transport, a request to `/engine/newPayloadV5` returns HTTP `404 Not Found` or `415 Unsupported Media Type`. The CL detects this and falls back to JSON-RPC at `POST /` for subsequent requests.
 
 ## Error handling
 
-SSZ encoding does not change the error semantics of the Engine API. All error codes defined in the [Errors](./common.md#errors) section apply equally to SSZ-encoded requests.
+Binary SSZ does not change the error semantics of the Engine API. All error codes defined in the [Errors](./common.md#errors) section apply equally.
 
-Additionally:
+Error responses use the [`ErrorResponse`](#errorresponse) container. The HTTP status code reflects the error category:
 
-| Code | Message | Meaning |
+| HTTP Status | Meaning | Engine API Errors |
 | - | - | - |
-| -32700 | Parse error | Invalid SSZ data was received by the server. |
+| `400` | Client error | `-32700` (parse error), `-32600` (invalid request), `-32602` (invalid params) |
+| `404` | Method not found | `-32601` (method not found) |
+| `415` | Unsupported media type | Binary SSZ not supported |
+| `500` | Server error | `-32603` (internal error), `-38001` to `-38005` (engine-specific errors) |
 
-Clients **MUST** validate SSZ payloads against the expected schema before processing. Payloads that do not conform to the expected SSZ schema **MUST** be rejected with a `-32700` error.
+Clients **MUST** validate SSZ payloads against the expected schema before processing. Payloads that do not conform to the expected SSZ schema **MUST** be rejected with a `400` response containing an `ErrorResponse` with code `32700`.
 
 ## Security considerations
 
 - SSZ deserialization **MUST** enforce the same size limits as JSON deserialization. Implementations **MUST** reject SSZ payloads exceeding defined maximum sizes before attempting full deserialization.
 - Implementations **SHOULD** use well-tested SSZ libraries and fuzz test SSZ parsing extensively.
+- The binary transport uses the same JWT authentication as the JSON-RPC endpoint. All existing authentication requirements apply.
