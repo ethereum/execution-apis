@@ -40,6 +40,7 @@ forkchoiceupdatedresponsev
 getblobsbundlev
 getblobsv
 getclientversionv
+getpayloadresponsev
 graphql
 gwei
 https
