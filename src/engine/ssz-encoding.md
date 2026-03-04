@@ -126,7 +126,7 @@ When a new fork introduces a new method version, a new versioned endpoint is add
 
 2. If the EL supports the binary SSZ transport, it **MUST** respond with `Content-Type: application/octet-stream` and a raw SSZ response body.
 
-3. If the EL does not support the binary SSZ transport, it **MUST** respond with HTTP status `404 Not Found` or `415 Unsupported Media Type`. The CL **MUST** then fall back to JSON-RPC (`POST /`) for subsequent requests.
+3. If the EL does not support the binary SSZ transport, it **MUST** respond with HTTP status `404 Not Found`. The CL **MUST** then fall back to JSON-RPC (`POST /`) for subsequent requests.
 
 4. Clients **MUST** continue to support JSON-RPC encoding as a fallback. Both the REST endpoints and the JSON-RPC endpoint coexist on the same port.
 
@@ -143,20 +143,18 @@ When a new fork introduces a new method version, a new versioned endpoint is add
 
 | Status | Meaning | Usage |
 | - | - | - |
-| `400` | Bad Request | Malformed SSZ, invalid parameters |
+| `400` | Bad Request | Malformed SSZ encoding |
 | `401` | Unauthorized | Missing or invalid JWT token |
-| `404` | Not Found | Unknown payload ID, unsupported endpoint |
-| `409` | Conflict | Invalid forkchoice state (e.g., finalized block not ancestor of head) |
-| `413` | Request Too Large | Request exceeds maximum size limits |
-| `415` | Unsupported Media Type | Binary SSZ transport not supported |
-| `422` | Unprocessable Entity | Invalid payload attributes (e.g., timestamp not greater than parent) |
+| `404` | Not Found | Unknown payload ID |
+| `409` | Conflict | Invalid forkchoice state |
+| `413` | Request Too Large | Request exceeds maximum element count |
+| `422` | Unprocessable Entity | Invalid payload attributes |
 
 ### Server errors
 
 | Status | Meaning | Usage |
 | - | - | - |
 | `500` | Internal Server Error | Unexpected server error |
-| `501` | Not Implemented | Unsupported fork version |
 
 Error responses use `Content-Type: text/plain` with a human-readable error message body.
 
@@ -687,8 +685,7 @@ class NewPayloadV5Request(Container):
 
 | Status | Condition |
 | - | - |
-| `400` | Malformed SSZ |
-| `500` | Internal server error |
+| `400` | Malformed SSZ encoding |
 
 ---
 
@@ -717,7 +714,6 @@ This is a safe, idempotent GET operation. The EL may continue optimizing the pay
 | - | - |
 | `400` | Invalid payload ID format |
 | `404` | Unknown payload ID |
-| `500` | Internal server error |
 
 ---
 
@@ -746,9 +742,8 @@ class GetPayloadBodiesByHashV2Request(Container):
 
 | Status | Condition |
 | - | - |
-| `400` | Malformed SSZ |
+| `400` | Malformed SSZ encoding |
 | `413` | Request exceeds `MAX_PAYLOAD_BODIES_REQUEST` hashes |
-| `500` | Internal server error |
 
 ---
 
@@ -779,9 +774,8 @@ class GetPayloadBodiesByRangeV2Request(Container):
 
 | Status | Condition |
 | - | - |
-| `400` | Malformed SSZ, `start` < 1, `count` < 1 |
+| `400` | Malformed SSZ encoding |
 | `413` | `count` exceeds `MAX_PAYLOAD_BODIES_REQUEST` |
-| `500` | Internal server error |
 
 ### Forkchoice
 
@@ -826,10 +820,9 @@ class ForkchoiceUpdatedV4Request(Container):
 
 | Status | Condition |
 | - | - |
-| `400` | Malformed SSZ |
-| `409` | Invalid forkchoice state (e.g., finalized block not ancestor of head) |
-| `422` | Invalid payload attributes (e.g., timestamp not greater than parent) |
-| `500` | Internal server error |
+| `400` | Malformed SSZ encoding |
+| `409` | Invalid forkchoice state |
+| `422` | Invalid payload attributes |
 
 ### Blobs
 
@@ -864,9 +857,8 @@ class GetBlobsV3Request(Container):
 
 | Status | Condition |
 | - | - |
-| `400` | Malformed SSZ |
+| `400` | Malformed SSZ encoding |
 | `413` | Request exceeds `MAX_BLOB_HASHES_REQUEST` hashes |
-| `500` | Internal server error |
 
 ### Client
 
@@ -887,8 +879,7 @@ class GetClientVersionV1Request(Container):
 
 | Status | Condition |
 | - | - |
-| `400` | Malformed SSZ |
-| `500` | Internal server error |
+| `400` | Malformed SSZ encoding |
 
 ---
 
@@ -909,8 +900,7 @@ class ExchangeCapabilitiesRequest(Container):
 
 | Status | Condition |
 | - | - |
-| `400` | Malformed SSZ |
-| `500` | Internal server error |
+| `400` | Malformed SSZ encoding |
 
 ### Transition configuration
 
@@ -1037,7 +1027,7 @@ curl -X POST http://localhost:8551/engine/v4/forkchoice \
 
 ### Fallback behavior
 
-If the EL does not support the binary SSZ transport, a request to `/engine/v5/payloads` returns HTTP `404 Not Found` or `415 Unsupported Media Type`. The CL detects this and falls back to JSON-RPC at `POST /` for subsequent requests.
+If the EL does not support the binary SSZ transport, a request to `/engine/v5/payloads` returns HTTP `404 Not Found`. The CL detects this and falls back to JSON-RPC at `POST /` for subsequent requests.
 
 ## Security considerations
 
