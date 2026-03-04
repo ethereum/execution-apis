@@ -122,13 +122,15 @@ When a new fork introduces a new method version, a new versioned endpoint is add
 
 ### Negotiation and fallback
 
-1. The CL sends a request to a versioned REST endpoint with `Content-Type: application/octet-stream` and a raw SSZ request body.
+Transport negotiation uses `engine_exchangeCapabilities` over JSON-RPC.
 
-2. If the EL supports the binary SSZ transport, it **MUST** respond with `Content-Type: application/octet-stream` and a raw SSZ response body.
+1. At startup, the CL calls `engine_exchangeCapabilities` over JSON-RPC. The CL includes the SSZ REST endpoints it supports in the capabilities list (e.g., `"POST /engine/v5/payloads"`).
 
-3. If the EL does not support the binary SSZ transport, it **MUST** respond with HTTP status `404 Not Found`. The CL **MUST** then fall back to JSON-RPC (`POST /`) for subsequent requests.
+2. If the EL's response includes SSZ REST endpoints, the CL **MUST** use the binary SSZ transport for those endpoints. The CL sends requests with `Content-Type: application/octet-stream` and `Accept: application/octet-stream`. The EL **MUST** respond with `Content-Type: application/octet-stream`.
 
-4. Clients **MUST** continue to support JSON-RPC encoding as a fallback. Both the REST endpoints and the JSON-RPC endpoint coexist on the same port.
+3. If the EL's response does not include SSZ REST endpoints, the CL **MUST** use JSON-RPC for all Engine API calls.
+
+4. Clients **MUST** support JSON-RPC encoding. Both the REST endpoints and the JSON-RPC endpoint coexist on the same port.
 
 ## HTTP status codes
 
@@ -1027,7 +1029,7 @@ curl -X POST http://localhost:8551/engine/v4/forkchoice \
 
 ### Fallback behavior
 
-If the EL does not support the binary SSZ transport, a request to `/engine/v5/payloads` returns HTTP `404 Not Found`. The CL detects this and falls back to JSON-RPC at `POST /` for subsequent requests.
+If the EL does not advertise SSZ REST endpoints in its `engine_exchangeCapabilities` response, the CL uses JSON-RPC for all Engine API calls.
 
 ## Security considerations
 
