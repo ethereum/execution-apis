@@ -139,7 +139,7 @@ Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string
 
 ### Binary SSZ transport
 
-Clients **MAY** support a binary SSZ transport as an alternative to JSON-RPC. The binary transport uses raw SSZ bytes over HTTP with path-based method routing, eliminating JSON and hex-encoding overhead for fast CL-EL communication.
+Clients **MAY** support a binary SSZ transport as an alternative to JSON-RPC. The binary transport uses resource-oriented REST endpoints with raw SSZ request and response bodies (`application/octet-stream`), eliminating JSON and hex-encoding overhead for fast CL-EL communication. Endpoints follow Beacon API conventions with path-based versioning (e.g., `POST /engine/v5/payloads`).
 
 When both the consensus layer and execution layer clients support the binary SSZ transport, they **SHOULD** use it. When either client does not support it, both **MUST** fall back to JSON-RPC encoding.
 
