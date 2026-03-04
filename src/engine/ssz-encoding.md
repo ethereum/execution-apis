@@ -120,7 +120,6 @@ Each JSON-encoded base type used in the Engine API maps to a specific SSZ type. 
 | `bytes` (variable-length) | `ByteList[MAX_LENGTH]` (context-dependent) |
 | `bytesMax32` (0 to 32 bytes) | `ByteList[32]` |
 | `Array of T` | `List[T, MAX_LENGTH]` (context-dependent) |
-| `T or null` | `Optional[T]` |
 
 ## Container definitions
 
@@ -240,9 +239,11 @@ Introduced in [Paris](./paris.md#payloadstatusv1). The `status` field is encoded
 ```python
 class PayloadStatusV1(Container):
     status: uint8
-    latest_valid_hash: Optional[Bytes32]
-    validation_error: Optional[ByteList[MAX_ERROR_MESSAGE_LENGTH]]
+    latest_valid_hash: Bytes32
+    validation_error: ByteList[MAX_ERROR_MESSAGE_LENGTH]
 ```
+
+*Note:* `latest_valid_hash` is all zeros when absent (e.g. when `status` is `SYNCING` or `ACCEPTED`). `validation_error` is empty when absent.
 
 | `status` value | Meaning |
 | - | - |
@@ -320,8 +321,10 @@ Used by all versions of `engine_forkchoiceUpdated`.
 ```python
 class ForkchoiceUpdatedResponseV1(Container):
     payload_status: PayloadStatusV1
-    payload_id: Optional[Bytes8]
+    payload_id: Bytes8
 ```
+
+*Note:* `payload_id` is all zeros when no payload building was initiated.
 
 ### ExecutionPayloadBodyV1
 
@@ -330,8 +333,10 @@ Introduced in [Shanghai](./shanghai.md#executionpayloadbodyv1).
 ```python
 class ExecutionPayloadBodyV1(Container):
     transactions: List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_TRANSACTIONS_PER_PAYLOAD]
-    withdrawals: Optional[List[WithdrawalV1, MAX_WITHDRAWALS_PER_PAYLOAD]]
+    withdrawals: List[WithdrawalV1, MAX_WITHDRAWALS_PER_PAYLOAD]
 ```
+
+*Note:* `withdrawals` is empty for pre-Shanghai blocks.
 
 ### ExecutionPayloadBodyV2
 
@@ -340,9 +345,11 @@ Introduced in [Amsterdam](./amsterdam.md#executionpayloadbodyv2). Extends `Execu
 ```python
 class ExecutionPayloadBodyV2(Container):
     transactions: List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_TRANSACTIONS_PER_PAYLOAD]
-    withdrawals: Optional[List[WithdrawalV1, MAX_WITHDRAWALS_PER_PAYLOAD]]
-    block_access_list: Optional[ByteList[MAX_BYTES_PER_TRANSACTION]]
+    withdrawals: List[WithdrawalV1, MAX_WITHDRAWALS_PER_PAYLOAD]
+    block_access_list: ByteList[MAX_BYTES_PER_TRANSACTION]
 ```
+
+*Note:* `withdrawals` is empty for pre-Shanghai blocks. `block_access_list` is empty for pre-Amsterdam blocks.
 
 ### BlobsBundleV1
 
@@ -550,7 +557,9 @@ Deprecated in Cancun.
 
 | Result | SSZ Type |
 | - | - |
-| Payload bodies | `List[Optional[`[`ExecutionPayloadBodyV1`](#executionpayloadbodyv1)`], MAX_PAYLOAD_BODIES_REQUEST]` |
+| Payload bodies | `List[List[`[`ExecutionPayloadBodyV1`](#executionpayloadbodyv1)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+
+*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
 
 #### engine_getPayloadBodiesByRangeV1
 
@@ -561,7 +570,9 @@ Deprecated in Cancun.
 
 | Result | SSZ Type |
 | - | - |
-| Payload bodies | `List[Optional[`[`ExecutionPayloadBodyV1`](#executionpayloadbodyv1)`], MAX_PAYLOAD_BODIES_REQUEST]` |
+| Payload bodies | `List[List[`[`ExecutionPayloadBodyV1`](#executionpayloadbodyv1)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+
+*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
 
 ### Cancun methods
 
@@ -608,7 +619,9 @@ Deprecated in Osaka.
 
 | Result | SSZ Type |
 | - | - |
-| Blobs and proofs | `Optional[List[`[`BlobAndProofV1`](#blobandproofv1)`, MAX_BLOB_HASHES_REQUEST]]` |
+| Blobs and proofs | `List[`[`BlobAndProofV1`](#blobandproofv1)`, MAX_BLOB_HASHES_REQUEST]` |
+
+*Note:* Returns `null` at the JSON-RPC level when syncing (SSZ encoding only applies to non-null results).
 
 ### Prague methods
 
@@ -657,7 +670,9 @@ Returns `null` for the entire result if any blob is missing or if syncing.
 
 | Result | SSZ Type |
 | - | - |
-| Blobs and proofs | `Optional[List[`[`BlobAndProofV2`](#blobandproofv2)`, MAX_BLOB_HASHES_REQUEST]]` |
+| Blobs and proofs | `List[`[`BlobAndProofV2`](#blobandproofv2)`, MAX_BLOB_HASHES_REQUEST]` |
+
+*Note:* Returns `null` at the JSON-RPC level when syncing or any blob is missing (SSZ encoding only applies to non-null results).
 
 #### engine_getBlobsV3
 
@@ -669,7 +684,9 @@ Returns per-element `null` for missing blobs, or `null` for the entire result if
 
 | Result | SSZ Type |
 | - | - |
-| Blobs and proofs | `Optional[List[Optional[`[`BlobAndProofV2`](#blobandproofv2)`], MAX_BLOB_HASHES_REQUEST]]` |
+| Blobs and proofs | `List[List[`[`BlobAndProofV2`](#blobandproofv2)`, 1], MAX_BLOB_HASHES_REQUEST]` |
+
+*Note:* Returns `null` at the JSON-RPC level when syncing. Each inner list has 0 elements for a missing blob and 1 element for a present blob.
 
 ### Amsterdam methods
 
@@ -715,7 +732,9 @@ Returns per-element `null` for missing blobs, or `null` for the entire result if
 
 | Result | SSZ Type |
 | - | - |
-| Payload bodies | `List[Optional[`[`ExecutionPayloadBodyV2`](#executionpayloadbodyv2)`], MAX_PAYLOAD_BODIES_REQUEST]` |
+| Payload bodies | `List[List[`[`ExecutionPayloadBodyV2`](#executionpayloadbodyv2)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+
+*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
 
 #### engine_getPayloadBodiesByRangeV2
 
@@ -726,7 +745,9 @@ Returns per-element `null` for missing blobs, or `null` for the entire result if
 
 | Result | SSZ Type |
 | - | - |
-| Payload bodies | `List[Optional[`[`ExecutionPayloadBodyV2`](#executionpayloadbodyv2)`], MAX_PAYLOAD_BODIES_REQUEST]` |
+| Payload bodies | `List[List[`[`ExecutionPayloadBodyV2`](#executionpayloadbodyv2)`, 1], MAX_PAYLOAD_BODIES_REQUEST]` |
+
+*Note:* Each inner list has 0 elements for unknown blocks and 1 element for known blocks.
 
 ## Request and response format
 
