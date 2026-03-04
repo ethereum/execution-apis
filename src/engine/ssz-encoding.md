@@ -122,15 +122,17 @@ When a new fork introduces a new method version, a new versioned endpoint is add
 
 ### Negotiation and fallback
 
-Transport negotiation uses `engine_exchangeCapabilities` over JSON-RPC.
+Transport negotiation uses the existing JSON-RPC `engine_exchangeCapabilities` method. JSON-RPC is the default transport. The binary SSZ transport is only used when both sides explicitly advertise support.
 
-1. At startup, the CL calls `engine_exchangeCapabilities` over JSON-RPC. The CL includes the SSZ REST endpoints it supports in the capabilities list (e.g., `"POST /engine/v5/payloads"`).
+1. At startup, the CL calls `engine_exchangeCapabilities` over JSON-RPC (`POST /`). This call always uses JSON-RPC regardless of SSZ support. The CL includes the SSZ REST endpoints it supports in the capabilities list (e.g., `"POST /engine/v5/payloads"`) alongside its supported JSON-RPC methods.
 
-2. If the EL's response includes SSZ REST endpoints, the CL **MUST** use the binary SSZ transport for those endpoints. The CL sends requests with `Content-Type: application/octet-stream` and `Accept: application/octet-stream`. The EL **MUST** respond with `Content-Type: application/octet-stream`.
+2. The EL responds over JSON-RPC with its own capabilities list. An EL that supports binary SSZ **MUST** include the SSZ REST endpoints it supports. An EL that does not support binary SSZ returns only JSON-RPC method names — no changes are required to existing EL implementations.
 
-3. If the EL's response does not include SSZ REST endpoints, the CL **MUST** use JSON-RPC for all Engine API calls.
+3. The CL inspects the EL's response. For each endpoint that both sides advertise as an SSZ REST endpoint, the CL **SHOULD** use binary SSZ. For all other methods, the CL **MUST** use JSON-RPC.
 
-4. Clients **MUST** support JSON-RPC encoding. Both the REST endpoints and the JSON-RPC endpoint coexist on the same port.
+4. When using binary SSZ, the CL sends requests with `Content-Type: application/octet-stream` and `Accept: application/octet-stream`. The EL **MUST** respond with `Content-Type: application/octet-stream`.
+
+5. Both CL and EL **MUST** support JSON-RPC encoding at all times. JSON-RPC remains available as a fallback even when binary SSZ is in use. Both the REST endpoints and the JSON-RPC endpoint (`POST /`) coexist on the same port.
 
 ## HTTP status codes
 
