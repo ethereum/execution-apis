@@ -24,6 +24,7 @@ eip
 eips
 EIPS
 EL
+EL's
 endian
 enum
 EOA
@@ -41,6 +42,7 @@ getblobsbundlev
 getblobsv
 getclientversionv
 getpayloadresponsev
+payloadbodiesv
 graphql
 gwei
 https
@@ -53,6 +55,7 @@ kzg
 mempool
 merkle
 multicallV
+natively
 npm
 ommers
 openrpc

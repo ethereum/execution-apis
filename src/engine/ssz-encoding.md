@@ -203,9 +203,9 @@ Each JSON-encoded base type used in the Engine API maps to a specific SSZ type. 
 | `bytes` (variable-length) | `ByteList[MAX_LENGTH]` (context-dependent) |
 | `bytesMax32` (0 to 32 bytes) | `ByteList[32]` |
 | `Array of T` | `List[T, MAX_LENGTH]` (context-dependent) |
-| `T or null` | `Optional[T]` (encoded as `List[T, 1]`) |
+| `T or null` | `List[T, 1]` |
 
-`Optional[T]` is represented as `List[T, 1]` in SSZ encoding. An empty list (0 elements) denotes absence (`null`). A list with one element denotes presence.
+Nullable types are represented as `List[T, 1]` in SSZ encoding. An empty list (0 elements) denotes absence (`null`). A list with one element denotes presence.
 
 ## Container definitions
 
@@ -789,7 +789,7 @@ class GetPayloadBodiesByRangeV2Request(Container):
 
 Update the EL's fork choice state and optionally start building a new payload. The EL updates its canonical chain view and prunes blocks no longer reachable from the head.
 
-When `payload_attributes` is present (non-empty `Optional`), the EL begins building a new block. The returned `payload_id` can be used with `GET /engine/v{N}/payloads/{payload_id}` to retrieve the built payload.
+When `payload_attributes` is present (list with 1 element), the EL begins building a new block. The returned `payload_id` can be used with `GET /engine/v{N}/payloads/{payload_id}` to retrieve the built payload.
 
 | Version | Fork | Request Container | JSON-RPC Equivalent |
 | - | - | - | - |
@@ -803,19 +803,19 @@ When `payload_attributes` is present (non-empty `Optional`), the EL begins build
 ```python
 class ForkchoiceUpdatedV1Request(Container):
     forkchoice_state: ForkchoiceStateV1
-    payload_attributes: Optional[PayloadAttributesV1]
+    payload_attributes: List[PayloadAttributesV1, 1]
 
 class ForkchoiceUpdatedV2Request(Container):
     forkchoice_state: ForkchoiceStateV1
-    payload_attributes: Optional[PayloadAttributesV2]
+    payload_attributes: List[PayloadAttributesV2, 1]
 
 class ForkchoiceUpdatedV3Request(Container):
     forkchoice_state: ForkchoiceStateV1
-    payload_attributes: Optional[PayloadAttributesV3]
+    payload_attributes: List[PayloadAttributesV3, 1]
 
 class ForkchoiceUpdatedV4Request(Container):
     forkchoice_state: ForkchoiceStateV1
-    payload_attributes: Optional[PayloadAttributesV4]
+    payload_attributes: List[PayloadAttributesV4, 1]
 ```
 
 *Note:* `ForkchoiceUpdatedV2Request` always uses `PayloadAttributesV2`. Pre-Shanghai attributes have an empty `withdrawals` list.
@@ -979,7 +979,7 @@ curl -X POST http://localhost:8551/engine/v5/payloads \
 ```
 POST /engine/v5/payloads HTTP/1.1
 Host: localhost:8551
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer $JWT_TOKEN
 Content-Type: application/octet-stream
 Content-Length: 584
 
