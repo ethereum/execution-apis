@@ -49,10 +49,14 @@ SSZ container definitions are provided for all Engine API structures and methods
   - [GetBlobsV1Response](#getblobsv1response)
   - [GetBlobsV2Response](#getblobsv2response)
   - [GetBlobsV3Response](#getblobsv3response)
+  - [ClientVersionV1](#clientversionv1)
+  - [GetClientVersionV1Response](#getclientversionv1response)
+  - [ExchangeCapabilitiesResponse](#exchangecapabilitiesresponse)
 - [Endpoints](#endpoints)
   - [Payloads](#payloads)
   - [Forkchoice](#forkchoice)
   - [Blobs](#blobs)
+  - [Client](#client)
   - [Transition configuration](#transition-configuration)
   - [Endpoint summary](#endpoint-summary)
 - [Example](#example)
@@ -84,13 +88,14 @@ All endpoints are served under the `/engine` prefix on the existing Engine API p
 
 ### Content types
 
-| Direction | Content-Type | Description |
+| Header | Value | Description |
 | - | - | - |
-| Request body | `application/octet-stream` | SSZ-encoded request container |
-| Response body (success) | `application/octet-stream` | SSZ-encoded response container |
-| Response body (error) | `text/plain` | Human-readable error message |
+| `Content-Type` (request) | `application/octet-stream` | SSZ-encoded request container |
+| `Content-Type` (response) | `application/octet-stream` | SSZ-encoded response (success) |
+| `Content-Type` (response) | `text/plain` | Human-readable error message |
+| `Accept` (request) | `application/octet-stream` | Client accepts SSZ-encoded responses |
 
-Request bodies are the SSZ serialization of the endpoint's request container. Response bodies are the SSZ serialization of the endpoint's response type.
+Request bodies are the SSZ serialization of the endpoint's request container. Response bodies are the SSZ serialization of the endpoint's response type. GET requests with no body **SHOULD** include the `Accept` header to indicate SSZ preference.
 
 ### Authentication
 
@@ -172,6 +177,12 @@ Error responses use `Content-Type: text/plain` with a human-readable error messa
 | `MAX_BLOB_HASHES_REQUEST` | `128` | [Osaka](./osaka.md#engine_getblobsv2) |
 | `MAX_EXECUTION_REQUESTS` | `2**8` (256) | [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685) |
 | `MAX_ERROR_MESSAGE_LENGTH` | `1024` | This specification |
+| `MAX_CLIENT_CODE_LENGTH` | `2` | This specification |
+| `MAX_CLIENT_NAME_LENGTH` | `64` | This specification |
+| `MAX_CLIENT_VERSION_LENGTH` | `64` | This specification |
+| `MAX_CLIENT_VERSIONS` | `4` | This specification |
+| `MAX_CAPABILITY_NAME_LENGTH` | `64` | This specification |
+| `MAX_CAPABILITIES` | `64` | This specification |
 | `BLOB_SIZE` | `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT` (131,072) | Derived |
 
 ## SSZ type mappings
@@ -542,6 +553,36 @@ class GetPayloadResponseV6(Container):
     execution_requests: List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_EXECUTION_REQUESTS]
 ```
 
+### ClientVersionV1
+
+Introduced in [Client Version Specification](./identification.md#clientversionv1).
+
+```python
+class ClientVersionV1(Container):
+    code: ByteList[MAX_CLIENT_CODE_LENGTH]
+    name: ByteList[MAX_CLIENT_NAME_LENGTH]
+    version: ByteList[MAX_CLIENT_VERSION_LENGTH]
+    commit: Bytes4
+```
+
+### GetClientVersionV1Response
+
+Response container for `engine_getClientVersionV1`.
+
+```python
+class GetClientVersionV1Response(Container):
+    versions: List[ClientVersionV1, MAX_CLIENT_VERSIONS]
+```
+
+### ExchangeCapabilitiesResponse
+
+Response container for `engine_exchangeCapabilities`.
+
+```python
+class ExchangeCapabilitiesResponse(Container):
+    capabilities: List[ByteList[MAX_CAPABILITY_NAME_LENGTH], MAX_CAPABILITIES]
+```
+
 ### PayloadBodiesV1Response
 
 Response container for `engine_getPayloadBodiesByHashV1` and `engine_getPayloadBodiesByRangeV1`.
@@ -827,6 +868,50 @@ class GetBlobsV3Request(Container):
 | `413` | Request exceeds `MAX_BLOB_HASHES_REQUEST` hashes |
 | `500` | Internal server error |
 
+### Client
+
+#### `POST /engine/v1/client/version` — Exchange client version
+
+Exchange client version information between CL and EL. The CL identifies itself in the request; the EL returns its own version(s) in the response. See the [Client Version Specification](./identification.md) for details.
+
+**Request container:**
+
+```python
+class GetClientVersionV1Request(Container):
+    client_version: ClientVersionV1
+```
+
+**Response:** `200 OK` — [`GetClientVersionV1Response`](#getclientversionv1response)
+
+**Errors:**
+
+| Status | Condition |
+| - | - |
+| `400` | Malformed SSZ |
+| `500` | Internal server error |
+
+---
+
+#### `POST /engine/v1/capabilities` — Exchange capabilities
+
+Exchange the list of supported Engine API endpoints between CL and EL. Capability names use the format `"METHOD /path"` (e.g., `"POST /engine/v5/payloads"`). See the [Capabilities specification](./common.md#capabilities) for details.
+
+**Request container:**
+
+```python
+class ExchangeCapabilitiesRequest(Container):
+    capabilities: List[ByteList[MAX_CAPABILITY_NAME_LENGTH], MAX_CAPABILITIES]
+```
+
+**Response:** `200 OK` — [`ExchangeCapabilitiesResponse`](#exchangecapabilitiesresponse)
+
+**Errors:**
+
+| Status | Condition |
+| - | - |
+| `400` | Malformed SSZ |
+| `500` | Internal server error |
+
 ### Transition configuration
 
 #### `POST /engine/v1/transition-configuration` — Exchange transition configuration
@@ -870,6 +955,8 @@ All endpoints organized by resource and fork:
 | `POST` | `/engine/v1/blobs` | Cancun | `engine_getBlobsV1` |
 | `POST` | `/engine/v2/blobs` | Osaka | `engine_getBlobsV2` |
 | `POST` | `/engine/v3/blobs` | Osaka | `engine_getBlobsV3` |
+| `POST` | `/engine/v1/client/version` | All | `engine_getClientVersionV1` |
+| `POST` | `/engine/v1/capabilities` | All | `engine_exchangeCapabilities` |
 | `POST` | `/engine/v1/transition-configuration` | Paris | `engine_exchangeTransitionConfigurationV1` |
 
 ## Example
@@ -894,9 +981,9 @@ POST /engine/v5/payloads HTTP/1.1
 Host: localhost:8551
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Content-Type: application/octet-stream
-Content-Length: 604
+Content-Length: 584
 
-<604 bytes: SSZ(NewPayloadV5Request)>
+<584 bytes: SSZ(NewPayloadV5Request)>
 ```
 
 The request body is the SSZ serialization of `NewPayloadV5Request` containing:
@@ -910,9 +997,9 @@ The request body is the SSZ serialization of `NewPayloadV5Request` containing:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/octet-stream
-Content-Length: 69
+Content-Length: 37
 
-<69 bytes: SSZ(PayloadStatusV1)>
+<37 bytes: SSZ(PayloadStatusV1)>
 ```
 
 The response body is the SSZ serialization of `PayloadStatusV1` containing:
