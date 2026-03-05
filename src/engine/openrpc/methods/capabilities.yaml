@@ -44,3 +44,54 @@
           - 'engine_getPayloadBodiesByRangeV1'
           - 'engine_getPayloadBodiesByHashV2'
           - 'engine_getPayloadBodiesByRangeV2'
+- name: engine_exchangeCapabilitiesV2
+  summary: Exchanges list of supported Engine API methods and advertises supported communication protocols
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/common.md#engine_exchangecapabilitiesv2
+  params:
+    - name: Consensus client methods
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+  result:
+    name: Capabilities and supported protocols
+    schema:
+      type: object
+      properties:
+        capabilities:
+          title: Execution client methods
+          type: array
+          items:
+            type: string
+        supportedProtocols:
+          title: Supported communication protocols
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationChannelV1'
+      required:
+        - capabilities
+        - supportedProtocols
+  examples:
+    - name: engine_exchangeCapabilitiesV2 example
+      params:
+        - name: Consensus client methods
+          value:
+            - 'engine_newPayloadV4'
+            - 'engine_forkchoiceUpdatedV3'
+            - 'engine_getPayloadV4'
+      result:
+        name: Capabilities and supported protocols
+        value:
+          capabilities:
+            - 'engine_newPayloadV4'
+            - 'engine_forkchoiceUpdatedV3'
+            - 'engine_getPayloadV4'
+            - 'engine_exchangeCapabilitiesV2'
+          supportedProtocols:
+            - protocol: 'json_rpc'
+              url: 'localhost:8551'
+            - protocol: 'ssz_rest'
+              url: 'localhost:6767'

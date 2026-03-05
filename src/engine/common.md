@@ -20,6 +20,10 @@ This document specifies common definitions and requirements affecting Engine API
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
+  - [engine_exchangeCapabilitiesV2](#engine_exchangecapabilitiesv2)
+    - [Request](#request-1)
+    - [Response](#response-1)
+    - [Specification](#specification-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -175,3 +179,63 @@ Execution layer clients **MUST** support `engine_exchangeCapabilities` method, w
         * response: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`.
 
 3. The `engine_exchangeCapabilities` method **MUST NOT** be returned in the response list.
+
+### engine_exchangeCapabilitiesV2
+
+This method extends `engine_exchangeCapabilities` by adding a `supportedProtocols` field to the response. This lets the EL advertise alternative communication protocols (e.g., SSZ-REST, gRPC) and their endpoints alongside the existing JSON-RPC capability exchange.
+
+#### Request
+
+* method: `engine_exchangeCapabilitiesV2`
+* params:
+    1. `Array of string` -- Array of strings, each string is a name of a method supported by consensus layer client software.
+* timeout: 1s
+
+#### Response
+
+* result: `object`
+    * `capabilities`: `Array of string` -- Array of strings, each string is a name of a method supported by execution layer client software.
+    * `supportedProtocols`: `Array of CommunicationChannelV1` -- List of communication protocols the EL supports.
+
+##### CommunicationChannelV1
+
+This structure contains information about a communication protocol supported by the execution layer.
+
+- `protocol`: `String` - Identifier for the protocol. See [Protocol Identifiers](#protocol-identifiers).
+- `url`: `String` - The endpoint where this protocol is available.
+
+##### Protocol Identifiers
+
+This specification defines one protocol identifier:
+
+| Identifier | Description |
+| - | - |
+| `json_rpc` | JSON-RPC over HTTP, as currently used by the Engine API. |
+
+Follow-up specifications may define additional identifiers. Some examples:
+
+* `ssz_rest` -- SSZ-encoded payloads over REST using `application/octet-stream`.
+* `grpc` -- gRPC with Protocol Buffers or SSZ serialization.
+* `ssz_websocket` -- SSZ-encoded payloads over WebSocket.
+
+#### Specification
+
+1. The request format is identical to `engine_exchangeCapabilities` -- an array of method names supported by the CL.
+
+2. The `capabilities` field in the response follows the same rules as the response of `engine_exchangeCapabilities`.
+
+3. The EL **MUST** always include at least one entry with `protocol` set to `json_rpc` in `supportedProtocols`.
+
+4. The EL **MAY** include additional entries for other protocols it supports.
+
+5. The CL **SHOULD** call this method on startup to discover available protocols.
+
+6. The CL **MAY** switch to any advertised protocol it supports. If the CL doesn't support any of the alternatives, it falls back to `json_rpc`.
+
+7. All protocols **MUST** use the same JWT authentication as the existing Engine API.
+
+8. The `engine_exchangeCapabilitiesV2` method **MUST NOT** appear in the `capabilities` response list.
+
+9. CL clients that receive a method-not-found error for `engine_exchangeCapabilitiesV2` **SHOULD** fall back to `engine_exchangeCapabilities`.
+
+10. EL clients **MUST** continue supporting `engine_exchangeCapabilities` for backwards compatibility. If called, it behaves exactly as before -- returning a flat array of method names.

@@ -1,0 +1,13 @@
+CommunicationChannelV1:
+  title: Communication channel object V1
+  type: object
+  required:
+    - protocol
+    - url
+  properties:
+    protocol:
+      title: Protocol identifier
+      type: string
+    url:
+      title: Endpoint where this protocol is available
+      type: string
