@@ -16,6 +16,7 @@ CL
 cli
 clientversionv
 CLs
+CommunicationChannelV
 configurationv
 crypto
 DocToc
@@ -31,6 +32,7 @@ EOA's
 ERC
 erigon
 eth
+exchangeCapabilitiesV
 ethereum
 ethereumjs
 EVM
