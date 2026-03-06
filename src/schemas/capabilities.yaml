@@ -1,0 +1,68 @@
+EthCapabilities:
+  title: Effective routing capabilities
+  type: object
+  additionalProperties: false
+  required:
+    - state
+    - tx
+    - logs
+    - receipts
+    - blocks
+    - trienodes
+  properties:
+    state:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+    tx:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+    logs:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+    receipts:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+    blocks:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+    trienodes:
+      $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
+
+EthCapabilitiesEffectiveResource:
+  title: Effective resource capability
+  type: object
+  additionalProperties: false
+  required:
+    - disabled
+    - oldestBlock
+    - deleteStrategy
+  properties:
+    disabled:
+      type: boolean
+    oldestBlock:
+      $ref: '#/components/schemas/uint'
+    deleteStrategy:
+      $ref: '#/components/schemas/EthCapabilitiesDeleteStrategy'
+
+EthCapabilitiesDeleteStrategy:
+  title: Delete strategy
+  oneOf:
+    - title: No deletion
+      type: object
+      additionalProperties: false
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - none
+    - title: Sliding window deletion
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - retentionBlocks
+      properties:
+        type:
+          type: string
+          enum:
+            - window
+        retentionBlocks:
+          type: integer
+          minimum: 0

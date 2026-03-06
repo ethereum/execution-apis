@@ -1,0 +1,3 @@
+// Returns effective routing capabilities.
+>> {"jsonrpc":"2.0","id":1,"method":"eth_capabilities"}
+<< {"jsonrpc":"2.0","id":1,"result":{"state":{"disabled":false,"oldestBlock":"0x12ab34","deleteStrategy":{"type":"window","retentionBlocks":90000}},"tx":{"disabled":false,"oldestBlock":"0xf00aa","deleteStrategy":{"type":"window","retentionBlocks":2350000}},"logs":{"disabled":false,"oldestBlock":"0xf00aa","deleteStrategy":{"type":"window","retentionBlocks":2350000}},"receipts":{"disabled":false,"oldestBlock":"0xf00aa","deleteStrategy":{"type":"window","retentionBlocks":2350000}},"blocks":{"disabled":false,"oldestBlock":"0x0","deleteStrategy":{"type":"none"}},"trienodes":{"disabled":false,"oldestBlock":"0x120000","deleteStrategy":{"type":"window","retentionBlocks":90000}}}}

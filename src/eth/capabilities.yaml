@@ -1,0 +1,48 @@
+- name: eth_capabilities
+  summary: Returns effective capabilities for routing decisions.
+  params: []
+  result:
+    name: Capabilities
+    schema:
+      $ref: '#/components/schemas/EthCapabilities'
+  examples:
+    - name: eth_capabilities example
+      params: []
+      result:
+        name: Capabilities
+        value:
+          state:
+            disabled: false
+            oldestBlock: '0x12ab34'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 90000
+          tx:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          logs:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          receipts:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          blocks:
+            disabled: false
+            oldestBlock: '0x0'
+            deleteStrategy:
+              type: none
+          trienodes:
+            disabled: false
+            oldestBlock: '0x120000'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 90000
