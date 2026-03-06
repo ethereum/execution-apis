@@ -65,7 +65,7 @@ This structure encapsulates the fork choice state. The fields are encoded as fol
 - `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash of the canonical chain under certain synchrony and honesty assumptions. This value **MUST** be either equal to or an ancestor of `headBlockHash`
 - `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
 
-*Note:* `safeBlockHash` and `finalizedBlockHash` fields are allowed to have `0x0000000000000000000000000000000000000000000000000000000000000000` value unless transition block is finalized.
+*Note:* `safeBlockHash` and `finalizedBlockHash` fields are allowed to have `0x0000000000000000000000000000000000000000000000000000000000000000` value. When set to zero, the client **MUST** default to the latest known value for the corresponding field, or the genesis block hash if no value is known.
 
 ### PayloadAttributesV1
 
@@ -216,11 +216,11 @@ The payload build process is specified as follows:
 
 4. Before updating the forkchoice state, client software **MUST** ensure the validity of the payload referenced by `forkchoiceState.headBlockHash`, and **MAY** validate the payload while processing the call. The validation process is specified in the [Payload validation](#payload-validation) section. If the validation process fails, client software **MUST NOT** update the forkchoice state and **MUST NOT** begin a payload build process.
 
-5. Client software **MUST** update its forkchoice state if payloads referenced by `forkchoiceState.headBlockHash` and `forkchoiceState.finalizedBlockHash` are `VALID`. The update is specified as follows:
+5. Client software **MUST** update its forkchoice state if payloads referenced by `forkchoiceState.headBlockHash` and `forkchoiceState.finalizedBlockHash` are `VALID`. If `forkchoiceState.finalizedBlockHash` is zero, the client **MUST** use the latest known finalized block hash for this update. The update is specified as follows:
   * The values `(forkchoiceState.headBlockHash, forkchoiceState.finalizedBlockHash)` of this method call map on the `POS_FORKCHOICE_UPDATED` event of [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#block-validity) and **MUST** be processed according to the specification defined in the EIP
   * All updates to the forkchoice state resulting from this call **MUST** be made atomically.
 
-6. Client software **MUST** return `-38002: Invalid forkchoice state` error if the payload referenced by `forkchoiceState.headBlockHash` is `VALID` and a payload referenced by either `forkchoiceState.finalizedBlockHash` or `forkchoiceState.safeBlockHash` does not belong to the chain defined by `forkchoiceState.headBlockHash`.
+6. Client software **MUST** return `-38002: Invalid forkchoice state` error if the payload referenced by `forkchoiceState.headBlockHash` is `VALID` and a **non-zero** payload referenced by either `forkchoiceState.finalizedBlockHash` or `forkchoiceState.safeBlockHash` does not belong to the chain defined by `forkchoiceState.headBlockHash`.
 
 7. Client software **MUST** process provided `payloadAttributes` after successfully applying the `forkchoiceState` and only if the payload referenced by `forkchoiceState.headBlockHash` is `VALID`. The processing flow is as follows:
 
