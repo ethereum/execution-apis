@@ -40,7 +40,7 @@ Engine API structures and methods specified for Paris.
 
 ### ExecutionPayloadV1
 
-This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md#ExecutionPayload) structure of the beacon chain spec. The fields are encoded as follows:
+This structure maps on the [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md#executionpayload) structure of the beacon chain spec. The fields are encoded as follows:
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -136,7 +136,7 @@ The payload build process is specified as follows:
 
 3. Client software **SHOULD** start the process of updating the payload. The strategy of this process is implementation dependent. The default strategy is to keep the transaction set up-to-date with the state of local mempool.
 
-4. Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SECONDS_PER_SLOT`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/beacon-chain.md#time-parameters-1) (12s in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
+4. Client software **SHOULD** stop the updating process when either a call to `engine_getPayload` with the build process's `payloadId` is made or [`SLOT_DURATION_MS`](https://github.com/ethereum/consensus-specs/blob/master/specs/phase0/beacon-chain.md#time-parameters-1) (12s in the Mainnet configuration) have passed since the point in time identified by the `timestamp` parameter.
 
 5. Client software **MUST** begin a new build process if given `PayloadAttributes` doesn't match payload attributes of an existing build process.
    Every new build process **MUST** be uniquely identified by the returned `payloadId` value.
