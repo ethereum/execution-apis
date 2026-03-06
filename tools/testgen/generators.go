@@ -89,6 +89,8 @@ var AllMethods = []MethodTests{
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
+	DebugTraceTransaction,
+	DebugTraceBlockByNumber,
 	EthBlobBaseFee,
 	NetVersion,
 
