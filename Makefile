@@ -4,7 +4,8 @@ SPECFLAGS := -schemas 'src/schemas' \
 	-schemas 'src/engine/openrpc/schemas' \
 	-methods 'src/eth' \
 	-methods 'src/debug' \
-	-methods 'src/engine/openrpc/methods'
+	-methods 'src/engine/openrpc/methods' \
+	-methods 'src/testing'
 
 
 build: tools

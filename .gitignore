@@ -9,3 +9,4 @@ schema.json
 .idea/
 .docusaurus/
 .DS_Store
+.tool-versions

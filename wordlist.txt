@@ -9,6 +9,7 @@ blockaccesslist
 blockAccessList
 BlockAccessList
 bodiesbyhashv
+buildBlockV
 bodiesbyrangev
 bodyv
 bytecode
