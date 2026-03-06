@@ -17,12 +17,12 @@
       params:
         - name: Consensus client configuration
           value:
-            terminalTotalDifficulty: 0
+            terminalTotalDifficulty: "0x0"
             terminalBlockHash: '0x0000000000000000000000000000000000000000000000000000000000000000'
             terminalBlockNumber: '0x1'
       result:
         name: Execution client configuration
         value:
-          terminalTotalDifficulty: 0
+          terminalTotalDifficulty: "0x0"
           terminalBlockHash: '0x0000000000000000000000000000000000000000000000000000000000000000'
           terminalBlockNumber: '0x1'
