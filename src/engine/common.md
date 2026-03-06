@@ -15,6 +15,7 @@ This document specifies common definitions and requirements affecting Engine API
 - [Errors](#errors)
 - [Timeouts](#timeouts)
 - [Encoding](#encoding)
+  - [Binary SSZ transport](#binary-ssz-transport)
 - [Capabilities](#capabilities)
   - [engine_exchangeCapabilities](#engine_exchangecapabilities)
     - [Request](#request)
@@ -135,6 +136,14 @@ Values of a field of `DATA` type **MUST** be encoded as a hexadecimal string wit
 Values of a field of `QUANTITY` type **MUST** be encoded as a hexadecimal string with a `0x` prefix and the leading 0s stripped (except for the case of encoding the value `0`) matching the regular expression `^0x(?:0|(?:[a-fA-F1-9][a-fA-F0-9]*))$`.
 
 *Note:* Byte order of encoded value having `QUANTITY` type is big-endian.
+
+### Binary SSZ transport
+
+Clients **MAY** support a binary SSZ transport as an alternative to JSON-RPC. The binary transport uses resource-oriented REST endpoints with raw SSZ request and response bodies (`application/octet-stream`), eliminating JSON and hex-encoding overhead for fast CL-EL communication. Endpoints follow Beacon API conventions with path-based versioning (e.g., `POST /engine/v5/payloads`).
+
+When both the consensus layer and execution layer clients support the binary SSZ transport, they **SHOULD** use it. When either client does not support it, both **MUST** fall back to JSON-RPC encoding.
+
+The full specification is defined in the [Binary SSZ Transport](./ssz-encoding.md) document.
 
 [json-rpc-spec]: https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/execution-apis/assembled-spec/openrpc.json&uiSchema[appBar][ui:splitView]=false&uiSchema[appBar][ui:input]=false&uiSchema[appBar][ui:examplesDropdown]=false
 
