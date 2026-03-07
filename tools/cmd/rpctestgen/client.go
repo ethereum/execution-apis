@@ -107,7 +107,7 @@ func (g *gethClient) Start(ctx context.Context, verbose bool) error {
 			"--gcmode=archive",
 			"--nodiscover",
 			"--http",
-			"--http.api=admin,eth,debug,net",
+			"--http.api=admin,eth,debug,net,txpool",
 			fmt.Sprintf("--http.addr=%s", HOST),
 			fmt.Sprintf("--http.port=%s", PORT),
 			fmt.Sprintf("--authrpc.port=%s", AUTHPORT),

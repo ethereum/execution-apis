@@ -4,6 +4,7 @@ SPECFLAGS := -schemas 'src/schemas' \
 	-schemas 'src/engine/openrpc/schemas' \
 	-methods 'src/eth' \
 	-methods 'src/debug' \
+	-methods 'src/txpool' \
 	-methods 'src/engine/openrpc/methods'
 
 
