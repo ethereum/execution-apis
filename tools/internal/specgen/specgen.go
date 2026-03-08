@@ -23,9 +23,10 @@ type object = map[string]any
 type schemaRepository = map[string]object
 
 type Generator struct {
-	baseDoc object
-	methods map[string]object
-	types   schemaRepository
+	baseDoc     object
+	methods     map[string]object
+	types       schemaRepository
+	errorGroups errorGroups
 }
 
 func New() *Generator {
@@ -103,6 +104,43 @@ func parseSchema(content []byte) (map[string]object, error) {
 		return nil, fmt.Errorf("invalid schema content: %v", err)
 	}
 	return body, nil
+}
+
+// AddErrorGroups parses the given YAML content and adds the error group definitions
+func (s *Generator) AddErrorGroups(content []byte) error {
+	groups, err := parseErrorGroups(content)
+	if err != nil {
+		return fmt.Errorf("failed to parse error groups: %v", err)
+	}
+	for _, entry := range groups {
+		if _, exists := s.errorGroups.find(entry.Name); exists {
+			return fmt.Errorf("duplicate error group %s", entry.Name)
+		}
+		s.errorGroups = append(s.errorGroups, entry)
+	}
+	return nil
+}
+
+// ResolveErrorGroups resolves all error-groups references in method definitions, merged with existing inline errors
+func (s *Generator) ResolveErrorGroups() error {
+	for _, name := range slices.Sorted(maps.Keys(s.methods)) {
+		method := s.methods[name]
+		errorGroupRefs, hasGroups := method["error-groups"].([]any)
+		if !hasGroups {
+			continue
+		}
+		existingErrors, _ := method["errors"].([]any)
+		resolved, err := s.errorGroups.resolveMethodErrors(existingErrors, errorGroupRefs)
+		if err != nil {
+			return fmt.Errorf("method %s: %w", name, err)
+		}
+		method = maps.Clone(method)
+		method["errors"] = resolved
+		delete(method, "error-groups")
+		s.methods[name] = method
+	}
+	s.errorGroups = nil
+	return nil
 }
 
 // Dereference removes all $ref pointers and ensures the spec and does not use the `allOf`
