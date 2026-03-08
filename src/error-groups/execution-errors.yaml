@@ -1,5 +1,4 @@
 ExecutionErrors:
-  category: "EXECUTION_ERRORS"
   range:
     min: 1
     max: 199

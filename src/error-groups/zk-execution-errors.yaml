@@ -1,5 +1,4 @@
 ZkExecutionErrors:
-  category: "ZK_EXECUTION_ERRORS"
   range:
     min: 2000
     max: 2199

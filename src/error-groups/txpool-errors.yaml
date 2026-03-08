@@ -1,5 +1,4 @@
 TxPoolErrors:
-  category: "TXPOOL_ERRORS"
   range:
     min: 1000
     max: 1199
