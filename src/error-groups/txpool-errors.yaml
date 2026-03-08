@@ -1,0 +1,9 @@
+TxPoolErrors:
+  range:
+    min: 1000
+    max: 1199
+  errors:
+    - code: 1000
+      message: "Already known transaction"
+    - code: 1001
+      message: "Invalid sender"

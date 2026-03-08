@@ -1,0 +1,13 @@
+ExecutionErrors:
+  range:
+    min: 1
+    max: 199
+  errors:
+    - code: 1
+      message: "Nonce too low"
+    - code: 2
+      message: "Nonce too high"
+    - code: 3
+      message: "Execution reverted"
+    - code: 4
+      message: "Invalid opcode"
