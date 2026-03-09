@@ -1,0 +1,55 @@
+- name: eth_capabilities
+  summary: Returns effective capabilities for routing decisions.
+  description: |
+    Returns information about the data available on this node, including the
+    current head block and retention policies for each resource type. This is
+    useful for RPC routers to determine which historical queries a node can serve.
+  params: []
+  result:
+    name: Capabilities
+    schema:
+      $ref: '#/components/schemas/EthCapabilities'
+  examples:
+    - name: eth_capabilities example
+      params: []
+      result:
+        name: Capabilities
+        value:
+          head:
+            blockNumber: '0x13f8e3a'
+            blockHash: '0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3'
+          state:
+            disabled: false
+            oldestBlock: '0x12ab34'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 90000
+          tx:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          logs:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          receipts:
+            disabled: false
+            oldestBlock: '0xf00aa'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 2350000
+          blocks:
+            disabled: false
+            oldestBlock: '0x0'
+            deleteStrategy:
+              type: none
+          stateproofs:
+            disabled: false
+            oldestBlock: '0x120000'
+            deleteStrategy:
+              type: window
+              retentionBlocks: 90000
