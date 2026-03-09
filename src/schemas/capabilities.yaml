@@ -1,26 +1,38 @@
 EthCapabilities:
   title: Effective routing capabilities
+  description: Describes the data available on the node. Each resource reports the oldest available block and the deletion strategy, allowing RPC routers to determine which historical queries a node can serve.
   type: object
   additionalProperties: false
   required:
+    - head
     - state
     - tx
     - logs
     - receipts
     - blocks
-    - trienodes
+    - stateproofs
   properties:
+    head:
+      title: Current head block
+      description: The latest block known to the node, useful for determining sync status.
+      $ref: '#/components/schemas/EthCapabilitiesHead'
     state:
+      description: "Account and contract state including balances, nonces, code, and storage. Determines the available range for historical state queries. Affects: eth_getBalance, eth_getCode, eth_getStorageAt, eth_getTransactionCount, eth_call, eth_estimateGas, eth_createAccessList."
       $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
     tx:
+      description: "Transaction data and lookup indices. Determines the available range for transaction lookups by hash or block position. Affects: eth_getTransactionByHash, eth_getTransactionByBlockHashAndIndex, eth_getTransactionByBlockNumberAndIndex."
       $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
     logs:
+      description: "Event logs emitted by smart contracts. Determines the available block range for log queries and filters. Affects: eth_getLogs, eth_getFilterLogs, eth_getFilterChanges, eth_newFilter."
       $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
     receipts:
+      description: "Transaction execution receipts including status, gas used, and logs bloom. Determines the available range for receipt lookups. Affects: eth_getTransactionReceipt, eth_getBlockReceipts."
       $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
     blocks:
+      description: "Block headers and bodies including transactions and uncles. Determines the available range for block retrieval. Affects: eth_getBlockByHash, eth_getBlockByNumber, eth_getBlockTransactionCountByHash, eth_getBlockTransactionCountByNumber, eth_getUncleCountByBlockHash, eth_getUncleCountByBlockNumber."
       $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
-    trienodes:
+    stateproofs:
+      description: "Merkle proofs for account and storage state. Determines the available range for proof generation. Affects: eth_getProof."
       $ref: '#/components/schemas/EthCapabilitiesEffectiveResource'
 
 EthCapabilitiesEffectiveResource:
@@ -38,6 +50,21 @@ EthCapabilitiesEffectiveResource:
       $ref: '#/components/schemas/uint'
     deleteStrategy:
       $ref: '#/components/schemas/EthCapabilitiesDeleteStrategy'
+
+EthCapabilitiesHead:
+  title: Current head block
+  type: object
+  additionalProperties: false
+  required:
+    - blockNumber
+    - blockHash
+  properties:
+    blockNumber:
+      title: Head block number
+      $ref: '#/components/schemas/uint'
+    blockHash:
+      title: Head block hash
+      $ref: '#/components/schemas/hash32'
 
 EthCapabilitiesDeleteStrategy:
   title: Delete strategy
