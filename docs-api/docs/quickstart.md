@@ -55,6 +55,7 @@ The `watch` command starts watching the local repository and rebuilds the spec
 and copies the `README.md` into the build. Running npm start starts a local
 development docusaurus server at `http://localhost:3000` and it rebuilds when
 you update something in the specs.
+
 **Sometimes you must reload the page to see your changes.**
 
 There is also search. To see the search index built you must `npm run build:docs`;

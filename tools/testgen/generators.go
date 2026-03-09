@@ -91,6 +91,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawTransaction,
 	EthBlobBaseFee,
 	NetVersion,
+	TestingBuildBlockV1,
 
 	// -- gas price tests are disabled because of non-determinism
 	// EthGasPrice,
@@ -2265,6 +2266,425 @@ var NetVersion = MethodTests{
 				if id.Cmp(t.chain.genesis.Config.ChainID) != 0 {
 					return fmt.Errorf("wrong networkID %v returned", id)
 				}
+				return nil
+			},
+		},
+	},
+}
+
+// validateBuildBlockV1Response validates the common parts of a testing_buildBlockV1 response.
+func validateBuildBlockV1Response(
+	t *T,
+	result map[string]interface{},
+	parentBlock *types.Block,
+	payloadAttrs map[string]interface{},
+	txValidator func(txs []interface{}) error,
+	extraDataValidator func(extraData string) error,
+) error {
+	// Validate response structure
+	executionPayload, ok := result["executionPayload"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("missing or invalid executionPayload in response")
+	}
+
+	parentHash := parentBlock.Hash()
+
+	// Verify parent hash matches
+	if parentHashStr, ok := executionPayload["parentHash"].(string); ok {
+		if parentHashStr != parentHash.Hex() {
+			return fmt.Errorf("parentHash mismatch: got %s, want %s", parentHashStr, parentHash.Hex())
+		}
+	} else {
+		return fmt.Errorf("missing parentHash in executionPayload")
+	}
+
+	// Verify block number is parent + 1
+	if blockNumStr, ok := executionPayload["blockNumber"].(string); ok {
+		blockNum := hexutil.MustDecodeUint64(blockNumStr)
+		expectedNum := parentBlock.NumberU64() + 1
+		if blockNum != expectedNum {
+			return fmt.Errorf("blockNumber mismatch: got %d, want %d", blockNum, expectedNum)
+		}
+	} else {
+		return fmt.Errorf("missing blockNumber in executionPayload")
+	}
+
+	// Spec: "The client MUST use the provided payloadAttributes"
+	// Verify timestamp matches payloadAttributes
+	if timestampStr, ok := executionPayload["timestamp"].(string); ok {
+		gotTimestamp := hexutil.MustDecodeUint64(timestampStr)
+		expectedTimestamp := uint64(payloadAttrs["timestamp"].(hexutil.Uint64))
+		if gotTimestamp != expectedTimestamp {
+			return fmt.Errorf("timestamp mismatch: got %d, want %d", gotTimestamp, expectedTimestamp)
+		}
+	} else {
+		return fmt.Errorf("missing timestamp in executionPayload")
+	}
+
+	// Verify prevRandao matches payloadAttributes
+	if prevRandaoStr, ok := executionPayload["prevRandao"].(string); ok {
+		expectedPrevRandao := common.HexToHash(payloadAttrs["prevRandao"].(string))
+		gotPrevRandao := common.HexToHash(prevRandaoStr)
+		if gotPrevRandao != expectedPrevRandao {
+			return fmt.Errorf("prevRandao mismatch: got %s, want %s", gotPrevRandao.Hex(), expectedPrevRandao.Hex())
+		}
+	} else {
+		return fmt.Errorf("missing prevRandao in executionPayload")
+	}
+
+	// Verify feeRecipient matches suggestedFeeRecipient from payloadAttributes
+	if feeRecipientStr, ok := executionPayload["feeRecipient"].(string); ok {
+		expectedFeeRecipient := common.HexToAddress(payloadAttrs["suggestedFeeRecipient"].(string))
+		gotFeeRecipient := common.HexToAddress(feeRecipientStr)
+		if gotFeeRecipient != expectedFeeRecipient {
+			return fmt.Errorf("feeRecipient mismatch: got %s, want %s", gotFeeRecipient.Hex(), expectedFeeRecipient.Hex())
+		}
+	} else {
+		return fmt.Errorf("missing feeRecipient in executionPayload")
+	}
+
+	// Verify parentBeaconBlockRoot if Cancun is active and it's present in response
+	if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+		if payloadBeaconRoot, hasBeaconRoot := payloadAttrs["parentBeaconBlockRoot"]; hasBeaconRoot {
+			if beaconRootStr, ok := executionPayload["parentBeaconBlockRoot"].(string); ok {
+				expectedBeaconRoot := common.HexToHash(payloadBeaconRoot.(string))
+				gotBeaconRoot := common.HexToHash(beaconRootStr)
+				if gotBeaconRoot != expectedBeaconRoot {
+					return fmt.Errorf("parentBeaconBlockRoot mismatch: got %s, want %s", gotBeaconRoot.Hex(), expectedBeaconRoot.Hex())
+				}
+			}
+		}
+	}
+
+	// Validate transactions using custom validator
+	if txs, ok := executionPayload["transactions"].([]interface{}); ok {
+		if err := txValidator(txs); err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("missing or invalid transactions array in executionPayload. Got type: %T, value: %v", executionPayload["transactions"], executionPayload["transactions"])
+	}
+
+	// Validate extraData using custom validator
+	if extraDataStr, ok := executionPayload["extraData"].(string); ok {
+		if err := extraDataValidator(extraDataStr); err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("missing extraData in executionPayload")
+	}
+
+	// Spec: "This method MUST NOT modify the client's canonical chain or head block."
+	// Verify chain head hasn't changed
+	newHead := t.chain.Head()
+	if newHead.Hash() != parentHash {
+		return fmt.Errorf("chain head changed (method should be read-only): was %s, now %s", parentHash.Hex(), newHead.Hash().Hex())
+	}
+
+	return nil
+}
+
+// TestingBuildBlockV1 stores a list of all tests against the method.
+var TestingBuildBlockV1 = MethodTests{
+	"testing_buildBlockV1",
+	[]Test{
+		{
+			Name:  "build-block-with-transactions",
+			About: "builds a block with specified transactions using testing_buildBlockV1",
+			Run: func(ctx context.Context, t *T) error {
+				parentBlock := t.chain.Head()
+				parentHash := parentBlock.Hash()
+
+				payloadAttrs := map[string]interface{}{
+					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
+					"prevRandao":            common.Hash{}.Hex(),
+					"suggestedFeeRecipient": common.Address{}.Hex(),
+					"withdrawals":           []interface{}{},
+				}
+
+				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
+					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				// Use sender index 2 so nonce matches geth state: index 0 (and 3) are used by
+				// eth_sendRawTransaction tests which call IncNonce, so they diverge from geth when run in full suite.
+				sender, nonce := t.chain.GetSender(2)
+				basefee := parentBlock.BaseFee()
+				if basefee == nil {
+					basefee = big.NewInt(1000000000)
+				}
+				gasFeeCap := new(big.Int).Add(basefee, big.NewInt(500))
+
+				txdata := &types.DynamicFeeTx{
+					Nonce:     nonce,
+					To:        &emitContract,
+					Gas:       21000,
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: gasFeeCap,
+					Value:     big.NewInt(1000),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+
+				txBytes, err := tx.MarshalBinary()
+				if err != nil {
+					return fmt.Errorf("failed to marshal transaction: %w", err)
+				}
+				txHex := hexutil.Encode(txBytes)
+				expectedTxHex := txHex
+
+				extraData := hexutil.Encode([]byte("test_name"))
+
+				var result map[string]interface{}
+				err = t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
+					parentHash.Hex(),
+					payloadAttrs,
+					[]string{txHex},
+					extraData,
+				)
+				if err != nil {
+					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
+				}
+
+				txValidator := func(txs []interface{}) error {
+					if len(txs) == 0 {
+						return fmt.Errorf("expected 1 transaction but got 0 (transactions parameter ignored). Sent transaction: %s", expectedTxHex)
+					} else if len(txs) > 1 {
+						txDetails := make([]string, len(txs))
+						for i, tx := range txs {
+							txDetails[i] = fmt.Sprintf("%v", tx)
+						}
+						return fmt.Errorf("expected 1 transaction but got %d (mempool transactions included when only 1 was specified). Sent: %s, Got: %v", len(txs), expectedTxHex, txDetails)
+					}
+					if txStr, ok := txs[0].(string); ok {
+						if txStr != expectedTxHex {
+							return fmt.Errorf("expected 1 transaction and got 1, but it's the wrong transaction. Sent: %s, Got: %s", expectedTxHex, txStr)
+						}
+					} else {
+						return fmt.Errorf("transaction in response is not a string, got type %T", txs[0])
+					}
+					return nil
+				}
+
+				extraDataValidator := func(extraDataStr string) error {
+					expectedExtraData := hexutil.Encode([]byte("test_name"))
+					if extraDataStr != expectedExtraData {
+						return fmt.Errorf("extraData mismatch: got %s, want %s (per spec, must match provided value)", extraDataStr, expectedExtraData)
+					}
+					return nil
+				}
+
+				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
+			},
+		},
+		{
+			Name:  "build-block-empty-transactions",
+			About: "builds a block with empty transactions array using testing_buildBlockV1",
+			Run: func(ctx context.Context, t *T) error {
+				parentBlock := t.chain.Head()
+				parentHash := parentBlock.Hash()
+
+				payloadAttrs := map[string]interface{}{
+					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
+					"prevRandao":            common.Hash{}.Hex(),
+					"suggestedFeeRecipient": common.Address{}.Hex(),
+					"withdrawals":           []interface{}{},
+				}
+
+				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
+					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				extraData := hexutil.Encode([]byte{})
+				var result map[string]interface{}
+				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
+					parentHash.Hex(),
+					payloadAttrs,
+					[]string{},
+					extraData,
+				)
+				if err != nil {
+					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
+				}
+
+				txValidator := func(txs []interface{}) error {
+					if len(txs) != 0 {
+						txDetails := make([]string, len(txs))
+						for i, tx := range txs {
+							txDetails[i] = fmt.Sprintf("%v", tx)
+						}
+						return fmt.Errorf("expected 0 transactions (empty transactions array passed), but got %d unexpected transactions from mempool: %v", len(txs), txDetails)
+					}
+					return nil
+				}
+
+				extraDataValidator := func(extraDataStr string) error {
+					// When empty extraData "0x" is passed, expect it back
+					if extraDataStr != "0x" {
+						return fmt.Errorf("expected extraData to be 0x but got %s", extraDataStr)
+					}
+					return nil
+				}
+
+				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
+			},
+		},
+		{
+			Name:  "build-block-from-mempool",
+			About: "builds a block from mempool using testing_buildBlockV1 with null transactions parameter",
+			Run: func(ctx context.Context, t *T) error {
+				parentBlock := t.chain.Head()
+				parentHash := parentBlock.Hash()
+
+				payloadAttrs := map[string]interface{}{
+					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
+					"prevRandao":            common.Hash{}.Hex(),
+					"suggestedFeeRecipient": common.Address{}.Hex(),
+					"withdrawals":           []interface{}{},
+				}
+
+				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
+					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				// Add a transaction to the mempool first
+				sender, nonce := t.chain.GetSender(1)
+				basefee := parentBlock.BaseFee()
+				if basefee == nil {
+					basefee = big.NewInt(1000000000)
+				}
+				gasFeeCap := new(big.Int).Add(basefee, big.NewInt(500))
+
+				txdata := &types.DynamicFeeTx{
+					Nonce:     nonce,
+					To:        &emitContract,
+					Gas:       21000,
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: gasFeeCap,
+					Value:     big.NewInt(1000),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+
+				// Send transaction to add it to the mempool
+				txBytes, err := tx.MarshalBinary()
+				if err != nil {
+					return fmt.Errorf("failed to marshal transaction: %w", err)
+				}
+				txHex := hexutil.Encode(txBytes)
+
+				var txHash common.Hash
+				err = t.rpc.CallContext(ctx, &txHash, "eth_sendRawTransaction", txHex)
+				if err != nil {
+					return fmt.Errorf("failed to send transaction to mempool: %w", err)
+				}
+
+				// Now call testing_buildBlockV1 with null transactions to build from mempool
+				var result map[string]interface{}
+				extraData := hexutil.Encode([]byte{})
+				err = t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
+					parentHash.Hex(),
+					payloadAttrs,
+					nil,       // null transactions - should build from mempool
+					extraData, // explicit empty extraData for deterministic tests
+				)
+				if err != nil {
+					return fmt.Errorf("testing_buildBlockV1 call failed: %w", err)
+				}
+
+				// Validator: when null is passed, client MAY include mempool transactions
+				// We just sent a transaction to mempool, so we expect it might be included
+				txValidator := func(txs []interface{}) error {
+					// The spec says client MAY build from mempool, so 0 or more txs is acceptable
+					// However, if a tx is included, it should be from the mempool
+					return nil
+				}
+
+				extraDataValidator := func(extraDataStr string) error {
+					// When extraData is "0x", expect it back
+					if extraDataStr != "0x" {
+						return fmt.Errorf("expected extraData to be 0x but got %s", extraDataStr)
+					}
+					return nil
+				}
+
+				return validateBuildBlockV1Response(t, result, parentBlock, payloadAttrs, txValidator, extraDataValidator)
+			},
+		},
+		{
+			Name:  "build-block-invalid-transaction",
+			About: "calls testing_buildBlockV1 with an unapplicable transaction (wrong nonce); client MUST return an error and not modify the chain",
+			Run: func(ctx context.Context, t *T) error {
+				parentBlock := t.chain.Head()
+				parentHash := parentBlock.Hash()
+
+				payloadAttrs := map[string]interface{}{
+					"timestamp":             hexutil.Uint64(parentBlock.Time() + 12),
+					"prevRandao":            common.Hash{}.Hex(),
+					"suggestedFeeRecipient": common.Address{}.Hex(),
+					"withdrawals":           []interface{}{},
+				}
+
+				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
+					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
+					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				// Use an invalid nonce (e.g. 999) so the tx cannot be applied; client MUST fail.
+				sender, _ := t.chain.GetSender(2)
+				basefee := parentBlock.BaseFee()
+				if basefee == nil {
+					basefee = big.NewInt(1000000000)
+				}
+				gasFeeCap := new(big.Int).Add(basefee, big.NewInt(500))
+				txdata := &types.DynamicFeeTx{
+					Nonce:     999, // invalid: account will not have this nonce
+					To:        &emitContract,
+					Gas:       21000,
+					GasTipCap: big.NewInt(500),
+					GasFeeCap: gasFeeCap,
+					Value:     big.NewInt(1000),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				txBytes, err := tx.MarshalBinary()
+				if err != nil {
+					return fmt.Errorf("failed to marshal transaction: %w", err)
+				}
+				txHex := hexutil.Encode(txBytes)
+
+				extraData := hexutil.Encode([]byte{})
+				var result map[string]interface{}
+				err = t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
+					parentHash.Hex(),
+					payloadAttrs,
+					[]string{txHex},
+					extraData,
+				)
+				if err == nil {
+					return fmt.Errorf("testing_buildBlockV1 must fail when a transaction cannot be applied (e.g. invalid nonce), but it succeeded")
+				}
+
+				// Spec: client MUST return an RPC error (e.g. -32602, -32603, or implementation-defined -32000).
+				var rpcErr rpc.Error
+				if !errors.As(err, &rpcErr) {
+					return fmt.Errorf("testing_buildBlockV1 must return an RPC error with a code, got: %w", err)
+				}
+				code := rpcErr.ErrorCode()
+				// -32602 Invalid parameters, -32603 Internal error, -32000 implementation-defined (common for execution failures)
+				if code != -32602 && code != -32603 && code != -32000 {
+					return fmt.Errorf("testing_buildBlockV1 must return error code -32602, -32603, or -32000 for unapplicable tx, got code %d: %w", code, err)
+				}
+
+				// Spec: method MUST NOT modify the chain; head must be unchanged.
+				headBlock, err := t.eth.BlockByNumber(ctx, nil)
+				if err != nil {
+					return fmt.Errorf("failed to get node head after failed call: %w", err)
+				}
+				if headBlock.Hash() != parentHash {
+					return fmt.Errorf("chain head must not change when testing_buildBlockV1 fails (read-only); was %s, now %s", parentHash.Hex(), headBlock.Hash().Hex())
+				}
+
 				return nil
 			},
 		},
