@@ -31,9 +31,10 @@ jobs:
         # specifically storageKeys arrays in the responses.
         # Filter them from the diff check until fixed.
         run: >
-          git status --porcelain
+          test -z "$(git status --porcelain .
           ':!tests/eth_createAccessList/create-al-contract.io'
           ':!tests/eth_createAccessList/create-al-contract-eip1559.io'
+          )"
 
   lint-tools:
     runs-on: ubuntu-latest
