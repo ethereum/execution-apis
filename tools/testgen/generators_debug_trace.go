@@ -84,6 +84,8 @@ func validateStructLog(i int, log map[string]interface{}) error {
 		me.add("%s: missing required field \"op\"", prefix)
 	} else if s, ok := opVal.(string); !ok {
 		me.add("%s: field \"op\" must be a string, got %T", prefix, opVal)
+	} else if s == "" {
+		me.add("%s: field \"op\" must not be empty", prefix)
 	} else {
 		opStr = s
 	}
@@ -328,7 +330,7 @@ var DebugTraceTransaction = MethodTests{
 		},
 		{
 			Name:     "trace-contract-call",
-			About:    "traces a contract call transaction; validates spec compliance of structLogs including stack encoding, error field, and storage rules",
+			About:    "traces a contract call transaction; validates spec compliance of structLogs including stack encoding, error field behavior, and optional storage encoding",
 			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("legacy tx with input data", matchLegacyTxWithInput)
