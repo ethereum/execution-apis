@@ -128,7 +128,11 @@ StructLog:
       minimum: 0
     gasCost:
       title: gas cost
-      description: The gas cost charged for executing this opcode.
+      description: >-
+        The gas cost computed for this opcode step — the amount that will be
+        deducted from the remaining gas assuming successful execution. Includes
+        dynamic costs such as memory expansion and storage access charges
+        (e.g. cold vs. warm SLOAD/SSTORE).
       type: integer
       minimum: 0
     depth:

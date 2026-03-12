@@ -78,9 +78,6 @@
         value:
           - txHash: '0xdd8cf045113754c306ba9ac8ac8786235e33bc5c087678084ef260a2a583f127'
             result:
-              gas: 26916
-              failed: false
-              returnValue: '0x'
               structLogs:
                 - pc: 0
                   op: PUSH1
@@ -103,6 +100,9 @@
                   gasCost: 12
                   depth: 1
                   stack: []
+              gas: 26916
+              failed: false
+              returnValue: '0x'
 
 - name: debug_traceTransaction
   summary: Replays a transaction and returns its trace.
@@ -157,9 +157,6 @@
       result:
         name: Transaction trace
         value:
-          gas: 26916
-          failed: false
-          returnValue: '0x'
           structLogs:
             - pc: 0
               op: PUSH1
@@ -182,6 +179,9 @@
               gasCost: 12
               depth: 1
               stack: []
+          gas: 26916
+          failed: false
+          returnValue: '0x'
     - name: debug_traceTransaction example (callTracer)
       params:
         - name: Transaction hash
