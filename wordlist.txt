@@ -68,6 +68,8 @@ schemas
 secp
 sha
 simulateV
+SLOAD
+SSTORE
 src
 ssz
 statev

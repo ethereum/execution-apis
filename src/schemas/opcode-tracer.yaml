@@ -1,0 +1,252 @@
+TraceConfig:
+  title: Trace configuration
+  description: >-
+    Configuration object accepted by debug_traceBlockByNumber and
+    debug_traceTransaction.
+
+    When the tracer field is absent or empty, the opcode (struct) logger is
+    used and the result conforms to OpcodeTransactionTrace. The fields
+    enableMemory, disableStack, disableStorage, enableReturnData, and limit
+    only apply to the opcode logger and are ignored when a named tracer is set.
+
+    When the tracer field is set to a named tracer (e.g. "callTracer",
+    "prestateTracer"), the result format is tracer-specific. Defining the
+    output schemas of named tracers is outside the scope of this specification.
+  type: object
+  properties:
+    tracer:
+      title: tracer name
+      description: >-
+        The name of a built-in or custom tracer to use. When absent or empty,
+        the opcode (struct) logger is used.
+
+        Example built-in tracer names in go-ethereum include:
+        4byteTracer, callTracer, prestateTracer, noopTracer, bigramTracer,
+        evmdisTracer, opcountTracer, trigramTracer, unigramTracer.
+
+        Clients may support different sets of named tracers.
+
+        Custom JavaScript tracers may also be supplied as an expression string.
+      type: string
+    tracerConfig:
+      title: tracer configuration
+      description: >-
+        An optional tracer-specific configuration object passed to the named
+        tracer. Only applicable when the tracer field is set.
+        The fields accepted here depend on the named tracer in use.
+      type: object
+    timeout:
+      title: execution timeout
+      description: >-
+        Duration string specifying a timeout for trace execution. Applies to
+        all tracers. Accepts Go duration strings (e.g. "5s", "300ms", "2m").
+        Default: "5s".
+      type: string
+    reexec:
+      title: reexec block count
+      description: >-
+        Number of blocks that may be reexecuted to find historical state
+        required for tracing. Applies to all tracers.
+        Default: 128.
+      type: integer
+      minimum: 0
+    disableStorage:
+      title: disable storage capture
+      description: >-
+        Opcode logger only. Setting to true disables storage capture in
+        structLogs. When true, the storage field is omitted from each StructLog
+        entry. Ignored when tracer is set.
+        Default: false.
+      type: boolean
+    disableStack:
+      title: disable stack capture
+      description: >-
+        Opcode logger only. Setting to true disables stack capture in
+        structLogs. When true, the stack field is omitted from each StructLog
+        entry. Ignored when tracer is set.
+        Default: false.
+      type: boolean
+    enableMemory:
+      title: enable memory capture
+      description: >-
+        Opcode logger only. Setting to true enables memory capture in
+        structLogs. When false (default), the memory field is omitted from each
+        StructLog entry. Ignored when tracer is set.
+        Default: false.
+      type: boolean
+    enableReturnData:
+      title: enable return data capture
+      description: >-
+        Opcode logger only. Setting to true enables return data capture in
+        structLogs. When false (default), the returnData field is omitted from
+        each StructLog entry. Ignored when tracer is set.
+        Default: false.
+      type: boolean
+    limit:
+      title: step limit
+      description: >-
+        Opcode logger only. Maximum number of opcode steps to capture. Zero
+        means no limit. When the limit is reached, execution continues but no
+        further StructLog entries are recorded. Ignored when tracer is set.
+        Default: 0 (unlimited).
+      type: integer
+      minimum: 0
+    debug:
+      title: debug print
+      description: >-
+        Opcode logger only. When true, the client may print the trace output
+        to its internal log during execution. Has no effect on the JSON-RPC
+        response. Ignored when tracer is set.
+        Default: false.
+      type: boolean
+StructLog:
+  title: Opcode execution log entry
+  description: >-
+    A single step in the EVM execution trace produced by the opcode (struct)
+    logger. One entry is emitted per opcode executed.
+  type: object
+  required:
+    - pc
+    - op
+    - gas
+    - gasCost
+    - depth
+  properties:
+    pc:
+      title: program counter
+      description: The program counter position of this opcode in the contract bytecode.
+      type: integer
+      minimum: 0
+    op:
+      title: opcode name
+      description: The name of the EVM opcode executed at this step (e.g. "PUSH1", "SSTORE").
+      type: string
+    gas:
+      title: remaining gas
+      description: The amount of gas remaining before executing this opcode.
+      type: integer
+      minimum: 0
+    gasCost:
+      title: gas cost
+      description: >-
+        The gas cost computed for this opcode step — the amount that will be
+        deducted from the remaining gas assuming successful execution. Includes
+        dynamic costs such as memory expansion and storage access charges
+        (e.g. cold vs. warm SLOAD/SSTORE).
+      type: integer
+      minimum: 0
+    depth:
+      title: call depth
+      description: The call stack depth at this execution step. Starts at 1 for the outermost call.
+      type: integer
+      minimum: 1
+    error:
+      title: execution error
+      description: >-
+        The error encountered during execution of this opcode, if any.
+        This field MUST be absent when no error occurred. Clients MUST NOT
+        include this field as null or as an empty string when there is no error.
+      type: string
+    refund:
+      title: gas refund counter
+      description: >-
+        The accumulated gas refund counter at this execution step.
+        Clients MUST include this field at every step when it is non-zero.
+        Clients SHOULD include this field at every step even when zero.
+      type: integer
+      minimum: 0
+    stack:
+      title: EVM stack
+      description: >-
+        The contents of the EVM stack at this step, ordered from bottom (index 0)
+        to top (last element). Each value is a 0x-prefixed uint256 quantity.
+        This field is absent when disableStack is true.
+      type: array
+      items:
+        $ref: '#/components/schemas/uint256'
+    memory:
+      title: EVM memory
+      description: >-
+        The contents of EVM memory at this step, divided into 32-byte chunks.
+        Each element is a 0x-prefixed, zero-padded 32-byte hex word representing
+        a consecutive 32-byte memory slot starting at offset (index * 32).
+        This field is absent (not null) when enableMemory is false.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes32'
+    returnData:
+      title: return data
+      description: >-
+        The return data from the most recent call at this step.
+        This field is absent when enableReturnData is false.
+      $ref: '#/components/schemas/bytes'
+    storage:
+      title: contract storage
+      description: >-
+        A cumulative snapshot of all storage slots accessed or modified by the
+        current contract up to and including this step. Keys are 0x-prefixed,
+        zero-padded 32-byte storage slot indices; values are the 32-byte stored
+        values reflecting the post-execution state of the opcode at this step
+        (i.e., for SSTORE, the value reflects the new value just written).
+
+        This field is only populated at SLOAD and SSTORE opcodes.
+        At all other opcodes, this field MUST be absent (not an empty object).
+        This field is absent when disableStorage is true.
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/bytes32'
+OpcodeTransactionTrace:
+  title: Opcode transaction trace
+  description: >-
+    The result of tracing a single transaction using the opcode (struct) logger.
+    This is the result type of debug_traceTransaction and each element's result
+    field in the debug_traceBlockByNumber response when no named tracer is used.
+  type: object
+  required:
+    - gas
+    - failed
+    - returnValue
+    - structLogs
+  properties:
+    gas:
+      title: gas used
+      description: Total amount of gas consumed by the transaction.
+      type: integer
+      minimum: 0
+    failed:
+      title: failed
+      description: Whether the transaction execution failed (reverted or ran out of gas).
+      type: boolean
+    returnValue:
+      title: return value
+      description: >-
+        The data returned by the transaction. 0x-prefixed hex-encoded bytes.
+        MUST be "0x" (not an empty string) when no data was returned.
+      $ref: '#/components/schemas/bytes'
+    structLogs:
+      title: opcode execution logs
+      description: >-
+        The ordered sequence of opcode execution steps. Will be empty for simple
+        ETH transfers between externally owned accounts that execute no EVM code.
+      type: array
+      items:
+        $ref: '#/components/schemas/StructLog'
+OpcodeBlockTransactionTrace:
+  title: Opcode block transaction trace entry
+  description: >-
+    A single transaction's opcode trace result within a debug_traceBlockByNumber
+    response when no named tracer is used. Pairs the transaction hash with its
+    opcode trace.
+  type: object
+  required:
+    - txHash
+    - result
+  properties:
+    txHash:
+      title: transaction hash
+      description: The hash of the transaction this trace entry corresponds to.
+      $ref: '#/components/schemas/hash32'
+    result:
+      title: opcode transaction trace
+      description: The opcode trace for this transaction.
+      $ref: '#/components/schemas/OpcodeTransactionTrace'
