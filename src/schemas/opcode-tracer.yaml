@@ -42,14 +42,6 @@ TraceConfig:
         all tracers. Accepts Go duration strings (e.g. "5s", "300ms", "2m").
         Default: "5s".
       type: string
-    reexec:
-      title: reexec block count
-      description: >-
-        Number of blocks that may be reexecuted to find historical state
-        required for tracing. Applies to all tracers.
-        Default: 128.
-      type: integer
-      minimum: 0
     disableStorage:
       title: disable storage capture
       description: >-
