@@ -232,4 +232,4 @@ For the following methods:
 
 a validation **MUST** be added:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload greater or equal to the Amsterdam activation timestamp.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload is greater than or equal to the Amsterdam activation timestamp.
