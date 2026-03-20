@@ -96,7 +96,7 @@ Refer to the response for [`engine_newPayloadV4`](./prague.md#engine_newpayloadv
 
 This method follows the same specification as [`engine_newPayloadV4`](./prague.md#engine_newpayloadv4) with the following changes:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Amsterdam activation.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Amsterdam fork.
 
 2. Client software **MUST** return `-32602: Invalid params` error if the `blockAccessList` field is missing.
 
@@ -128,7 +128,7 @@ This method is updated to return the new `ExecutionPayloadV4` structure.
 
 This method follows the same specification as [`engine_getPayloadV5`](./osaka.md#engine_getpayloadv5) with the following changes:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Amsterdam activation.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Amsterdam fork.
 
 2. When building the block, client software **MUST** collect all account accesses and state changes during transaction execution and populate the `blockAccessList` field in the returned `ExecutionPayloadV4` with the RLP-encoded access list.
 
