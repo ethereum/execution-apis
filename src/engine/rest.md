@@ -2,7 +2,7 @@
 
 This document specifies optional **HTTP REST** endpoints for a subset of the Engine API. They are exposed on the same authenticated Engine HTTP server and port as JSON-RPC (see [Common Definitions](./common.md)).
 
-JSON-RPC methods remain the canonical specification for request parameters and processing rules. REST endpoints **MUST** behave identically to their JSON-RPC counterparts except for the HTTP request shape and response encoding described here.
+The Engine API's primary interface is JSON-RPC. This document introduces an **optional** REST endpoint, `POST /new-payload-with-witness`, that performs the same payload validation and execution as [`engine_newPayloadV5`](./amsterdam.md#engine_newpayloadv5) but additionally returns an execution witness. The endpoint accepts the same JSON parameters as `engine_newPayloadV5` and returns the response as SSZ-encoded bytes. All validation rules, processing logic, and error semantics are inherited from `engine_newPayloadV5` unless explicitly stated otherwise below.
 
 ## Table of contents
 
@@ -103,7 +103,7 @@ The `witness` field contains the SSZ serialization of an [`ExecutionWitnessV1`](
 
 Serialization of `Container`, `Union`, `List`, and `ByteVector` types **MUST** follow the Ethereum consensus [Simple Serialize (SSZ) specification][ssz].
 
-[ssz]: https://github.com/ethereum/consensus-specs/blob/dev/ssz/simple-serialize.md
+[ssz]: https://github.com/ethereum/consensus-specs/blob/master/ssz/simple-serialize.md
 
 ## Endpoints
 
