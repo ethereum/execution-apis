@@ -73,6 +73,12 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
 - `blockAccessList`: `DATA|null` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928). Value is `null` for blocks produced before Amsterdam or if the data has been pruned.
 
+
+### BlobCellsAndProofsV1
+
+- `blob_cells`: `Array of DATA|null` - a sequence of byte arrays (`DATA`) representing the partial matrix of the requested blobs, with `null` entries for missing cells.
+- `proofs`: `Array of DATA|null` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`). Entries corresponding to `null` cells **MUST** also be `null`.
+
 ## Methods
 
 ### engine_newPayloadV5
@@ -210,6 +216,59 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
     3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
 
     4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
+
+
+### engine_blobCustodyUpdatedV1
+
+Called by the Consensus layer client to inform the Execution layer of the indices of their current blob column custody set at startup, as well as subsequent changes during live operation.
+
+#### Request
+
+* method: `engine_blobCustodyUpdatedV1`
+* params:
+  1. `indices_bitarray`: `DATA`, 16 Bytes - interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the custody set.
+* timeout: 150ms
+
+#### Response
+
+* result: `null`
+* error: code and message set in case an error occurs during processing of the request.
+
+#### Specification
+
+1. The Consensus client **MUST** call this method whenever its custody set changes. Additionally, it **MUST** call it on start, on restart, and when an Engine API interruption is detected.
+2. The Execution client **MUST** return an Ok response if the request is well-formed. All subsequent sampling requests **MUST** adopt the new custody set. Queued sampling requests **MAY** be patched to reflect the new custody set.
+3. For type 3 transactions pending in the blobpool:
+    1. If the custody set has expanded, the Execution client **MUST** issue new sampling requests for the delta. It **SHOULD** broadcast updated `NewPooledTransactionHashes` announcement with the new available set.
+    2. If the custody set has contracted, the Execution client **MAY** prune dropped cells from local storage, but only AFTER it has broadcast an updated `NewPooledTransactionHashes` announcement with the reduced available set. This is to avoid peers from perceiving an availability fault if they happen to request those previously announced cells.
+4. The Execution client **MUST** treat a request to update the custody set to the current value as a no-op operation returning an Ok.
+
+### engine_getBlobsV4
+
+Consensus layer clients **MAY** use this method to fetch blob cells from the execution layer blob pool, with support for partial responses. Unlike [`engine_getBlobsV3`](./osaka.md#engine_getblobsv3), this method returns individual cells and their KZG proofs rather than full blobs.
+
+#### Request
+
+* method: `engine_getBlobsV4`
+* params:
+  1. `versioned_blob_hashes`: `Array of DATA`, 32 Bytes - an array of blob versioned hashes.
+  2. `indices_bitarray`: `DATA`, 16 Bytes - a bitarray denoting the indices of the cells to retrieve.
+* timeout: 500ms
+
+#### Response
+
+* result: `Array of BlobCellsAndProofsV1` - Array of [`BlobCellsAndProofsV1`](#BlobCellsAndProofsV1), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
+* error: code and message set in case an error occurs during processing of the request.
+
+#### Specification
+
+1. Given an array of blob versioned hashes and a cell indices bitarray, client software **MUST** respond with an array of `BlobCellsAndProofsV1` objects with matching versioned hashes, respecting the order of versioned hashes in the input array. Each `BlobCellsAndProofsV1` object contains only the cells at the indices specified by the bitarray and their corresponding KZG proofs.
+2. Given an array of blob versioned hashes, if client software has every one of the requested blobs, it **MUST** return an array of `BlobCellsAndProofsV1` objects whose order exactly matches the input array. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has `A`, `B` and `C` available, the response **MUST** be `[A_cells_and_proofs, B_cells_and_proofs, C_cells_and_proofs]`.
+3. If one or more of the requested blobs are unavailable, the client **MUST** return an array of the same length and order, inserting `null` only at the positions of the missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[A_cells_and_proofs, null, C_cells_and_proofs]`. If all blobs are missing, the client software must return an array of matching length, filled with `null` at all positions.
+4. Within a `BlobCellsAndProofsV1` object, if specific cells are unavailable for an otherwise available blob, those cells **MUST** be set to `null` in the `blob_cells` array, and the corresponding entries in the `proofs` array **MUST** also be `null`.
+5. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
+6. Client software **MUST** return `null` if syncing or otherwise unable to generally serve blob pool data.
+7. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` at the corresponding position if a blob has been pruned.
 
 ### PayloadAttributesV4
 
