@@ -167,6 +167,56 @@ func TestValidateErrorCode(t *testing.T) {
 	}
 }
 
+func TestCheckRangeOverlap(t *testing.T) {
+	tests := []struct {
+		name     string
+		existing errorGroups
+		newGroup errorGroup
+		wantErr  string
+	}{
+		{
+			name: "no overlap",
+			existing: errorGroups{
+				{Name: "A", Range: groupRange{Min: intPtr(100), Max: intPtr(199)}},
+			},
+			newGroup: errorGroup{Name: "B", Range: groupRange{Min: intPtr(200), Max: intPtr(299)}},
+		},
+		{
+			name: "overlap",
+			existing: errorGroups{
+				{Name: "A", Range: groupRange{Min: intPtr(100), Max: intPtr(250)}},
+			},
+			newGroup: errorGroup{Name: "B", Range: groupRange{Min: intPtr(200), Max: intPtr(299)}},
+			wantErr:  "overlaps",
+		},
+		{
+			name: "group without range is skipped",
+			existing: errorGroups{
+				{Name: "StandardErrors"},
+			},
+			newGroup: errorGroup{Name: "B", Range: groupRange{Min: intPtr(100), Max: intPtr(199)}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.existing.checkRangeOverlap(tt.newGroup)
+			if tt.wantErr != "" {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				if !strings.Contains(err.Error(), tt.wantErr) {
+					t.Errorf("error should mention %q, got: %v", tt.wantErr, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 func TestParseErrorGroupRef(t *testing.T) {
 	tests := []struct {
 		name     string

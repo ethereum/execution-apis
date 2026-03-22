@@ -116,6 +116,9 @@ func (s *Generator) AddErrorGroups(content []byte) error {
 		if _, exists := s.errorGroups.find(entry.Name); exists {
 			return fmt.Errorf("duplicate error group %s", entry.Name)
 		}
+		if err := s.errorGroups.checkRangeOverlap(entry); err != nil {
+			return err
+		}
 		s.errorGroups = append(s.errorGroups, entry)
 	}
 	return nil

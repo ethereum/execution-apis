@@ -59,23 +59,23 @@ func (groups errorGroups) resolveMethodErrors(existingErrors []any, errorGroupRe
 	for i, ref := range errorGroupRefs {
 		obj, ok := ref.(object)
 		if !ok {
-			return nil, fmt.Errorf("error-groups[%d]: expected object with $ref, got %T", i, ref)
+			return nil, fmt.Errorf("failed to resolve error-groups[%d]: expected object with $ref, got %T", i, ref)
 		}
 		ref, isRef := obj["$ref"].(string)
 		if !isRef {
-			return nil, fmt.Errorf("error-groups[%d]: expected $ref string", i)
+			return nil, fmt.Errorf("failed to resolve error-groups[%d]: expected $ref string, got %v", i, obj)
 		}
 		name, err := parseErrorGroupRef(ref)
 		if err != nil {
-			return nil, fmt.Errorf("error-groups[%d]: %w", i, err)
+			return nil, fmt.Errorf("failed to resolve error-groups[%d]: %w", i, err)
 		}
 		group, ok := groups.find(name)
 		if !ok {
-			return nil, fmt.Errorf("error-groups[%d]: $ref %q: error group not found", i, ref)
+			return nil, fmt.Errorf("failed to resolve error-groups[%d]: $ref %q not found", i, ref)
 		}
 		for j, e := range group.Errors {
 			if err := group.validateErrorCode(e); err != nil {
-				return nil, fmt.Errorf("error-groups[%d] (group %s)[%d]: %w", i, name, j, err)
+				return nil, fmt.Errorf("failed to validate error-groups[%d]: group %s: error[%d]: %w", i, name, j, err)
 			}
 			if inlineCodes[e.Code] {
 				continue
@@ -98,6 +98,24 @@ func (g errorGroup) validateErrorCode(err Error) error {
 	return nil
 }
 
+// checkRangeOverlap returns an error if a group's range overlaps with any existing group's range
+func (groups errorGroups) checkRangeOverlap(newGroup errorGroup) error {
+	if newGroup.Range.Min == nil || newGroup.Range.Max == nil {
+		return nil
+	}
+	for _, existing := range groups {
+		if existing.Range.Min == nil || existing.Range.Max == nil {
+			continue
+		}
+		if *newGroup.Range.Min <= *existing.Range.Max && *existing.Range.Min <= *newGroup.Range.Max {
+			return fmt.Errorf("error group %q range [%d, %d] overlaps with group %q range [%d, %d]",
+				newGroup.Name, *newGroup.Range.Min, *newGroup.Range.Max,
+				existing.Name, *existing.Range.Min, *existing.Range.Max)
+		}
+	}
+	return nil
+}
+
 // toObject converts an Error to a generic object for the output spec
 func (e Error) toObject() object {
 	obj := object{
@@ -114,7 +132,7 @@ func (e Error) toObject() object {
 func parseErrorGroups(content []byte) (errorGroups, error) {
 	var body map[string]errorGroup
 	if err := yaml.Unmarshal(content, &body); err != nil {
-		return nil, fmt.Errorf("invalid error group content: %v", err)
+		return nil, fmt.Errorf("failed to parse error group content: %v", err)
 	}
 	var groups errorGroups
 	for name, group := range body {
@@ -128,7 +146,7 @@ func parseErrorGroups(content []byte) (errorGroups, error) {
 func parseErrorGroupRef(ref string) (string, error) {
 	name, valid := strings.CutPrefix(ref, errorGroupRefPrefix)
 	if !valid {
-		return "", fmt.Errorf("unsupported error group $ref format: %q", ref)
+		return "", fmt.Errorf("failed to parse $ref %q: expected prefix %q", ref, errorGroupRefPrefix)
 	}
 	if name == "" {
 		return "", fmt.Errorf("empty error group name in $ref: %q", ref)
