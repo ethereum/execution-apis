@@ -32,6 +32,7 @@ This enum defines a standard for specifying a client with just two letters. Clie
  - `BU`: besu
  - `EJ`: ethereumJS
  - `EG`: erigon
+ - `EX`: ethrex
  - `GE`: go-ethereum
  - `GR`: grandine
  - `LH`: lighthouse

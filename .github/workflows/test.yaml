@@ -30,10 +30,16 @@ jobs:
         # geth outputs non-deterministic responses for two tests-
         # specifically storageKeys arrays in the responses.
         # Filter them from the diff check until fixed.
-        run: >
-          git status --porcelain
-          ':!tests/eth_createAccessList/create-al-contract.io'
-          ':!tests/eth_createAccessList/create-al-contract-eip1559.io'
+        run: |
+          STATUS=$(git status --porcelain . \
+            ':!tests/eth_createAccessList/create-al-contract.io' \
+            ':!tests/eth_createAccessList/create-al-contract-eip1559.io')
+          if [ -n "$STATUS" ]; then
+            echo "Unexpected changes after test filling:"
+            echo "$STATUS"
+            git diff --stat
+            exit 1
+          fi
 
   lint-tools:
     runs-on: ubuntu-latest
