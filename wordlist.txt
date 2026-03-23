@@ -87,3 +87,5 @@ withdrawalv
 WS
 yaml
 yParity
+ZkExecutionErrors
+ZK

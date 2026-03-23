@@ -92,7 +92,7 @@ For the following methods:
 
 a validation **MUST** be added:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload greater or equal to the Prague activation timestamp.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload is greater than or equal to the Prague activation timestamp.
 
 For the [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) the following modification **MUST** be made:
 1. Return `-38005: Unsupported fork` if `payloadAttributes.timestamp` doesn't fall within the time frame of the Cancun *or Prague* forks.
