@@ -303,6 +303,63 @@ func validateReturnDataFieldBehavior(logs []interface{}, expectPresent bool) err
 	return nil
 }
 
+func countOpcodeOccurrences(logs []interface{}, opcode string) int {
+	count := 0
+	for _, logVal := range logs {
+		log, ok := logVal.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if op, ok := log["op"].(string); ok && op == opcode {
+			count++
+		}
+	}
+	return count
+}
+
+func validateStorageSnapshotProgression(logs []interface{}) error {
+	wantSlots := []string{
+		"0x0000000000000000000000000000000000000000000000000000000000000002",
+		"0x0000000000000000000000000000000000000000000000000000000000000003",
+		"0x0000000000000000000000000000000000000000000000000000000000000004",
+	}
+	sstoreSeen := 0
+	for i, logVal := range logs {
+		log, ok := logVal.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("structLogs[%d] must be an object, got %T", i, logVal)
+		}
+		op, _ := log["op"].(string)
+		if op != "SSTORE" {
+			continue
+		}
+		if sstoreSeen >= len(wantSlots) {
+			break
+		}
+		storage, ok := log["storage"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("structLogs[%d]: expected storage object at %s", i, op)
+		}
+		if len(storage) != sstoreSeen+1 {
+			return fmt.Errorf("structLogs[%d]: expected %d storage entries after %dth SSTORE, got %d", i, sstoreSeen+1, sstoreSeen+1, len(storage))
+		}
+		for j := 0; j <= sstoreSeen; j++ {
+			got, ok := storage[wantSlots[j]].(string)
+			if !ok {
+				return fmt.Errorf("structLogs[%d]: missing storage value for slot %s", i, wantSlots[j])
+			}
+			if got != wantSlots[j] {
+				return fmt.Errorf("structLogs[%d]: storage value mismatch for slot %s (got %s, want %s)", i, wantSlots[j], got, wantSlots[j])
+			}
+		}
+		sstoreSeen++
+	}
+	if sstoreSeen != len(wantSlots) {
+		return fmt.Errorf("expected at least %d SSTORE snapshots, got %d", len(wantSlots), sstoreSeen)
+	}
+	return nil
+}
+
 // DebugTraceTransaction tests the debug_traceTransaction method.
 var DebugTraceTransaction = MethodTests{
 	"debug_traceTransaction",
@@ -431,6 +488,35 @@ var DebugTraceBlockByNumber = MethodTests{
 					return fmt.Errorf("block %s: %w", blockNum, err)
 				}
 				return nil
+			},
+		},
+		{
+			Name:     "trace-block-storage-snapshot-timing",
+			About:    "traces block 0x2 and validates cumulative storage snapshots across repeated SSTORE operations",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				traceCfg := map[string]interface{}{
+					"disableStack":     false,
+					"disableStorage":   false,
+					"enableMemory":     false,
+					"enableReturnData": true,
+				}
+				var result []map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceBlockByNumber", "0x2", traceCfg); err != nil {
+					return err
+				}
+				for entryIdx, entry := range result {
+					traceResult, _ := entry["result"].(map[string]interface{})
+					logs, _ := traceResult["structLogs"].([]interface{})
+					if countOpcodeOccurrences(logs, "SSTORE") < 3 {
+						continue
+					}
+					if err := validateStorageSnapshotProgression(logs); err != nil {
+						return fmt.Errorf("entry[%d]: %w", entryIdx, err)
+					}
+					return nil
+				}
+				return fmt.Errorf("expected a traced transaction with repeated SSTORE operations in block 0x2")
 			},
 		},
 		{
