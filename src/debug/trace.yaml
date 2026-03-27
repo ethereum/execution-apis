@@ -19,8 +19,9 @@
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
-    If the execution timeout is reached before tracing completes, the client
-    MUST return an error; no partial results are returned.
+    If a timeout is configured and reached before tracing completes, the
+    client MUST return an error; no partial results are returned. Clients
+    that do not support execution timeouts MAY ignore the timeout field.
   params:
     - name: Block
       required: true
@@ -127,8 +128,9 @@
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
-    If the execution timeout is reached before tracing completes, the client
-    MUST return an error; no partial results are returned.
+    If a timeout is configured and reached before tracing completes, the
+    client MUST return an error; no partial results are returned. Clients
+    that do not support execution timeouts MAY ignore the timeout field.
 
     Clients MUST return an error if no block with the given hash is found.
   params:

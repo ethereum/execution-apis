@@ -38,10 +38,11 @@ TraceConfig:
     timeout:
       title: execution timeout
       description: >-
-        Duration string specifying a timeout for trace execution. Applies to
-        all tracers. Accepts Go duration strings (e.g. "5s", "300ms", "2m").
-        Default: "5s". When the timeout is reached, the client MUST return an
-        error; no partial results are returned.
+        Optional duration string specifying a timeout for trace execution.
+        Clients that do not support execution timeouts (e.g. streaming
+        implementations) MAY ignore this field. When supported and the timeout
+        is reached, the client MUST return an error; no partial results are
+        returned. Accepts Go duration strings (e.g. "5s", "300ms", "2m").
       type: string
     disableStorage:
       title: disable storage capture
