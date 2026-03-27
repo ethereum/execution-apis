@@ -19,6 +19,8 @@
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
+    If the execution timeout is reached before tracing completes, the client
+    MUST return an error; no partial results are returned.
   params:
     - name: Block
       required: true
@@ -67,6 +69,116 @@
       params:
         - name: Block
           value: '0x3'
+        - name: TraceConfig
+          value:
+            disableStack: false
+            disableStorage: false
+            enableMemory: false
+            enableReturnData: false
+      result:
+        name: Block trace
+        value:
+          - txHash: '0xdd8cf045113754c306ba9ac8ac8786235e33bc5c087678084ef260a2a583f127'
+            result:
+              structLogs:
+                - pc: 0
+                  op: PUSH1
+                  gas: 68612
+                  gasCost: 3
+                  depth: 1
+                  stack:
+                    - '0x60'
+                - pc: 2
+                  op: PUSH1
+                  gas: 68609
+                  gasCost: 3
+                  depth: 1
+                  stack:
+                    - '0x60'
+                    - '0x40'
+                - pc: 4
+                  op: MSTORE
+                  gas: 68606
+                  gasCost: 12
+                  depth: 1
+                  stack: []
+              gas: 26916
+              failed: false
+              returnValue: '0x'
+
+- name: debug_traceBlockByHash
+  summary: Replays a block and returns traces for all transactions.
+  description: >-
+    Replays the block identified by the given hash and returns a trace for
+    every transaction in the block. The parent block must be present in the
+    client's database. The genesis block (block 0) cannot be traced because
+    it has no parent state to replay from; clients MUST return an error for
+    this input.
+
+    When no tracer is specified (or the tracer field is absent), the opcode
+    (struct) logger is used and each entry conforms to
+    OpcodeBlockTransactionTrace, whose result field conforms to
+    OpcodeTransactionTrace.
+
+    When a named tracer is specified via the tracer field in TraceConfig (e.g.
+    "callTracer", "prestateTracer"), the result field of each entry contains
+    tracer-specific output. Defining the output schemas of named tracers is
+    outside the scope of this specification.
+
+    The response is an array ordered by transaction index within the block.
+    Each entry includes the transaction hash paired with its trace result.
+    If the execution timeout is reached before tracing completes, the client
+    MUST return an error; no partial results are returned.
+
+    Clients MUST return an error if no block with the given hash is found.
+  params:
+    - name: Block hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: TraceConfig
+      required: false
+      schema:
+        $ref: '#/components/schemas/TraceConfig'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
+  result:
+    name: Block trace
+    schema:
+      title: Array of per-transaction traces
+      description: >-
+        An array of trace entries ordered by transaction index within the block.
+        When no named tracer is set, each entry conforms to
+        OpcodeBlockTransactionTrace. When a named tracer is set, the result
+        field of each entry contains tracer-specific output not defined by this
+        specification, but the txHash field is always present.
+      type: array
+      items:
+        anyOf:
+          - title: Opcode tracer entry
+            description: Returned when no named tracer is specified.
+            $ref: '#/components/schemas/OpcodeBlockTransactionTrace'
+          - title: Named tracer entry
+            description: >-
+              Returned when a named tracer is specified. The result field
+              contains tracer-specific output not defined by this specification.
+            type: object
+            required:
+              - txHash
+              - result
+            properties:
+              txHash:
+                $ref: '#/components/schemas/hash32'
+              result:
+                description: >-
+                  Named tracer output. The schema is unspecified and may be
+                  any valid JSON value.
+  examples:
+    - name: debug_traceBlockByHash example (opcode tracer)
+      params:
+        - name: Block hash
+          value: '0x79ba0368c2c6563a7d263695b583dcc6d1c25d4988daa0105804d38bdd987f2f'
         - name: TraceConfig
           value:
             disableStack: false

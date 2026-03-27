@@ -40,7 +40,8 @@ TraceConfig:
       description: >-
         Duration string specifying a timeout for trace execution. Applies to
         all tracers. Accepts Go duration strings (e.g. "5s", "300ms", "2m").
-        Default: "5s".
+        Default: "5s". When the timeout is reached, the client MUST return an
+        error; no partial results are returned.
       type: string
     disableStorage:
       title: disable storage capture
@@ -227,8 +228,8 @@ OpcodeBlockTransactionTrace:
   title: Opcode block transaction trace entry
   description: >-
     A single transaction's opcode trace result within a debug_traceBlockByNumber
-    response when no named tracer is used. Pairs the transaction hash with its
-    opcode trace.
+    or debug_traceBlockByHash response when no named tracer is used. Pairs the
+    transaction hash with its opcode trace.
   type: object
   required:
     - txHash

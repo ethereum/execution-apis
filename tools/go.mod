@@ -15,7 +15,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/ethereum/go-ethereum => github.com/MysticRyuujin/go-ethereum v1.16.3-0.20260326153402-c787778ed44a
+replace github.com/ethereum/go-ethereum => github.com/MysticRyuujin/go-ethereum v1.16.3-0.20260327182110-957e1ed413ed
 
 require (
 	github.com/DataDog/zstd v1.5.2 // indirect

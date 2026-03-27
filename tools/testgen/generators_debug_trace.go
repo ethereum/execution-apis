@@ -598,3 +598,50 @@ var DebugTraceBlockByNumber = MethodTests{
 		},
 	},
 }
+
+// DebugTraceBlockByHash tests the debug_traceBlockByHash method.
+var DebugTraceBlockByHash = MethodTests{
+	"debug_traceBlockByHash",
+	[]Test{
+		{
+			Name:     "trace-block-with-transactions",
+			About:    "traces a block containing transactions by hash; validates that each entry has txHash and a spec-compliant result",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
+				var result []map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceBlockByHash", block.Hash()); err != nil {
+					return err
+				}
+				if err := validateOpcodeBlockTraceResult(block, result); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "trace-genesis",
+			About: "requests a trace of the genesis block by hash; must return an error since there is no parent state to replay from",
+			Run: func(ctx context.Context, t *T) error {
+				genesisHash := t.chain.GetBlock(0).Hash()
+				err := t.rpc.CallContext(ctx, nil, "debug_traceBlockByHash", genesisHash)
+				if err == nil {
+					return fmt.Errorf("expected error tracing genesis block (no parent state available), got success")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "trace-block-not-found",
+			About: "requests a trace for a non-existent block hash; the client must return an error",
+			Run: func(ctx context.Context, t *T) error {
+				err := t.rpc.CallContext(ctx, nil, "debug_traceBlockByHash",
+					"0x0000000000000000000000000000000000000000000000000000000000000001")
+				if err == nil {
+					return fmt.Errorf("expected error for unknown block hash, got success")
+				}
+				return nil
+			},
+		},
+	},
+}
