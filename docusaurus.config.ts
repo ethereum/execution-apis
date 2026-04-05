@@ -38,6 +38,13 @@ const config: Config = {
       path: 'docs-api',
       routeBasePath: '/',
       sidebarPath: './docs-api/sidebars.ts',
+      lastVersion: 'current',
+      versions: {
+        current: {
+          label: 'Next',
+          badge: false,
+        },
+      },
     }],
     ['@docusaurus/plugin-client-redirects', {
       redirects: [{ from: '/api', to: '/' }],
@@ -74,6 +81,7 @@ const config: Config = {
       title: 'Execution APIs',
       items: [
         { type: 'docSidebar', sidebarId: 'docsSidebar', docsPluginId: 'api', label: 'Docs', position: 'left' },
+        { type: 'docsVersionDropdown', docsPluginId: 'api', position: 'right' },
         { href: 'https://github.com/ethereum/execution-apis', label: 'GitHub', position: 'right' },
       ],
     },

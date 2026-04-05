@@ -17,7 +17,8 @@
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "watch": "nodemon --watch src --watch docs-api/docs --watch README.md --ignore docs-api/docs/quickstart.md --ext yaml,md,json --exec \"npm run build:spec && npm run docs:copy\"",
-    "docs:copy": "cp README.md ./docs-api/docs/quickstart.md"
+    "docs:copy": "cp README.md ./docs-api/docs/quickstart.md",
+    "docs:version": "docusaurus docs:version:api"
   },
   "repository": {
     "type": "git",
