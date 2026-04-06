@@ -5,6 +5,7 @@ SPECFLAGS := -schemas 'src/schemas' \
 	-methods 'src/eth' \
 	-methods 'src/debug' \
 	-methods 'src/engine/openrpc/methods' \
+	-methods 'src/testing' \
 	-error-groups 'src/error-groups'
 
 
