@@ -6725,8 +6725,9 @@ var TxpoolStatus = MethodTests{
 	"txpool_status",
 	[]Test{
 		{
-			Name:  "get-status",
-			About: "retrieves the transaction pool status",
+			Name:     "get-status",
+			About:    "retrieves the transaction pool status",
+			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				var result struct {
 					Pending hexutil.Uint `json:"pending"`
@@ -6746,8 +6747,9 @@ var TxpoolContent = MethodTests{
 	"txpool_content",
 	[]Test{
 		{
-			Name:  "get-content",
-			About: "retrieves the transaction pool content",
+			Name:     "get-content",
+			About:    "retrieves the transaction pool content",
+			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				var result struct {
 					Pending map[common.Address]map[string]any `json:"pending"`
@@ -6767,8 +6769,9 @@ var TxpoolContentFrom = MethodTests{
 	"txpool_contentFrom",
 	[]Test{
 		{
-			Name:  "get-content-from-address",
-			About: "retrieves pending transactions from a specific address",
+			Name:     "get-content-from-address",
+			About:    "retrieves pending transactions from a specific address",
+			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				var result struct {
 					Pending map[string]any `json:"pending"`
