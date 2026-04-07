@@ -96,7 +96,6 @@ var AllMethods = []MethodTests{
 	TxpoolStatus,
 	TxpoolContent,
 	TxpoolContentFrom,
-	TxpoolInspect,
 
 	// -- gas price tests are disabled because of non-determinism
 	// EthGasPrice,
@@ -6786,23 +6785,3 @@ var TxpoolContentFrom = MethodTests{
 	},
 }
 
-// TxpoolInspect stores a list of all tests against the method.
-var TxpoolInspect = MethodTests{
-	"txpool_inspect",
-	[]Test{
-		{
-			Name:  "get-inspect",
-			About: "retrieves a textual summary of the transaction pool",
-			Run: func(ctx context.Context, t *T) error {
-				var result struct {
-					Pending map[common.Address]map[string]string `json:"pending"`
-					Queued  map[common.Address]map[string]string `json:"queued"`
-				}
-				if err := t.rpc.CallContext(ctx, &result, "txpool_inspect"); err != nil {
-					return err
-				}
-				return nil
-			},
-		},
-	},
-}

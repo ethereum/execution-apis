@@ -102,31 +102,3 @@
               value: '0x19a99f0cf456000'
           queued: {}
 
-- name: txpool_inspect
-  summary: Returns a textual summary of all transactions in the pool.
-  description: |
-    Returns an object containing a textual summary of all pending and queued
-    transactions in the pool, grouped by origin address and sorted by nonce.
-    This is useful for quick inspection without full transaction details.
-
-    Note: The response structure (nested maps of address to nonce to string) is
-    standardized, but the string content format is informational and may vary
-    between implementations. This method is intended for human-readable debugging
-    output rather than programmatic parsing.
-  params: []
-  result:
-    name: Transaction pool inspection
-    schema:
-      $ref: '#/components/schemas/TxpoolInspect'
-  examples:
-    - name: txpool_inspect example
-      params: []
-      result:
-        name: Transaction pool inspection
-        value:
-          pending:
-            '0x0216d5032f356960cd3749c31ab34eeff21b3395':
-              '806': '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8: 115000000000000000 wei + 21000 gas × 50000000000 wei'
-          queued:
-            '0x0216d5032f356960cd3749c31ab34eeff21b3395':
-              '808': '0x7f69a91a3cf4be60020fb58b893b7cbb65376db8: 115000000000000000 wei + 21000 gas × 50000000000 wei'
