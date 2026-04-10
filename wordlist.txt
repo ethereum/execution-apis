@@ -4,6 +4,7 @@ arg
 attributesv
 besu
 blobandproofv
+blobcellsandproofsv
 blobsbundlev
 blockaccesslist
 blockAccessList
