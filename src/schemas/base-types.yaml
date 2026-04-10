@@ -26,7 +26,7 @@ bytes8:
 bytes16:
   title: 16 hex encoded bytes
   type: string
-  pattern: ^0x[0-9a-fA-F]{32}$
+  pattern: ^0x[0-9a-f]{32}$
 bytes32:
   title: 32 hex encoded bytes
   type: string
