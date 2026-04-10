@@ -253,7 +253,7 @@ Consensus layer clients **MAY** use this method to fetch blob cells from the exe
 * params:
   1. `versioned_blob_hashes`: `Array of DATA`, 32 Bytes - an array of blob versioned hashes.
   2. `indices_bitarray`: `DATA`, 16 Bytes - a bitarray denoting the indices of the cells to retrieve.
-* timeout: 500ms
+* timeout: 1s
 
 #### Response
 
@@ -263,7 +263,7 @@ Consensus layer clients **MAY** use this method to fetch blob cells from the exe
 #### Specification
 
 1. Given an array of blob versioned hashes and a cell indices bitarray, client software **MUST** respond with an array of `BlobCellsAndProofsV1` objects with matching versioned hashes, respecting the order of versioned hashes in the input array. Each `BlobCellsAndProofsV1` object contains only the cells at the indices specified by the bitarray and their corresponding KZG proofs.
-2. Given an array of blob versioned hashes, if client software has every one of the requested blobs, it **MUST** return an array of `BlobCellsAndProofsV1` objects whose order exactly matches the input array. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has `A`, `B` and `C` available, the response **MUST** be `[A_cells_and_proofs, B_cells_and_proofs, C_cells_and_proofs]`.
+2. Given an array of blob versioned hashes and a cell indices bitarray, if client software has every one of the requested blobs, it **MUST** return an array of `BlobCellsAndProofsV1` objects whose order exactly matches the input array. The same `indices_bitarray` is applied to extract cells from each blob. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` with a specific `indices_bitarray`, and client software has `A`, `B` and `C` available, the response **MUST** be `[A_cells_and_proofs, B_cells_and_proofs, C_cells_and_proofs]`, where each object contains the cells at the indices specified by the bitarray.
 3. If one or more of the requested blobs are unavailable, the client **MUST** return an array of the same length and order, inserting `null` only at the positions of the missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[A_cells_and_proofs, null, C_cells_and_proofs]`. If all blobs are missing, the client software must return an array of matching length, filled with `null` at all positions.
 4. Within a `BlobCellsAndProofsV1` object, if specific cells are unavailable for an otherwise available blob, those cells **MUST** be set to `null` in the `blob_cells` array, and the corresponding entries in the `proofs` array **MUST** also be `null`.
 5. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
