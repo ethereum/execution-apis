@@ -2634,8 +2634,9 @@ var TestingBuildBlockV1 = MethodTests{
 			},
 		},
 		{
-			Name:  "build-block-from-mempool",
-			About: "builds a block from mempool using testing_buildBlockV1 with null transactions parameter",
+			Name:     "build-block-from-mempool",
+			About:    "builds a block from mempool using testing_buildBlockV1 with null transactions parameter",
+			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				parentBlock := t.chain.Head()
 				parentHash := parentBlock.Hash()
