@@ -255,7 +255,7 @@ Consensus layer clients **MAY** use this method to fetch blob cells from the exe
 
 #### Response
 
-* result: `Array of BlobCellsAndProofsV1` - Array of [`BlobCellsAndProofsV1`](#BlobCellsAndProofsV1), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
+* result: `Array of BlobCellsAndProofsV1` - Array of [`BlobCellsAndProofsV1`](#blobcellsandproofsv1), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
 * error: code and message set in case an error occurs during processing of the request.
 
 #### Specification

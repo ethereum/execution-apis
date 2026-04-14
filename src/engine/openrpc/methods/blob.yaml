@@ -389,7 +389,9 @@
               - type: 'null'
         - type: 'null'
   description: |
-  errors: []
+  errors:
+    - code: -38004
+      message: Too large request
   examples:
     - name: engine_getBlobsV4 example
       params:
