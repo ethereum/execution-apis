@@ -63,21 +63,15 @@ This type is an SSZ `Container` encoding the execution witness produced during b
 | Index | Field name | SSZ type |
 | ----- | ---------- | -------- |
 | 0 | `state` | `List[List[uint8, MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]` |
-| 1 | `keys` | `List[List[uint8, MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]` |
-| 2 | `codes` | `List[List[uint8, MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]` |
-| 3 | `headers` | `List[List[uint8, MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]` |
+| 1 | `codes` | `List[List[uint8, MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]` |
+| 2 | `headers` | `List[List[uint8, MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]` |
 
 Constants:
 
 * `MAX_WITNESS_ITEMS`: `1048576` — maximum number of items per witness field.
 * `MAX_WITNESS_ITEM_BYTES`: `1048576` — maximum byte length of a single witness item.
 
-Field semantics:
-
-* `state` — serialized Merkle Patricia Trie nodes (account trie and storage tries) touched during execution.
-* `keys` — preimage keys (hashed keys → original keys) used to look up trie nodes.
-* `codes` — contract bytecodes accessed during execution.
-* `headers` — RLP-encoded block headers needed by the `BLOCKHASH` opcode.
+For detailed field semantics and specific encoding requirements, refer to the [Execution Witness specification](https://github.com/ethereum/execution-specs/blob/e2ff4cc00ca94cb5872090e0f813894e231f6be3/src/ethereum/forks/amsterdam/stateless.py#L27-L47).
 
 An empty list (`[]`) for any field indicates no data of that category was accessed during execution.
 
@@ -120,7 +114,9 @@ This endpoint **MUST** implement the same payload validation and execution logic
   1. `executionPayload`: [`ExecutionPayloadV4`](./amsterdam.md#executionpayloadv4)
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes each
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes
-  4. `executionRequests`: `Array of DATA` — as defined for [`engine_newPayloadV5`](./amsterdam.md#engine_newpayloadv5)
+  4. `executionRequests`: `Array of DATA`
+
+  These parameters are as defined for [`engine_newPayloadV5`](./amsterdam.md#engine_newpayloadv5).
 * timeout: 8s
 
 #### Successful response
@@ -156,11 +152,6 @@ This endpoint follows the same specification as [`engine_newPayloadV5`](./amster
 
 3. When the payload status is not `VALID` (e.g. `INVALID`, `SYNCING`, `ACCEPTED`), the `witness` field **MUST** be empty (`[]`).
 
-4. The execution witness **MUST** contain sufficient data for a stateless verifier to re-execute the block and arrive at the same post-state root. Specifically:
-   - `state` **MUST** contain every Merkle Patricia Trie node (from both the account trie and any storage tries) that was read or written during execution.
-   - `keys` **MUST** contain the preimage mappings for every hashed key used to traverse the tries.
-   - `codes` **MUST** contain every contract bytecode that was loaded during execution.
-   - `headers` **MUST** contain the RLP-encoded headers of any ancestor blocks accessed via the `BLOCKHASH` opcode.
 
 ## Capabilities
 
