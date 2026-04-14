@@ -361,23 +361,6 @@
             - '0xa31a83633febff3721892795974d2a4770707b4b28ddd1145489b5b1bd478f5b05ea5020b0f7c17adf6226eeb1bf3870'
           - null
 
-- name: engine_blobCustodyUpdatedV1
-  summary: Inform the Execution layer of the indices of the current blob column custody set
-  externalDocs:
-    description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_blobcustodyupdatedv1
-  params:
-    - name: Custody set indices bitarray
-      required: true
-      schema:
-        $ref: '#/components/schemas/bytes16'
-  result:
-    name: Success indicator
-    schema:
-      type: 'null'
-  description: |
-  errors: []
-  examples: []
 
 - name: engine_getBlobsV4
   summary: Retrieve blob cells from the Execution layer blobpool

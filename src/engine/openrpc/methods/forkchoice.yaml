@@ -167,6 +167,12 @@
       required: false
       schema:
         $ref: '#/components/schemas/PayloadAttributesV4'
+    - name: Custody columns
+      required: false
+      schema:
+        oneOf:
+          - $ref: '#/components/schemas/bytes16'
+          - type: 'null'
   result:
     name: Response object
     schema:

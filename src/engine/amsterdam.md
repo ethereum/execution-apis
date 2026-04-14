@@ -34,7 +34,6 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
     - [Request](#request-4)
     - [Response](#response-4)
     - [Specification](#specification-4)
-  - [engine_blobCustodyUpdatedV1](#engine_blobcustodyupdatedv1)
     - [Request](#request-5)
     - [Response](#response-5)
     - [Specification](#specification-5)
@@ -204,6 +203,7 @@ This method follows the same specification as [`engine_getPayloadBodiesByRangeV1
 * params:
   1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
   2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
+  3. `custodyColumns`: `DATA|null`, 16 Bytes - Interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the CL's custody set, or `null` if the CL does not provide custody services.
 * timeout: 8s
 
 #### Response
@@ -226,31 +226,20 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
 
     4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
 
+3. If `custodyColumns` is provided (non-null), the following rules apply:
 
-### engine_blobCustodyUpdatedV1
+    1. `custodyColumns` **MUST** be a 16-byte `DATA` value. If it is not, the client software **MUST** return `-32602: Invalid params`.
 
-Called by the Consensus layer client to inform the Execution layer of the indices of their current blob column custody set at startup, as well as subsequent changes during live operation.
+    2. The Execution client **MUST** adopt the provided custody set when acting as a sampler for type 3 transactions.
 
-#### Request
+    3. For type 3 transactions pending in the blobpool:
 
-* method: `engine_blobCustodyUpdatedV1`
-* params:
-  1. `indices_bitarray`: `DATA`, 16 Bytes - interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the custody set.
-* timeout: 150ms
+        1. If the custody set has expanded, the Execution client **SHOULD** issue new sampling requests for the delta. It **MAY** broadcast an updated `NewPooledTransactionHashes` announcement with the newly available set.
 
-#### Response
+        2. If the custody set has contracted, the Execution client **MAY** prune dropped cells from local storage, but **ONLY AFTER** it has broadcast an updated `NewPooledTransactionHashes` announcement with the reduced available set to avoid peers perceiving an availability fault.
 
-* result: `null`
-* error: code and message set in case an error occurs during processing of the request.
+    4. The Execution client **MUST** treat a request to update the custody set to the current value as a no-op and return Ok.
 
-#### Specification
-
-1. The Consensus client **MUST** call this method whenever its custody set changes. Additionally, it **MUST** call it on start, on restart, and when an Engine API interruption is detected.
-2. The Execution client **MUST** return an Ok response if the request is well-formed. All subsequent sampling requests **MUST** adopt the new custody set. Queued sampling requests **MAY** be patched to reflect the new custody set.
-3. For type 3 transactions pending in the blobpool:
-    1. If the custody set has expanded, the Execution client **MUST** issue new sampling requests for the delta. It **SHOULD** broadcast updated `NewPooledTransactionHashes` announcement with the new available set.
-    2. If the custody set has contracted, the Execution client **MAY** prune dropped cells from local storage, but only AFTER it has broadcast an updated `NewPooledTransactionHashes` announcement with the reduced available set. This is to avoid peers from perceiving an availability fault if they happen to request those previously announced cells.
-4. The Execution client **MUST** treat a request to update the custody set to the current value as a no-op operation returning an Ok.
 
 ### engine_getBlobsV4
 
