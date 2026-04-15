@@ -58,7 +58,7 @@ Mapping from JSON-RPC field values to SSZ:
 
 ### SSZ ExecutionWitnessV1
 
-This type is an SSZ `Container` encoding the execution witness produced during block processing. It contains the raw Merkle trie nodes, preimage keys, contract bytecodes, and block headers required to statelessly verify the block's execution.
+This type is an SSZ `Container` encoding the execution witness produced during block processing. It contains the raw Merkle trie nodes, contract bytecodes, and block headers required to statelessly verify the block's execution.
 
 | Index | Field name | SSZ type |
 | ----- | ---------- | -------- |
