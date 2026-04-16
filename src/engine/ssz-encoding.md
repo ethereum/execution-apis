@@ -327,11 +327,11 @@ Introduced in [Paris](./paris.md#payloadstatusv1). The `status` field is encoded
 ```python
 class PayloadStatusV1(Container):
     status: uint8
-    latest_valid_hash: Bytes32
+    latest_valid_hash: List[Bytes32, 1]
     validation_error: ByteList[MAX_ERROR_MESSAGE_LENGTH]
 ```
 
-*Note:* `latest_valid_hash` is all zeros when absent (e.g. when `status` is `SYNCING` or `ACCEPTED`). `validation_error` is empty when absent.
+*Note:* `latest_valid_hash` follows the nullable encoding (`List[T, 1]`): 0 elements denote absence (e.g. when `status` is `SYNCING` or `ACCEPTED`), 1 element carries the hash. `validation_error` is a `ByteList`; an empty list denotes absence of an error message.
 
 | `status` value | Meaning |
 | - | - |
@@ -409,10 +409,10 @@ Used by all versions of `engine_forkchoiceUpdated`.
 ```python
 class ForkchoiceUpdatedResponseV1(Container):
     payload_status: PayloadStatusV1
-    payload_id: Bytes8
+    payload_id: List[Bytes8, 1]
 ```
 
-*Note:* `payload_id` is all zeros when no payload building was initiated.
+*Note:* `payload_id` follows the nullable encoding (`List[T, 1]`): 0 elements when no payload building was initiated, 1 element carrying the identifier when it was.
 
 ### ExecutionPayloadBodyV1
 
@@ -434,10 +434,10 @@ Introduced in [Amsterdam](./amsterdam.md#executionpayloadbodyv2). Extends `Execu
 class ExecutionPayloadBodyV2(Container):
     transactions: List[ByteList[MAX_BYTES_PER_TRANSACTION], MAX_TRANSACTIONS_PER_PAYLOAD]
     withdrawals: List[WithdrawalV1, MAX_WITHDRAWALS_PER_PAYLOAD]
-    block_access_list: ByteList[MAX_BYTES_PER_TRANSACTION]
+    block_access_list: List[ByteList[MAX_BYTES_PER_TRANSACTION], 1]
 ```
 
-*Note:* `withdrawals` is empty for pre-Shanghai blocks. `block_access_list` is empty for pre-Amsterdam blocks.
+*Note:* `withdrawals` is empty for pre-Shanghai blocks. `block_access_list` is nullable in JSON (`null` when unavailable) and follows the nullable encoding (`List[T, 1]`): 0 elements denote absence (e.g. pre-Amsterdam blocks), 1 element carries the RLP-encoded list.
 
 ### BlobsBundleV1
 
@@ -697,7 +697,7 @@ class NewPayloadV5Request(Container):
 
 Retrieve an execution payload previously requested via forkchoice update with payload attributes. The `{payload_id}` path parameter is the hex-encoded `Bytes8` payload identifier (e.g., `0x1234567890abcdef`).
 
-This is a safe, idempotent GET operation. The EL may continue optimizing the payload until the slot deadline.
+The EL may continue optimizing the payload until the slot deadline, so successive GETs against the same `{payload_id}` may return different bytes. The EL **MUST** include `Cache-Control: no-store` on the response, and intermediaries **MUST NOT** cache or revalidate this resource. Clients **MUST NOT** treat the response as cacheable.
 
 | Version | Fork | Response Type | JSON-RPC Equivalent |
 | - | - | - | - |
@@ -991,14 +991,14 @@ The request body is the SSZ serialization of `NewPayloadV5Request` containing:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/octet-stream
-Content-Length: 37
+Content-Length: 41
 
-<37 bytes: SSZ(PayloadStatusV1)>
+<41 bytes: SSZ(PayloadStatusV1)>
 ```
 
 The response body is the SSZ serialization of `PayloadStatusV1` containing:
 - `status`: `0` (VALID)
-- `latest_valid_hash`: `0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858`
+- `latest_valid_hash`: list with one element, `0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858`
 - `validation_error`: empty
 
 **Response (error):**
@@ -1036,6 +1036,10 @@ If the EL does not advertise SSZ REST endpoints in its `engine_exchangeCapabilit
 ## Security considerations
 
 - SSZ deserialization **MUST** enforce the same size limits as JSON deserialization. Implementations **MUST** reject SSZ payloads exceeding defined maximum sizes before attempting full deserialization.
+- The constant maxima above (e.g. `MAX_BYTES_PER_TRANSACTION = 2**30`, `MAX_TRANSACTIONS_PER_PAYLOAD = 2**20`) bound on-chain validity, not per-request resource use. A naive decoder facing crafted lengths or offsets can be coerced into large allocations or scans before semantic rejection. Implementations **MUST**:
+  - Reject requests by `Content-Length` against an endpoint-specific maximum **before** reading the body when the header is present, and cap the bytes read from the body in all cases.
+  - Validate SSZ length prefixes and offsets against remaining buffer size **before** allocating backing storage for variable-length fields.
+  - Enforce per-endpoint body size limits operationally (reverse proxy, server config) in addition to library-level checks; the protocol-level constants are an upper bound, not a target.
 - Implementations **SHOULD** use well-tested SSZ libraries and fuzz test SSZ parsing extensively.
 - The binary transport uses the same JWT authentication as the JSON-RPC endpoint. All existing authentication requirements apply.
 - The `{payload_id}` path parameter **MUST** be validated as a well-formed hex-encoded `Bytes8` before processing.
