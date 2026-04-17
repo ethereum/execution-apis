@@ -84,16 +84,15 @@ This type is an SSZ `Container` combining the payload validation result and the 
 | 0 | `status` | `uint8` |
 | 1 | `latest_valid_hash` | `Union[None, ByteVector[32]]` |
 | 2 | `validation_error` | `Union[None, List[uint8, VALIDATION_ERROR_MAX]]` |
-| 3 | `witness` | `List[uint8, MAX_WITNESS_BYTES]` |
+| 3 | `witness` | `Union[None, ExecutionWitnessV1]` |
 
 Constants:
 
 * `VALIDATION_ERROR_MAX`: as defined in [SSZ PayloadStatusV1](#ssz-payloadstatusv1).
-* `MAX_WITNESS_BYTES`: `1073741824` (1 GiB) — maximum byte length of the SSZ-encoded `ExecutionWitnessV1`.
 
 Fields `status`, `latest_valid_hash`, and `validation_error` carry the same semantics as [SSZ PayloadStatusV1](#ssz-payloadstatusv1).
 
-The `witness` field contains the SSZ serialization of an [`ExecutionWitnessV1`](#ssz-executionwitnessv1). When the `status` is not `VALID` or no witness was produced, the `witness` field **MUST** be an empty list (`[]`).
+The `witness` field is a `Union` type: the `None` variant **MUST** be used when the `status` is not `VALID` or no witness was produced; the `ExecutionWitnessV1` variant **MUST** be used when the `status` is `VALID` and a witness was generated.
 
 Serialization of `Container`, `Union`, `List`, and `ByteVector` types **MUST** follow the Ethereum consensus [Simple Serialize (SSZ) specification][ssz].
 
