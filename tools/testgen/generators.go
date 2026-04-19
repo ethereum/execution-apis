@@ -56,6 +56,11 @@ type Test struct {
 	// checked for spec validity only.
 	SpecOnly bool
 
+	// ExpectErrorCode, if non-zero, rewrites the captured error.code in the
+	// .io fixture so it asserts the spec-mandated code rather than whatever
+	// the reference client returned.
+	ExpectErrorCode int
+
 	Run func(context.Context, *T) error
 }
 
@@ -1758,6 +1763,119 @@ var EthSendRawTransaction = MethodTests{
 			},
 		},
 		{
+			// Sender idx=13 has a non-zero state nonce from chain.rlp history,
+			// so Nonce: 0 is guaranteed below state regardless of mempool state.
+			Name:            "send-nonce-too-low",
+			About:           "sends a transaction with a nonce below the sender's state nonce",
+			ExpectErrorCode: 1,
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(13)
+				head := t.chain.Head()
+				txdata := &types.LegacyTx{
+					Nonce:    0,
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(10),
+					Gas:      25000,
+					GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				err := t.eth.SendTransaction(ctx, tx)
+				if err == nil {
+					return fmt.Errorf("expected error for nonce-too-low transaction")
+				}
+				return nil
+			},
+		},
+		{
+			Name:            "send-intrinsic-gas-too-low",
+			About:           "sends a transaction with gas below the intrinsic minimum",
+			ExpectErrorCode: 800,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				head := t.chain.Head()
+				txdata := &types.LegacyTx{
+					Nonce:    nonce,
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(10),
+					Gas:      1,
+					GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				err := t.eth.SendTransaction(ctx, tx)
+				if err == nil {
+					return fmt.Errorf("expected error for intrinsic-gas-too-low transaction")
+				}
+				return nil
+			},
+		},
+		{
+			Name:            "send-tx-gas-exceeds-block-limit",
+			About:           "sends a transaction with gasLimit exceeding the block gasLimit",
+			ExpectErrorCode: 803,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				head := t.chain.Head()
+				txdata := &types.LegacyTx{
+					Nonce:    nonce,
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(10),
+					Gas:      head.GasLimit() + 1,
+					GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				err := t.eth.SendTransaction(ctx, tx)
+				if err == nil {
+					return fmt.Errorf("expected error for tx-gas-exceeds-block-limit transaction")
+				}
+				return nil
+			},
+		},
+		{
+			Name:            "send-insufficient-funds",
+			About:           "sends a transaction with value exceeding sender balance",
+			ExpectErrorCode: 809,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				head := t.chain.Head()
+				balance := t.chain.Balance(sender)
+				txdata := &types.LegacyTx{
+					Nonce:    nonce,
+					To:       &common.Address{0xaa},
+					Value:    new(big.Int).Add(balance, big.NewInt(1)),
+					Gas:      25000,
+					GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				err := t.eth.SendTransaction(ctx, tx)
+				if err == nil {
+					return fmt.Errorf("expected error for insufficient-funds transaction")
+				}
+				return nil
+			},
+		},
+		{
+			Name:            "send-tip-above-fee-cap",
+			About:           "sends a transaction with maxPriorityFeePerGas greater than maxFeePerGas",
+			ExpectErrorCode: 804,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				txdata := &types.DynamicFeeTx{
+					Nonce:     nonce,
+					To:        &common.Address{0xaa},
+					Value:     big.NewInt(10),
+					Gas:       25000,
+					GasTipCap: big.NewInt(1000),
+					GasFeeCap: big.NewInt(1),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				err := t.eth.SendTransaction(ctx, tx)
+				if err == nil {
+					return fmt.Errorf("expected error for tip-above-fee-cap transaction")
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "send-blob-tx",
 			About: "sends a blob transaction",
 			Run: func(ctx context.Context, t *T) error {
@@ -1798,6 +1916,174 @@ var EthSendRawTransaction = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:            "send-already-known",
+			About:           "re-sends a transaction that is already in the pool",
+			ExpectErrorCode: 1000,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				head := t.chain.Head()
+				txdata := &types.LegacyTx{
+					Nonce:    nonce,
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(10),
+					Gas:      25000,
+					GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
+					Data:     common.FromHex("1111"),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				// Send first time (should succeed).
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
+				// Send second time (should return already-known error).
+				err := t.eth.SendTransaction(ctx, tx)
+				if err == nil {
+					return fmt.Errorf("expected error for already-known transaction")
+				}
+				t.chain.IncNonce(sender, 1)
+				return nil
+			},
+		},
+		{
+			Name:            "send-replacement-underpriced",
+			About:           "replaces a pending transaction without the required price bump",
+			ExpectErrorCode: 1002,
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				head := t.chain.Head()
+				gasPrice := new(big.Int).Add(head.BaseFee(), big.NewInt(1))
+				first := t.chain.MustSignTx(sender, &types.LegacyTx{
+					Nonce:    nonce,
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(10),
+					Gas:      25000,
+					GasPrice: gasPrice,
+					Data:     common.FromHex("2222"),
+				})
+				if err := t.eth.SendTransaction(ctx, first); err != nil {
+					return err
+				}
+				// Same nonce, no price bump → replacement underpriced.
+				replacement := t.chain.MustSignTx(sender, &types.LegacyTx{
+					Nonce:    nonce,
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(20),
+					Gas:      25000,
+					GasPrice: gasPrice,
+					Data:     common.FromHex("3333"),
+				})
+				err := t.eth.SendTransaction(ctx, replacement)
+				if err == nil {
+					return fmt.Errorf("expected error for replacement-underpriced transaction")
+				}
+				t.chain.IncNonce(sender, 1)
+				return nil
+			},
+		},
+		// Tier 2: needs client-launch flags hive doesn't yet expose.
+		// Each TODO(hive) block names the env var to add; uncomment as the
+		// corresponding ethereum/hive PR lands.
+		//
+		// {
+		// 	// TODO(hive): requires HIVE_MIN_GAS_PRICE > 0.
+		// 	// Flag mappings: geth --miner.gasprice, besu --min-gas-price,
+		// 	// nethermind --Blocks.MinGasPrice.
+		// 	Name:            "send-gas-price-below-min",
+		// 	About:           "sends a legacy transaction with gasPrice below the node's configured minimum",
+		// 	ExpectErrorCode: 802,
+		// 	Run: func(ctx context.Context, t *T) error {
+		// 		sender, nonce := t.chain.GetSender(0)
+		// 		txdata := &types.LegacyTx{
+		// 			Nonce:    nonce,
+		// 			To:       &common.Address{0xaa},
+		// 			Value:    big.NewInt(10),
+		// 			Gas:      25000,
+		// 			GasPrice: big.NewInt(0),
+		// 		}
+		// 		tx := t.chain.MustSignTx(sender, txdata)
+		// 		err := t.eth.SendTransaction(ctx, tx)
+		// 		if err == nil {
+		// 			return fmt.Errorf("expected error for gas-price-below-min transaction")
+		// 		}
+		// 		return nil
+		// 	},
+		// },
+		// {
+		// 	// TODO(hive): requires HIVE_RPC_TX_FEECAP to be set to a bounded
+		// 	// value (e.g. 1 ETH). Flag mappings: geth --rpc.txfeecap,
+		// 	// besu --rpc-tx-feecap. Nethermind has no equivalent — this test
+		// 	// may stay skipped there even after hive wiring.
+		// 	Name:            "send-tx-fee-cap-exceeded",
+		// 	About:           "sends a transaction whose total fee exceeds the node's configured RPC tx fee cap",
+		// 	ExpectErrorCode: 0, // TODO: add dedicated code in gas-errors.yaml
+		// 	Run: func(ctx context.Context, t *T) error {
+		// 		sender, nonce := t.chain.GetSender(0)
+		// 		txdata := &types.LegacyTx{
+		// 			Nonce:    nonce,
+		// 			To:       &common.Address{0xaa},
+		// 			Value:    big.NewInt(10),
+		// 			Gas:      1_000_000,
+		// 			GasPrice: big.NewInt(200_000_000_000_000), // 0.2 Gwei * 1M gas ≈ 200 GWei total; adjust with cap
+		// 		}
+		// 		tx := t.chain.MustSignTx(sender, txdata)
+		// 		err := t.eth.SendTransaction(ctx, tx)
+		// 		if err == nil {
+		// 			return fmt.Errorf("expected error for tx-fee-cap-exceeded transaction")
+		// 		}
+		// 		return nil
+		// 	},
+		// },
+		// {
+		// 	// TODO(hive): requires HIVE_MAX_TX_SIZE. Default limits differ
+		// 	// significantly across clients (geth 128KB, others vary).
+		// 	Name:            "send-oversized-data",
+		// 	About:           "sends a transaction whose payload exceeds the node's max tx size",
+		// 	ExpectErrorCode: 0, // TODO: add dedicated code (new group or extend txpool-errors.yaml)
+		// 	Run: func(ctx context.Context, t *T) error {
+		// 		sender, nonce := t.chain.GetSender(0)
+		// 		head := t.chain.Head()
+		// 		txdata := &types.LegacyTx{
+		// 			Nonce:    nonce,
+		// 			To:       &common.Address{0xaa},
+		// 			Value:    big.NewInt(0),
+		// 			Gas:      head.GasLimit(),
+		// 			GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
+		// 			Data:     make([]byte, 1<<20), // 1 MiB
+		// 		}
+		// 		tx := t.chain.MustSignTx(sender, txdata)
+		// 		err := t.eth.SendTransaction(ctx, tx)
+		// 		if err == nil {
+		// 			return fmt.Errorf("expected error for oversized-data transaction")
+		// 		}
+		// 		return nil
+		// 	},
+		// },
+		// {
+		// 	// TODO(hive): requires a controlled base fee at chain head that is
+		// 	// above the test's GasFeeCap. Current chain has a low base fee;
+		// 	// test-chain regeneration with a higher base fee would be needed.
+		// 	Name:            "send-max-fee-below-base-fee",
+		// 	About:           "sends a dynamic-fee transaction whose maxFeePerGas is below the current block base fee",
+		// 	ExpectErrorCode: 806,
+		// 	Run: func(ctx context.Context, t *T) error {
+		// 		sender, nonce := t.chain.GetSender(0)
+		// 		txdata := &types.DynamicFeeTx{
+		// 			Nonce:     nonce,
+		// 			To:        &common.Address{0xaa},
+		// 			Value:     big.NewInt(10),
+		// 			Gas:       25000,
+		// 			GasTipCap: big.NewInt(1),
+		// 			GasFeeCap: big.NewInt(1), // lower than current base fee
+		// 		}
+		// 		tx := t.chain.MustSignTx(sender, txdata)
+		// 		err := t.eth.SendTransaction(ctx, tx)
+		// 		if err == nil {
+		// 			return fmt.Errorf("expected error for max-fee-below-base-fee transaction")
+		// 		}
+		// 		return nil
+		// 	},
+		// },
 	},
 }
 
