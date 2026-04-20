@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/cespare/cp v1.1.1
-	github.com/ethereum/go-ethereum v1.17.2-0.20260311114742-3c20e08cbae9
+	github.com/ethereum/go-ethereum v1.17.3-0.20260413114535-ecae519972c0
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/meta-schema v0.0.0-20210416041958-626a15d0a618
@@ -75,7 +75,7 @@ require (
 	github.com/influxdata/influxdb1-client v0.0.0-20220302092344-a9ab5670611c // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
-	github.com/karalabe/hid v1.0.1-0.20240306101548-573246063e52 // indirect
+	github.com/karalabe/hid v1.0.1-0.20260315100226-f5d04adeffeb // indirect
 	github.com/kilic/bls12-381 v0.1.0 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
