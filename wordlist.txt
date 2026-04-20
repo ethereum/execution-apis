@@ -74,6 +74,7 @@ ssz
 statev
 statusv
 teku
+txpool
 txs
 txt
 uint
