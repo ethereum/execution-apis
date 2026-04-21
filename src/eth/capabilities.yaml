@@ -16,40 +16,38 @@
         name: Capabilities
         value:
           head:
-            blockNumber: '0x13f8e3a'
-            blockHash: '0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3'
+            number: '0x13f8e3a'
+            hash: '0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3'
           state:
             disabled: false
-            oldestBlock: '0x12ab34'
+            oldestBlock: '0x13e022a'
             deleteStrategy:
               type: window
               retentionBlocks: 90000
           tx:
             disabled: false
-            oldestBlock: '0xf00aa'
+            oldestBlock: '0x11b340a'
             deleteStrategy:
               type: window
               retentionBlocks: 2350000
           logs:
             disabled: false
-            oldestBlock: '0xf00aa'
+            oldestBlock: '0x11b340a'
             deleteStrategy:
               type: window
               retentionBlocks: 2350000
           receipts:
             disabled: false
-            oldestBlock: '0xf00aa'
+            oldestBlock: '0x11b340a'
             deleteStrategy:
               type: window
               retentionBlocks: 2350000
           blocks:
             disabled: false
             oldestBlock: '0x0'
-            deleteStrategy:
-              type: none
           stateproofs:
             disabled: false
-            oldestBlock: '0x120000'
+            oldestBlock: '0x13e022a'
             deleteStrategy:
               type: window
               retentionBlocks: 90000

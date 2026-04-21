@@ -41,8 +41,6 @@ EthCapabilitiesEffectiveResource:
   additionalProperties: false
   required:
     - disabled
-    - oldestBlock
-    - deleteStrategy
   properties:
     disabled:
       type: boolean
@@ -56,29 +54,19 @@ EthCapabilitiesHead:
   type: object
   additionalProperties: false
   required:
-    - blockNumber
-    - blockHash
+    - number
+    - hash
   properties:
-    blockNumber:
+    number:
       title: Head block number
       $ref: '#/components/schemas/uint'
-    blockHash:
+    hash:
       title: Head block hash
       $ref: '#/components/schemas/hash32'
 
 EthCapabilitiesDeleteStrategy:
   title: Delete strategy
   oneOf:
-    - title: No deletion
-      type: object
-      additionalProperties: false
-      required:
-        - type
-      properties:
-        type:
-          type: string
-          enum:
-            - none
     - title: Sliding window deletion
       type: object
       additionalProperties: false
