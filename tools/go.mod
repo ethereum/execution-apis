@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/cespare/cp v1.1.1
-	github.com/ethereum/go-ethereum v1.17.2-0.20260311114742-3c20e08cbae9
+	github.com/ethereum/go-ethereum v1.17.3-0.20260413114535-ecae519972c0
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/meta-schema v0.0.0-20210416041958-626a15d0a618
@@ -14,8 +14,6 @@ require (
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-replace github.com/ethereum/go-ethereum => github.com/MysticRyuujin/go-ethereum v1.16.3-0.20260327182110-957e1ed413ed
 
 require (
 	github.com/DataDog/zstd v1.5.2 // indirect
