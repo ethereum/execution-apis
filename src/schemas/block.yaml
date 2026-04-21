@@ -127,6 +127,22 @@ BlockNumberOrTag:
       $ref: '#/components/schemas/uint'
     - title: Block tag
       $ref: '#/components/schemas/BlockTag'
+BlockTagForRange:
+  title: Block tag
+  type: string
+  enum:
+    - earliest
+    - finalized
+    - safe
+    - latest
+  description: '`earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `latest`: The most recent block in the canonical chain observed by the client, this block may be re-orged out of the canonical chain even under healthy/normal conditions. Before the merge transition is finalized, any call querying for `finalized` or `safe` block MUST be responded to with `-39001: Unknown block` error'
+BlockNumberOrTagForRange:
+  title: Block number or tag
+  oneOf:
+    - title: Block number
+      $ref: '#/components/schemas/uint'
+    - title: Block tag
+      $ref: '#/components/schemas/BlockTagForRange'
 BlockNumberOrTagOrHash:
   title: Block number, tag, or block hash
   anyOf:
