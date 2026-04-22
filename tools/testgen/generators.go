@@ -80,6 +80,7 @@ var AllMethods = []MethodTests{
 	EthGetTransactionByBlockNumberAndIndex,
 	EthGetTransactionCount,
 	EthGetTransactionByHash,
+	EthGetTransactionBySenderAndNonce,
 	EthGetTransactionReceipt,
 	EthGetBlockReceipts,
 	EthSendRawTransaction,
@@ -1388,6 +1389,97 @@ var EthGetTransactionByHash = MethodTests{
 				_, _, err := t.eth.TransactionByHash(ctx, common.HexToHash("deadbeef"))
 				if !errors.Is(err, ethereum.NotFound) {
 					return errors.New("expected not found error")
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetTransactionBySenderAndNonce stores a list of all tests against the method.
+var EthGetTransactionBySenderAndNonce = MethodTests{
+	"eth_getTransactionBySenderAndNonce",
+	[]Test{
+		{
+			Name:  "get-legacy-tx",
+			About: "gets a legacy transaction by sender and nonce",
+			Run: func(ctx context.Context, t *T) error {
+				want := t.chain.FindTransaction("legacy tx", matchLegacyValueTransfer)
+				signer := types.LatestSigner(t.chain.Config())
+				sender, err := types.Sender(signer, want)
+				if err != nil {
+					return err
+				}
+				var got types.Transaction
+				if err := t.rpc.CallContext(ctx, &got, "eth_getTransactionBySenderAndNonce", sender, hexutil.Uint64(want.Nonce())); err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-dynamic-fee-tx",
+			About: "gets a dynamic fee transaction by sender and nonce",
+			Run: func(ctx context.Context, t *T) error {
+				want := t.chain.FindTransaction("dynamic fee tx", func(i int, tx *types.Transaction) bool {
+					return tx.Type() == types.DynamicFeeTxType
+				})
+				signer := types.LatestSigner(t.chain.Config())
+				sender, err := types.Sender(signer, want)
+				if err != nil {
+					return err
+				}
+				var got types.Transaction
+				if err := t.rpc.CallContext(ctx, &got, "eth_getTransactionBySenderAndNonce", sender, hexutil.Uint64(want.Nonce())); err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-tx-in-pool",
+			About: "gets a pending transaction from the txpool by sender and nonce",
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(2)
+				head := t.chain.Head()
+				txdata := &types.LegacyTx{
+					Nonce:    nonce,
+					To:       &common.Address{0xaa},
+					Value:    big.NewInt(10),
+					Gas:      25000,
+					GasPrice: new(big.Int).Add(head.BaseFee(), big.NewInt(1)),
+				}
+				tx := t.chain.MustSignTx(sender, txdata)
+				if err := t.eth.SendTransaction(ctx, tx); err != nil {
+					return err
+				}
+				t.chain.IncNonce(sender, 1)
+				var got types.Transaction
+				if err := t.rpc.CallContext(ctx, &got, "eth_getTransactionBySenderAndNonce", sender, hexutil.Uint64(nonce)); err != nil {
+					return err
+				}
+				if got.Hash() != tx.Hash() {
+					return fmt.Errorf("tx mismatch (got: %s, want: %s)", got.Hash(), tx.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-notfound",
+			About: "returns null for a sender address with no transactions",
+			Run: func(ctx context.Context, t *T) error {
+				var got *types.Transaction
+				if err := t.rpc.CallContext(ctx, &got, "eth_getTransactionBySenderAndNonce", nonAccount, hexutil.Uint64(0)); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", got.Hash())
 				}
 				return nil
 			},
