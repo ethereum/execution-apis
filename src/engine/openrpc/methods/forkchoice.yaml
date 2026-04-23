@@ -21,6 +21,8 @@
       message: Invalid forkchoice state
     - code: -38003
       message: Invalid payload attributes
+    - code: -38006
+      message: Too deep reorg
   examples:
     - name: engine_forkchoiceUpdatedV1 example
       params:
@@ -65,6 +67,8 @@
       message: Invalid forkchoice state
     - code: -38003
       message: Invalid payload attributes
+    - code: -38006
+      message: Too deep reorg
   examples:
     - name: engine_forkchoiceUpdatedV2 example
       params:
@@ -122,6 +126,8 @@
       message: Invalid params
     - code: -38005
       message: Unsupported fork
+    - code: -38006
+      message: Too deep reorg
   examples:
     - name: engine_forkchoiceUpdatedV3 example
       params:
@@ -180,3 +186,5 @@
       message: Invalid params
     - code: -38005
       message: Unsupported fork
+    - code: -38006
+      message: Too deep reorg
