@@ -134,7 +134,7 @@ Refer to the response for [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_f
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4) with the following changes to the processing flow:
 
-1. Extend point (7) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
+1. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
 
     1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure, return `-38003: Invalid payload attributes` on failure.
 
