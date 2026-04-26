@@ -42,7 +42,7 @@ jobs:
 
       - name: Create versioned doc snapshots
         run: |
-          VERSIONS=$(python3 -c "import json; vs=json.load(open('api_versions.json')); print('\n'.join(vs))")
+          VERSIONS=$(node -e "console.log(require('./api_versions.json').join('\n'))")
           if [ -n "$VERSIONS" ]; then
             for VERSION in $VERSIONS; do
               git checkout "refs/tags/$VERSION" -- docs-api/
