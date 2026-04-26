@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-go@v6
         with:
@@ -37,6 +39,17 @@ jobs:
 
       - name: Install JS dependencies
         run: npm ci
+
+      - name: Create versioned doc snapshots
+        run: |
+          VERSIONS=$(node -e "console.log(require('./api_versions.json').join('\n'))")
+          if [ -n "$VERSIONS" ]; then
+            for VERSION in $VERSIONS; do
+              git checkout "refs/tags/$VERSION" -- docs-api/
+              npm run docs:version -- "$VERSION"
+            done
+            git checkout HEAD -- docs-api/
+          fi
 
       - name: Build docs
         run: npm run build:docs
