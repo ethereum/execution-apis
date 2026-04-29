@@ -41,7 +41,7 @@ BlobCellsAndProofsV1:
       items:
         oneOf:
           - $ref: "#/components/schemas/bytes"
-          - type: "null"
+          - type: 'null'
     proofs:
       title: Cell Proofs
       type: array
