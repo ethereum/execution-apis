@@ -48,4 +48,4 @@ BlobCellsAndProofsV1:
       items:
         oneOf:
           - $ref: "#/components/schemas/bytes48"
-          - type: "null"
+          - type: 'null'
