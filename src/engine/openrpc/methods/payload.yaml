@@ -80,6 +80,8 @@
   errors:
     - code: -32602
       message: Invalid params
+    - code: -38005
+      message: Unsupported fork
   examples:
     - name: engine_newPayloadV2 example
       params:
@@ -342,6 +344,8 @@
   errors:
     - code: -38001
       message: Unknown payload
+    - code: -38005
+      message: Unsupported fork
   examples:
     - name: engine_getPayloadV2 example
       params:
