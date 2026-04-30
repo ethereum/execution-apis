@@ -236,7 +236,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
 
         1. If the custody set has expanded, the Execution client **SHOULD** issue new sampling requests for the delta. It **MAY** broadcast an updated `NewPooledTransactionHashes` announcement with the newly available set.
 
-        2. If the custody set has contracted, the Execution client **MAY** prune dropped cells from local storage, but **ONLY AFTER** it has broadcast an updated `NewPooledTransactionHashes` announcement with the reduced available set to avoid peers perceiving an availability fault.
+        2. If the custody set has contracted, the Execution client **MAY** prune dropped cells from local storage. To prevent peers from perceiving an availability fault, this pruning **SHOULD** occur only after a delay of 2 slots following the broadcast of an updated `NewPooledTransactionHashes` announcement that reflects the reduced set.
 
     4. The Execution client **MUST** run custody set update independently to the fork choice update, i.e. execution time errors occurred during custody set update **MUST NOT** affect the main processing flow of this method.
 
