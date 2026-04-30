@@ -10,6 +10,7 @@ blockaccesslist
 blockAccessList
 BlockAccessList
 bodiesbyhashv
+buildBlockV
 bodiesbyrangev
 bodyv
 bytecode
@@ -74,6 +75,7 @@ ssz
 statev
 statusv
 teku
+txpool
 txs
 txt
 uint
@@ -87,3 +89,5 @@ withdrawalv
 WS
 yaml
 yParity
+ZkExecutionErrors
+ZK

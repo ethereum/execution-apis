@@ -4,7 +4,10 @@ SPECFLAGS := -schemas 'src/schemas' \
 	-schemas 'src/engine/openrpc/schemas' \
 	-methods 'src/eth' \
 	-methods 'src/debug' \
-	-methods 'src/engine/openrpc/methods'
+	-methods 'src/txpool' \
+	-methods 'src/engine/openrpc/methods' \
+	-methods 'src/testing' \
+	-error-groups 'src/error-groups'
 
 
 build: tools

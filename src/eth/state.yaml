@@ -56,6 +56,53 @@
       result:
         name: Value
         value: '0x0000000000000000000000000000000000000000000000000000000000000000'
+- name: eth_getStorageValues
+  summary: Returns the values of multiple storage slots for multiple accounts in a single request.
+  params:
+    - name: Requests
+      required: true
+      schema:
+        title: Storage requests
+        type: object
+        additionalProperties:
+          title: Storage keys
+          type: array
+          items:
+            $ref: '#/components/schemas/bytesMax32'
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+  result:
+    name: Values
+    schema:
+      title: Storage values
+      type: object
+      additionalProperties:
+        title: Slot values
+        type: array
+        items:
+          $ref: '#/components/schemas/bytes'
+  examples:
+    - name: eth_getStorageValues example
+      params:
+        - name: Requests
+          value:
+            '0xdAC17F958D2ee523a2206206994597C13D831ec7':
+              - '0x0000000000000000000000000000000000000000000000000000000000000002'
+              - '0x0000000000000000000000000000000000000000000000000000000000000006'
+            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
+              - '0x0000000000000000000000000000000000000000000000000000000000000003'
+        - name: Block
+          value: 'latest'
+      result:
+        name: Values
+        value:
+          '0xdAC17F958D2ee523a2206206994597C13D831ec7':
+            - '0x00000000000000000000000000000000000000000000000000000000000f4240'
+            - '0x0000000000000000000000000000000000000000000000000000000000000012'
+          '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
+            - '0x0000000000000000000000000000000000000000000000000000000000000001'
 - name: eth_getTransactionCount
   summary: "Returns the nonce of an account in the state. NOTE: The name eth_getTransactionCount reflects the historical fact that an account's nonce and sent transaction count were the same. After the Pectra fork, with the inclusion of EIP-7702, this is no longer true."
   params:

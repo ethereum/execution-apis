@@ -12,6 +12,7 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
 - [Structures](#structures)
   - [ExecutionPayloadV4](#executionpayloadv4)
   - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
+  - [PayloadAttributesV4](#payloadattributesv4)
   - [BlobCellsAndProofsV1](#blobcellsandproofsv1)
 - [Methods](#methods)
   - [engine_newPayloadV5](#engine_newpayloadv5)
@@ -81,6 +82,17 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
 - `blockAccessList`: `DATA|null` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928). Value is `null` for blocks produced before Amsterdam or if the data has been pruned.
 
+### PayloadAttributesV4
+
+This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends a single field: `slotNumber`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+- `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
+
 
 ### BlobCellsAndProofsV1
 
@@ -110,7 +122,7 @@ Refer to the response for [`engine_newPayloadV4`](./prague.md#engine_newpayloadv
 
 This method follows the same specification as [`engine_newPayloadV4`](./prague.md#engine_newpayloadv4) with the following changes:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Amsterdam activation.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Amsterdam fork.
 
 2. Client software **MUST** return `-32602: Invalid params` error if the `blockAccessList` field is missing.
 
@@ -142,7 +154,7 @@ This method is updated to return the new `ExecutionPayloadV4` structure.
 
 This method follows the same specification as [`engine_getPayloadV5`](./osaka.md#engine_getpayloadv5) with the following changes:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Amsterdam activation.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Amsterdam fork.
 
 2. When building the block, client software **MUST** collect all account accesses and state changes during transaction execution and populate the `blockAccessList` field in the returned `ExecutionPayloadV4` with the RLP-encoded access list.
 
@@ -214,9 +226,7 @@ Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_fork
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following changes to the processing flow:
 
-1. Client software **MUST** verify that `forkchoiceState` matches the [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1) structure and return `-32602: Invalid params` on failure.
-
-2. Extend point (7) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
+1. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
 
     1. `payloadAttributes` matches the [`PayloadAttributesV4`](#payloadattributesv4) structure, return `-38003: Invalid payload attributes` on failure.
 
@@ -291,4 +301,4 @@ For the following methods:
 
 a validation **MUST** be added:
 
-1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload greater or equal to the Amsterdam activation timestamp.
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload is greater than or equal to the Amsterdam activation timestamp.

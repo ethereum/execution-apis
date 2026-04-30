@@ -12,7 +12,6 @@ Version: `0.0.0`
 
 A specification of the standard interface for Ethereum clients.
 
-
 ## Methods
 
 - [`debug_getBadBlocks`](./methods/debug_getBadBlocks.mdx)
@@ -25,8 +24,10 @@ A specification of the standard interface for Ethereum clients.
 - [`engine_forkchoiceUpdatedV1`](./methods/engine_forkchoiceUpdatedV1.mdx)
 - [`engine_forkchoiceUpdatedV2`](./methods/engine_forkchoiceUpdatedV2.mdx)
 - [`engine_forkchoiceUpdatedV3`](./methods/engine_forkchoiceUpdatedV3.mdx)
+- [`engine_forkchoiceUpdatedV4`](./methods/engine_forkchoiceUpdatedV4.mdx)
 - [`engine_getBlobsV1`](./methods/engine_getBlobsV1.mdx)
 - [`engine_getBlobsV2`](./methods/engine_getBlobsV2.mdx)
+- [`engine_getBlobsV3`](./methods/engine_getBlobsV3.mdx)
 - [`engine_getPayloadBodiesByHashV1`](./methods/engine_getPayloadBodiesByHashV1.mdx)
 - [`engine_getPayloadBodiesByRangeV1`](./methods/engine_getPayloadBodiesByRangeV1.mdx)
 - [`engine_getPayloadV1`](./methods/engine_getPayloadV1.mdx)
@@ -80,6 +81,8 @@ A specification of the standard interface for Ethereum clients.
 - [`eth_simulateV1`](./methods/eth_simulateV1.mdx)
 - [`eth_syncing`](./methods/eth_syncing.mdx)
 - [`eth_uninstallFilter`](./methods/eth_uninstallFilter.mdx)
+- [`net_version`](./methods/net_version.mdx)
+- [`testing_buildBlockV1`](./methods/testing_buildBlockV1.mdx)
 
 ---
 

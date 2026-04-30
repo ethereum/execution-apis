@@ -13,6 +13,7 @@ import (
 
 var methodFilesFlag = []string{}
 var schemaFilesFlag = []string{}
+var errorGroupFilesFlag = []string{}
 var outputFile = ""
 var dereferencing bool
 
@@ -23,6 +24,10 @@ func init() {
 	})
 	flag.Func("schemas", "path to schema files (glob syntax, repeatable)", func(s string) error {
 		schemaFilesFlag = append(schemaFilesFlag, s)
+		return nil
+	})
+	flag.Func("error-groups", "path to error group files (glob syntax, repeatable)", func(s string) error {
+		errorGroupFilesFlag = append(errorGroupFilesFlag, s)
 		return nil
 	})
 	flag.StringVar(&outputFile, "output", "", "output file")
@@ -70,6 +75,21 @@ func main() {
 		log.Fatalf("must provide at least one schema file")
 	}
 
+	var errorGroupFiles []string
+	for _, file := range errorGroupFilesFlag {
+		info, err := os.Stat(file)
+		if err != nil {
+			log.Fatal("can't access error group file:", err)
+		}
+		if info.IsDir() {
+			if err := filepath.WalkDir(file, addFilesWithExt(&errorGroupFiles, "yaml")); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			errorGroupFiles = append(errorGroupFiles, file)
+		}
+	}
+
 	sg := specgen.New()
 
 	// Read all the files
@@ -93,6 +113,24 @@ func main() {
 			log.Fatalf("error in %s: %v", file, err)
 		}
 		log.Println("added schemas from", file)
+	}
+
+	for _, file := range errorGroupFiles {
+		content, err := os.ReadFile(file)
+		if err != nil {
+			log.Fatal("can't read error group file:", err)
+		}
+		if err := sg.AddErrorGroups(content); err != nil {
+			log.Fatalf("error in %s: %v", file, err)
+		}
+		log.Println("added error groups from", file)
+	}
+
+	// Resolve error groups into flat errors per method.
+	if len(errorGroupFiles) > 0 {
+		if err := sg.ResolveErrorGroups(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Dereference the spec if requested.

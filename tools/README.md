@@ -101,8 +101,35 @@ if needed.
 
 ## specgen
 
-Compiles the YAML method and schema files into a single OpenRPC document. Used
+Compiles the YAML method and schema and error group files into a single OpenRPC document. Used
 internally by `make build`; typically not run directly by contributors.
+
+### Error groups
+
+Error groups (`src/error-groups/`) define reusable sets of errors that methods
+can reference. Each group has a name, an optional code range for validation, and a list of errors:
+
+```yaml
+GasErrors:
+  category: "GAS_ERRORS"
+  range:
+    min: 800
+    max: 999
+  errors:
+    - code: 800
+      message: "Gas too low"
+```
+
+Methods reference groups via `error-groups`:
+
+```yaml
+- name: eth_sendTransaction
+  error-groups:
+    - $ref: '#/components/error-groups/GasErrors'
+    - $ref: '#/components/error-groups/ExecutionErrors'
+```
+
+During `make build`, specgen resolves these references into a flat `errors` array per method. If a method also defines an inline error with the same code, the inline definition takes precedence.
 
 ## speccheck (details)
 
