@@ -238,7 +238,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
 
         2. If the custody set has contracted, the Execution client **MAY** prune dropped cells from local storage, but **ONLY AFTER** it has broadcast an updated `NewPooledTransactionHashes` announcement with the reduced available set to avoid peers perceiving an availability fault.
 
-    4. The Execution client **MUST** treat a request to update the custody set to the current value as a no-op and return Ok.
+    4. The Execution client **MUST** run custody set update independently to the fork choice update, i.e. execution time errors occurred during custody set update **MUST NOT** affect the main processing flow of this method.
 
 
 ### engine_getBlobsV4
