@@ -1,0 +1,37 @@
+name: Publish stamped spec branch
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  publish-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download stamped spec from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern openrpc.json \
+            --pattern refs-openrpc.json \
+            --clobber
+      - name: setup git config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - name: Deploy assembled spec (stamped release)
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          git checkout -b assembled-spec
+          git add -f openrpc.json
+          git add -f refs-openrpc.json
+          git commit -m "release ${TAG}"
+          git push -fu origin assembled-spec

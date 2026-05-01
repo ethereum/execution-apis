@@ -1,13 +1,18 @@
-name: Deploy to GitHub Pages
+name: Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)release, e.g. v1.2.0"
+        required: true
+        type: string
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -16,10 +21,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - uses: actions/setup-go@v6
         with:
@@ -37,6 +44,11 @@ jobs:
 
       - name: Install JS dependencies
         run: npm ci
+
+      - name: Stamp spec version from tag
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: npm run spec:set-version -- --version "$TAG"
 
       - name: Build docs
         env:
@@ -56,36 +68,35 @@ jobs:
             openrpc.json
             refs-openrpc.json
 
-  deploy:
+  deploy-pages:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-release
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-  deploy-spec-main:
+  github-release:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-release
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Download openrpc spec
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: openrpc-spec
-      - name: setup git config
+
+      - name: Create draft GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-      - name: Deploy assembled spec (main, unstamped)
-        run: |
-          git checkout -b assembled-spec-main
-          git add -f openrpc.json
-          git add -f refs-openrpc.json
-          git commit -m "assemble openrpc.json from main@${GITHUB_SHA::7}"
-          git push -fu origin assembled-spec-main
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --draft \
+            --generate-notes \
+            openrpc.json refs-openrpc.json

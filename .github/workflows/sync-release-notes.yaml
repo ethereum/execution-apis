@@ -1,0 +1,52 @@
+name: Sync release notes to repo
+
+on:
+  release:
+    types: [ published, edited ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to sync (e.g. v1.2.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Sync release note
+        id: sync
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: node scripts/sync-release-note.js
+
+      - name: Open / update PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          branch: release-notes/${{ steps.sync.outputs.slug }}
+          commit-message: "docs: release notes for ${{ steps.sync.outputs.tag }}"
+          title: "docs: release notes for ${{ steps.sync.outputs.tag }}"
+          body: |
+            Mirrors the GitHub Release for **${{ steps.sync.outputs.tag }}** into `docs-api/docs/releases/`.
+
+            Source: ${{ steps.sync.outputs.html_url }}
+
+            After this PR is merged, edit the markdown directly via PR for any future fixes — no need to republish the GitHub Release.
+          add-paths: |
+            docs-api/docs/releases/**
+          delete-branch: true
