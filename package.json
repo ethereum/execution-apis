@@ -12,6 +12,7 @@
     "clean": "rm -rf build && mkdir -p build",
     "graphql:schema": "node scripts/graphql.js",
     "graphql:validate": "node scripts/graphql-validate.js",
+    "spec:set-version": "node scripts/set-spec-version.js",
     "build:docusaurus": "docusaurus build",
     "start": "docusaurus start",
     "serve": "docusaurus serve",
@@ -32,6 +33,7 @@
   "dependencies": {
     "@docusaurus/core": "^3.9.2",
     "@docusaurus/plugin-client-redirects": "^3.9.2",
+    "@docusaurus/plugin-content-docs": "^3.10.1",
     "@docusaurus/preset-classic": "^3.9.2",
     "@easyops-cn/docusaurus-search-local": "0.52.2",
     "@graphql-inspector/core": "~3.3.0",
