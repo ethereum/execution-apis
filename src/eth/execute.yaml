@@ -112,6 +112,10 @@
 
 - name: eth_simulateV1
   summary: Executes a sequence of message calls building on each other's state without creating transactions on the block chain, optionally overriding block and state data
+  description: |
+    For the errors listed below, the numeric `code` is normative; the `message` is informative. Implementations may
+    include implementation-specific context (offending values, addresses, block numbers, indices) in the message text.
+    Conformance checks should compare on `code` only.
   params:
     - name: Payload
       required: true
