@@ -42,11 +42,11 @@ jobs:
           commit-message: "docs: release notes for ${{ steps.sync.outputs.tag }}"
           title: "docs: release notes for ${{ steps.sync.outputs.tag }}"
           body: |
-            Mirrors the GitHub Release for **${{ steps.sync.outputs.tag }}** into `docs-api/docs/releases/`.
+            Mirrors the GitHub Release for **${{ steps.sync.outputs.tag }}** into `docs-releases/`.
 
             Source: ${{ steps.sync.outputs.html_url }}
 
             After this PR is merged, edit the markdown directly via PR for any future fixes — no need to republish the GitHub Release.
           add-paths: |
-            docs-api/docs/releases/**
+            docs-releases/**
           delete-branch: true

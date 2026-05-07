@@ -38,6 +38,11 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
+      - name: Assemble versioned docs from releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/assemble-versions.js
+
       - name: Build docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

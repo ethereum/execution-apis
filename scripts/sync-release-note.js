@@ -14,7 +14,7 @@ for (let i = 2; i < argv.length; i++) {
   if (a.startsWith("--")) flags[a.slice(2)] = argv[++i];
 }
 
-const outDir = flags["out-dir"] || env.OUT_DIR || "docs-api/docs/releases";
+const outDir = flags["out-dir"] || env.OUT_DIR || "docs-releases";
 
 function slugify(s) {
   return String(s).replace(/[^A-Za-z0-9.+-]/g, "-");
@@ -103,7 +103,7 @@ function buildMarkdown(r) {
     `title: "${escapeFrontmatter(r.title)}"`,
     `sidebar_label: "${escapeFrontmatter(r.tag)}"`,
     `sidebar_position: ${sidebarPos(r.tag)}`,
-    `slug: /releases/${slugify(r.tag)}`,
+    `slug: /${slugify(r.tag)}`,
     r.publishedAt ? `date: ${r.publishedAt}` : null,
     "---",
   ]

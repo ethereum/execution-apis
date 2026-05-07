@@ -11,3 +11,7 @@ schema.json
 .docusaurus/
 .DS_Store
 .tool-versions
+api_versioned_docs/
+api_versioned_sidebars/
+api_versions.json
+docs-snapshot-*.tar.gz
