@@ -1,0 +1,25 @@
+GasErrors:  
+  range:
+    min: 800
+    max: 999
+  errors:
+    - code: 800
+      message: "Intrinsic gas too low / Intrinsic gas exceeds gas limit"
+    - code: 801
+      message: "Transaction ran out of gas"
+    - code: 802
+      message: "Gas price too low / Gas price below configured minimum"
+    - code: 803
+      message: "Tx gas limit exceeds max block gas limit"
+    - code: 804
+      message: "Max priority fee per gas higher than max fee per gas"
+    - code: 805
+      message: "Gas uint64 overflow"
+    - code: 806
+      message: "Max fee per gas less than block base fee"
+    - code: 807
+      message: "Max priority fee per gas higher than 2^256-1"
+    - code: 808
+      message: "Max fee per gas higher than 2^256-1"
+    - code: 809
+      message: "Insufficient funds for gas * price + value"

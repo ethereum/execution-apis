@@ -7,3 +7,6 @@ data.json
 schema.json
 *.dic
 .idea/
+.docusaurus/
+.DS_Store
+.tool-versions

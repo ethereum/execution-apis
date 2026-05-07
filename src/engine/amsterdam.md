@@ -1,0 +1,304 @@
+# Engine API -- Amsterdam
+
+Engine API changes introduced in Amsterdam.
+
+This specification is based on and extends [Engine API - Osaka](./osaka.md) specification.
+
+## Table of contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Structures](#structures)
+  - [ExecutionPayloadV4](#executionpayloadv4)
+  - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
+  - [PayloadAttributesV4](#payloadattributesv4)
+  - [BlobCellsAndProofsV1](#blobcellsandproofsv1)
+- [Methods](#methods)
+  - [engine_newPayloadV5](#engine_newpayloadv5)
+    - [Request](#request)
+    - [Response](#response)
+    - [Specification](#specification)
+  - [engine_getPayloadV6](#engine_getpayloadv6)
+    - [Request](#request-1)
+    - [Response](#response-1)
+    - [Specification](#specification-1)
+  - [engine_getPayloadBodiesByHashV2](#engine_getpayloadbodiesbyhashv2)
+    - [Request](#request-2)
+    - [Response](#response-2)
+    - [Specification](#specification-2)
+  - [engine_getPayloadBodiesByRangeV2](#engine_getpayloadbodiesbyrangev2)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
+  - [engine_forkchoiceUpdatedV4](#engine_forkchoiceupdatedv4)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
+    - [Request](#request-5)
+    - [Response](#response-5)
+    - [Specification](#specification-5)
+  - [engine_getBlobsV4](#engine_getblobsv4)
+    - [Request](#request-6)
+    - [Response](#response-6)
+    - [Specification](#specification-6)
+  - [PayloadAttributesV4](#payloadattributesv4)
+  - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
+    - [Osaka API](#osaka-api)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Structures
+
+### ExecutionPayloadV4
+
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `blockAccessList`.
+
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `blobGasUsed`: `QUANTITY`, 64 Bits
+- `excessBlobGas`: `QUANTITY`, 64 Bits
+- `blockAccessList`: `DATA` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928)
+- `slotNumber`: `QUANTITY`, 64 Bits
+
+### ExecutionPayloadBodyV2
+
+This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadbodyv1) and appends the new field: `blockAccessList`.
+
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
+- `blockAccessList`: `DATA|null` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928). Value is `null` for blocks produced before Amsterdam or if the data has been pruned.
+
+### PayloadAttributesV4
+
+This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends a single field: `slotNumber`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+- `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
+
+
+### BlobCellsAndProofsV1
+
+- `blob_cells`: `Array of DATA|null` - a sequence of byte arrays (`DATA`) representing the partial matrix of the requested blobs, with `null` entries for missing cells.
+- `proofs`: `Array of DATA|null` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`). Entries corresponding to `null` cells **MUST** also be `null`.
+
+## Methods
+
+### engine_newPayloadV5
+
+This method is updated to support the new `ExecutionPayloadV4` structure.
+
+#### Request
+
+* method: `engine_newPayloadV5`
+* params:
+  1. `executionPayload`: [`ExecutionPayloadV4`](#executionpayloadv4).
+  2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
+  3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests.
+
+#### Response
+
+Refer to the response for [`engine_newPayloadV4`](./prague.md#engine_newpayloadv4).
+
+#### Specification
+
+This method follows the same specification as [`engine_newPayloadV4`](./prague.md#engine_newpayloadv4) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Amsterdam fork.
+
+2. Client software **MUST** return `-32602: Invalid params` error if the `blockAccessList` field is missing.
+
+3. Client software **MUST** validate the `blockAccessList` field by executing the payload's transactions and verifying that the computed access list matches the provided one.
+If this validation fails, the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
+
+### engine_getPayloadV6
+
+This method is updated to return the new `ExecutionPayloadV4` structure.
+
+#### Request
+
+* method: `engine_getPayloadV6`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
+
+#### Response
+
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV4`](#executionpayloadv4)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
+  - `blobsBundle`: [`BlobsBundleV2`](./osaka.md#blobsbundlev2) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
+  - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadV5`](./osaka.md#engine_getpayloadv5) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Amsterdam fork.
+
+2. When building the block, client software **MUST** collect all account accesses and state changes during transaction execution and populate the `blockAccessList` field in the returned `ExecutionPayloadV4` with the RLP-encoded access list.
+
+### engine_getPayloadBodiesByHashV2
+
+This method retrieves execution payload bodies including block access lists for specified blocks.
+
+#### Request
+
+* method: `engine_getPayloadBodiesByHashV2`
+* params:
+  1. `blockHashes`: `Array of DATA`, 32 Bytes - Array of block hashes to retrieve payload bodies for
+* timeout: 10s
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV2` - Array of [`ExecutionPayloadBodyV2`](#executionpayloadbodyv2) objects or `null` for blocks that are unavailable
+* error: code and message set in case an exception happens while getting the payload bodies.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadBodiesByHashV1`](./shanghai.md#engine_getpayloadbodiesbyhashv1) with the following additions:
+
+1. Client software **MUST** set the `blockAccessList` field to `null` for blocks that predate the Amsterdam fork activation.
+
+2. Client software **MUST** set the `blockAccessList` field to `null` if the block access list has been pruned from storage.
+
+### engine_getPayloadBodiesByRangeV2
+
+This method retrieves execution payload bodies including block access lists for a range of blocks.
+
+#### Request
+
+* method: `engine_getPayloadBodiesByRangeV2`
+* params:
+  1. `start`: `QUANTITY`, 64 Bits - Starting block number
+  2. `count`: `QUANTITY`, 64 Bits - Number of blocks to retrieve payload bodies for
+* timeout: 10s
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV2` - Array of [`ExecutionPayloadBodyV2`](#executionpayloadbodyv2) objects or `null` for blocks that are unavailable
+* error: code and message set in case an exception happens while getting the payload bodies.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadBodiesByRangeV1`](./shanghai.md#engine_getpayloadbodiesbyrangev1) with the following additions:
+
+1. Client software **MUST** set the `blockAccessList` field to `null` for blocks that predate the Amsterdam fork activation.
+
+2. Client software **MUST** set the `blockAccessList` field to `null` if the block access list has been pruned from storage.
+
+### engine_forkchoiceUpdatedV4
+
+#### Request
+
+* method: `engine_forkchoiceUpdatedV4`
+* params:
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
+  3. `custodyColumns`: `DATA|null`, 16 Bytes - Interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the CL's custody set, or `null` if the CL does not provide custody services.
+* timeout: 8s
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) with the following changes to the processing flow:
+
+1. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
+
+    1. `payloadAttributes` matches the [`PayloadAttributesV4`](#payloadattributesv4) structure, return `-38003: Invalid payload attributes` on failure.
+
+    2. `payloadAttributes.timestamp` does not fall within the time frame of the Amsterdam fork, return `-38005: Unsupported fork` on failure.
+
+    3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
+
+    4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
+
+3. If `custodyColumns` is provided (non-null), the following rules apply:
+
+    1. `custodyColumns` **MUST** be a 16-byte `DATA` value. If it is not, the client software **MUST** return `-32602: Invalid params`.
+
+    2. The Execution client **MUST** adopt the provided custody set when acting as a sampler for type 3 transactions.
+
+    3. For type 3 transactions pending in the blobpool:
+
+        1. If the custody set has expanded, the Execution client **SHOULD** issue new sampling requests for the delta. It **MAY** broadcast an updated `NewPooledTransactionHashes` announcement with the newly available set.
+
+        2. If the custody set has contracted, the Execution client **MAY** prune dropped cells from local storage. To prevent peers from perceiving an availability fault, this pruning **SHOULD** occur only after a delay of 2 slots following the broadcast of an updated `NewPooledTransactionHashes` announcement that reflects the reduced set.
+
+    4. The Execution client **MUST** run custody set update independently to the fork choice update, i.e. execution time errors occurred during custody set update **MUST NOT** affect the main processing flow of this method.
+
+
+### engine_getBlobsV4
+
+Consensus layer clients **MAY** use this method to fetch blob cells from the execution layer blob pool, with support for partial responses. Unlike [`engine_getBlobsV3`](./osaka.md#engine_getblobsv3), this method returns individual cells and their KZG proofs rather than full blobs.
+
+#### Request
+
+* method: `engine_getBlobsV4`
+* params:
+  1. `versioned_blob_hashes`: `Array of DATA`, 32 Bytes - an array of blob versioned hashes.
+  2. `indices_bitarray`: `DATA`, 16 Bytes - a bitarray denoting the indices of the cells to retrieve.
+* timeout: 1s
+
+#### Response
+
+* result: `(Array of BlobCellsAndProofsV1) | null` - Array of [`BlobCellsAndProofsV1`](#blobcellsandproofsv1), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
+* error: code and message set in case an error occurs during processing of the request.
+
+#### Specification
+
+1. Given an array of blob versioned hashes and a cell indices bitarray, client software **MUST** respond with an array of `BlobCellsAndProofsV1` objects with matching versioned hashes, respecting the order of versioned hashes in the input array. Each `BlobCellsAndProofsV1` object contains only the cells at the indices specified by the bitarray and their corresponding KZG proofs.
+2. Given an array of blob versioned hashes and a cell indices bitarray, if client software has every one of the requested blobs, it **MUST** return an array of `BlobCellsAndProofsV1` objects whose order exactly matches the input array. The same `indices_bitarray` is applied to extract cells from each blob. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` with a specific `indices_bitarray`, and client software has `A`, `B` and `C` available, the response **MUST** be `[A_cells_and_proofs, B_cells_and_proofs, C_cells_and_proofs]`, where each object contains the cells at the indices specified by the bitarray.
+3. If one or more of the requested blobs are unavailable, the client **MUST** return an array of the same length and order, inserting `null` only at the positions of the missing blobs. For instance, if the request is `[A_versioned_hash, B_versioned_hash, C_versioned_hash]` and client software has data for blobs `A` and `C`, but doesn't have data for `B`, the response **MUST** be `[A_cells_and_proofs, null, C_cells_and_proofs]`. If all blobs are missing, the client software must return an array of matching length, filled with `null` at all positions.
+4. Within a `BlobCellsAndProofsV1` object, if specific cells are unavailable for an otherwise available blob, those cells **MUST** be set to `null` in the `blob_cells` array, and the corresponding entries in the `proofs` array **MUST** also be `null`.
+5. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
+6. Client software **MUST** return `null` if syncing or otherwise unable to generally serve blob pool data.
+7. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` at the corresponding position if a blob has been pruned.
+
+### PayloadAttributesV4
+
+This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends a single field: `slotNumber`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+- `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
+
+### Update the methods of previous forks
+
+#### Osaka API
+
+For the following methods:
+
+- [`engine_newPayloadV4`](./prague.md#engine_newpayloadv4)
+- [`engine_getPayloadV5`](./osaka.md#engine_getpayloadv5)
+- [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3)
+
+a validation **MUST** be added:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload is greater than or equal to the Amsterdam activation timestamp.

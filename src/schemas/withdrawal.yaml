@@ -20,3 +20,10 @@ Withdrawal:
     amount:
       title: value contained in withdrawal
       $ref: '#/components/schemas/uint256'
+
+Withdrawals:
+  title: Validator withdrawals list
+  description: This array can have a maximum length of 16.
+  type: array
+  items:
+    $ref: '#/components/schemas/Withdrawal'

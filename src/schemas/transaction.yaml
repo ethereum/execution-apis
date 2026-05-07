@@ -464,6 +464,7 @@ TransactionInfo:
       required:
         - blockHash
         - blockNumber
+        - blockTimestamp
         - from
         - hash
         - transactionIndex
@@ -473,6 +474,9 @@ TransactionInfo:
           $ref: '#/components/schemas/hash32'
         blockNumber:
           title: block number
+          $ref: '#/components/schemas/uint'
+        blockTimestamp:
+          title: block timestamp
           $ref: '#/components/schemas/uint'
         from:
           title: from address

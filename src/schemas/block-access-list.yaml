@@ -1,0 +1,96 @@
+StorageChange:
+  title: Storage change
+  type: object
+  required:
+    - index
+    - value
+  additionalProperties: false
+  properties:
+    index:
+      $ref: '#/components/schemas/uint64'
+    value:
+      $ref: '#/components/schemas/hash32'
+SlotChanges:
+  title: Slot changes
+  type: object
+  required:
+    - key
+    - changes
+  additionalProperties: false
+  properties:
+    key:
+      $ref: '#/components/schemas/hash32'
+    changes:
+      type: array
+      items:
+        $ref: '#/components/schemas/StorageChange'
+BalanceChange:
+  title: Balance change
+  type: object
+  required:
+    - index
+    - value
+  additionalProperties: false
+  properties:
+    index:
+      $ref: '#/components/schemas/uint64'
+    value:
+      $ref: '#/components/schemas/uint256'
+NonceChange:
+  title: Nonce change
+  type: object
+  required:
+    - index
+    - value
+  additionalProperties: false
+  properties:
+    index:
+      $ref: '#/components/schemas/uint64'
+    value:
+      $ref: '#/components/schemas/uint64'
+CodeChange:
+  title: Code change
+  type: object
+  required:
+    - index
+    - code
+  additionalProperties: false
+  properties:
+    index:
+      $ref: '#/components/schemas/uint64'
+    code:
+      $ref: '#/components/schemas/bytes'
+AccountAccess:
+  title: Account access
+  type: object
+  required:
+    - address
+  additionalProperties: false
+  properties:
+    address:
+      $ref: '#/components/schemas/address'
+    storageChanges:
+      type: array
+      items:
+        $ref: '#/components/schemas/SlotChanges'
+    storageReads:
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    balanceChanges:
+      type: array
+      items:
+        $ref: '#/components/schemas/BalanceChange'
+    nonceChanges:
+      type: array
+      items:
+        $ref: '#/components/schemas/NonceChange'
+    codeChanges:
+      type: array
+      items:
+        $ref: '#/components/schemas/CodeChange'
+BlockAccessList:
+  title: Block access list
+  type: array
+  items:
+    $ref: '#/components/schemas/AccountAccess'

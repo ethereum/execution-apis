@@ -27,6 +27,10 @@ bytes8:
   title: 8 hex encoded bytes
   type: string
   pattern: ^0x[0-9a-f]{16}$
+bytes16:
+  title: 16 hex encoded bytes
+  type: string
+  pattern: ^0x[0-9a-f]{32}$
 bytes32:
   title: 32 hex encoded bytes
   type: string
@@ -64,6 +68,10 @@ uint256:
   title: hex encoded 256 bit unsigned integer
   type: string
   pattern: ^0x(0|[1-9a-f][0-9a-f]{0,63})$
+uintDecimal:
+  title: decimal unsigned integer string
+  type: string
+  pattern: ^[1-9][0-9]*$
 hash32:
   title: 32 byte hex value
   type: string
