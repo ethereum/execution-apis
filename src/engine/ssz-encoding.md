@@ -38,7 +38,6 @@ SSZ container definitions are provided for all Engine API structures and methods
   - [BlobsBundleV2](#blobsbundlev2)
   - [BlobAndProofV1](#blobandproofv1)
   - [BlobAndProofV2](#blobandproofv2)
-  - [TransitionConfigurationV1](#transitionconfigurationv1)
   - [GetPayloadResponseV2](#getpayloadresponsev2)
   - [GetPayloadResponseV3](#getpayloadresponsev3)
   - [GetPayloadResponseV4](#getpayloadresponsev4)
@@ -57,7 +56,6 @@ SSZ container definitions are provided for all Engine API structures and methods
   - [Forkchoice](#forkchoice)
   - [Blobs](#blobs)
   - [Client](#client)
-  - [Transition configuration](#transition-configuration)
   - [Endpoint summary](#endpoint-summary)
 - [Example](#example)
 - [Security considerations](#security-considerations)
@@ -339,7 +337,6 @@ class PayloadStatusV1(Container):
 | `1` | INVALID |
 | `2` | SYNCING |
 | `3` | ACCEPTED |
-| `4` | INVALID_BLOCK_HASH |
 
 ### ForkchoiceStateV1
 
@@ -479,17 +476,6 @@ Introduced in [Osaka](./osaka.md#blobandproofv2).
 class BlobAndProofV2(Container):
     blob: ByteVector[BLOB_SIZE]
     proofs: List[Bytes48, CELLS_PER_EXT_BLOB]
-```
-
-### TransitionConfigurationV1
-
-Introduced in [Paris](./paris.md#transitionconfigurationv1). Deprecated in Cancun.
-
-```python
-class TransitionConfigurationV1(Container):
-    terminal_total_difficulty: uint256
-    terminal_block_hash: Bytes32
-    terminal_block_number: uint64
 ```
 
 ### GetPayloadResponseV2
@@ -906,21 +892,6 @@ class ExchangeCapabilitiesRequest(Container):
 | - | - |
 | `400` | Malformed SSZ encoding |
 
-### Transition configuration
-
-#### `POST /engine/v1/transition-configuration` — Exchange transition configuration
-
-Deprecated in Cancun. Exchange PoW-to-PoS transition configuration between CL and EL.
-
-**Request container:**
-
-```python
-class ExchangeTransitionConfigurationV1Request(Container):
-    transition_configuration: TransitionConfigurationV1
-```
-
-**Response:** `200 OK` — [`TransitionConfigurationV1`](#transitionconfigurationv1)
-
 ### Endpoint summary
 
 All endpoints organized by resource and fork:
@@ -951,7 +922,6 @@ All endpoints organized by resource and fork:
 | `POST` | `/engine/v3/blobs` | Osaka | `engine_getBlobsV3` |
 | `POST` | `/engine/v1/client/version` | All | `engine_getClientVersionV1` |
 | `POST` | `/engine/v1/capabilities` | All | `engine_exchangeCapabilities` |
-| `POST` | `/engine/v1/transition-configuration` | Paris | `engine_exchangeTransitionConfigurationV1` |
 
 ## Example
 
