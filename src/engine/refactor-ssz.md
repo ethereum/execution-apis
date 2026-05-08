@@ -27,6 +27,13 @@
   - [`PayloadAttributes` (Amsterdam)](#payloadattributes-amsterdam)
   - [`ForkchoiceState`](#forkchoicestate)
   - [`PayloadStatus`](#payloadstatus)
+- [Per-fork container catalogue](#per-fork-container-catalogue)
+  - [`ExecutionPayload` per fork](#executionpayload-per-fork)
+  - [`PayloadAttributes` per fork](#payloadattributes-per-fork)
+  - [`ExecutionPayloadBody` per fork](#executionpayloadbody-per-fork)
+  - [`BlobsBundle` per revision](#blobsbundle-per-revision)
+  - [`BlobAndProof` per revision](#blobandproof-per-revision)
+  - [Identification & capabilities](#identification--capabilities)
 - [Endpoint containers](#endpoint-containers)
   - [`POST /amsterdam/payloads`](#post-amsterdampayloads)
   - [`POST /amsterdam/forkchoice`](#post-amsterdamforkchoice)
@@ -58,26 +65,32 @@
 
 ## `MAX_*` constants
 
-These are sketch values — final values come from a follow-up that
-matches the consensus-specs `Amsterdam` preset. They are listed here
-for completeness so readers can size the on-wire bounds.
-
-| Constant | Sketch value | Where it's used |
+| Constant | Value | Source |
 | - | - | - |
-| `MAX_TXS_PER_PAYLOAD` | `1048576` | `ExecutionPayload.transactions` |
-| `MAX_BYTES_PER_TX` | `1073741824` | element bound inside `transactions` |
-| `MAX_WITHDRAWALS_PER_PAYLOAD` | `16` | `ExecutionPayload.withdrawals`, `PayloadAttributes.withdrawals` |
-| `MAX_EXTRA_DATA_BYTES` | `32` | `ExecutionPayload.extra_data` |
-| `MAX_BAL_BYTES` | TBD (EIP-7928) | `ExecutionPayload.block_access_list` |
-| `MAX_EXECUTION_REQUESTS_PER_PAYLOAD` | TBD (EIP-7685) | `ExecutionPayloadEnvelope.execution_requests` |
-| `MAX_BYTES_PER_EXECUTION_REQUEST` | TBD | element bound inside `execution_requests` |
-| `MAX_VERSIONED_HASHES_PER_REQUEST` | `128` | `BlobsRequest.versioned_hashes` |
-| `MAX_BODIES_REQUEST` | `128` | bodies request and response lists |
-| `MAX_BLOBS_REQUEST` | `128` | blobs request and response lists |
-| `MAX_BLOBS_PER_PAYLOAD` | `MAX_VERSIONED_HASHES_PER_REQUEST` | `BlobsBundle.commitments`, `.blobs` |
-| `CELLS_PER_EXT_BLOB` | `128` (EIP-7594) | cell-proof and custody bitvectors |
-| `BYTES_PER_BLOB` | `131072` | one blob (`4096 * 32`) |
-| `MAX_ERROR_BYTES` | `1024` | `validation_error`, JSON error `detail` |
+| `MAX_BYTES_PER_TX` | `2**30` (1,073,741,824) | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
+| `MAX_TXS_PER_PAYLOAD` | `2**20` (1,048,576) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
+| `MAX_WITHDRAWALS_PER_PAYLOAD` | `2**4` (16) | [Capella](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md) |
+| `BYTES_PER_LOGS_BLOOM` | `256` | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
+| `MAX_EXTRA_DATA_BYTES` | `2**5` (32) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
+| `MAX_BLOB_COMMITMENTS_PER_BLOCK` | `2**12` (4,096) | [Deneb](https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md) |
+| `FIELD_ELEMENTS_PER_BLOB` | `4096` | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
+| `BYTES_PER_FIELD_ELEMENT` | `32` | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
+| `BYTES_PER_BLOB` | `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT` (131,072) | derived |
+| `CELLS_PER_EXT_BLOB` | `128` | [EIP-7594](https://eips.ethereum.org/EIPS/eip-7594) |
+| `BYTES_PER_CELL` | `BYTES_PER_BLOB / CELLS_PER_EXT_BLOB` (1,024) | derived |
+| `MAX_BAL_BYTES` | `MAX_BYTES_PER_TX` | [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928) (placeholder until EIP pins a tighter bound) |
+| `MAX_EXECUTION_REQUESTS_PER_PAYLOAD` | `2**8` (256) | [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685) |
+| `MAX_BYTES_PER_EXECUTION_REQUEST` | `MAX_BYTES_PER_TX` | this spec (placeholder; reuse the tx bound) |
+| `MAX_VERSIONED_HASHES_PER_REQUEST` | `128` | [Osaka](./osaka.md#engine_getblobsv2) |
+| `MAX_BLOBS_REQUEST` | `MAX_VERSIONED_HASHES_PER_REQUEST` (128) | derived |
+| `MAX_BODIES_REQUEST` | `2**5` (32) | [Shanghai](./shanghai.md#engine_getpayloadbodiesbyhashv1) |
+| `MAX_ERROR_BYTES` | `1024` | this spec |
+| `MAX_CLIENT_CODE_LENGTH` | `2` | this spec |
+| `MAX_CLIENT_NAME_LENGTH` | `64` | this spec |
+| `MAX_CLIENT_VERSION_LENGTH` | `64` | this spec |
+| `MAX_CLIENT_VERSIONS` | `4` | this spec |
+| `MAX_CAPABILITY_NAME_LENGTH` | `64` | this spec |
+| `MAX_CAPABILITIES` | `64` | this spec |
 
 ---
 
@@ -204,6 +217,214 @@ deserialises as `VALID` rather than as a reserved sentinel.
 
 ---
 
+## Per-fork container catalogue
+
+Each fork URL (`/{fork}/payloads`, `/{fork}/forkchoice`,
+`/{fork}/bodies`) uses its own SSZ container shape. ELs serving
+`/cancun/...` MUST use the Cancun containers; ELs serving
+`/amsterdam/...` MUST use the Amsterdam containers; etc. This section
+catalogues every fork-scoped variant.
+
+### `ExecutionPayload` per fork
+
+Used by `POST /{fork}/payloads` (the inner `payload` field of
+`ExecutionPayloadEnvelope`) and `GET /{fork}/payloads/{payloadId}`
+(the inner `payload` field of `BuiltPayload`).
+
+```
+# Paris
+ExecutionPayloadParis {
+    parent_hash:        Hash32
+    fee_recipient:      Address
+    state_root:         Hash32
+    receipts_root:      Hash32
+    logs_bloom:         Bloom
+    prev_randao:        Bytes32
+    block_number:       Uint64
+    gas_limit:          Uint64
+    gas_used:           Uint64
+    timestamp:          Uint64
+    extra_data:         ByteList[MAX_EXTRA_DATA_BYTES]
+    base_fee_per_gas:   Uint256
+    block_hash:         Hash32
+    transactions:       List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
+}
+
+# Shanghai = Paris + withdrawals
+ExecutionPayloadShanghai {
+    ...Paris fields...
+    withdrawals:        List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
+}
+
+# Cancun = Shanghai + blob_gas_used + excess_blob_gas
+ExecutionPayloadCancun {
+    ...Shanghai fields...
+    blob_gas_used:      Uint64
+    excess_blob_gas:    Uint64
+}
+
+# Prague = Cancun (no payload-shape change; execution_requests is at the envelope level)
+ExecutionPayloadPrague = ExecutionPayloadCancun
+
+# Osaka = Prague (no payload-shape change; blobs bundle moved to BlobsBundleV2)
+ExecutionPayloadOsaka = ExecutionPayloadPrague
+
+# Amsterdam = Cancun + block_access_list + slot_number
+ExecutionPayloadAmsterdam {
+    ...Cancun fields...
+    block_access_list:  ByteList[MAX_BAL_BYTES]
+    slot_number:        Uint64
+}
+```
+
+The Amsterdam variant is identical to the
+[`ExecutionPayload` (Amsterdam)](#executionpayload-amsterdam) shape
+above; this section just makes the progression explicit.
+
+### `PayloadAttributes` per fork
+
+Used by the `payload_attributes` field of `ForkchoiceUpdate` (the
+request body of `POST /{fork}/forkchoice`).
+
+```
+# Paris
+PayloadAttributesParis {
+    timestamp:               Uint64
+    prev_randao:             Bytes32
+    suggested_fee_recipient: Address
+}
+
+# Shanghai = Paris + withdrawals
+PayloadAttributesShanghai {
+    ...Paris fields...
+    withdrawals:             List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
+}
+
+# Cancun = Shanghai + parent_beacon_block_root
+PayloadAttributesCancun {
+    ...Shanghai fields...
+    parent_beacon_block_root: Root
+}
+
+# Prague = Cancun (no shape change)
+PayloadAttributesPrague = PayloadAttributesCancun
+
+# Osaka = Cancun (no shape change)
+PayloadAttributesOsaka = PayloadAttributesCancun
+
+# Amsterdam = Cancun + slot_number
+PayloadAttributesAmsterdam {
+    ...Cancun fields...
+    slot_number: Uint64
+}
+```
+
+### `ExecutionPayloadBody` per fork
+
+Used by the inner `body` field of `BodyEntry`. Each fork URL serves
+only blocks from its own time range, so every field is
+unconditionally present (no `Optional[T]`).
+
+```
+# Paris
+ExecutionPayloadBodyParis {
+    transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
+}
+
+# Shanghai = Paris + withdrawals
+ExecutionPayloadBodyShanghai {
+    ...Paris fields...
+    withdrawals: List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
+}
+
+# Cancun, Prague, Osaka = Shanghai (no shape change for the body)
+ExecutionPayloadBodyCancun  = ExecutionPayloadBodyShanghai
+ExecutionPayloadBodyPrague  = ExecutionPayloadBodyShanghai
+ExecutionPayloadBodyOsaka   = ExecutionPayloadBodyShanghai
+
+# Amsterdam = Shanghai + block_access_list
+ExecutionPayloadBodyAmsterdam {
+    ...Shanghai fields...
+    block_access_list: ByteList[MAX_BAL_BYTES]
+}
+```
+
+### `BlobsBundle` per revision
+
+Used by the `blobs_bundle` field of `BuiltPayload`. The bundle shape
+follows the consensus-specs progression (V1 single proof, V2 cell
+proofs).
+
+```
+# Cancun (V1) — one proof per blob
+BlobsBundleV1 {
+    commitments: List[Bytes48, MAX_BLOB_COMMITMENTS_PER_BLOCK]
+    proofs:      List[Bytes48, MAX_BLOB_COMMITMENTS_PER_BLOCK]
+    blobs:       List[ByteVector[BYTES_PER_BLOB], MAX_BLOB_COMMITMENTS_PER_BLOCK]
+}
+
+# Osaka+ (V2) — CELLS_PER_EXT_BLOB cell proofs per blob
+BlobsBundleV2 {
+    commitments: List[Bytes48, MAX_BLOB_COMMITMENTS_PER_BLOCK]
+    proofs:      List[Bytes48, MAX_BLOB_COMMITMENTS_PER_BLOCK * CELLS_PER_EXT_BLOB]
+    blobs:       List[ByteVector[BYTES_PER_BLOB], MAX_BLOB_COMMITMENTS_PER_BLOCK]
+}
+```
+
+`BuiltPayload` for Cancun / Prague carries `BlobsBundleV1`;
+Osaka / Amsterdam carries `BlobsBundleV2`.
+
+### `BlobAndProof` per revision
+
+Used by `BlobEntry.contents` on the blob-pool endpoints (`/blobs/vN`).
+
+```
+# /blobs/v1 — Cancun whole-blob, single proof
+BlobAndProofV1 {
+    blob:  ByteVector[BYTES_PER_BLOB]
+    proof: Bytes48
+}
+
+# /blobs/v2 and /blobs/v3 — Osaka cell proofs
+BlobAndProofV2 {
+    blob:   ByteVector[BYTES_PER_BLOB]
+    proofs: List[Bytes48, CELLS_PER_EXT_BLOB]
+}
+
+# /blobs/v4 — Amsterdam cell-range selection (per-cell nullable)
+BlobCellsAndProofs {
+    blob_cells: List[Optional[ByteVector[BYTES_PER_CELL]], CELLS_PER_EXT_BLOB]
+    proofs:     List[Optional[Bytes48], CELLS_PER_EXT_BLOB]
+}
+```
+
+### Identification & capabilities
+
+Used by `GET /identity` and `GET /capabilities`. These are JSON on
+the wire (see [refactor.md § Resource model](./refactor.md#resource-model-overview)),
+but we list the SSZ shapes for completeness so future versions could
+switch to SSZ if desired.
+
+```
+ClientVersion {
+    code:    ByteList[MAX_CLIENT_CODE_LENGTH]
+    name:    ByteList[MAX_CLIENT_NAME_LENGTH]
+    version: ByteList[MAX_CLIENT_VERSION_LENGTH]
+    commit:  Bytes4
+}
+
+IdentityResponse {
+    versions: List[ClientVersion, MAX_CLIENT_VERSIONS]
+}
+
+CapabilitiesResponse {
+    capabilities: List[ByteList[MAX_CAPABILITY_NAME_LENGTH], MAX_CAPABILITIES]
+    # ... plus the structured fields documented in refactor.md
+}
+```
+
+---
+
 ## Endpoint containers
 
 ### `POST /amsterdam/payloads`
@@ -225,7 +446,7 @@ from `payload.transactions`).
 
 #### Response
 
-`PayloadStatus` (full enum, `1`/`2`/`3`/`4`).
+`PayloadStatus` (full enum, `0`/`1`/`2`/`3`).
 
 ### `POST /amsterdam/forkchoice`
 
@@ -359,8 +580,13 @@ BlobsV1Request {
 
 #### Response
 
+`200 OK` carries the SSZ body below; `204 No Content` (with empty
+body) signals "EL cannot serve this request" (e.g. syncing).
+
 ```
-BlobsV1Response = Optional[List[BlobV1Entry, MAX_BLOBS_REQUEST]]
+BlobsV1Response {
+    entries: List[BlobV1Entry, MAX_BLOBS_REQUEST]
+}
 
 BlobV1Entry {
     available: Boolean
@@ -374,8 +600,8 @@ BlobAndProofV1 {
 ```
 
 When `available == false`, `contents` carries zero-valued bytes (a
-`BYTES_PER_BLOB`-byte zero blob and a 48-byte zero proof). The outer
-`Optional` returns `[]` when the EL cannot serve the request at all.
+`BYTES_PER_BLOB`-byte zero blob and a 48-byte zero proof) and CLs
+MUST ignore them.
 
 ### `POST /blobs/v2`
 
@@ -391,8 +617,14 @@ BlobsV2Request {
 
 #### Response
 
+`200 OK` carries the SSZ body below; `204 No Content` (with empty
+body) signals either "EL cannot serve this request at all" or
+"at least one requested blob is missing" (V2 is all-or-nothing).
+
 ```
-BlobsV2Response = Optional[List[BlobV2Entry, MAX_BLOBS_REQUEST]]
+BlobsV2Response {
+    entries: List[BlobV2Entry, MAX_BLOBS_REQUEST]
+}
 
 BlobV2Entry {
     available: Boolean      # always true for /v2 (all-or-nothing); included for shape symmetry
@@ -405,9 +637,7 @@ BlobAndProofV2 {
 }
 ```
 
-All-or-nothing: if any requested blob is missing, the outer
-`Optional` returns `[]` and no per-entry data is sent. CLs that need
-partial responses use `/v3`.
+CLs that need partial responses use `/v3`.
 
 ### `POST /blobs/v3`
 
@@ -418,13 +648,14 @@ proofs).
 
 #### Response
 
-Same shape as `/v2` (`BlobV2Entry` reused), but missing blobs
-surface as `available=false` per entry rather than collapsing the
-whole response to `[]`. Outer `Optional` returns `[]` only when the
-EL cannot serve the request at all (e.g. syncing).
+`200 OK` carries the SSZ body; missing blobs surface as
+`available=false` per entry. `204 No Content` only when the EL
+cannot serve the request at all (e.g. syncing).
 
 ```
-BlobsV3Response = Optional[List[BlobV2Entry, MAX_BLOBS_REQUEST]]
+BlobsV3Response {
+    entries: List[BlobV2Entry, MAX_BLOBS_REQUEST]
+}
 ```
 
 ### `POST /blobs/v4`
@@ -442,8 +673,13 @@ BlobsV4Request {
 
 #### Response
 
+`200 OK` carries the SSZ body; `204 No Content` signals "EL cannot
+serve this request at all."
+
 ```
-BlobsV4Response = Optional[List[BlobV4Entry, MAX_BLOBS_REQUEST]]
+BlobsV4Response {
+    entries: List[BlobV4Entry, MAX_BLOBS_REQUEST]
+}
 
 BlobV4Entry {
     available: Boolean
@@ -469,38 +705,22 @@ old spec).
 
 ## Open sketch questions
 
-These are the items left to decide before promoting this sketch to
-the canonical Amsterdam SSZ schema:
-
-1. **`MAX_*` placeholder values.** Several constants above are
-   `TBD` or sketch-only. They need to be pinned to the
-   consensus-specs `Amsterdam` preset values once those land.
-2. **`MAX_BAL_BYTES`.** EIP-7928 defines the BAL but doesn't yet
-   pin a numeric upper bound that's friendly for SSZ. We need a
-   concrete number; otherwise the SSZ schema can't round-trip.
+1. **`MAX_BAL_BYTES`.** EIP-7928 defines the BAL but hasn't pinned
+   a numeric upper bound yet. The catalogue currently uses
+   `MAX_BYTES_PER_TX` as a placeholder; this should be tightened
+   once the EIP lands.
+2. **`MAX_BYTES_PER_EXECUTION_REQUEST`.** EIP-7685 hasn't pinned a
+   numeric per-element bound either. Same placeholder pattern as
+   `MAX_BAL_BYTES`; needs a concrete value.
 3. **`Bitvector` SSZ encoding for `indices_bitarray` and
    `custody_columns`.** Both are `Bitvector[CELLS_PER_EXT_BLOB]`
    = `Bitvector[128]` = 16 bytes packed. Double-check that's the
    reading the Amsterdam spec wants (it currently describes it as
    "16 bytes interpreted as a bitarray").
-4. **`should_override_builder` typing.** SSZ has `bool` but it's
-   a 1-byte field. Keeping it inside `BuiltPayload` (rather than
-   moving to a header) was the [refactor.md](./refactor.md)
-   decision; this sketch follows that.
-5. **`PayloadStatus` enum encoding.** A `uint8` with sentinel
+4. **`PayloadStatus` enum encoding.** A `uint8` with sentinel
    values matches the JSON-RPC enum; SSZ has no native enum type
    so this is the cleanest mapping. Alternative: `Container { ... }`
-   wrapping a `uint8`. Open for discussion.
-6. **`ExecutionPayloadBody` shared definition.** Today every fork
-   redefines `ExecutionPayloadBody` from scratch. The new spec
-   would benefit from a small set of fork-named containers
-   (`ExecutionPayloadBodyParis`, `ExecutionPayloadBodyShanghai`,
-   `ExecutionPayloadBodyAmsterdam`, …) with the URL `{fork}`
-   selecting which one. Not worked out here.
-7. **Naming convention.** The legacy spec used `camelCase`; this
+   wrapping a `uint8`.
+5. **Naming convention.** The legacy spec used `camelCase`; this
    sketch uses `snake_case` to match consensus-specs. Worth
-   confirming.
-8. **`ByteVector[BYTES_PER_BLOB]` vs `ByteList[BYTES_PER_BLOB]`.**
-   A blob is fixed-size (131072 bytes), so `ByteVector` is the
-   correct typing. Verify against consensus-specs to keep
-   alignment.
+   confirming once before publication.

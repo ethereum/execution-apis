@@ -304,10 +304,13 @@ Amsterdam) and **MAY** serve any subset of older revisions alongside;
 
 All revisions use `POST` so that 128 versioned hashes (8 KiB hex)
 don't have to fit in the URL. All revisions return SSZ
-`Optional[List[BlobEntry, MAX_BLOBS_REQUEST]]`, where each
-`BlobEntry` carries an `available: boolean` per-entry flag for
-per-blob misses on revisions that support partial responses.
-Revision-specific contents live inside `BlobEntry.contents`.
+`List[BlobEntry, MAX_BLOBS_REQUEST]` on `200 OK` and use HTTP
+**`204 No Content`** to signal that the EL cannot serve the request
+at all (syncing, blob pool unavailable, V2 all-or-nothing miss).
+Within a `200` response, per-blob misses are reported via
+`BlobEntry.available = false` on revisions that support partial
+responses. Revision-specific contents live inside
+`BlobEntry.contents`.
 
 #### `POST /engine/v2/blobs/v1`
 
@@ -317,8 +320,8 @@ Replaces `engine_getBlobsV1` (Cancun, single-proof whole-blob).
 - **Response `BlobEntry.contents`:** `BlobAndProofV1 { blob, proof }`
   (one blob, one 48-byte KZG proof).
 - Partial responses supported: missing blobs surface as
-  `available=false` per entry. The outer `Optional` returns `None`
-  only if the EL cannot serve the request at all (e.g. syncing).
+  `available=false` per entry. `204 No Content` only when the EL
+  cannot serve the request at all (e.g. syncing).
 
 #### `POST /engine/v2/blobs/v2`
 
@@ -327,8 +330,8 @@ Replaces `engine_getBlobsV2` (Osaka, all-or-nothing cell proofs).
 - **Request body:** SSZ `List[VersionedHash, MAX_BLOBS_REQUEST]`.
 - **Response `BlobEntry.contents`:** `BlobAndProofV2 { blob, proofs }`
   (one blob plus `CELLS_PER_EXT_BLOB` cell proofs).
-- **All-or-nothing:** if any requested blob is missing, the outer
-  `Optional[List[...]]` returns `None`. Otherwise all entries have
+- **All-or-nothing:** if any requested blob is missing, the EL
+  returns `204 No Content`. Otherwise `200 OK` and all entries have
   `available=true`. This matches today's V2 semantics.
 
 #### `POST /engine/v2/blobs/v3`
@@ -339,8 +342,8 @@ proofs).
 - **Request body:** same as `/v2`.
 - **Response:** same `BlobEntry.contents` shape as `/v2`, but missing
   blobs surface as `available=false` per entry rather than collapsing
-  the whole response to `None`. The outer `Optional` returns `None`
-  only when the EL cannot serve the request at all.
+  the whole response. `204 No Content` only when the EL cannot serve
+  the request at all.
 
 #### `POST /engine/v2/blobs/v4`
 
@@ -391,6 +394,66 @@ Returns JSON `ClientVersion[]` (same shape as today's
 `X-Engine-Client-Version` header on every request, removing the
 mutual-exchange handshake.
 
+### Example: submit a payload
+
+```bash
+curl -X POST http://localhost:8551/engine/v2/amsterdam/payloads \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Content-Type: application/octet-stream" \
+  -H "Accept: application/octet-stream" \
+  -H "X-Engine-Client-Version: LH/v6.2.1" \
+  --data-binary @new_payload.ssz \
+  -o payload_status.ssz
+```
+
+Request:
+
+```
+POST /engine/v2/amsterdam/payloads HTTP/2
+Host: localhost:8551
+Authorization: Bearer <JWT>
+Content-Type: application/octet-stream
+Content-Length: 584
+
+<584 bytes: SSZ(ExecutionPayloadEnvelope)>
+```
+
+Successful response (`status = VALID`):
+
+```
+HTTP/2 200
+Content-Type: application/octet-stream
+Content-Length: 41
+
+<41 bytes: SSZ(PayloadStatus)>
+```
+
+The 41 bytes break down as: `status` (1 byte = `0x00`,  `VALID`) +
+`latest_valid_hash` (4-byte offset + 32-byte hash = 36 bytes)
++ `validation_error` (4-byte offset + 0 bytes empty list).
+
+Error response (malformed body):
+
+```
+HTTP/2 400
+Content-Type: application/problem+json
+Content-Length: 49
+
+{ "type": "/engine-api/errors/ssz-decode-error" }
+```
+
+### Example: poll a built payload
+
+```bash
+curl http://localhost:8551/engine/v2/amsterdam/payloads/0x1234567890abcdef \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Accept: application/octet-stream" \
+  -o built_payload.ssz
+```
+
+Response carries `Cache-Control: no-store`; intermediaries MUST NOT
+cache. See [Payload retrieval](#payload-retrieval).
+
 ---
 
 ## Error model
@@ -405,6 +468,15 @@ we use only **two** of the RFC 7807 fields:
   Omitted when the EL has nothing more to say than the `type` already
   conveys (e.g. canned SSZ-decode failures).
 
+Success codes:
+
+| HTTP status | When |
+| - | - |
+| `200 OK` | SSZ-encoded response body |
+| `204 No Content` | Null result (e.g. blob pool syncing on `/blobs/vN`); empty body |
+
+Error codes:
+
 | HTTP status | `type` | Old JSON-RPC code | When |
 | - | - | - | - |
 | 400 Bad Request | `/engine-api/errors/parse-error` | -32700 | Body is not valid JSON / SSZ |
@@ -416,6 +488,7 @@ we use only **two** of the RFC 7807 fields:
 | 409 Conflict | `/engine-api/errors/invalid-forkchoice` | -38002 | Forkchoice state is inconsistent (e.g. finalized not ancestor of head) |
 | 409 Conflict | `/engine-api/errors/reorg-too-deep` | -38006 | Reorg depth exceeds the EL's limit |
 | 413 Payload Too Large | `/engine-api/errors/request-too-large` | -38004 | Body exceeds an advertised `limits.*` value |
+| 415 Unsupported Media Type | `/engine-api/errors/unsupported-media-type` | (new) | Request `Content-Type` does not match the endpoint's expected encoding (SSZ for hot-path, JSON for diagnostics) |
 | 422 Unprocessable Entity | `/engine-api/errors/invalid-body` | -32602 | Body decoded fine but has invalid values |
 | 422 Unprocessable Entity | `/engine-api/errors/invalid-attributes` | -38003 | `payload_attributes` validation failed |
 | 500 Internal Server Error | `/engine-api/errors/internal` | -32603 / -32000 | Unrecoverable server error; `detail` carries the message |
@@ -467,6 +540,46 @@ understands via `GET /engine/v2/capabilities`.
 its supported fork schemas and endpoint set in a single JSON document
 at `/engine/v2/capabilities`.
 
+### Capabilities format
+
+We considered advertising capabilities as a flat list of per-endpoint
+strings (e.g. `"POST /amsterdam/payloads"`, the format used by the
+existing `engine_exchangeCapabilities` method). The structured form
+in `GET /capabilities` (separate `supported_forks`,
+`fork_scoped_endpoints`, `independently_versioned`,
+`unscoped_endpoints`, plus per-endpoint `limits`) is preferred
+because:
+
+- Adding a fork doesn't multiply the capability list — one entry in
+  `supported_forks` covers every fork-scoped endpoint at once.
+- The `limits.*` block can carry numeric per-endpoint bounds
+  (`bodies.max_count`, `blobs.max_versioned_hashes`,
+  `payload.max_bytes`) which a string-list form can't.
+- It's easier to evolve: new fields land alongside, old CLs ignore
+  them.
+
+### Transition-window behavior
+
+During the rollout window, a CL upgraded to v2 may interact with an
+EL still on the legacy JSON-RPC engine API. Two cases:
+
+- **EL doesn't expose `/engine/v2/...` at all.** The CL hits any v2
+  URL and gets `404 Not Found` from the legacy server. The CL falls
+  back to JSON-RPC for the duration of that EL's lifetime — no
+  per-method retry dance.
+- **EL exposes `/engine/v2/...` but doesn't know the URL fork.** The
+  CL hits `/{fork}/...` against an EL that only advertised
+  `supported_forks: [..., cancun]` while the CL is asking for
+  `amsterdam`. The EL returns
+  `400 /engine-api/errors/unsupported-fork`. The CL learns this once
+  from `GET /capabilities` and avoids issuing such requests; if it
+  doesn't, the per-request error is structured and explicit, not a
+  silent downgrade.
+
+There is **no per-method fallback ladder**. A CL either uses v2 or
+JSON-RPC for the lifetime of an EL connection; mixing transports
+within a connection is permitted but not required.
+
 ---
 
 ## Authentication
@@ -514,11 +627,19 @@ Unchanged in spirit: JWT (HS256, 256-bit shared secret). Differences:
 - **Trailing slashes are forbidden.** `/engine/v2/payloads` is the
   canonical form; `/engine/v2/payloads/` MUST return
   `404 method-not-found`. No automatic redirect.
-- **Request body encoding:** `application/octet-stream` carrying SSZ
-  bytes for hot-path endpoints. JSON for diagnostic / metadata
-  endpoints (capabilities, identity, error bodies).
-- **Response body encoding:** SSZ for hot-path data, JSON
-  (`application/json`) for diagnostics and error bodies.
+- **Content-Type / Accept matrix:**
+
+  | Channel | Header | Value |
+  | - | - | - |
+  | Hot-path request body (`/payloads`, `/forkchoice`, `/bodies`, `/blobs/vN`) | `Content-Type` | `application/octet-stream` (SSZ) |
+  | Hot-path request | `Accept` | `application/octet-stream` |
+  | Hot-path response success body | `Content-Type` | `application/octet-stream` (SSZ) |
+  | Diagnostic request / response (`/capabilities`, `/identity`) | `Content-Type` | `application/json` |
+  | Error response body (any endpoint) | `Content-Type` | `application/problem+json` |
+
+  ELs MUST reject hot-path requests carrying any other `Content-Type`
+  with `415 Unsupported Media Type`. Diagnostic endpoints MUST be
+  served as JSON regardless of `Accept`.
 - **Compression:** Servers MAY support `Accept-Encoding: zstd, gzip`.
   Not required to implement; CLs MUST tolerate uncompressed responses.
   Blob bundles compress well, so operators are encouraged to enable
@@ -771,6 +892,26 @@ We keep JSON available for **error bodies, capability discovery, and
 client identification** because those are ergonomic to debug with `curl`
 and not on the hot path.
 
+#### Why not RLP?
+
+RLP is the EL's native encoding, so reusing it would cut one library
+dependency on the EL side. We picked SSZ instead because:
+
+- **The CL natively serialises every payload field as SSZ today.** An
+  RLP transport would shift the conversion from "EL parses hex-JSON"
+  to "CL re-encodes SSZ as RLP" — same total work, just on a
+  different host.
+- **SSZ pins fixed/variable lengths at the type level.** The
+  transport layer can enforce per-field size limits before
+  allocation, which RLP's recursive header structure makes harder.
+- **`hash_tree_root` for free.** SSZ types come with a deterministic
+  Merkle root we can use for future content-addressed extensions
+  (e.g. payload identifiers, capability hashes). RLP would need a
+  separate hashing convention.
+- **Alignment with the rest of the consensus stack.** Beacon API,
+  fork-choice store, gossip — all SSZ. Reusing the same encoding at
+  the EL/CL boundary keeps one mental model.
+
 ### Simplifications & removed concepts
 
 1. **`expectedBlobVersionedHashes`** — **removed**. The block-hash check
@@ -873,9 +1014,10 @@ the summary exists for quick scanning.
   present; out-of-era blocks come back as `available=false`);
   independently versioned (`/blobs/vN`) gives each revision its own
   dedicated container. Both wrap their entries in
-  `BodyEntry { available, body }` / `BlobEntry { available, contents }`
-  with an outer `Optional[List[...]]` for the syncing /
-  all-or-nothing channel. Per-entry fork tags were rejected.
+  `BodyEntry { available, body }` / `BlobEntry { available, contents }`.
+  Whole-response "syncing / all-or-nothing miss" is signalled by
+  HTTP `204 No Content`, not an in-band SSZ sentinel. Per-entry fork
+  tags were rejected.
 
 #### Error model
 
