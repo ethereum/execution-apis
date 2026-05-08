@@ -302,26 +302,45 @@ BodyEntry {
     available: Boolean
     body:      ExecutionPayloadBody
 }
+```
 
-# /amsterdam/bodies/... uses this Amsterdam-fork ExecutionPayloadBody
+`available` is `false` when the requested block is unavailable /
+pruned, **or** when the block's timestamp falls outside the URL
+fork's active range, **or** for range queries when the block number
+is past the latest known block. When `available=false`, `body` is
+zero-valued and CLs MUST ignore its contents.
+
+Each fork URL pairs with its own `ExecutionPayloadBody` schema. The
+Amsterdam variant carries every field unconditionally:
+
+```
+# Amsterdam ExecutionPayloadBody (used by /amsterdam/bodies/...)
 ExecutionPayloadBody {
     transactions:      List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
-    withdrawals:       Optional[List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]]  # [] pre-Shanghai
-    block_access_list: Optional[ByteList[MAX_BAL_BYTES]]                        # [] pre-Amsterdam or pruned
+    withdrawals:       List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
+    block_access_list: ByteList[MAX_BAL_BYTES]
 }
 ```
 
-A CL on the Cancun schema would call `/cancun/bodies/...` and receive
-a Cancun-shaped `ExecutionPayloadBody` (no `block_access_list` field
-at all). The Cancun-fork variant is sketched here for clarity:
+Earlier-fork variants drop the fields their fork didn't have. For
+reference:
 
 ```
-# /cancun/bodies/... ExecutionPayloadBody (for reference)
+# Cancun ExecutionPayloadBody (used by /cancun/bodies/...)
 ExecutionPayloadBody {
     transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
-    withdrawals:  Optional[List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]]   # [] pre-Shanghai
+    withdrawals:  List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
+}
+
+# Paris ExecutionPayloadBody (used by /paris/bodies/...)
+ExecutionPayloadBody {
+    transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
 }
 ```
+
+No `Optional[T]` cross-fork nullability anywhere — each fork URL
+returns only blocks from its own era, so every field is always
+present.
 
 ### `POST /blobs/v1`
 

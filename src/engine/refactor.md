@@ -9,13 +9,6 @@
 > **Target fork:** Amsterdam. The new API ships *as* the Amsterdam Engine
 > API; clients implement it instead of `engine_*` JSON-RPC at the
 > Amsterdam activation timestamp.
-
-This document is meant to be read alongside the existing fork-scoped specs
-([Paris](./paris.md), [Shanghai](./shanghai.md), [Cancun](./cancun.md),
-[Prague](./prague.md), [Osaka](./osaka.md), [Amsterdam](./amsterdam.md)).
-Concrete byte-level structures are deferred to a later iteration; the goal
-here is to align on the *shape* of the new API.
-
 ---
 
 ## Table of contents
@@ -85,12 +78,11 @@ endpoints are unscoped.
 | Forkchoice | `POST /engine/v2/{fork}/forkchoice` | Atomic forkchoice update: update head/safe/finalized, optionally start a payload build, optionally update custody set. Replaces `engine_forkchoiceUpdated`. |
 | Bodies | `POST /engine/v2/{fork}/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. Fork-scoped: `{fork}` selects the *response schema*, not the fork of the requested blocks. |
 | Bodies | `GET /engine/v2/{fork}/bodies?from=N&count=M` | Replaces `engine_getPayloadBodiesByRange`. Fork-scoped on response shape. |
-| Blob pool | `POST /engine/v2/blobs/v{1..4}` | Replaces `engine_getBlobsV{1..4}`. The `vN` segment carries forward the legacy version numbers; `/v4` is the Amsterdam cell-range variant, `/v1` is the original Cancun whole-blob variant, and intermediate revisions live alongside. ELs MUST serve at least the current-fork revision (`/v4` for Amsterdam) and MAY serve older revisions alongside. |
+| Blob pool | `POST /engine/v2/blobs/v{1..4}` | Replaces `engine_getBlobsV{1..4}`. The `vN` segment carries forward the legacy version numbers; `/v4` is the Amsterdam cell-range variant. |
 | Capabilities | `GET /engine/v2/capabilities` | Replaces `engine_exchangeCapabilities`. Unscoped; advertises supported forks, `/blobs/vN` revisions, and per-endpoint request-size limits. |
 | Identity | `GET /engine/v2/identity` | Replaces `engine_getClientVersion`. Unscoped. |
 
 Every hot-path body uses SSZ; every metadata endpoint uses JSON.
-
 ---
 
 ## Endpoints
@@ -101,9 +93,7 @@ Every hot-path body uses SSZ; every metadata endpoint uses JSON.
 
 Replaces `engine_newPayloadV{1..5}`.
 
-- **Request body:** SSZ-encoded `ExecutionPayloadEnvelope`, a container
-  that bundles together everything that today travels alongside the
-  payload as separate JSON-RPC params:
+- **Request body:** SSZ-encoded `ExecutionPayloadEnvelope`
 
   ```
   ExecutionPayloadEnvelope {
@@ -130,9 +120,6 @@ Replaces `engine_newPayloadV{1..5}`.
   ```
 
   `INVALID_BLOCK_HASH` is dropped (already supplanted by `INVALID`).
-  `ACCEPTED` is **kept** — CLs rely on it during sync to acknowledge
-  side-branch payloads that are well-formed but don't extend the
-  canonical chain.
 
 - **HTTP status:** `200 OK` for any of the four validation outcomes.
   Validation results are not transport errors.
@@ -141,19 +128,14 @@ Replaces `engine_newPayloadV{1..5}`.
 
 #### `POST /engine/v2/{fork}/forkchoice`
 
-Replaces `engine_forkchoiceUpdatedV{1..4}`. This is the **single
-atomic** call that updates the EL's forkchoice state, optionally
-triggers a payload build, and (post-Amsterdam) optionally updates the
-CL's custody set. Atomicity matters: the CL relies on the EL having
-applied the new head before — and only if — the build is started, and
-on the build being keyed against the freshly-applied head.
+Replaces `engine_forkchoiceUpdatedV{1..4}`.
 
 - **Request body:** SSZ-encoded `ForkchoiceUpdate`:
 
   ```
   ForkchoiceUpdate {
       forkchoice_state:    ForkchoiceState              # head / safe / finalized
-      payload_attributes:  Optional[PayloadAttributes]  # if present, start a build on top of head
+      payload_attributes:  Optional[PayloadAttributes]  # if present, start a build
       custody_columns:     Optional[Bitvector[CELLS_PER_EXT_BLOB]]  # Amsterdam+, optional
   }
   ```
@@ -177,9 +159,7 @@ on the build being keyed against the freshly-applied head.
   The `payload_id` is an **opaque server-assigned token**. The EL
   chooses how to mint it (counter, random, hash-tree-root over the
   attributes — anything). CLs MUST treat it as opaque bytes and MUST
-  NOT recompute or validate its contents. This is a change from
-  today's behavior where both sides derived an 8-byte hash over
-  `(headBlockHash, payloadAttributes)`.
+  NOT recompute or validate its contents.
 
 - **HTTP status:** `200 OK` for all three payload-status outcomes.
   `409 Conflict` is returned for an inconsistent forkchoice state
@@ -202,6 +182,7 @@ on the build being keyed against the freshly-applied head.
   safe / finalized across fork boundaries during sync and reorg
   recovery, and the URL fork has no bearing on which historical
   block can be referenced.
+  TODO(MariusVanDerWijden) Is that really the case?
 
   If `payload_attributes` is present, the URL `{fork}` MUST match
   the fork that the new payload would belong to (i.e. the fork
@@ -211,19 +192,13 @@ on the build being keyed against the freshly-applied head.
   we strictly police.
 
 - **Custody-set semantics** (Amsterdam+): the custody update runs
-  independently of the forkchoice processing flow, matching the
-  Amsterdam spec's "MUST run custody set update independently to the
-  fork choice update". An execution-time custody-set error MUST NOT
-  affect the `payload_status` returned for the forkchoice update.
+  independently of the forkchoice processing flow. An execution-time 
+  custody-set error MUST NOT affect the `payload_status` returned for 
+  the forkchoice update.
   A `custody_columns` value, once accepted, remains in effect until
   the next `POST /forkchoice` whose body *also* contains a
   `custody_columns` field. FCUs that omit the field leave the
   custody set unchanged.
-
-- **No body cap.** `POST /forkchoice` bodies are bounded by the SSZ
-  schema's `MAX_*` constants (small for `ForkchoiceState` and
-  `PayloadAttributes`, fixed for `custody_columns`). No additional
-  HTTP-layer cap is imposed.
 
 ### Payload retrieval
 
@@ -251,36 +226,28 @@ available at the time of receipt; the EL MAY stop the build process
 after serving a call. `payloadId` values are opaque server-assigned
 tokens issued by `POST /forkchoice`.
 
-**Token TTL.** A `payloadId` is valid for **at least 10 minutes**
-after its issuing `POST /forkchoice` returns. After 10 minutes the
-EL MAY garbage-collect the token and respond `404 unknown-payload`
-to subsequent `GET`s. ELs MUST NOT recycle a token within its TTL
-(no collisions); after expiry the token namespace is free to reuse.
-A CL that needs a fresh `payloadId` after expiry simply issues a new
-`POST /forkchoice` with the same attributes.
+**Token TTL.** A `payloadId` is valid until either the payload was
+retrieved by `GET /{fork}/payloads/{payloadId}` or another payload
+was built via a forkchoice with payload attributes.
 
 ### Historical bodies
 
-These endpoints are **fork-scoped on the response schema, not on the
-era of the requested blocks**. The `{fork}` segment tells the EL which
-`ExecutionPayloadBody` shape to use when serialising the response.
-A CL that has just upgraded to the Amsterdam schema can ask for
-`/amsterdam/bodies/hash` and receive `block_access_list` populated
-for Amsterdam blocks and `[]` (the SSZ optional sentinel — see
-[SSZ encoding conventions](#ssz-encoding-conventions)) for older
-blocks; a CL still on Cancun asks `/cancun/bodies/hash` and
-gets responses serialised against the Cancun container, never seeing
-the trailing `block_access_list` field at all.
+These endpoints are **fork-scoped on both the response schema and the
+era of the returned blocks.** The `{fork}` segment tells the EL which
+`ExecutionPayloadBody` schema to use, *and* limits the response to
+blocks whose timestamp falls in `{fork}`'s active time range. A CL
+fetching bodies that span a fork boundary issues separate requests
+against each fork URL.
 
-This is different from the `/payloads` and `/forkchoice` `{fork}`
-segments, where the URL fork *must* match the timestamp of the
-referenced block. For `/bodies` the URL fork is purely a schema
-selector and the requester chooses freely.
+Concretely:
 
-The blob endpoint takes yet another approach: it carries a `/vN`
-revision instead of a `{fork}` segment, because blob protocol
-evolution has historically not aligned with fork activations. See
-the [Blob pool](#blob-pool) section.
+- `/cancun/bodies/hash` returns bodies *only* for blocks in the
+  Cancun time range. Requesting a Shanghai or Amsterdam hash yields
+  `available=false` for that entry.
+- `/amsterdam/bodies/hash` returns bodies *only* for Amsterdam blocks.
+  All fields (including `block_access_list`) are unconditionally
+  present; older blocks the CL accidentally requested come back as
+  `available=false`.
 
 #### `POST /engine/v2/{fork}/bodies/hash`
 
@@ -292,43 +259,38 @@ large hash lists travel in the request body rather than the URL.
 #### `GET /engine/v2/{fork}/bodies?from=N&count=M`
 
 Replaces `engine_getPayloadBodiesByRangeV{1,2}`. Range fits comfortably
-in the URL.
+in the URL. Block numbers outside the URL fork's active range come
+back as `available=false`; if the requested range straddles a fork
+boundary the CL re-issues against the next fork URL for the unfilled
+suffix.
 
 - **Response body** (both endpoints): SSZ-encoded
   `List[BodyEntry, MAX_BODIES_REQUEST]`. Each `BodyEntry` carries an
-  `available: boolean` flag (false for unavailable / pruned blocks,
-  matching today's `null` semantics) and an `ExecutionPayloadBody`
-  serialised against the **`{fork}` schema from the URL**. Fields
-  introduced in `{fork}` or earlier are present (with `Optional[T]`
-  set to `None` for blocks predating the field's introduction); fields
-  introduced in forks newer than `{fork}` are absent from the
-  container entirely. See
-  [SSZ encoding conventions](#ssz-encoding-conventions).
+  `available: boolean` flag and an `ExecutionPayloadBody` serialised
+  against the **`{fork}` schema from the URL**. `available` is false
+  in any of the following cases:
+  - the block is unavailable / pruned,
+  - the block's timestamp falls outside the URL fork's active range,
+  - or for range queries, the block number is past the latest known
+    block.
+
+  When `available=false`, the `body` field is zero-valued and CLs
+  MUST ignore its contents. See
+  [SSZ encoding conventions](#ssz-encoding-conventions) for the
+  `BodyEntry` wrapper definition.
 
 ### Blob pool
 
-The blob endpoint is **independently versioned**: blobs are looked up
-by versioned hash (not by fork), so the `{fork}` URL segment doesn't
-help. But the blob protocol *has* evolved on its own clock — four
-distinct semantics across two forks (V1 single proof in Cancun, V2
-cell proofs in Osaka, V3 partial responses, V4 cell-range selection
-in Amsterdam). The new spec carries those legacy version numbers
+The blob endpoint is **independently versioned**.
+The new spec carries those legacy version numbers
 forward onto the URL: `engine_getBlobsVN` becomes `POST /blobs/vN`.
 ELs **MUST** serve at least the revision matching their current fork
 (`/blobs/v4` for Amsterdam) and **MAY** serve any subset of older
 revisions alongside; `GET /capabilities` advertises the actual list.
 
-This is a different versioning axis from the fork-scoped endpoints
-(`/{fork}/payloads`, `/{fork}/forkchoice`, `/{fork}/bodies`). Those
-track *consensus protocol* changes coupled to fork activations.
-`/blobs/vN` tracks *engine-API blob protocol* changes that have
-historically not aligned with fork activations.
-
 All revisions use `POST` so that 128 versioned hashes (8 KiB hex)
 don't have to fit in the URL. All revisions return SSZ
-`Optional[List[BlobEntry, MAX_BLOBS_REQUEST]]`, where the outer
-`Optional` is the "all-or-nothing"/syncing channel (`None` =
-"cannot serve this request, retry later or fall back") and each
+`Optional[List[BlobEntry, MAX_BLOBS_REQUEST]]`, where each
 `BlobEntry` carries an `available: boolean` per-entry flag for
 per-blob misses on revisions that support partial responses.
 Revision-specific contents live inside `BlobEntry.contents`.
@@ -429,19 +391,6 @@ we use only **two** of the RFC 7807 fields:
   Omitted when the EL has nothing more to say than the `type` already
   conveys (e.g. canned SSZ-decode failures).
 
-We deliberately drop the other RFC 7807 fields:
-
-- `title` would just duplicate `type` (RFC 7807 says it SHOULD NOT
-  vary between occurrences of the same `type`); CLs can render their
-  own from a static `type → title` map.
-- `status` duplicates the HTTP status line.
-- `instance` adds a per-request URI; operators get correlation from
-  logs already.
-
-There is **no** legacy `engine_code` extension. CLs migrating from
-the JSON-RPC API map old codes to new `type` strings via the table
-below; after migration the codes are gone.
-
 | HTTP status | `type` | Old JSON-RPC code | When |
 | - | - | - | - |
 | 400 Bad Request | `/engine-api/errors/parse-error` | -32700 | Body is not valid JSON / SSZ |
@@ -458,10 +407,7 @@ below; after migration the codes are gone.
 | 500 Internal Server Error | `/engine-api/errors/internal` | -32603 / -32000 | Unrecoverable server error; `detail` carries the message |
 
 `type` URIs are written as **relative references** rooted at
-`/engine-api/errors/...`. RFC 7807 allows relative URIs, and the
-short form keeps error bodies small without losing identifier
-stability. CLs MUST treat them as opaque strings — they MUST NOT
-attempt to dereference them.
+`/engine-api/errors/...`.
 
 Example error body:
 
@@ -620,10 +566,12 @@ Endpoints that return data spanning multiple block-eras come in two
 flavours:
 
 1. **Fork-scoped** (e.g. `/bodies`): the URL `{fork}` selects the
-   container schema. Within that schema, fields that didn't exist in
-   earlier block-eras are `Optional[T]` (= `[]` for those blocks).
-   The outer entry carries an explicit `available` flag so
-   "pruned / unavailable" stays distinct from "field-not-applicable":
+   container schema *and* limits the response to blocks from that
+   fork's time range. Every field in the fork's body container is
+   unconditionally present (no `Optional[T]` for cross-fork
+   nullability); blocks outside the fork's range come back as
+   `available=false` on the outer entry instead of as a
+   zero-valued body:
 
    ```
    # /amsterdam/bodies/hash response
@@ -632,24 +580,23 @@ flavours:
        body:      ExecutionPayloadBody
    }
 
+   # Amsterdam ExecutionPayloadBody — every field always present
    ExecutionPayloadBody {
        transactions:       List[Transaction, MAX_TXS]
-       withdrawals:        Optional[List[Withdrawal, MAX_WITHDRAWALS]]  # [] pre-Shanghai
-       block_access_list:  Optional[ByteList[MAX_BAL_BYTES]]            # [] pre-Amsterdam or if pruned
+       withdrawals:        List[Withdrawal, MAX_WITHDRAWALS]
+       block_access_list:  ByteList[MAX_BAL_BYTES]
    }
    ```
 
-   A CL on the Cancun schema calls `/cancun/bodies/hash` and
+   A CL fetching a Cancun-era block calls `/cancun/bodies/hash` and
    receives the Cancun container (no `block_access_list` field at
-   all). Old CLs never see schemas they don't know.
+   all, and no `Optional` wrapper on `withdrawals`). Cross-fork
+   ranges require multiple requests, one per fork URL.
 
 2. **Independently versioned** (e.g. `/blobs/vN`): each revision is
    its own container, no nullable optionals across revisions. Old
    CLs keep using `/blobs/v1`; new shapes ship as `/blobs/vN+1`
    alongside.
-
-Per-entry fork tags (a `Union` of fork-shaped variants) were
-rejected: every fork would bump the union and break old decoders.
 
 ---
 
@@ -668,11 +615,6 @@ ordering, so we pin two rules explicitly:
   - The EL processes streams in receive order. h2 multiplexing
     across independent CL→EL flows is fine; the CL MUST NOT rely on
     the EL to reorder its own dependent requests.
-
-  This matches today's [`common.md`](./common.md) "Message ordering"
-  guarantee in spirit; it makes explicit that h2 multiplexing does
-  not relax it. There is **no sequence number on the wire** — the
-  protocol stays simple and CL bugs that break ordering are CL bugs.
 
 - **Idempotency, narrowly defined.** Today's
   [`paris.md`](./paris.md) #4 specifies idempotency only with respect
@@ -866,8 +808,9 @@ the summary exists for quick scanning.
 - **`MAX_*` constants** are defined in fork-scoped SSZ schema files;
   `MAX_ERROR_BYTES` is global.
 - **Cross-fork response containers** come in two flavours:
-  fork-scoped (`/bodies`) uses the URL `{fork}` to pick a schema,
-  with `Optional[T]` for fields absent in pre-fork blocks;
+  fork-scoped (`/bodies`) uses the URL `{fork}` to pick *both* the
+  schema and the era of returned blocks (every body field always
+  present; out-of-era blocks come back as `available=false`);
   independently versioned (`/blobs/vN`) gives each revision its own
   dedicated container. Both wrap their entries in
   `BodyEntry { available, body }` / `BlobEntry { available, contents }`
