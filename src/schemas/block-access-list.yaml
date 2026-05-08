@@ -7,7 +7,7 @@ StorageChange:
   additionalProperties: false
   properties:
     index:
-      $ref: '#/components/schemas/uint64'
+      $ref: '#/components/schemas/uint32'
     value:
       $ref: '#/components/schemas/hash32'
 SlotChanges:
@@ -33,7 +33,7 @@ BalanceChange:
   additionalProperties: false
   properties:
     index:
-      $ref: '#/components/schemas/uint64'
+      $ref: '#/components/schemas/uint32'
     value:
       $ref: '#/components/schemas/uint256'
 NonceChange:
@@ -45,7 +45,7 @@ NonceChange:
   additionalProperties: false
   properties:
     index:
-      $ref: '#/components/schemas/uint64'
+      $ref: '#/components/schemas/uint32'
     value:
       $ref: '#/components/schemas/uint64'
 CodeChange:
@@ -57,7 +57,7 @@ CodeChange:
   additionalProperties: false
   properties:
     index:
-      $ref: '#/components/schemas/uint64'
+      $ref: '#/components/schemas/uint32'
     code:
       $ref: '#/components/schemas/bytes'
 AccountAccess:
