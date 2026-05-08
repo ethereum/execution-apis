@@ -188,14 +188,17 @@ Status enum:
 
 | Value | Name | Used by |
 | - | - | - |
-| `1` | `VALID` | both |
-| `2` | `INVALID` | both |
-| `3` | `SYNCING` | both |
-| `4` | `ACCEPTED` | `POST /payloads` only |
+| `0` | `VALID` | both |
+| `1` | `INVALID` | both |
+| `2` | `SYNCING` | both |
+| `3` | `ACCEPTED` | `POST /payloads` only |
+
+Numbering starts at `0` so a default-initialised SSZ `PayloadStatus`
+deserialises as `VALID` rather than as a reserved sentinel.
 
 `INVALID_BLOCK_HASH` is removed (already supplanted by `INVALID`).
-`POST /forkchoice` MUST return `1`/`2`/`3` only; CLs MUST treat a
-`4` from `/forkchoice` as a protocol error.
+`POST /forkchoice` MUST return `0`/`1`/`2` only; CLs MUST treat a
+`3` from `/forkchoice` as a protocol error.
 
 `Optional[String]` resolves to `List[List[byte, MAX_ERROR_BYTES], 1]`.
 

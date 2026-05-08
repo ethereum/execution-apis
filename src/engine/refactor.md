@@ -29,6 +29,7 @@
 - [Transport & framing](#transport--framing)
 - [SSZ encoding conventions](#ssz-encoding-conventions)
 - [Message ordering & idempotency](#message-ordering--idempotency)
+- [Security considerations](#security-considerations)
 - [Motivation](#motivation)
   - [Goals & non-goals](#goals--non-goals)
   - [Why move away from JSON-RPC?](#why-move-away-from-json-rpc)
@@ -115,7 +116,7 @@ Replaces `engine_newPayloadV{1..5}`.
 
   ```
   PayloadStatus {
-      status:           uint8        # VALID=1, INVALID=2, SYNCING=3, ACCEPTED=4
+      status:           uint8        # VALID=0, INVALID=1, SYNCING=2, ACCEPTED=3
       latest_valid_hash: Optional[Hash32]
       validation_error: Optional[String]
   }
@@ -227,6 +228,17 @@ snapshot of the build. Each call returns the most recent version
 available at the time of receipt; the EL MAY stop the build process
 after serving a call. `payloadId` values are opaque server-assigned
 tokens issued by `POST /forkchoice`.
+
+The EL keeps optimising the payload until the slot deadline, so
+successive `GET`s against the same `{payloadId}` may return different
+bytes. The EL **MUST** include `Cache-Control: no-store` on the
+response, and intermediaries **MUST NOT** cache or revalidate this
+resource. CLs **MUST NOT** treat the response as cacheable.
+
+**Path validation.** `{payloadId}` is a path segment carrying a hex-
+encoded `Bytes8`. The EL **MUST** validate that the path segment is
+well-formed (8 bytes, hex) before dispatching to lookup logic; a
+malformed segment returns `400 invalid-request`.
 
 **Token TTL.** A `payloadId` is valid until either the payload was
 retrieved by `GET /{fork}/payloads/{payloadId}` or another payload
@@ -562,6 +574,27 @@ discoverable in logs.
   `MAX_BAL_BYTES`, `MAX_VERSIONED_HASHES_PER_REQUEST`).
   `MAX_ERROR_BYTES` is global and pinned at `1024` here.
 
+### JSON-RPC type → SSZ type mapping
+
+For implementers porting from the JSON-RPC API, the legacy openrpc
+base types map onto SSZ as follows:
+
+| JSON-RPC type | SSZ type |
+| - | - |
+| `address` (20 bytes) | `Bytes20` |
+| `hash32` (32 bytes) | `Bytes32` |
+| `bytes8` (8 bytes) | `Bytes8` |
+| `bytes32` (32 bytes) | `Bytes32` |
+| `bytes48` (48 bytes) | `Bytes48` |
+| `bytes256` (256 bytes) | `ByteVector[256]` |
+| `bytesMax32` (0–32 bytes) | `ByteList[32]` |
+| `bytes` (variable-length) | `ByteList[MAX_*]` (context-dependent) |
+| `uint64` | `uint64` |
+| `uint256` | `uint256` |
+| `BOOLEAN` | `boolean` |
+| `Array of T` | `List[T, MAX_*]` (context-dependent) |
+| `T \| null` | `Optional[T]` (= `List[T, 1]`) |
+
 ### Cross-fork response containers
 
 Endpoints that return data spanning multiple block-eras come in two
@@ -628,6 +661,31 @@ ordering, so we pin two rules explicitly:
   this: an EL MUST NOT short-circuit a retry by returning the cached
   status, and a CL MUST NOT assume two responses to the same envelope
   match. The only invariant is the `VALID ↔ INVALID` boundary.
+
+---
+
+## Security considerations
+
+SSZ `MAX_*` constants bound *on-chain validity*, not per-request
+resource use. A naive decoder facing a crafted `Content-Length`,
+length prefix, or offset can be coerced into large allocations or
+scans before any semantic rejection. ELs implementing this API
+**MUST**:
+
+- **Cap by `Content-Length`** against an endpoint-specific maximum
+  *before* reading the body when the header is present, and cap the
+  bytes read from the body in all cases.
+- **Validate SSZ length prefixes and offsets** against the remaining
+  buffer size *before* allocating backing storage for variable-length
+  fields.
+- **Apply per-endpoint operational caps** (reverse proxy,
+  server config) in addition to library-level checks. The advertised
+  `limits.*` values in `GET /capabilities` are an upper bound, not a
+  target — operators are encouraged to reject earlier.
+
+ELs **SHOULD** use well-tested SSZ libraries and fuzz-test SSZ
+parsing extensively. JWT authentication is unchanged from the legacy
+JSON-RPC API; all existing requirements apply.
 
 ---
 
