@@ -9,6 +9,7 @@
 > **Target fork:** Amsterdam. The new API ships *as* the Amsterdam Engine
 > API; clients implement it instead of `engine_*` JSON-RPC at the
 > Amsterdam activation timestamp.
+
 ---
 
 ## Table of contents
@@ -54,8 +55,8 @@ table. Detail on each new endpoint follows in the sections below.
 | `engine_newPayloadV{1..5}` | `POST /{fork}/payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
 | `engine_forkchoiceUpdatedV{1..4}` | `POST /{fork}/forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
 | `engine_getPayloadV{1..6}` | `GET /{fork}/payloads/{id}` | poll-style, same semantics as today |
-| `engine_getPayloadBodiesByHashV{1,2}` | `POST /{fork}/bodies/hash` | `{fork}` selects the response *schema* (not the era of requested blocks); `POST` because hash lists are too large for URLs |
-| `engine_getPayloadBodiesByRangeV{1,2}` | `GET /{fork}/bodies?from=...&count=...` | `{fork}` selects the response schema |
+| `engine_getPayloadBodiesByHashV{1,2}` | `POST /{fork}/bodies/hash` | `{fork}` selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
+| `engine_getPayloadBodiesByRangeV{1,2}` | `GET /{fork}/bodies?from=...&count=...` | `{fork}` selects both the response schema and the era of returned blocks |
 | `engine_getBlobsV1` | `POST /blobs/v1` | independently versioned; legacy version numbers carry forward |
 | `engine_getBlobsV2` | `POST /blobs/v2` | all-or-nothing cell proofs |
 | `engine_getBlobsV3` | `POST /blobs/v3` | partial-response cell proofs |
@@ -76,13 +77,14 @@ endpoints are unscoped.
 | Payload | `POST /engine/v2/{fork}/payloads` | Submit a payload received from the CL gossip network for the EL to validate / import. Replaces `engine_newPayload`. |
 | Payload | `GET /engine/v2/{fork}/payloads/{payloadId}` | Retrieve a built payload by id. Replaces `engine_getPayload`. CL polls when it wants a fresher snapshot. |
 | Forkchoice | `POST /engine/v2/{fork}/forkchoice` | Atomic forkchoice update: update head/safe/finalized, optionally start a payload build, optionally update custody set. Replaces `engine_forkchoiceUpdated`. |
-| Bodies | `POST /engine/v2/{fork}/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. Fork-scoped: `{fork}` selects the *response schema*, not the fork of the requested blocks. |
-| Bodies | `GET /engine/v2/{fork}/bodies?from=N&count=M` | Replaces `engine_getPayloadBodiesByRange`. Fork-scoped on response shape. |
+| Bodies | `POST /engine/v2/{fork}/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. `{fork}` selects both the response schema *and* the era of returned blocks; out-of-era blocks come back as `available=false`. |
+| Bodies | `GET /engine/v2/{fork}/bodies?from=N&count=M` | Replaces `engine_getPayloadBodiesByRange`. Same fork scoping as `/bodies/hash`. |
 | Blob pool | `POST /engine/v2/blobs/v{1..4}` | Replaces `engine_getBlobsV{1..4}`. The `vN` segment carries forward the legacy version numbers; `/v4` is the Amsterdam cell-range variant. |
 | Capabilities | `GET /engine/v2/capabilities` | Replaces `engine_exchangeCapabilities`. Unscoped; advertises supported forks, `/blobs/vN` revisions, and per-endpoint request-size limits. |
 | Identity | `GET /engine/v2/identity` | Replaces `engine_getClientVersion`. Unscoped. |
 
 Every hot-path body uses SSZ; every metadata endpoint uses JSON.
+
 ---
 
 ## Endpoints
@@ -281,12 +283,12 @@ suffix.
 
 ### Blob pool
 
-The blob endpoint is **independently versioned**.
-The new spec carries those legacy version numbers
-forward onto the URL: `engine_getBlobsVN` becomes `POST /blobs/vN`.
-ELs **MUST** serve at least the revision matching their current fork
-(`/blobs/v4` for Amsterdam) and **MAY** serve any subset of older
-revisions alongside; `GET /capabilities` advertises the actual list.
+The blob endpoint is **independently versioned**: legacy
+`engine_getBlobsVN` numbers carry forward onto the URL, so
+`engine_getBlobsVN` becomes `POST /blobs/vN`. ELs **MUST** serve at
+least the revision matching their current fork (`/blobs/v4` for
+Amsterdam) and **MAY** serve any subset of older revisions alongside;
+`GET /capabilities` advertises the actual list.
 
 All revisions use `POST` so that 128 versioned hashes (8 KiB hex)
 don't have to fit in the URL. All revisions return SSZ
@@ -822,7 +824,6 @@ the summary exists for quick scanning.
 - **RFC 7807 with two fields:** `type` (required, relative URI rooted
   at `/engine-api/errors/...`) and `detail` (optional). Drop `title`,
   `status`, `instance`, `engine_code`.
-- **CLs MUST NOT dereference `type`** — opaque strings.
 - **SSZ-decode failures** are a canned `400 Bad Request` with
   `type=/engine-api/errors/ssz-decode-error`, no `detail`.
 
@@ -867,8 +868,10 @@ the summary exists for quick scanning.
   SSE / long-poll.
 - **`payload_id` is an opaque server-assigned token** issued by
   `POST /forkchoice`. CLs MUST NOT recompute or validate it.
-- **`payload_id` TTL ≥ 10 minutes.** After expiry the EL MAY GC and
-  reuse the token namespace; within the TTL no collisions.
+- **`payload_id` lifetime is build-bound, not time-bound.** A token
+  remains valid until either the payload was retrieved by
+  `GET /{fork}/payloads/{payloadId}` or another payload was built
+  via a forkchoice with payload attributes.
 - **`shouldOverrideBuilder`** lives inside the SSZ `BuiltPayload`
   body.
 
