@@ -95,6 +95,7 @@ PayloadAttributesV4:
     - withdrawals
     - parentBeaconBlockRoot
     - slotNumber
+    - targetGasLimit
   properties:
     timestamp:
       $ref: '#/components/schemas/PayloadAttributesV3/properties/timestamp'
@@ -108,4 +109,7 @@ PayloadAttributesV4:
       $ref: '#/components/schemas/PayloadAttributesV3/properties/parentBeaconBlockRoot'
     slotNumber:
       title: Slot number
+      $ref: '#/components/schemas/uint64'
+    targetGasLimit:
+      title: Target gas limit
       $ref: '#/components/schemas/uint64'
