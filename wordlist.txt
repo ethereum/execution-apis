@@ -36,6 +36,7 @@ eth
 ethereum
 ethereumjs
 EVM
+executionwitnessv
 exitv
 feeRecipient
 forkchoiceupdatedresponsev
