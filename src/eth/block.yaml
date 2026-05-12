@@ -306,8 +306,8 @@
   errors:
     - code: 4444
       message: Pruned history unavailable
-    - code: 4445
-      message: Block access list not available for pre-Amsterdam blocks
+    - code: -32001
+      message: Resource not found
   examples:
     - name: eth_getBlockAccessList example
       params:

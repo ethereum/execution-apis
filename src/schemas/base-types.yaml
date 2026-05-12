@@ -56,6 +56,10 @@ uint:
   title: hex encoded unsigned integer
   type: string
   pattern: ^0x(0|[1-9a-f][0-9a-f]*)$
+uint32:
+  title: hex encoded 32 bit unsigned integer
+  type: string
+  pattern: ^0x(0|[1-9a-f][0-9a-f]{0,7})$
 uint64:
   title: hex encoded 64 bit unsigned integer
   type: string
