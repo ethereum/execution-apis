@@ -42,7 +42,6 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
     - [Request](#request-6)
     - [Response](#response-6)
     - [Specification](#specification-6)
-  - [PayloadAttributesV4](#payloadattributesv4)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Osaka API](#osaka-api)
 
@@ -92,7 +91,6 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
-
 
 ### BlobCellsAndProofsV1
 
@@ -277,17 +275,6 @@ Consensus layer clients **MAY** use this method to fetch blob cells from the exe
 5. Client software **MUST** support request sizes of at least 128 blob versioned hashes. The client **MUST** return `-38004: Too large request` error if the number of requested blobs is too large.
 6. Client software **MUST** return `null` if syncing or otherwise unable to generally serve blob pool data.
 7. Callers **MUST** consider that execution layer clients may prune old blobs from their pool, and will respond with `null` at the corresponding position if a blob has been pruned.
-
-### PayloadAttributesV4
-
-This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends a single field: `slotNumber`.
-
-- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
-- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
-- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
-- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-- `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
 
 ### Update the methods of previous forks
 
