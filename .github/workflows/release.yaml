@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  attach-openrpc-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ^1.26
+        id: go
+
+      - name: Build the spec
+        run: make build
+
+      - name: Upload OpenRPC spec to release
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} openrpc.json refs-openrpc.json
+        env:
+          GH_TOKEN: ${{ github.token }}
