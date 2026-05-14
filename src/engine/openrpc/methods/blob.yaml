@@ -48,9 +48,11 @@
   result:
     name: List of blobs and corresponding cell proofs
     schema:
-      type: array
-      items:
-        $ref: '#/components/schemas/BlobAndProofV2'
+      oneOf:
+        - type: array
+          items:
+            $ref: '#/components/schemas/BlobAndProofV2'
+        - type: 'null'
   errors:
     - code: -38004
       message: Too large request
