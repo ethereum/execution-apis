@@ -124,6 +124,56 @@
           v: '0xfe7'
           r: '0x84caf09aefbd5e539295acc67217563438a4efb224879b6855f56857fa2037d3'
           s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
+- name: eth_getTransactionBySenderAndNonce
+  summary: Returns the information about a transaction sent from the given address with the given nonce.
+  description: >
+    Returns the transaction sent from the given address at the given nonce.
+    The method SHOULD search the pending transaction pool before consulting
+    historical chain data. If the transaction is found in the pool (i.e. not
+    yet included in a block), the block-contextual fields `blockHash`,
+    `blockNumber`, `blockTimestamp`, and `transactionIndex` will be `null`.
+    If no transaction is found for the given sender and nonce, `null` is
+    returned.
+  params:
+    - name: Sender address
+      required: true
+      schema:
+        $ref: '#/components/schemas/address'
+    - name: Nonce
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Transaction information
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/TransactionInfo'
+  examples:
+    - name: eth_getTransactionBySenderAndNonce example
+      params:
+        - name: Sender address
+          value: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+        - name: Nonce
+          value: '0x1'
+      result:
+        name: Transaction information
+        value:
+          blockHash: '0x510efccf44a192e6e34bcb439a1947e24b86244280762cbb006858c237093fda'
+          blockNumber: '0x422'
+          chainId: '0x7e2'
+          from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+          gas: '0x5208'
+          gasPrice: '0x3b9aca00'
+          hash: '0xa52be92809541220ee0aaaede6047d9a6c5d0cd96a517c854d944ee70a0ebb44'
+          input: '0x'
+          nonce: '0x1'
+          to: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+          transactionIndex: '0x0'
+          value: '0x4e1003b28d9280000'
+          v: '0xfe7'
+          r: '0x84caf09aefbd5e539295acc67217563438a4efb224879b6855f56857fa2037d3'
+          s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
   params:
