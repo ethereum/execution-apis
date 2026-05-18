@@ -387,7 +387,7 @@ class PayloadAttributesV3(Container):
 
 ### PayloadAttributesV4
 
-Introduced in [Amsterdam](./amsterdam.md#payloadattributesv4). Extends `PayloadAttributesV3` with `slot_number`.
+Introduced in [Amsterdam](./amsterdam.md#payloadattributesv4). Extends `PayloadAttributesV3` with `slot_number` and `target_gas_limit`.
 
 ```python
 class PayloadAttributesV4(Container):
@@ -397,6 +397,7 @@ class PayloadAttributesV4(Container):
     withdrawals: List[WithdrawalV1, MAX_WITHDRAWALS_PER_PAYLOAD]
     parent_beacon_block_root: Bytes32
     slot_number: uint64
+    target_gas_limit: uint64
 ```
 
 ### ForkchoiceUpdatedResponseV1
