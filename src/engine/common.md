@@ -51,6 +51,10 @@ These methods are described in [Ethereum JSON-RPC Specification][json-rpc-spec].
 Engine API uses JWT authentication enabled by default.
 JWT authentication is specified in [Authentication](./authentication.md) document.
 
+## HTTP REST bindings (optional)
+
+Execution layer client software **MAY** expose additional `POST` routes on the same Engine HTTP server (same port and authentication rules) as specified in [Engine API -- REST](./rest.md). Those routes are not JSON-RPC; they use JSON request bodies and SSZ response bodies as defined in that document.
+
 ## Versioning
 
 The versioning of the Engine API is defined as follows:
