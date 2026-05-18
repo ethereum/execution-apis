@@ -83,7 +83,7 @@ This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#execut
 
 ### PayloadAttributesV4
 
-This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends a single field: `slotNumber`.
+This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattributesv3) and appends two new fields: `slotNumber` and `targetGasLimit`.
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
@@ -91,6 +91,7 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
+- `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
 
 ### BlobCellsAndProofsV1
 
@@ -233,6 +234,8 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
     3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
 
     4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
+
+2. Client software **MUST** use the target gas limit supplied in `payloadAttributes.targetGasLimit` when constructing a payload.
 
 3. If `custodyColumns` is provided (non-null), the following rules apply:
 
