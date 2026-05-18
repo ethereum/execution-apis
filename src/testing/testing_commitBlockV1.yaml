@@ -1,0 +1,87 @@
+- name: testing_commitBlockV1
+  summary: Builds a block from the provided parameters, inserts it into the chain, and sets it as the canonical head. This is a testing-only method for advancing a chain deterministically.
+  description: |
+    This method is a testing tool that combines block production and canonical head advancement into a single call. It is the writing equivalent of [`testing_buildBlockV1`](./testing_buildBlockV1.yaml): it produces the same block, but additionally inserts it into the chain and sets it as the new canonical head, skipping the `engine_newPayload` + `engine_forkchoiceUpdated` round-trip and the associated payload serialization overhead.
+
+    **Specification:**
+    - The client MUST build a new execution payload on top of its current canonical head.
+    - The client MUST use the provided `payloadAttributes` to define the context of the new block.
+    - If the `transactions` parameter is an empty array `[]`, the client MUST build an empty block (no transactions).
+    - If the `transactions` parameter is JSON `null`, the client MAY build a block from its local transaction pool (mempool).
+    - If the `transactions` parameter is a non-empty array, the client MUST include all transactions from the array on the block's transaction list, in the order they were provided, and MUST NOT include any transactions from its local transaction pool.
+    - If `extraData` is provided, the client MUST set the `extraData` field of the resulting block to this value.
+    - On success, the client MUST insert the block into its database, set it as the canonical head, emit the same chain events it would for any new head, and return the new head's block hash.
+    - If the block cannot be built or applied (for example, an unapplicable transaction), the client MUST return a JSON-RPC error and MUST NOT modify the canonical head.
+
+    **Security Considerations:**
+    - This method is intended for testing environments ONLY and MUST NOT be exposed on public-facing RPC APIs.
+    - It is strongly recommended that this method be disabled by default.
+  params:
+    - name: Payload attributes
+      required: true
+      schema:
+        title: PayloadAttributesV3
+        type: object
+        properties:
+          timestamp:
+            $ref: '#/components/schemas/uint'
+          prevRandao:
+            $ref: '#/components/schemas/hash32'
+          suggestedFeeRecipient:
+            $ref: '#/components/schemas/address'
+          withdrawals:
+            title: Withdrawals
+            type: array
+            items:
+              $ref: '#/components/schemas/Withdrawal'
+          parentBeaconBlockRoot:
+            $ref: '#/components/schemas/hash32'
+    - name: Transactions
+      required: true
+      description: |
+        An array of raw, signed transactions (hex-encoded) to include in the committed block, or null.
+        - If an empty array `[]`: The client MUST build an empty block (no transactions).
+        - If `null`: The client MAY build a block from its local transaction pool (mempool).
+        - If a non-empty array: The client MUST include ALL transactions from this array in the resulting block, in the order provided, and MUST NOT include any transactions from its local mempool.
+      schema:
+        title: Transactions
+        oneOf:
+          - type: array
+            items:
+              $ref: '#/components/schemas/bytes'
+          - type: 'null'
+    - name: Extra data
+      required: false
+      description: |
+        Data to be set as the extraData field of the committed block. If provided, the client MUST use this exact value.
+      schema:
+        oneOf:
+          - $ref: '#/components/schemas/bytes'
+          - type: 'null'
+  result:
+    name: Block hash
+    schema:
+      title: Committed block hash
+      $ref: '#/components/schemas/hash32'
+  errors:
+    - code: -32602
+      message: Invalid parameters
+    - code: -32603
+      message: Internal error
+  examples:
+    - name: testing_commitBlockV1 example
+      params:
+        - name: Payload attributes
+          value:
+            timestamp: '0x1ce'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            suggestedFeeRecipient: '0x0000000000000000000000000000000000000000'
+            withdrawals: []
+            parentBeaconBlockRoot: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822'
+        - name: Transactions
+          value: []
+        - name: Extra data
+          value: null
+      result:
+        name: Block hash
+        value: '0x1234567890123456789012345678901234567890123456789012345678901234'
