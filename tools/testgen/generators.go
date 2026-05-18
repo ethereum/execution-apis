@@ -91,6 +91,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
 	EthBlobBaseFee,
+	EthConfig,
 	NetVersion,
 	TestingBuildBlockV1,
 	TxpoolStatus,
@@ -1848,6 +1849,21 @@ var EthBlobBaseFee = MethodTests{
 				var result hexutil.Big
 				err := t.rpc.CallContext(ctx, &result, "eth_blobBaseFee")
 				return err
+			},
+		},
+	},
+}
+
+// EthConfig stores a list of all tests against the method.
+var EthConfig = MethodTests{
+	"eth_config",
+	[]Test{
+		{
+			Name:  "get-config",
+			About: "retrieves the client's current fork configuration as defined by EIP-7910",
+			Run: func(ctx context.Context, t *T) error {
+				var result map[string]any
+				return t.rpc.CallContext(ctx, &result, "eth_config")
 			},
 		},
 	},
