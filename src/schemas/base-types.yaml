@@ -10,7 +10,7 @@ addresses:
 byte:
   title: hex encoded byte
   type: string
-  pattern: ^0x([0-9a-fA-F]?){1,2}$
+  pattern: ^0x[0-9a-f]{1,2}$
 bytes:
   title: hex encoded bytes
   type: string
@@ -75,7 +75,7 @@ uint256:
 uintDecimal:
   title: decimal unsigned integer string
   type: string
-  pattern: ^[1-9][0-9]*$
+  pattern: ^(0|[1-9][0-9]*)$
 hash32:
   title: 32 byte hex value
   type: string
