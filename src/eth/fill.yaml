@@ -1,0 +1,11 @@
+- name: eth_fillTransaction
+  summary: Fills in missing transaction fields to be signed and submitted.
+  params:
+    - name: Transaction
+      required: true
+      schema:
+        $ref: '#/components/schemas/GenericTransaction'
+  result:
+    name: Transaction result
+    schema:
+      $ref: '#/components/schemas/FillTransactionResult'
