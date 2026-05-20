@@ -31,20 +31,6 @@
       schema:
         $ref: '#/components/schemas/GenericTransaction'
   result:
-    name: Encoded transaction
+    name: Transaction result
     schema:
-      $ref: '#/components/schemas/bytes'
-  examples:
-    - name: eth_signTransaction example
-      params:
-        - name: Transaction
-          value:
-            data: '0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675'
-            from: '0xb60e8dd61c5d32be8058bb8eb970870f07233155'
-            gas: '0x76c0'
-            gasPrice: '0x9184e72a000'
-            to: '0xd46e8dd67c5d32be8058bb8eb970870f07244567'
-            value: '0x9184e72a'
-      result:
-        name: Encoded transaction
-        value: '0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b'
+      $ref: '#/components/schemas/SignTransactionResult'
