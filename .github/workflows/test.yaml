@@ -21,6 +21,9 @@ jobs:
       - name: Run speccheck
         run: make test
 
+      - name: Run openrpc-linter
+        run: make lint
+
       # check test filling
       - name: Fill tests
         working-directory: ./tools

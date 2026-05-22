@@ -1,4 +1,4 @@
-.PHONY: build test fill tools
+.PHONY: build test fill tools lint
 
 SPECFLAGS := -schemas 'src/schemas' \
 	-schemas 'src/engine/openrpc/schemas' \
@@ -16,6 +16,9 @@ build: tools
 
 test: tools
 	./tools/speccheck -v
+
+lint: build
+	cd tools && go tool openrpc-linter lint ../refs-openrpc.json -r ../openrpc-lint.yml
 
 fill:
 	$(MAKE) -C tools fill
