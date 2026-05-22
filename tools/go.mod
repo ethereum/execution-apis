@@ -91,7 +91,7 @@ require (
 	github.com/mitchellh/pointerstructure v1.2.0 // indirect
 	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416 // indirect
-	github.com/open-rpc/openrpc-linter v0.0.11 // indirect
+	github.com/open-rpc/openrpc-linter v0.0.14 // indirect
 	github.com/open-rpc/spec-types/generated/packages/go v0.1.1 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/peterh/liner v1.1.1-0.20190123174540-a2c9a5303de7 // indirect
