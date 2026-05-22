@@ -114,7 +114,7 @@ Block:
       title: EIP-7928 block access list hash
       $ref: '#/components/schemas/hash32'
     slotNumber:
-      title: Slot number
+      title: EIP-7843 slot number
       $ref: '#/components/schemas/uint'
 BlockTag:
   title: Block tag
