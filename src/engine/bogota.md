@@ -79,7 +79,6 @@ Method parameter list is extended with `inclusionListTransactions`.
 #### Response
 
 * result: [`PayloadStatusV1`](./paris.md#payloadstatusv1), values of the `status` field are modified in the following way:
-  - `INVALID_BLOCK_HASH` status value is supplanted by `INVALID`.
   - `INCLUSION_LIST_UNSATISFIED` status value is appended.
 * error: code and message set in case an exception happens while processing the payload.
 
