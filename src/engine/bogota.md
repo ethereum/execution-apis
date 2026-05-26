@@ -123,6 +123,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 * params:
   1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#forkchoicestatev1).
   2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV5`](#payloadattributesv5) or `null`.
+  3. `custodyColumns`: `DATA|null`, 16 Bytes - Interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the CL's custody set, or `null` if the CL does not provide custody services.
 * timeout: 8s
 
 #### Response
