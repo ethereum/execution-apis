@@ -1,0 +1,19 @@
+- name: engine_getInclusionListV1
+  summary: Obtains an inclusion list built upon the given block hash
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_getinclusionlistv1
+  params:
+    - name: Block hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Inclusion list transactions
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+  errors:
+    - code: -38001
+      message: Unknown payload
