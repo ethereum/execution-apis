@@ -79,5 +79,4 @@ EthCapabilitiesDeleteStrategy:
           enum:
             - window
         retentionBlocks:
-          type: integer
-          minimum: 0
+          $ref: '#/components/schemas/uint'

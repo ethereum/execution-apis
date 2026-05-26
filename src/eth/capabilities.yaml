@@ -23,25 +23,25 @@
             oldestBlock: '0x13e022a'
             deleteStrategy:
               type: window
-              retentionBlocks: 90000
+              retentionBlocks: '0x15f90'
           tx:
             disabled: false
             oldestBlock: '0x11b340a'
             deleteStrategy:
               type: window
-              retentionBlocks: 2350000
+              retentionBlocks: '0x23dbb0'
           logs:
             disabled: false
             oldestBlock: '0x11b340a'
             deleteStrategy:
               type: window
-              retentionBlocks: 2350000
+              retentionBlocks: '0x23dbb0'
           receipts:
             disabled: false
             oldestBlock: '0x11b340a'
             deleteStrategy:
               type: window
-              retentionBlocks: 2350000
+              retentionBlocks: '0x23dbb0'
           blocks:
             disabled: false
             oldestBlock: '0x0'
@@ -50,4 +50,4 @@
             oldestBlock: '0x13e022a'
             deleteStrategy:
               type: window
-              retentionBlocks: 90000
+              retentionBlocks: '0x15f90'
