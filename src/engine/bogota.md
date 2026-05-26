@@ -96,7 +96,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 * method: `engine_getInclusionListV1`
 * params:
-  1. `parentHash`: `DATA`, 32 Bytes - block hash of the parent block upon which the inclusion list should be built.
+  1. `blockHash`: `DATA`, 32 Bytes - block hash of the block upon which the inclusion list should be built.
 
 * timeout: 1s
 
@@ -107,7 +107,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 #### Specification
 
-1. Client software **MUST** return `-38007: Unknown parent` error if a block with the given `parentHash` does not exist.
+1. Client software **MUST** return `-38001: Unknown payload` error if a block with the given `blockHash` does not exist.
 
 2. Client software **MUST** provide a list of transactions for the inclusion list based on the local view of the mempool. The strategy for selecting which transactions to include is implementation dependent.
 
