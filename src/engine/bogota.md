@@ -89,7 +89,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Bogota fork.
 
-2. Client software **MUST** return `{status: INCLUSION_LIST_UNSATISFIED, latestValidHash: null, validationError: null}` if `executionPayload` fails to satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+2. Client software **MUST** return `{status: INCLUSION_LIST_UNSATISFIED, latestValidHash: null, validationError: null}` if `executionPayload` passed [payload validation](./paris.md#payload-validation) process and deemed `VALID` but fails to satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ### engine_getInclusionListV1
 
