@@ -169,6 +169,7 @@ PayloadAttributes {
     withdrawals:              List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
     parent_beacon_block_root: Root
     slot_number:              Uint64
+    target_gas_limit:         Uint64
 }
 ```
 
@@ -312,10 +313,11 @@ PayloadAttributesPrague = PayloadAttributesCancun
 # Osaka = Cancun (no shape change)
 PayloadAttributesOsaka = PayloadAttributesCancun
 
-# Amsterdam = Cancun + slot_number
+# Amsterdam = Cancun + slot_number + target_gas_limit
 PayloadAttributesAmsterdam {
     ...Cancun fields...
-    slot_number: Uint64
+    slot_number:      Uint64
+    target_gas_limit: Uint64
 }
 ```
 

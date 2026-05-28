@@ -150,6 +150,10 @@ Replaces `engine_forkchoiceUpdatedV{1..4}`.
   forkchoice update fails, no build is started and no custody change
   is applied.
 
+  When building a payload (Amsterdam+), the EL **MUST** use
+  `payload_attributes.target_gas_limit` as the target value for the
+  built block's `gas_limit`.
+
 - **Response body:** SSZ-encoded `ForkchoiceUpdateResponse`:
 
   ```
