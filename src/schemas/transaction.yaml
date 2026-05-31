@@ -606,12 +606,13 @@ SignTransactionResult:
   properties:
     raw:
       title: raw
-      $ref: '#/components/schemas/byte'
+      $ref: '#/components/schemas/bytes'
     tx:
       title: tx
       $ref: '#/components/schemas/TransactionSigned'
 FilledTransaction:
   oneOf:
+    - $ref: '#/components/schemas/Transaction7702Unsigned'
     - $ref: '#/components/schemas/Transaction4844UnsignedWithSidecar'
     - $ref: '#/components/schemas/Transaction4844Unsigned'
     - $ref: '#/components/schemas/Transaction1559Unsigned'
