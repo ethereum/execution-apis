@@ -3,6 +3,7 @@ import { mkdtempSync, writeFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { exit } from "node:process";
+import semver from "semver";
 
 const MAX_VERSIONS = 10;
 
@@ -14,20 +15,9 @@ function sh(cmd, args, opts = {}) {
   });
 }
 
-function semverDesc(a, b) {
-  const pa = String(a)
-    .replace(/^v/, "")
-    .split(".")
-    .map((n) => parseInt(n, 10) || 0);
-  const pb = String(b)
-    .replace(/^v/, "")
-    .split(".")
-    .map((n) => parseInt(n, 10) || 0);
-  for (let i = 0; i < 3; i++) {
-    if ((pb[i] || 0) !== (pa[i] || 0)) return (pb[i] || 0) - (pa[i] || 0);
-  }
-  return 0;
-}
+// Descending precedence: higher versions first. semver.rcompare strips a
+// leading "v" itself and applies full spec precedence (incl. prereleases).
+const semverDesc = (a, b) => semver.rcompare(a, b);
 
 function listReleases() {
   try {
@@ -75,7 +65,12 @@ function downloadAndExtract(tag) {
 
 const releases = listReleases()
   .filter((r) => !r.isDraft && !r.isPrerelease)
-  .map((r) => r.tagName);
+  .map((r) => r.tagName)
+  .filter((tag) => {
+    if (semver.valid(tag)) return true;
+    console.warn(`assemble-versions: skipping non-semver tag "${tag}"`);
+    return false;
+  });
 
 if (releases.length === 0) {
   console.log("assemble-versions: no published releases found; nothing to assemble");
