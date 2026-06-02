@@ -171,3 +171,41 @@
       message: Max init code size exceeded
     - code: -38026
       message: Client adjustable limit exceeded
+  examples:
+    - name: eth_simulateV1 example
+      params:
+        - name: Payload
+          value:
+            blockStateCalls:
+              - calls:
+                  - from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+                    to: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+                    value: '0x1'
+        - name: Block tag
+          value: latest
+      result:
+        name: Result of calls
+        value:
+          - hash: '0xd5f1812548be429cbdc6376b29611fc49e06f1359758c4ceaaa3b393e2239f9c'
+            parentHash: '0x1f68ac259155e2f38211ddad0f0a15394d55417b185a93923e2abe71bb7a4d6d'
+            sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347'
+            miner: '0xb42b6c4a95406c78ff892d270ad20b22642e102d'
+            stateRoot: '0x91309efa7e42c1f137f31fe9edbe88ae087e6620d0d59031324da3e2f4f93233'
+            transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+            logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+            number: '0x68b3'
+            gasLimit: '0x47e7c4'
+            gasUsed: '0x5208'
+            timestamp: '0x5835c54d'
+            extraData: '0x'
+            mixHash: '0x24900fb3da77674a861c428429dce0762707ecb6052325bbd9b3c64e74b5af9d'
+            nonce: '0x0000000000000000'
+            size: '0x200'
+            transactions: []
+            uncles: []
+            calls:
+              - status: '0x1'
+                returnData: '0x'
+                gasUsed: '0x5208'
+                logs: []

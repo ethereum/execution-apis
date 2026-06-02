@@ -2,8 +2,6 @@ extends: [recommended]
 rules:
   method-description:
     severity: ignore
-  method-examples:
-    severity: warn
   result-description:
     severity: ignore
   schema-description:
