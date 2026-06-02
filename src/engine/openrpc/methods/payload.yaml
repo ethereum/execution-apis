@@ -12,6 +12,9 @@
     name: Payload status
     schema:
       $ref: '#/components/schemas/PayloadStatusV1'
+  errors:
+    - code: -32602
+      message: Invalid params
   examples:
     - name: engine_newPayloadV1 example
       params:

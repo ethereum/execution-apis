@@ -2,8 +2,6 @@ extends: [recommended]
 rules:
   method-description:
     severity: ignore
-  method-errors:
-    severity: warn
   method-examples:
     severity: warn
   result-description:

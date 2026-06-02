@@ -92,6 +92,12 @@
         gasUsed:
           title: Gas used
           $ref: '#/components/schemas/uint'
+  errors:
+    - code: 3
+      message: "execution reverted"
+      data:
+        title: "raw EVM revert data"
+        $ref: "#/components/schemas/bytes"
   examples:
     - name: eth_createAccessList example
       params:
