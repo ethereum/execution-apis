@@ -45,7 +45,7 @@
             validationError: null
           payloadId: '0x0000000021f32cc1'
 - name: engine_forkchoiceUpdatedV2
-  summary: Updates the forkchoice state
+  summary: Updates the forkchoice state, adds withdrawals
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/shanghai.md#engine_forkchoiceupdatedv2
@@ -102,7 +102,7 @@
             validationError: null
           payloadId: '0x0000000021f32cc1'
 - name: engine_forkchoiceUpdatedV3
-  summary: Updates the forkchoice state
+  summary: Updates the forkchoice state, adds parent beacon block root
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/cancun.md#engine_forkchoiceupdatedv3
@@ -162,7 +162,7 @@
             validationError: null
           payloadId: '0x0000000021f32cc1'
 - name: engine_forkchoiceUpdatedV4
-  summary: Updates the forkchoice state
+  summary: Updates the forkchoice state, adds custody columns
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_forkchoiceupdatedv4
