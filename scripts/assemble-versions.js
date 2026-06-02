@@ -16,7 +16,7 @@ function sh(cmd, args, opts = {}) {
 }
 
 // Descending precedence: higher versions first. semver.rcompare strips a
-// leading "v" itself and applies full spec precedence (incl. prereleases).
+// leading "v" itself and applies full semver precedence.
 const semverDesc = (a, b) => semver.rcompare(a, b);
 
 function listReleases() {
@@ -25,7 +25,7 @@ function listReleases() {
       "release",
       "list",
       "--json",
-      "tagName,isDraft,isPrerelease,publishedAt",
+      "tagName,isDraft,publishedAt",
       "-L",
       "100",
     ]);
@@ -64,7 +64,7 @@ function downloadAndExtract(tag) {
 }
 
 const releases = listReleases()
-  .filter((r) => !r.isDraft && !r.isPrerelease)
+  .filter((r) => !r.isDraft)
   .map((r) => r.tagName)
   .filter((tag) => {
     if (semver.valid(tag)) return true;
