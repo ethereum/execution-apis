@@ -179,6 +179,7 @@ Transaction4844UnsignedWithSidecar:
             $ref: '#/components/schemas/bytes'
         proofs:
           title: Blob proofs.
+          description: Pre-PeerDAS this contains one KZG proof per blob (length == len(blobs)). Post-PeerDAS this contains cell proofs with length == 128 * len(blobs).
           type: array
           items:
             $ref: '#/components/schemas/bytes'
@@ -585,7 +586,7 @@ GenericTransaction:
         $ref: '#/components/schemas/bytes'
     proofs:
       title: proofs
-      description: List of blob proofs as per EIP-4844.
+      description: List of blob proofs. Pre-PeerDAS this contains one KZG proof per blob (length == len(blobs)). Post-PeerDAS this contains cell proofs with length == 128 * len(blobs).
       type: array
       items:
         $ref: '#/components/schemas/bytes'
