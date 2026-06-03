@@ -13,7 +13,7 @@
         name: Gas price
         value: '0x3e8'
 - name: eth_baseFee
-  summary: Returns the base fee per gas in wei.
+  summary: Returns the base fee per gas of the next block in wei.
   params: []
   result:
     name: Base fee

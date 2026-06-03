@@ -1844,7 +1844,7 @@ var EthBaseFee = MethodTests{
 	[]Test{
 		{
 			Name:  "get-current-basefee",
-			About: "gets the current base fee in wei",
+			About: "gets the base fee of the next block in wei",
 			Run: func(ctx context.Context, t *T) error {
 				var result hexutil.Big
 				err := t.rpc.CallContext(ctx, &result, "eth_baseFee")
