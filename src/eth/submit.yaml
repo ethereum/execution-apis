@@ -6,8 +6,6 @@
       schema:
         $ref: '#/components/schemas/GenericTransaction'
   error-groups:
-    - $ref: '#/components/error-groups/JSONRPCStandardErrors'
-    - $ref: '#/components/error-groups/JSONRPCNonStandardErrors'
     - $ref: '#/components/error-groups/GasErrors'
     - $ref: '#/components/error-groups/ExecutionErrors'
     - $ref: '#/components/error-groups/TxPoolErrors'
@@ -52,8 +50,6 @@
       schema:
         $ref: '#/components/schemas/bytes'
   error-groups:
-    - $ref: '#/components/error-groups/JSONRPCStandardErrors'
-    - $ref: '#/components/error-groups/JSONRPCNonStandardErrors'
     - $ref: '#/components/error-groups/GasErrors'
     - $ref: '#/components/error-groups/ExecutionErrors'
     - $ref: '#/components/error-groups/TxPoolErrors'
