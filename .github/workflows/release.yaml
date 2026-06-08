@@ -1,9 +1,8 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -23,10 +22,14 @@ concurrency:
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    env:
+      # Resolve the tag from either trigger: workflow_dispatch input or the published release event.
+      # (github.ref_name is a defensive fallback)
+      TAG: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref }}
 
       - uses: actions/setup-go@v6
         with:
@@ -46,18 +49,15 @@ jobs:
         run: npm ci
 
       - name: Stamp spec version from tag
-        env:
-          TAG: ${{ github.event.inputs.tag || github.ref_name }}
         run: npm run spec:set-version -- --version "$TAG"
 
       - name: Build docs
+        # Spec is already built (make build) and stamped (spec:set-version).
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:docs
+        run: npm run docs:copy && npm run build:docusaurus
 
       - name: Snapshot versioned docs
-        env:
-          TAG: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
           VER="${TAG#v}"
           npx docusaurus docs:version:api "$VER"
@@ -109,14 +109,45 @@ jobs:
         with:
           name: docs-snapshot
 
-      - name: Create draft GitHub Release
+      - name: Attach assets to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
         run: |
-          gh release create "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "$TAG" \
-            --draft \
-            --generate-notes \
-            openrpc.json refs-openrpc.json "docs-snapshot-${TAG}.tar.gz"
+          set -euo pipefail
+          ASSETS=(openrpc.json refs-openrpc.json "docs-snapshot-${TAG}.tar.gz")
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # add/replace these strictly these assets
+            echo "Release $TAG exists; attaching assets (additive)"
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${ASSETS[@]}"
+          else
+            # No release for this tag: fail the job 
+            echo "No release found for $TAG; cannot attach assets."
+            exit 1
+          fi
+
+  publish-spec:
+    runs-on: ubuntu-latest
+    needs: github-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download stamped spec artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openrpc-spec
+      - name: setup git config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - name: Deploy assembled spec (stamped release)
+        env:
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
+        run: |
+          git checkout -b assembled-spec
+          git add -f openrpc.json
+          git add -f refs-openrpc.json
+          git commit -m "release ${TAG}"
+          git push -fu origin assembled-spec
