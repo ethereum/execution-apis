@@ -92,6 +92,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawTransaction,
 	EthBlobBaseFee,
 	EthConfig,
+	EthCapabilities,
 	NetVersion,
 	TestingBuildBlockV1,
 	TxpoolStatus,
@@ -1864,6 +1865,44 @@ var EthConfig = MethodTests{
 			Run: func(ctx context.Context, t *T) error {
 				var result map[string]any
 				return t.rpc.CallContext(ctx, &result, "eth_config")
+			},
+		},
+	},
+}
+
+// EthCapabilities stores a list of all tests against the method.
+var EthCapabilities = MethodTests{
+	"eth_capabilities",
+	[]Test{
+		{
+			Name:  "get-capabilities",
+			About: "retrieves the node's effective routing capabilities",
+			// Retention windows and delete strategies are client- and
+			// config-specific (e.g. state history, tx/log index windows differ
+			// per client and per node configuration), so the response is only
+			// checked for spec validity. Only the head is client-agnostic and
+			// is asserted against the chain head below.
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				var result struct {
+					Head struct {
+						Number hexutil.Uint64 `json:"number"`
+						Hash   common.Hash    `json:"hash"`
+					} `json:"head"`
+				}
+				if err := t.rpc.CallContext(ctx, &result, "eth_capabilities"); err != nil {
+					return err
+				}
+				// The head must reflect the current chain head; number and hash
+				// are derived from the same header and must be consistent.
+				head := t.chain.Head()
+				if uint64(result.Head.Number) != head.NumberU64() {
+					return fmt.Errorf("unexpected head number (got: %d, want: %d)", uint64(result.Head.Number), head.NumberU64())
+				}
+				if result.Head.Hash != head.Hash() {
+					return fmt.Errorf("unexpected head hash (got: %s, want: %s)", result.Head.Hash, head.Hash())
+				}
+				return nil
 			},
 		},
 	},
