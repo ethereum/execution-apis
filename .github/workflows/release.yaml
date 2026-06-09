@@ -51,6 +51,11 @@ jobs:
       - name: Stamp spec version from tag
         run: npm run spec:set-version -- --version "$TAG"
 
+      - name: Assemble versioned docs from releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/assemble-versions.js
+
       - name: Build docs
         # Spec is already built (make build) and stamped (spec:set-version).
         env:
@@ -122,7 +127,7 @@ jobs:
             echo "Release $TAG exists; attaching assets (additive)"
             gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${ASSETS[@]}"
           else
-            # No release for this tag: fail the job 
+            # No release for this tag: fail the job
             echo "No release found for $TAG; cannot attach assets."
             exit 1
           fi
