@@ -1,0 +1,7 @@
+JSONRPCNonStandardErrors:
+  # EIP-1474 server-error codes observed in client implementations.
+  errors:
+    - code: -32000
+      message: "Invalid input"
+    - code: -32001
+      message: "Resource not found"

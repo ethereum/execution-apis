@@ -20,6 +20,7 @@ During spec generation, `tools/specgen` resolves those references into each meth
 ## Groups
 | Group | File |
 | --- | --- |
+| `JSONRPCNonStandardErrors` | `rpc-non-standard-errors.yaml` |
 | `TransactionValidationErrors` | `transaction-validation-errors.yaml` |
 | `ExecutionResultErrors` | `execution-result-errors.yaml` |
 | `SimulationErrors` | `simulation-errors.yaml` |
