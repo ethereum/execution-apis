@@ -1,14 +1,14 @@
 # GitHub Actions workflows
 
-This directory drives three kinds of automation: the **release pipeline** (tag → build → Pages → GitHub Release → stamped spec branch), **continuous deploy from `main`** (rolling docs site and unstamped spec branch), and **PR gating** (spec tests, docs smoke-build, spellcheck).
+This directory drives three kinds of automation: the **release pipeline** (publish → build → GitHub Release → stamped spec branch → dispatch deploy pages to refresh), **continuous deploy from `main`**, and **PR gating** (spec tests, docs smoke-build, spellcheck).
 
 ## Workflows
 
-- [release.yaml](release.yaml) — `release: published` or `workflow_dispatch`. Full release: build, version snapshot, Pages deploy, GitHub Release, stamped spec branch.
+- [release.yaml](release.yaml) — `release: published` or `workflow_dispatch`. Full release: build, version snapshot, GitHub Release assets, stamped spec branch; dispatches [deploy.yaml](deploy.yaml) to refresh Pages (does not deploy Pages itself).
 
 - [sync-release-notes.yaml](sync-release-notes.yaml) — `release: published|edited` or `workflow_dispatch`. Mirrors release notes into `docs-releases/` via PR.
 - [publish-spec.yaml](publish-spec.yaml) — `workflow_dispatch` only. Manual recovery: re-push `assembled-spec` from existing release assets. The automatic stamped-spec publish is the `publish-spec` job inside [release.yaml](release.yaml) (`needs: github-release`).
-- [deploy.yaml](deploy.yaml) — `push: main` or dispatch. Rolling Pages deploy + pushes `assembled-spec-main` (unstamped).
+- [deploy.yaml](deploy.yaml) — `push: main` or dispatch (`/next` always tracks main; spec `info.version` stays unstamped `0.0.0`) + pushes `assembled-spec-main` (unstamped).
 - [test.yaml](test.yaml) — push/PR. `make build`, speccheck, test filling, lint.
 - [test-deploy.yaml](test-deploy.yaml) — PR to `main`. Smoke-builds the site with and without a synthesized version snapshot.
 - [spellcheck.yaml](spellcheck.yaml) — push/PR. `rojopolis/spellcheck-github-actions`.
@@ -22,18 +22,19 @@ flowchart TD
 
   subgraph releaseWf [release.yaml]
     buildRelease[build-release]
-    deployPages[deploy-pages]
     ghRelease[github-release]
     publishSpec[publish-spec]
-    buildRelease --> deployPages
+    triggerDeploy[trigger-deploy]
     buildRelease --> ghRelease
     ghRelease --> publishSpec
+    ghRelease --> triggerDeploy
   end
 
   buildRelease -->|"docs-snapshot, openrpc.json, refs-openrpc.json"| artifacts[("Actions artifacts")]
-  deployPages --> pages[("GitHub Pages")]
   ghRelease -->|"upload assets (additive)"| ghReleasePage[("GitHub Release")]
   publishSpec -->|"force push"| assembledSpec[("assembled-spec branch")]
+  triggerDeploy -->|"gh workflow run deploy.yaml"| deployWf[deploy.yaml]
+  deployWf --> pages[("GitHub Pages")]
 
   ghReleasePage -->|"release: published"| syncNotes[sync-release-notes.yaml]
   syncNotes -->|"PR"| notesPR[("docs-releases/ PR")]
@@ -48,7 +49,7 @@ Versioned API docs on Pages are assembled from past release snapshots plus the c
 ```mermaid
 flowchart LR
   mainPush["push to main"] --> deployWf[deploy.yaml]
-  deployWf --> pagesMain[("Pages: /next + latest landing")]
+  deployWf --> pagesMain[("Pages: /next from main + latest landing")]
   deployWf -->|"force push"| assembledMain[("assembled-spec-main (unstamped)")]
 
   releasePublish2["release: published"] --> releaseWf2[release.yaml]
@@ -57,20 +58,18 @@ flowchart LR
   ghRel -.->|"gh release download"| assembleScript["assemble-versions.js (MAX_VERSIONS=10)"]
   assembleScript -->|"writes"| apiVersions[("api_versions.json + api_versioned_docs/version-X.Y.Z/")]
   apiVersions -.-> deployWf
-  apiVersions -.-> releaseWf2
+  releaseWf2 -->|"trigger-deploy"| deployWf
 ```
 
 ## Maintainer runbook
 
 ### Cut a release
 
-Cut a release `vX.Y.Z` (UI **Draft a new release**, or `gh release create vX.Y.Z`). Publishing the release triggers [release.yaml](release.yaml) automatically; no manual steps are required for Pages, the GitHub Release, or `assembled-spec`.
+Cut a release `vX.Y.Z` (UI **Draft a new release**, or `gh release create vX.Y.Z`). Publishing the release triggers [release.yaml](release.yaml) automatically; no manual steps are required for the GitHub Release, `assembled-spec`, or Pages (the `trigger-deploy` job dispatches [deploy.yaml](deploy.yaml) after assets are attached).
 
 ### Automated Release Notes PR
 
-NOTE: The release will then trigger a release notes PR. Because we publish the draft to NEXT, the actual commit sha of the repo doesn't change on tag push. This then can sometimes
-not invalidate the cache. The subsequent automated PR that follows, forces the version and the release notes to invalidate the github pages CDN, when merged. This will guarantee that
-the latest release invalidates the github pages cache and deploys.
+NOTE: The release also triggers a release notes PR. [release.yaml](release.yaml) dispatches [deploy.yaml](deploy.yaml) after attaching the snapshot asset. The subsequent automated PR that follows, forces the version and the release notes to invalidate the github pages CDN, when merged. This will guarantee that the latest release invalidates the github pages cache and deploys.
 
 ### Re-run a release
 
@@ -99,7 +98,8 @@ Confirm `docs-snapshot-vX.Y.Z.tar.gz` exists on the GitHub Release for that tag.
 ## Contracts between jobs
 
 - `build-release` uploads two artifacts: `openrpc-spec` (`openrpc.json` + `refs-openrpc.json`) and `docs-snapshot` (the `.tar.gz`). Both `github-release` and `publish-spec` download `openrpc-spec`; `github-release` also downloads `docs-snapshot`.
-- `concurrency.group: "pages"` is shared with [deploy.yaml](deploy.yaml). Both set `cancel-in-progress: false`, so a release and an in-flight main deploy queue rather than cancel each other.
+- [deploy.yaml](deploy.yaml) After `github-release` attaches assets, `trigger-deploy` runs `gh workflow run deploy.yaml --ref main`. `/next` is always built from main HEAD (unstamped `0.0.0`);
+- `concurrency.group: "pages"` applies only to [deploy.yaml](deploy.yaml) (`cancel-in-progress: false`).
 - `assembled-spec` is **stamped** (version baked in via `npm run spec:set-version`); `assembled-spec-main` is **unstamped** (rolling head of `main`). Consumers pin to one or the other deliberately.
 - [sync-release-notes.yaml](sync-release-notes.yaml) keys its PR branch off `steps.sync.outputs.slug`—repeated edits to the same release update the same PR rather than spawning new ones.
 - `release: published` (and `edited`) fires the sync-release-notes workflow in parallel with `release.yaml`; `github-release` attaches assets additively to the already-published release and does not draft/publish it.

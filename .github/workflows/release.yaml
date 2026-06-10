@@ -12,12 +12,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   build-release:
@@ -55,7 +49,7 @@ jobs:
         # Spec is already built (make build) and stamped (spec:set-version).
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run docs:copy && npm run build:docusaurus
+        run: npm run build:docs:ci:release
 
       - name: Snapshot versioned docs
         run: |
@@ -64,11 +58,6 @@ jobs:
           tar -czf "docs-snapshot-${TAG}.tar.gz" \
             "api_versioned_docs/version-${VER}" \
             "api_versioned_sidebars/version-${VER}-sidebars.json"
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build
 
       - name: Upload openrpc spec
         uses: actions/upload-artifact@v4
@@ -83,17 +72,6 @@ jobs:
         with:
           name: docs-snapshot
           path: docs-snapshot-*.tar.gz
-
-  deploy-pages:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build-release
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
 
   github-release:
     runs-on: ubuntu-latest
@@ -151,3 +129,14 @@ jobs:
           git add -f refs-openrpc.json
           git commit -m "release ${TAG}"
           git push -fu origin assembled-spec
+
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    needs: github-release
+    permissions:
+      actions: write
+    steps:
+      - name: Refresh Pages from main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yaml --ref main --repo "$GITHUB_REPOSITORY"

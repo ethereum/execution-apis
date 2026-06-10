@@ -38,15 +38,10 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
-      - name: Assemble versioned docs from releases
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/assemble-versions.js
-
       - name: Build docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:docs
+        run: npm run build:docs:ci:deploy
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
