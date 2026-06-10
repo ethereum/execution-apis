@@ -8,6 +8,7 @@ import {
 import { join } from "node:path";
 import { argv, env, exit } from "node:process";
 
+
 const flags = {};
 for (let i = 2; i < argv.length; i++) {
   const a = argv[i];
@@ -18,14 +19,6 @@ const outDir = flags["out-dir"] || env.OUT_DIR || "docs-releases";
 
 function slugify(s) {
   return String(s).replace(/[^A-Za-z0-9.+-]/g, "-");
-}
-
-// this puts the newest releases first
-function sidebarPos(t) {
-  const m = String(t).match(/^v?(\d+)\.(\d+)\.(\d+)/);
-  if (!m) return 0;
-  const [, maj, min, pat] = m.map(Number);
-  return -(maj * 1_000_000 + min * 1_000 + pat);
 }
 
 function escapeFrontmatter(s) {
@@ -102,7 +95,6 @@ function buildMarkdown(r) {
     "---",
     `title: "${escapeFrontmatter(r.title)}"`,
     `sidebar_label: "${escapeFrontmatter(r.tag)}"`,
-    `sidebar_position: ${sidebarPos(r.tag)}`,
     `slug: /${slugify(r.tag)}`,
     r.publishedAt ? `date: ${r.publishedAt}` : null,
     "---",
