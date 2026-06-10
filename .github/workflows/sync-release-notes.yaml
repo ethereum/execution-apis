@@ -47,7 +47,6 @@ jobs:
             Source: ${{ steps.sync.outputs.html_url }}
 
             After this PR is merged, edit the markdown directly via PR for any future fixes — no need to republish the GitHub Release.
-            The PR also forces a Pages cache invalidation, so the release is fully visible.
           add-paths: |
             docs-releases/**
           delete-branch: true
