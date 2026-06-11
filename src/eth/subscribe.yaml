@@ -1,0 +1,119 @@
+- name: eth_subscribe
+  summary: Subscribes to events on the node.
+  description: |
+    Creates a subscription. The first parameter selects the subscription kind and
+    determines which optional second-parameter shape applies and what notification
+    data is pushed to the client. Returns a subscription ID that can later be
+    passed to `eth_unsubscribe` to cancel the subscription.
+
+    Subscription notifications are delivered as JSON-RPC notifications with method
+    `eth_subscription` and `params` of the form `{ "subscription": <id>, "result": <data> }`,
+    where `<data>` depends on the kind:
+
+    - `newHeads`: a block header (same shape as a Block object, without `transactions`,
+      `withdrawals`, `uncles`, or `size`). No second parameter.
+    - `logs`: a Log object matching the supplied Filter (same shape as the filter
+      accepted by `eth_getLogs`). Removed logs (due to chain reorgs) are pushed with
+      `removed: true`.
+    - `newPendingTransactions`: a transaction hash by default, or a full transaction
+      object if the optional boolean second parameter is `true`.
+    - `transactionReceipts`: an array of receipt objects (same shape as
+      `eth_getTransactionReceipt`) for transactions included in the latest imported
+      block. If the optional `{ transactionHashes: [...] }` filter is provided,
+      only receipts for those transactions are pushed; otherwise receipts for all
+      transactions in the block are pushed.
+
+    This method is only available on transports that support server-initiated
+    notifications (e.g. WebSocket and IPC).
+  params:
+    - name: kind
+      required: true
+      schema:
+        title: Subscription kind
+        type: string
+        enum:
+          - newHeads
+          - logs
+          - newPendingTransactions
+          - transactionReceipts
+    - name: arg
+      required: false
+      schema:
+        title: Kind-specific argument
+        oneOf:
+          - title: Logs filter (for `logs`)
+            $ref: '#/components/schemas/Filter'
+          - title: Full-transaction flag (for `newPendingTransactions`)
+            type: boolean
+          - title: Transaction receipts filter (for `transactionReceipts`)
+            type: object
+            additionalProperties: false
+            properties:
+              transactionHashes:
+                title: Transaction hashes to watch
+                type: array
+                items:
+                  $ref: '#/components/schemas/hash32'
+  result:
+    name: Subscription ID
+    schema:
+      $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_subscribe newHeads example
+      params:
+        - name: kind
+          value: 'newHeads'
+      result:
+        name: Subscription ID
+        value: '0x9cef478923ff08bf67fde6c64013158d'
+    - name: eth_subscribe logs example
+      params:
+        - name: kind
+          value: 'logs'
+        - name: arg
+          value:
+            address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
+            topics:
+              - '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+      result:
+        name: Subscription ID
+        value: '0x4a8a4c0517381924f9838102c5a4dcb7'
+    - name: eth_subscribe newPendingTransactions example
+      params:
+        - name: kind
+          value: 'newPendingTransactions'
+        - name: arg
+          value: false
+      result:
+        name: Subscription ID
+        value: '0xc3b33aa549fb9a60e95d21862596617c'
+    - name: eth_subscribe transactionReceipts example
+      params:
+        - name: kind
+          value: 'transactionReceipts'
+        - name: arg
+          value:
+            transactionHashes:
+              - '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
+      result:
+        name: Subscription ID
+        value: '0x1a2b3c4d5e6f70819293a4b5c6d7e8f9'
+- name: eth_unsubscribe
+  summary: Cancels an existing subscription created with `eth_subscribe`.
+  params:
+    - name: Subscription ID
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Success
+    schema:
+      type: boolean
+  examples:
+    - name: eth_unsubscribe example
+      params:
+        - name: Subscription ID
+          value: '0x9cef478923ff08bf67fde6c64013158d'
+      result:
+        name: Success
+        value: true
