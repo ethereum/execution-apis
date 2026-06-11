@@ -19,6 +19,10 @@ bytesMax32:
   title: 32 hex encoded bytes
   type: string
   pattern: ^0x[0-9a-f]{0,64}$
+bytes4:
+  title: 4 hex encoded bytes
+  type: string
+  pattern: ^0x[0-9a-f]{8}$
 bytes8:
   title: 8 hex encoded bytes
   type: string
@@ -56,6 +60,10 @@ uint:
   title: hex encoded unsigned integer
   type: string
   pattern: ^0x(0|[1-9a-f][0-9a-f]*)$
+uint32:
+  title: hex encoded 32 bit unsigned integer
+  type: string
+  pattern: ^0x(0|[1-9a-f][0-9a-f]{0,7})$
 uint64:
   title: hex encoded 64 bit unsigned integer
   type: string

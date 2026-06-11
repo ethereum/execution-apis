@@ -14,6 +14,12 @@ matrix:
         - wordlist.txt
       encoding: utf-8
     pipeline:
+    - pyspelling.filters.context:
+        context_visible_first: true
+        delimiters:
+          - open: '(?:^|\s)@'
+            content: '[A-Za-z0-9-]+'
+            close: ''
     - pyspelling.filters.markdown:
     - pyspelling.filters.html:
         comments: false
