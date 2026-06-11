@@ -46,6 +46,8 @@ FP
 getblobsbundlev
 getblobsv
 getclientversionv
+getinclusionlistv
+getInclusionListV
 graphql
 gwei
 https
