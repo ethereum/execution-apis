@@ -5,6 +5,7 @@
     current head block and retention policies for each resource type. This is
     useful for RPC routers to determine which historical queries a node can serve.
   params: []
+  errors: []
   result:
     name: Capabilities
     schema:

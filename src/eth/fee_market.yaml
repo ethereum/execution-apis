@@ -6,6 +6,7 @@
     schema:
       title: Gas price
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_gasPrice example
       params: []
@@ -20,6 +21,7 @@
     schema:
       title: Blob gas base fee
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_blobBaseFee example
       params: []
@@ -34,6 +36,7 @@
     schema:
       title: Max priority fee per gas
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_maxPriorityFeePerGas example
       params: []
@@ -117,6 +120,9 @@
               title: rewardPercentile
               description: A given percentile sample of effective priority fees per gas from a single block in ascending order, weighted by gas used. Zeroes are returned if the block is empty.
               $ref: '#/components/schemas/uint'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_feeHistory example
       params:

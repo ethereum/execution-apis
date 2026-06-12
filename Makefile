@@ -17,7 +17,7 @@ build: tools
 test: tools
 	./tools/speccheck -v
 
-lint:
+lint: build
 	@[ -f refs-openrpc.json ] || $(MAKE) build >/dev/null
 	cd tools && go tool openrpc-linter lint ../refs-openrpc.json -r ../openrpc-lint.yml
 

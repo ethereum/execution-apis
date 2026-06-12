@@ -120,6 +120,9 @@
 - name: debug_getBadBlocks
   summary: Returns an array of recent bad blocks that the client has seen on the network.
   params: []
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   result:
     name: Blocks
     schema:

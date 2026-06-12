@@ -12,6 +12,7 @@
     name: Execution client configuration
     schema:
       $ref: '#/components/schemas/TransitionConfigurationV1'
+  errors: []
   examples:
     - name: engine_exchangeTransitionConfigurationV1 example
       params:

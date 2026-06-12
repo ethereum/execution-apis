@@ -45,7 +45,7 @@
             validationError: null
           payloadId: '0x0000000021f32cc1'
 - name: engine_forkchoiceUpdatedV2
-  summary: Updates the forkchoice state
+  summary: Updates the forkchoice state, adds withdrawals
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/shanghai.md#engine_forkchoiceupdatedv2
@@ -102,7 +102,7 @@
             validationError: null
           payloadId: '0x0000000021f32cc1'
 - name: engine_forkchoiceUpdatedV3
-  summary: Updates the forkchoice state
+  summary: Updates the forkchoice state, adds parent beacon block root
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/cancun.md#engine_forkchoiceupdatedv3
@@ -162,7 +162,7 @@
             validationError: null
           payloadId: '0x0000000021f32cc1'
 - name: engine_forkchoiceUpdatedV4
-  summary: Updates the forkchoice state
+  summary: Updates the forkchoice state, adds custody columns
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/amsterdam.md#engine_forkchoiceupdatedv4
@@ -196,3 +196,38 @@
       message: Unsupported fork
     - code: -38006
       message: Too deep reorg
+  examples:
+    - name: engine_forkchoiceUpdatedV4 example
+      params:
+        - name: Forkchoice state
+          value:
+            headBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            safeBlockHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            finalizedBlockHash: '0x3b8fb240d288781d4aac94d3fd16809ee413bc99294a085798a589dae51ddd4a'
+        - name: Payload attributes
+          value:
+            timestamp: '0x64e7785b'
+            prevRandao: '0xc130d5e63c61c935f6089e61140ca9136172677cf6aa5800dcc1cf0a02152a14'
+            suggestedFeeRecipient: '0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'
+            withdrawals:
+              - index: '0xf0'
+                validatorIndex: '0xf0'
+                address: '0x00000000000000000000000000000000000010f0'
+                amount: '0x1'
+              - index: '0xf1'
+                validatorIndex: '0xf1'
+                address: '0x00000000000000000000000000000000000010f1'
+                amount: '0x1'
+            parentBeaconBlockRoot: '0x11f780a954bcba8889998e4e61deaae6388dd2391e9c810bd9c94962cc1eadc1'
+            slotNumber: '0x1'
+            targetGasLimit: '0x1c9c380'
+        - name: Custody columns
+          value: null
+      result:
+        name: Response object
+        value:
+          payloadStatus:
+            status: VALID
+            latestValidHash: '0x3559e851470f6e7bbed1db474980683e8c315bfce99b2a6ef47c057c04de7858'
+            validationError: null
+          payloadId: '0x0000000021f32cc1'

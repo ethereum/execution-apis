@@ -1,18 +1,16 @@
 extends: [recommended]
 rules:
-  method-description:
-    severity: ignore
-  method-errors:
-    severity: warn
-  method-examples:
-    severity: warn
-  result-description:
-    severity: ignore
-  schema-description:
-    severity: ignore
   error-description:
     severity: ignore
   example-description:
     severity: ignore
+  method-description:
+    severity: ignore
   method-summary-length:
+    severity: ignore
+  result-description:
+    severity: ignore
+  schema-description:
+    severity: ignore
+  schema-title:
     severity: ignore

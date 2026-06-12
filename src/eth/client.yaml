@@ -5,6 +5,7 @@
     name: Chain ID
     schema:
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_chainId example
       params: []
@@ -18,6 +19,7 @@
     name: Syncing status
     schema:
       $ref: '#/components/schemas/SyncingStatus'
+  errors: []
   examples:
     - name: eth_syncing example
       params: []
@@ -34,6 +36,7 @@
     name: Coinbase address
     schema:
       $ref: '#/components/schemas/address'
+  errors: []
   examples:
     - name: eth_coinbase example
       params: []
@@ -50,6 +53,7 @@
       type: array
       items:
         $ref: '#/components/schemas/address'
+  errors: []
   examples:
     - name: eth_accounts example
       params: []
@@ -64,6 +68,7 @@
     name: Block number
     schema:
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_blockNumber example
       params: []
@@ -80,6 +85,7 @@
     name: Configuration
     schema:
       $ref: '#/components/schemas/ConfigurationResponse'
+  errors: []
   examples:
     - name: eth_config example with no future fork scheduled
       params: []
@@ -127,6 +133,7 @@
     name: Network ID
     schema:
       $ref: '#/components/schemas/uintDecimal'
+  errors: []
   examples:
     - name: net_version example
       params: []

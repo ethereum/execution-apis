@@ -1,5 +1,6 @@
 EthSimulatePayload:
   title: Arguments for eth_simulate
+  type: object
   required:
     - blockStateCalls
   properties:
