@@ -1,7 +1,0 @@
-ZkExecutionErrors:
-  range:
-    min: 2000
-    max: 2199
-  errors:
-    - code: 2000
-      message: "Out of counters"

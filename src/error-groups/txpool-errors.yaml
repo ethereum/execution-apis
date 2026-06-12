@@ -1,9 +1,11 @@
 TxPoolErrors:
-  range:
-    min: 1000
-    max: 1199
+  # Errors raised when admitting a transaction to the mempool.
   errors:
-    - code: 1000
+    - code: -38030
       message: "Already known transaction"
-    - code: 1001
+    - code: -38031
       message: "Invalid sender"
+    - code: -38032
+      message: "Replacement transaction underpriced"
+    - code: -38033
+      message: "Transaction pool limit reached"

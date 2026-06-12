@@ -52,8 +52,6 @@
   errors:
     - code: 4444
       message: Pruned history unavailable
-    - code: -32602
-      message: Invalid params
   result:
     name: EIP-2718 binary-encoded transaction
     schema:
