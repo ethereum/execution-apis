@@ -19,7 +19,7 @@
     "cancunTime": 420,
     "pragueTime": 450,
     "terminalTotalDifficulty": 4732736,
-    "depositContractAddress": "0x0000000000000000000000000000000000000000",
+    "depositContractAddress": "0x00000000219ab540356cBB839Cbe05303d7705Fa",
     "ethash": {},
     "blobSchedule": {
       "cancun": {
