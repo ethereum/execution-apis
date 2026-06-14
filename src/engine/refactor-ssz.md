@@ -32,6 +32,9 @@
   - [`PayloadAttributes` per fork](#payloadattributes-per-fork)
   - [`ExecutionPayloadBody` per fork](#executionpayloadbody-per-fork)
   - [`BlobsBundle` per revision](#blobsbundle-per-revision)
+  - [`BuiltPayload` per fork](#builtpayload-per-fork)
+  - [`ExecutionPayloadEnvelope` per fork](#executionpayloadenvelope-per-fork)
+  - [`ForkchoiceUpdate` per fork](#forkchoiceupdate-per-fork)
   - [`BlobAndProof` per revision](#blobandproof-per-revision)
   - [Identification & capabilities](#identification--capabilities)
 - [Endpoint containers](#endpoint-containers)
@@ -77,13 +80,15 @@
 | `BYTES_PER_FIELD_ELEMENT` | `32` | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
 | `BYTES_PER_BLOB` | `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT` (131,072) | derived |
 | `CELLS_PER_EXT_BLOB` | `128` | [EIP-7594](https://eips.ethereum.org/EIPS/eip-7594) |
-| `BYTES_PER_CELL` | `BYTES_PER_BLOB / CELLS_PER_EXT_BLOB` (1,024) | derived |
+| `FIELD_ELEMENTS_PER_CELL` | `64` | [EIP-7594](https://eips.ethereum.org/EIPS/eip-7594) |
+| `BYTES_PER_CELL` | `FIELD_ELEMENTS_PER_CELL * BYTES_PER_FIELD_ELEMENT` (2,048) | [EIP-7594](https://eips.ethereum.org/EIPS/eip-7594) |
 | `MAX_BAL_BYTES` | `MAX_BYTES_PER_TX` | [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928) (placeholder until EIP pins a tighter bound) |
 | `MAX_EXECUTION_REQUESTS_PER_PAYLOAD` | `2**8` (256) | [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685) |
 | `MAX_BYTES_PER_EXECUTION_REQUEST` | `MAX_BYTES_PER_TX` | this spec (placeholder; reuse the tx bound) |
 | `MAX_VERSIONED_HASHES_PER_REQUEST` | `128` | [Osaka](./osaka.md#engine_getblobsv2) |
 | `MAX_BLOBS_REQUEST` | `MAX_VERSIONED_HASHES_PER_REQUEST` (128) | derived |
 | `MAX_BODIES_REQUEST` | `2**5` (32) | [Shanghai](./shanghai.md#engine_getpayloadbodiesbyhashv1) |
+| `MAX_REQUEST_BODY_SIZE` | `2**26` (67,108,864) | this spec (64 MiB; advertised as `limits.payload.max_bytes`) |
 | `MAX_ERROR_BYTES` | `1024` | this spec |
 | `MAX_CLIENT_CODE_LENGTH` | `2` | this spec |
 | `MAX_CLIENT_NAME_LENGTH` | `64` | this spec |
@@ -215,6 +220,57 @@ deserialises as `VALID` rather than as a reserved sentinel.
 `3` from `/forkchoice` as a protocol error.
 
 `Optional[String]` resolves to `List[List[byte, MAX_ERROR_BYTES], 1]`.
+This nesting is subtle, so two worked byte examples follow. (Some
+implementations have mistakenly shipped a plain `List[byte, 1024]`,
+which cannot distinguish an absent error from an empty-string error;
+the wire shape below is the conformant one.)
+
+`PayloadStatus` is a variable-size SSZ container with one fixed field
+(`status: uint8`, 1 byte) and two variable-size fields
+(`latest_valid_hash`, `validation_error`), each contributing a 4-byte
+offset in the fixed part. The fixed part is therefore `1 + 4 + 4` = `9`
+bytes, and the variable parts follow in field order.
+
+**Example A — `VALID`, no error** (the 41-byte response from
+[refactor.md § Example: submit a payload](./refactor.md#example-submit-a-payload)):
+
+```
+status            : 0x00                              # 1 byte, VALID
+offset[lvh]       : 0x09000000                        # 4 bytes -> 9
+offset[verr]      : 0x29000000                        # 4 bytes -> 41
+latest_valid_hash : [<32-byte hash>]                  # Optional present:
+                                                       #   inner offset omitted because
+                                                       #   Hash32 is fixed-size; the List[T,1]
+                                                       #   body is just the 32 bytes
+validation_error  :                                   # Optional absent: List length 0, 0 bytes
+```
+
+Total = `1 + 4 + 4 + 32 + 0` = `41` bytes. The `latest_valid_hash`
+optional is *present* (length-1 list of a fixed-size element, so no
+inner offset), and `validation_error` is *absent* (length-0 list).
+
+**Example B — `INVALID`, error present** (`"bad state root"`, 14
+bytes of UTF-8):
+
+```
+status            : 0x01                              # 1 byte, INVALID
+offset[lvh]       : 0x09000000                        # 4 bytes -> 9
+offset[verr]      : 0x09000000                        # 4 bytes -> 9 (lvh is empty)
+latest_valid_hash :                                   # Optional absent: List length 0, 0 bytes
+validation_error  : 0x04000000                        # outer List[..,1] present: one element,
+                                                       #   so one 4-byte offset -> 4 (relative to
+                                                       #   the start of this variable region)
+                  : 0x6261642073746174... (14 bytes)  # inner List[byte,1024] body: the UTF-8 text
+```
+
+The `validation_error` variable region is `4 + 14` = `18` bytes: a
+single 4-byte offset (because the outer `List[String, 1]` has one
+variable-size element, `String` = `List[byte, 1024]`, so its offset is
+emitted) pointing at the start of the 14-byte text. Total =
+`1 + 4 + 4 + 0 + 18` = `27` bytes. Note the inner 4-byte offset that
+precedes the text whenever the error is present — this is exactly the
+byte that a plain `List[byte, 1024]` implementation omits, and the
+source of the divergence.
 
 ---
 
@@ -376,6 +432,137 @@ BlobsBundleV2 {
 `BuiltPayload` for Cancun / Prague carries `BlobsBundleV1`;
 Osaka / Amsterdam carries `BlobsBundleV2`.
 
+### `BuiltPayload` per fork
+
+Returned by `GET /{fork}/payloads/{payloadId}`. Like the
+`ExecutionPayload` catalogue above, the shape evolves per fork; this
+section pins every variant so there is no ambiguity for pre-Amsterdam
+forks. **All variants use the same field order; SSZ fields are
+positional, so the order below is normative and MUST be followed
+exactly.**
+
+Two points where implementations have diverged, settled here:
+
+- **Field order.** `execution_requests` (when present) comes
+  **before** `should_override_builder`. This intentionally differs
+  from the legacy JSON-RPC `getPayload` envelope, which appended
+  `executionRequests` last. Implementations that kept the legacy order
+  are non-conformant.
+- **Paris shape.** Paris `BuiltPayload` is **not** a bare
+  `ExecutionPayload`; it is the `{payload, block_value}` container
+  below. (`engine_getPayloadV1` returned a bare payload; `V2`
+  introduced the `{executionPayload, blockValue}` wrapper. The v2 API
+  uses the wrapper uniformly from Paris on, so every fork has the same
+  outer container and a CL never has to special-case Paris.)
+
+```
+# Paris — payload + block_value only
+BuiltPayloadParis {
+    payload:                 ExecutionPayloadParis
+    block_value:             Uint256
+}
+
+# Shanghai — Paris + should_override_builder
+# (shouldOverrideBuilder was introduced in engine_getPayloadV3/Shanghai)
+BuiltPayloadShanghai {
+    payload:                 ExecutionPayloadShanghai
+    block_value:             Uint256
+    should_override_builder: Boolean
+}
+
+# Cancun — Shanghai + blobs_bundle (V1)
+BuiltPayloadCancun {
+    payload:                 ExecutionPayloadCancun
+    block_value:             Uint256
+    blobs_bundle:            BlobsBundleV1
+    should_override_builder: Boolean
+}
+
+# Prague — Cancun + execution_requests (note: before should_override_builder)
+BuiltPayloadPrague {
+    payload:                 ExecutionPayloadPrague
+    block_value:             Uint256
+    blobs_bundle:            BlobsBundleV1
+    execution_requests:      List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
+    should_override_builder: Boolean
+}
+
+# Osaka — Prague but blobs_bundle is V2 (cell proofs)
+BuiltPayloadOsaka {
+    payload:                 ExecutionPayloadOsaka
+    block_value:             Uint256
+    blobs_bundle:            BlobsBundleV2
+    execution_requests:      List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
+    should_override_builder: Boolean
+}
+
+# Amsterdam — Osaka with the Amsterdam ExecutionPayload (BAL + slot_number)
+BuiltPayloadAmsterdam {
+    payload:                 ExecutionPayloadAmsterdam
+    block_value:             Uint256
+    blobs_bundle:            BlobsBundleV2
+    execution_requests:      List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
+    should_override_builder: Boolean
+}
+```
+
+The Amsterdam variant is the one shown in the
+[endpoint section below](#get-amsterdampayloadspayloadid).
+
+### `ExecutionPayloadEnvelope` per fork
+
+The request body of `POST /{fork}/payloads`. `parent_beacon_block_root`
+exists from Cancun on (it was a separate `engine_newPayload` parameter
+since Cancun); `execution_requests` from Prague on. Field order is
+normative.
+
+```
+# Paris / Shanghai — bare payload, no envelope fields
+ExecutionPayloadEnvelopeParis {
+    payload: ExecutionPayloadParis
+}
+ExecutionPayloadEnvelopeShanghai {
+    payload: ExecutionPayloadShanghai
+}
+
+# Cancun / Osaka — + parent_beacon_block_root
+ExecutionPayloadEnvelopeCancun {
+    payload:                  ExecutionPayloadCancun
+    parent_beacon_block_root: Root
+}
+
+# Prague — Cancun + execution_requests
+ExecutionPayloadEnvelopePrague {
+    payload:                  ExecutionPayloadPrague
+    parent_beacon_block_root: Root
+    execution_requests:       List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
+}
+
+# Osaka = Prague shape (ExecutionPayloadOsaka inner)
+# Amsterdam = Prague shape (ExecutionPayloadAmsterdam inner)
+```
+
+### `ForkchoiceUpdate` per fork
+
+The request body of `POST /{fork}/forkchoice`. `payload_attributes`
+selects the matching per-fork `PayloadAttributes` shape;
+`custody_columns` exists only from Amsterdam on.
+
+```
+# Paris .. Osaka
+ForkchoiceUpdate {
+    forkchoice_state:   ForkchoiceState
+    payload_attributes: Optional[PayloadAttributes]   # the fork's PayloadAttributes shape
+}
+
+# Amsterdam — + custody_columns
+ForkchoiceUpdateAmsterdam {
+    forkchoice_state:   ForkchoiceState
+    payload_attributes: Optional[PayloadAttributesAmsterdam]
+    custody_columns:    Optional[Bitvector[CELLS_PER_EXT_BLOB]]
+}
+```
+
 ### `BlobAndProof` per revision
 
 Used by `BlobEntry.contents` on the blob-pool endpoints (`/blobs/vN`).
@@ -532,9 +719,18 @@ BodyEntry {
 
 `available` is `false` when the requested block is unavailable /
 pruned, **or** when the block's timestamp falls outside the URL
-fork's active range, **or** for range queries when the block number
-is past the latest known block. When `available=false`, `body` is
-zero-valued and CLs MUST ignore its contents.
+fork's active range. When `available=false`, `body` is zero-valued
+and CLs MUST ignore its contents.
+
+For **range queries**, blocks past the latest known block are **not**
+represented by an `available=false` entry — they are **omitted**, and
+the response is truncated at the latest known block (the legacy
+`engine_getPayloadBodiesByRange` "no trailing nulls" rule). The
+`entries` list therefore has length `min(count, head - from + 1)` for
+`from <= head`, and is empty when `from > head`. Only `available=false`
+appears for in-range-but-out-of-era or pruned blocks; never as
+trailing padding. See
+[refactor.md § Historical bodies](./refactor.md#historical-bodies).
 
 Each fork URL pairs with its own `ExecutionPayloadBody` schema. The
 Amsterdam variant carries every field unconditionally:
@@ -660,6 +856,15 @@ BlobsV3Response {
 }
 ```
 
+`/v3` reuses `BlobV2Entry` (and therefore `BlobAndProofV2`)
+**verbatim** — the wire encoding of a `/v3` entry is byte-identical to
+a `/v2` entry; only the response-level semantics differ (`/v3` allows
+per-entry `available=false`, `/v2` is all-or-nothing). There is **no**
+separate `BlobV3Entry` type: implementations **MUST NOT** define one,
+to avoid the two drifting apart. The only difference between the
+revisions lives in the endpoint's response semantics, not the entry
+container.
+
 ### `POST /blobs/v4`
 
 Replaces `engine_getBlobsV4` (Amsterdam cell-range selection).
@@ -700,8 +905,15 @@ the requested indices, individual missing cells are also `[]`, and
 the corresponding `proofs` entry MUST also be `[]` (`null` in the
 old spec).
 
-`BYTES_PER_CELL` = `BYTES_PER_BLOB / CELLS_PER_EXT_BLOB` = `1024`
-(EIP-7594).
+`BYTES_PER_CELL` = `FIELD_ELEMENTS_PER_CELL * BYTES_PER_FIELD_ELEMENT`
+= `2048` ([EIP-7594](https://eips.ethereum.org/EIPS/eip-7594)). A cell
+spans `FIELD_ELEMENTS_PER_CELL` (64) field elements of the *extended*
+blob (`FIELD_ELEMENTS_PER_EXT_BLOB` = `2 * FIELD_ELEMENTS_PER_BLOB` =
+`8192`), so there are `8192 / 64` = `128` = `CELLS_PER_EXT_BLOB` cells,
+each `64 * 32` = `2048` bytes — `c-kzg-4844`'s `compute_cells` writes
+exactly this. The earlier `BYTES_PER_BLOB / CELLS_PER_EXT_BLOB`
+derivation was wrong: it divided the *original*-blob byte count over
+the *extended*-blob cell count, halving the true cell size.
 
 ---
 

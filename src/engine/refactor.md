@@ -217,13 +217,23 @@ Replaces `engine_getPayloadV{1..6}`.
 
   ```
   BuiltPayload {
-      payload:                ExecutionPayload
-      block_value:            Uint256
-      blobs_bundle:           BlobsBundle
-      execution_requests:     List[Bytes, MAX_REQUESTS]
+      payload:                 ExecutionPayload
+      block_value:             Uint256
+      blobs_bundle:            BlobsBundle
+      execution_requests:      List[Bytes, MAX_REQUESTS]
       should_override_builder: bool
   }
   ```
+
+  The shape above is the Amsterdam variant. **Field order is
+  normative**: `execution_requests` precedes `should_override_builder`.
+  This deliberately diverges from the legacy JSON-RPC envelope, which
+  appended `executionRequests` last; SSZ fields are positional, so the
+  order is part of the wire format and **MUST** be followed exactly.
+  Pre-Amsterdam forks have their own `BuiltPayload` shapes (the fields
+  a fork doesn't have are absent, and the `blobs_bundle` revision
+  tracks the fork) — see the per-fork `BuiltPayload` catalogue in
+  [refactor-ssz.md](./refactor-ssz.md) for every variant from Paris up.
 - **404** if `payloadId` is unknown or expired.
 
 Polling semantics are unchanged from `engine_getPayload`: the CL calls
@@ -257,6 +267,15 @@ blocks whose timestamp falls in `{fork}`'s active time range. A CL
 fetching bodies that span a fork boundary issues separate requests
 against each fork URL.
 
+The EL **MUST** apply both meanings of `{fork}`: it **MUST** serialise
+each entry against the `{fork}` schema **and MUST** filter the response
+to blocks whose timestamp falls in `{fork}`'s active time range.
+Using the segment only for schema selection — and returning blocks
+from outside the fork's era — is **non-conformant**. A requested block
+that exists but whose timestamp lies outside the URL fork's range
+**MUST** come back as `available=false` (it is not omitted, unlike a
+past-head block in a range query; see below).
+
 Concretely:
 
 - `/cancun/bodies/hash` returns bodies *only* for blocks in the
@@ -272,30 +291,47 @@ Concretely:
 Replaces `engine_getPayloadBodiesByHashV{1,2}`. Uses `POST` so that
 large hash lists travel in the request body rather than the URL.
 
-- **Request body:** SSZ-encoded `List[Hash32, MAX_BODIES_REQUEST]`.
+- **Request body:** SSZ-encoded `BodiesByHashRequest` (a single-field
+  container wrapping `block_hashes: List[Hash32, MAX_BODIES_REQUEST]`;
+  see [refactor-ssz.md](./refactor-ssz.md)). Top-level bodies are
+  wrapped in a container rather than sent as a bare SSZ list, matching
+  the beacon-API convention; this costs a 4-byte offset but lets future
+  revisions add fields without a breaking wire change.
 
 #### `GET /engine/v2/{fork}/bodies?from=N&count=M`
 
 Replaces `engine_getPayloadBodiesByRangeV{1,2}`. Range fits comfortably
-in the URL. Block numbers outside the URL fork's active range come
-back as `available=false`; if the requested range straddles a fork
-boundary the CL re-issues against the next fork URL for the unfilled
-suffix.
+in the URL. Block numbers whose timestamp falls outside the URL fork's
+active range come back as `available=false`; block numbers past the
+latest known block are **omitted entirely** (the response is truncated
+at head, not padded — see the response-length note below). If the
+requested range straddles a fork boundary the CL re-issues against the
+next fork URL for the unfilled suffix.
 
-- **Response body** (both endpoints): SSZ-encoded
-  `List[BodyEntry, MAX_BODIES_REQUEST]`. Each `BodyEntry` carries an
-  `available: boolean` flag and an `ExecutionPayloadBody` serialised
-  against the **`{fork}` schema from the URL**. `available` is false
-  in any of the following cases:
-  - the block is unavailable / pruned,
-  - the block's timestamp falls outside the URL fork's active range,
-  - or for range queries, the block number is past the latest known
-    block.
+- **Response body** (both endpoints): SSZ-encoded `BodiesResponse`
+  (a single-field container wrapping
+  `entries: List[BodyEntry, MAX_BODIES_REQUEST]`). Each `BodyEntry`
+  carries an `available: boolean` flag and an `ExecutionPayloadBody`
+  serialised against the **`{fork}` schema from the URL**. `available`
+  is false in either of the following cases:
+  - the block is unavailable / pruned, or
+  - the block's timestamp falls outside the URL fork's active range.
 
   When `available=false`, the `body` field is zero-valued and CLs
   MUST ignore its contents. See
   [SSZ encoding conventions](#ssz-encoding-conventions) for the
   `BodyEntry` wrapper definition.
+
+- **Response length (range queries).** The response carries one
+  `BodyEntry` per known block in the requested range; it is
+  **truncated at the latest known block** and is **not** padded out to
+  `count` entries with `available=false` placeholders. A request whose
+  range extends past head therefore returns fewer than `count`
+  entries, and a request entirely past head returns an empty
+  `entries` list. This carries forward the legacy
+  `engine_getPayloadBodiesByRange` "no trailing nulls" rule. The CL
+  detects the unfilled suffix from the shortfall and re-issues against
+  the next fork URL if the range straddled a fork boundary.
 
 ### Blob pool
 
@@ -307,20 +343,25 @@ Amsterdam) and **MAY** serve any subset of older revisions alongside;
 `GET /capabilities` advertises the actual list.
 
 All revisions use `POST` so that 128 versioned hashes (8 KiB hex)
-don't have to fit in the URL. All revisions return SSZ
-`List[BlobEntry, MAX_BLOBS_REQUEST]` on `200 OK` and use HTTP
-**`204 No Content`** to signal that the EL cannot serve the request
-at all (syncing, blob pool unavailable, V2 all-or-nothing miss).
-Within a `200` response, per-blob misses are reported via
-`BlobEntry.available = false` on revisions that support partial
-responses. Revision-specific contents live inside
+don't have to fit in the URL. All revisions take a single-field
+request container (`BlobsVNRequest`) and return a single-field
+response container (`BlobsVNResponse`) wrapping
+`entries: List[BlobVNEntry, MAX_BLOBS_REQUEST]` on `200 OK`, and use
+HTTP **`204 No Content`** to signal that the EL cannot serve the
+request at all (syncing, blob pool unavailable, V2 all-or-nothing
+miss). Wrapping top-level bodies in a container (rather than a bare
+SSZ list) costs a 4-byte offset but matches the beacon-API convention
+and keeps the revisions extensible. Within a `200` response, per-blob
+misses are reported via `BlobEntry.available = false` on revisions
+that support partial responses. Revision-specific contents live inside
 `BlobEntry.contents`.
 
 #### `POST /engine/v2/blobs/v1`
 
 Replaces `engine_getBlobsV1` (Cancun, single-proof whole-blob).
 
-- **Request body:** SSZ `List[VersionedHash, MAX_BLOBS_REQUEST]`.
+- **Request body:** SSZ `BlobsV1Request` (wraps
+  `versioned_hashes: List[VersionedHash, MAX_BLOBS_REQUEST]`).
 - **Response `BlobEntry.contents`:** `BlobAndProofV1 { blob, proof }`
   (one blob, one 48-byte KZG proof).
 - Partial responses supported: missing blobs surface as
@@ -331,7 +372,8 @@ Replaces `engine_getBlobsV1` (Cancun, single-proof whole-blob).
 
 Replaces `engine_getBlobsV2` (Osaka, all-or-nothing cell proofs).
 
-- **Request body:** SSZ `List[VersionedHash, MAX_BLOBS_REQUEST]`.
+- **Request body:** SSZ `BlobsV2Request` (wraps
+  `versioned_hashes: List[VersionedHash, MAX_BLOBS_REQUEST]`).
 - **Response `BlobEntry.contents`:** `BlobAndProofV2 { blob, proofs }`
   (one blob plus `CELLS_PER_EXT_BLOB` cell proofs).
 - **All-or-nothing:** if any requested blob is missing, the EL
@@ -379,12 +421,23 @@ the server is willing to serve in one request:
   "independently_versioned":  { "blobs": ["v1", "v2", "v3", "v4"] },
   "unscoped_endpoints":       ["capabilities", "identity"],
   "limits": {
-    "bodies.max_count":           128,
+    "bodies.max_count":           32,
     "blobs.max_versioned_hashes": 128,
     "payload.max_bytes":          67108864
   }
 }
 ```
+
+The `limits.*` values map onto the SSZ `MAX_*` constants where one
+exists: `bodies.max_count` is bounded by `MAX_BODIES_REQUEST` (`32`,
+inherited from Shanghai's `engine_getPayloadBodiesByHashV1`) and
+`blobs.max_versioned_hashes` by `MAX_VERSIONED_HASHES_PER_REQUEST`
+(`128`). `payload.max_bytes` is bounded by `MAX_REQUEST_BODY_SIZE`
+(`2**26` = `67108864`, 64 MiB); see
+[refactor-ssz.md § `MAX_*` constants](./refactor-ssz.md#max-constants).
+The advertised numbers are an upper bound the server is willing to
+serve; operators MAY advertise lower values, but MUST NOT advertise
+higher than the corresponding `MAX_*` constant.
 
 The `independently_versioned` map advertises endpoints whose URL
 carries an explicit `/vN` revision. ELs MAY support multiple
@@ -612,13 +665,20 @@ Unchanged in spirit: JWT (HS256, 256-bit shared secret). Differences:
 
 ## Transport & framing
 
-- **Protocol:** HTTP/2 is **required**. Both TCP and IPC transports
-  use **h2c** (HTTP/2 cleartext); JWT-on-every-request provides
-  authentication, so TLS termination is left to a reverse proxy if
-  the operator wants it. HTTP/2 multiplexing means a single CL→EL
-  connection can carry the full request mix (forkchoice, payload
-  submission, blob fetches, body fetches) without head-of-line
-  blocking. HTTP/1.1 is not supported.
+- **Protocol:** both **HTTP/2 and HTTP/1.1 MUST be supported**, with
+  HTTP/2 **preferred**. Both TCP and IPC transports use **cleartext**
+  (h2c for HTTP/2); JWT-on-every-request provides authentication, so
+  TLS termination is left to a reverse proxy if the operator wants
+  it. Servers and CLs **SHOULD** negotiate HTTP/2 where available
+  (ALPN over TLS, or the HTTP/2 prior-knowledge / `h2c` upgrade over
+  cleartext) and fall back to HTTP/1.1 only when the peer does not
+  speak h2. HTTP/2 multiplexing lets a single CL→EL connection carry
+  the full request mix (forkchoice, payload submission, blob fetches,
+  body fetches) without head-of-line blocking; on HTTP/1.1 that
+  benefit is lost (requests serialise per connection, or the CL opens
+  several connections), but the API is otherwise identical — same
+  paths, headers, bodies, and status codes. CLs that fall back to
+  HTTP/1.1 SHOULD use connection pooling to recover some concurrency.
 - **Default port:** `8551`, shared with the legacy JSON-RPC engine API.
   The two surfaces are distinguished by path: legacy JSON-RPC remains
   at `/` (and accepts JSON-RPC method calls), the new API lives under
@@ -628,9 +688,6 @@ Unchanged in spirit: JWT (HS256, 256-bit shared secret). Differences:
   body schema (`paris`, `shanghai`, `cancun`, `prague`, `osaka`,
   `amsterdam`, …). Adding a fork = adding one path prefix and one set
   of SSZ schemas. See [Versioning](#versioning-model).
-- **Trailing slashes are forbidden.** `/engine/v2/payloads` is the
-  canonical form; `/engine/v2/payloads/` MUST return
-  `404 method-not-found`. No automatic redirect.
 - **Content-Type / Accept matrix:**
 
   | Channel | Header | Value |
@@ -968,14 +1025,17 @@ the summary exists for quick scanning.
 
 #### Transport
 
-- **HTTP/2 required**, h2c (cleartext) for both TCP and IPC. No
-  HTTP/1.1 fallback. JWT-on-every-request authenticates; TLS
-  termination is left to a reverse proxy.
+- **HTTP/2 and HTTP/1.1 both MUST be supported**, HTTP/2 preferred;
+  cleartext (h2c for HTTP/2) for both TCP and IPC. Peers negotiate
+  HTTP/2 where available and fall back to HTTP/1.1 otherwise. The API
+  surface (paths, headers, bodies, status codes) is identical on both;
+  only HTTP/2's stream multiplexing is lost on the 1.1 fallback.
+  JWT-on-every-request authenticates; TLS termination is left to a
+  reverse proxy.
 - **IPC** is h2c over UNIX socket — same paths and headers as TCP,
   single code path.
 - **Default port `8551`**, shared with the legacy JSON-RPC API
   (distinguished by path).
-- **Trailing slashes are forbidden** — return `404 method-not-found`.
 - **Flow-control:** SHOULD set `INITIAL_WINDOW_SIZE` ≥ 1 MiB.
   `MAX_FRAME_SIZE` and `MAX_HEADER_LIST_SIZE` use HTTP/2 defaults.
 - **Connection lifecycle:** CLs MAY open fresh h2 connections per
