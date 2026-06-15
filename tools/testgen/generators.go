@@ -90,6 +90,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
+	EthBaseFee,
 	EthBlobBaseFee,
 	EthConfig,
 	EthCapabilities,
@@ -1835,6 +1836,21 @@ var EthMaxPriorityFeePerGas = MethodTests{
 					return err
 				}
 				return nil
+			},
+		},
+	},
+}
+
+var EthBaseFee = MethodTests{
+	"eth_baseFee",
+	[]Test{
+		{
+			Name:  "get-current-basefee",
+			About: "gets the base fee of the next block in wei",
+			Run: func(ctx context.Context, t *T) error {
+				var result hexutil.Big
+				err := t.rpc.CallContext(ctx, &result, "eth_baseFee")
+				return err
 			},
 		},
 	},
@@ -6843,4 +6859,3 @@ var TxpoolContentFrom = MethodTests{
 		},
 	},
 }
-
