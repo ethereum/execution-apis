@@ -170,54 +170,6 @@
       result:
         name: Transaction count
         value: '0x8'
-- name: eth_getUncleCountByBlockHash
-  summary: Returns the number of uncles in a block from a block matching the given block hash.
-  params:
-    - name: Block hash
-      schema:
-        $ref: '#/components/schemas/hash32'
-  result:
-    name: Uncle count
-    schema:
-      oneOf:
-        - $ref: '#/components/schemas/notFound'
-        - title: Uncle count
-          $ref: '#/components/schemas/uint'
-  errors:
-    - code: 4444
-      message: Pruned history unavailable
-  examples:
-    - name: eth_getUncleCountByBlockHash example
-      params:
-        - name: Block hash
-          value: '0xb3b20624f8f0f86eb50dd04688409e5cea4bd02d700bf6e79e9384d47d6a5a35'
-      result:
-        name: Uncle count
-        value: '0x1'
-- name: eth_getUncleCountByBlockNumber
-  summary: Returns the number of transactions in a block matching the given block number.
-  params:
-    - name: Block
-      schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
-  result:
-    name: Uncle count
-    schema:
-      oneOf:
-        - $ref: '#/components/schemas/notFound'
-        - title: Uncle count
-          $ref: '#/components/schemas/uint'
-  errors:
-    - code: 4444
-      message: Pruned history unavailable
-  examples:
-    - name: eth_getUncleCountByBlockNumber example
-      params:
-        - name: Block
-          value: '0xe8'
-      result:
-        name: Uncle count
-        value: '0x1'
 - name: eth_getBlockReceipts
   summary: Returns the receipts of a block by number or hash.
   params:
@@ -306,8 +258,8 @@
   errors:
     - code: 4444
       message: Pruned history unavailable
-    - code: 4445
-      message: Block access list not available for pre-Amsterdam blocks
+    - code: -32001
+      message: Resource not found
   examples:
     - name: eth_getBlockAccessList example
       params:

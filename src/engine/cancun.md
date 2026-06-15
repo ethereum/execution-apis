@@ -137,7 +137,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV2`](./s
 
 1. Client software **MUST** verify that `forkchoiceState` matches the [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1) structure and return `-32602: Invalid params` on failure.
 
-2. Extend point (7) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
+2. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
 
     1. `payloadAttributes` matches the [`PayloadAttributesV3`](#payloadattributesv3) structure, return `-38003: Invalid payload attributes` on failure.
 

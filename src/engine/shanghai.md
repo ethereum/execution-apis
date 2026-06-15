@@ -191,7 +191,7 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Client software **MUST** set `withdrawals` field to `null` for bodies of pre-Shanghai blocks.
 
-1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyroot) in the consensus layer `p2p` specification. Callers must be careful to use the execution block hash, instead of the beacon block root.
+1. This request maps to [`BeaconBlocksByRoot`](https://github.com/ethereum/consensus-specs/blob/master/specs/phase0/p2p-interface.md#beaconblocksbyroot-v1) in the consensus layer `p2p` specification. Callers must be careful to use the execution block hash, instead of the beacon block root.
 
 1. Callers must consider that syncing execution layer client may not serve any block bodies, including those that were supplied by `engine_newPayload` calls.
 
@@ -228,7 +228,7 @@ This method follows the same specification as [`engine_getPayloadV1`](./paris.md
 
 1. Client software **MUST** set `withdrawals` field to `null` for bodies of pre-Shanghai blocks.
 
-1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/dev/specs/phase0/p2p-interface.md#beaconblocksbyrange) in the consensus layer `p2p` specification.
+1. This request maps to [`BeaconBlocksByRange`](https://github.com/ethereum/consensus-specs/blob/master/specs/phase0/p2p-interface.md#beaconblocksbyrange-v1) in the consensus layer `p2p` specification.
 
 1. Callers must be careful to not confuse `start` with a slot number, instead mapping the slot to a block number. Callers must also be careful to request non-finalized blocks by hash in order to avoid race conditions around the current view of the canonical chain.
 
