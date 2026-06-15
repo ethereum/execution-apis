@@ -8,7 +8,7 @@ require (
 	github.com/ethereum/go-ethereum v1.17.4-0.20260609123946-08aaa7c5ff9d
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
-	github.com/open-rpc/meta-schema v0.0.0-20210416041958-626a15d0a618
+	github.com/open-rpc/spec-types/generated/packages/go v0.1.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
@@ -93,7 +93,6 @@ require (
 	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416 // indirect
 	github.com/open-rpc/openrpc-linter v0.0.16 // indirect
-	github.com/open-rpc/spec-types/generated/packages/go v0.1.1 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/peterh/liner v1.1.1-0.20190123174540-a2c9a5303de7 // indirect
 	github.com/pion/dtls/v3 v3.1.2 // indirect

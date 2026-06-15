@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	openrpc "github.com/open-rpc/meta-schema"
+	openrpc "github.com/open-rpc/spec-types/generated/packages/go/v1_4"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
