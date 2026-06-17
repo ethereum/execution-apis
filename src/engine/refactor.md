@@ -23,6 +23,7 @@
   - [Historical bodies](#historical-bodies)
   - [Blob pool](#blob-pool)
   - [Capabilities & identification](#capabilities--identification)
+  - [Examples: every fork](#examples-every-fork)
 - [Error model](#error-model)
 - [Versioning model](#versioning-model)
 - [Authentication](#authentication)
@@ -511,6 +512,140 @@ curl http://localhost:8551/engine/v2/amsterdam/payloads/0x1234567890abcdef \
 Response carries `Cache-Control: no-store`; intermediaries MUST NOT
 cache. See [Payload retrieval](#payload-retrieval).
 
+### Examples: every fork
+
+The examples above use Amsterdam. The shapes below show how the two
+main hot-path bodies change fork-to-fork, so each fork's URL has a
+worked example. Field names follow the
+[per-fork container catalogue](./refactor-ssz.md#per-fork-container-catalogue);
+`<…>` denotes nested SSZ. Only the fields that change per fork are
+called out; every fork from Paris on is a valid `{fork}` segment.
+
+#### `POST /{fork}/payloads` request body (`ExecutionPayloadEnvelope{Fork}`)
+
+```
+# POST /engine/v2/paris/payloads
+ExecutionPayloadEnvelopeParis {
+    payload: <ExecutionPayloadParis>            # base fields only (no withdrawals/blob-gas/BAL)
+}
+
+# POST /engine/v2/shanghai/payloads
+ExecutionPayloadEnvelopeShanghai {
+    payload: <ExecutionPayloadShanghai>         # + withdrawals
+}
+
+# POST /engine/v2/cancun/payloads
+ExecutionPayloadEnvelopeCancun {
+    payload:                  <ExecutionPayloadCancun>   # + blob_gas_used, excess_blob_gas
+    parent_beacon_block_root: <Root>                     # NEW: was a side param since Cancun
+}
+
+# POST /engine/v2/prague/payloads
+ExecutionPayloadEnvelopePrague {
+    payload:                  <ExecutionPayloadPrague>   # == Cancun payload shape
+    parent_beacon_block_root: <Root>
+    execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>  # NEW: was a side param since Prague
+}
+
+# POST /engine/v2/osaka/payloads — identical envelope shape to Prague
+ExecutionPayloadEnvelopeOsaka {
+    payload:                  <ExecutionPayloadOsaka>    # == Cancun payload shape
+    parent_beacon_block_root: <Root>
+    execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
+}
+
+# POST /engine/v2/amsterdam/payloads
+ExecutionPayloadEnvelopeAmsterdam {
+    payload:                  <ExecutionPayloadAmsterdam># + block_access_list, slot_number
+    parent_beacon_block_root: <Root>
+    execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
+}
+```
+
+The response for **all** forks is `PayloadStatus` (fork-invariant).
+
+#### `GET /{fork}/payloads/{id}` response body (`BuiltPayload{Fork}`)
+
+```
+# GET /engine/v2/paris/payloads/{id}
+BuiltPayloadParis {
+    payload:     <ExecutionPayloadParis>
+    block_value: <Uint256>
+}
+
+# GET /engine/v2/shanghai/payloads/{id}
+BuiltPayloadShanghai {
+    payload:     <ExecutionPayloadShanghai>
+    block_value: <Uint256>
+}
+
+# GET /engine/v2/cancun/payloads/{id}
+BuiltPayloadCancun {
+    payload:                 <ExecutionPayloadCancun>
+    block_value:             <Uint256>
+    blobs_bundle:            <BlobsBundleV1>            # NEW in Cancun (single proof)
+    should_override_builder: <Boolean>                  # NEW in Cancun
+}
+
+# GET /engine/v2/prague/payloads/{id}
+BuiltPayloadPrague {
+    payload:                 <ExecutionPayloadPrague>
+    block_value:             <Uint256>
+    blobs_bundle:            <BlobsBundleV1>
+    execution_requests:      <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>  # NEW in Prague, before should_override_builder
+    should_override_builder: <Boolean>
+}
+
+# GET /engine/v2/osaka/payloads/{id}
+BuiltPayloadOsaka {
+    payload:                 <ExecutionPayloadOsaka>
+    block_value:             <Uint256>
+    blobs_bundle:            <BlobsBundleV2>            # CHANGED in Osaka (cell proofs)
+    execution_requests:      <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
+    should_override_builder: <Boolean>
+}
+
+# GET /engine/v2/amsterdam/payloads/{id}
+BuiltPayloadAmsterdam {
+    payload:                 <ExecutionPayloadAmsterdam>
+    block_value:             <Uint256>
+    blobs_bundle:            <BlobsBundleV2>
+    execution_requests:      <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
+    should_override_builder: <Boolean>
+}
+```
+
+#### `POST /{fork}/forkchoice` request body (`ForkchoiceUpdate{Fork}`)
+
+The wrapper is the same Paris→Osaka (`custody_columns` is Amsterdam+);
+only the inner `payload_attributes` shape changes per fork:
+
+```
+# Paris .. Osaka
+ForkchoiceUpdate{Fork} {
+    forkchoice_state:   <ForkchoiceState>               # fork-invariant
+    payload_attributes: Optional[<PayloadAttributes{Fork}>]
+}
+
+# Amsterdam
+ForkchoiceUpdateAmsterdam {
+    forkchoice_state:   <ForkchoiceState>
+    payload_attributes: Optional[<PayloadAttributesAmsterdam>]   # + slot_number, target_gas_limit
+    custody_columns:    Optional[Bitvector[CELLS_PER_EXT_BLOB]]  # NEW in Amsterdam
+}
+```
+
+where the per-fork `payload_attributes` adds `withdrawals` at Shanghai,
+`parent_beacon_block_root` at Cancun, and
+`slot_number`/`target_gas_limit` at Amsterdam. The response
+(`ForkchoiceUpdateResponse`) is fork-invariant.
+
+For the `/bodies` and `/blobs/vN` per-fork / per-revision bodies, see
+the [container catalogue](./refactor-ssz.md#per-fork-container-catalogue);
+`/bodies` varies the inner `ExecutionPayloadBody` (`+withdrawals` at
+Shanghai, `+block_access_list` at Amsterdam) and `/blobs/vN` is
+independently versioned rather than fork-scoped.
+
 ---
 
 ## Error model
@@ -584,11 +719,25 @@ Three layers:
 2. **Per-fork body schema** — selected via the `{fork}` URL segment
    on hot-path endpoints (`/{fork}/payloads`, `/{fork}/forkchoice`,
    `/{fork}/bodies`). Tracks consensus-protocol changes that ride
-   along with fork activations.
+   along with fork activations. The named fork segments span
+   **Paris through Amsterdam** (`paris`, `shanghai`, `cancun`,
+   `prague`, `osaka`, `amsterdam`); Paris is the earliest fork with an
+   Engine API and therefore the lowest `{fork}` an EL accepts. A
+   request with a `{fork}` below the EL's earliest supported fork (or
+   one it doesn't recognise) returns
+   `400 /engine-api/errors/unsupported-fork`.
 3. **Per-endpoint revisions** — selected via a `/vN` URL segment on
    endpoints whose protocol evolves independently of the fork
    schedule (currently just `/blobs/vN`). Tracks engine-API protocol
    changes that don't align with fork activations.
+
+**Blob-parameter-only (BPO) forks** do **not** get their own `{fork}`
+segment. A BPO fork only changes blob-count parameters, not any
+Engine API body schema, so a chain in a BPO era keeps negotiating the
+URL of the named fork it layers on — e.g. BPO1–BPO5 all use
+`/osaka/...` and the Osaka wire shapes. Only named forks that change a
+body schema introduce a new `{fork}` segment. CLs MUST map a BPO era
+onto its base named fork when constructing the URL.
 
 The server advertises which forks and which `/vN` revisions it
 understands via `GET /engine/v2/capabilities`.

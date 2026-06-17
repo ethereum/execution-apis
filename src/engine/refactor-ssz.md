@@ -38,10 +38,10 @@
   - [`BlobAndProof` per revision](#blobandproof-per-revision)
   - [Identification & capabilities](#identification--capabilities)
 - [Endpoint containers](#endpoint-containers)
-  - [`POST /amsterdam/payloads`](#post-amsterdampayloads)
-  - [`POST /amsterdam/forkchoice`](#post-amsterdamforkchoice)
-  - [`GET /amsterdam/payloads/{payloadId}`](#get-amsterdampayloadspayloadid)
-  - [`POST /amsterdam/bodies/hash` and `GET /amsterdam/bodies?...`](#post-amsterdambodieshash-and-get-amsterdambodies)
+  - [`POST /{fork}/payloads`](#post-forkpayloads)
+  - [`POST /{fork}/forkchoice`](#post-forkforkchoice)
+  - [`GET /{fork}/payloads/{payloadId}`](#get-forkpayloadspayloadid)
+  - [`POST /{fork}/bodies/hash` and `GET /{fork}/bodies?...`](#post-forkbodieshash-and-get-forkbodies)
   - [`POST /blobs/v1`](#post-blobsv1)
   - [`POST /blobs/v2`](#post-blobsv2)
   - [`POST /blobs/v3`](#post-blobsv3)
@@ -455,6 +455,19 @@ Two points where implementations have diverged, settled here:
   uses the wrapper uniformly from Paris on, so every fork has the same
   outer container and a CL never has to special-case Paris.)
 
+Field-introduction history (from the legacy `engine_getPayloadV{1..5}`
+response evolution; see [shanghai.md](./shanghai.md),
+[cancun.md](./cancun.md), [prague.md](./prague.md),
+[osaka.md](./osaka.md)):
+
+| Field | Introduced | Notes |
+| - | - | - |
+| `payload`, `block_value` | Shanghai (`getPayloadV2`) | the wrapper itself; v2 API back-applies it to Paris |
+| `blobs_bundle` | Cancun (`getPayloadV3`) | `BlobsBundleV1` (single proof) |
+| `should_override_builder` | Cancun (`getPayloadV3`) | introduced alongside `blobs_bundle` — **not** Shanghai |
+| `execution_requests` | Prague (`getPayloadV4`) | placed before `should_override_builder` |
+| `blobs_bundle` → `BlobsBundleV2` | Osaka (`getPayloadV5`) | cell proofs replace the single proof |
+
 ```
 # Paris — payload + block_value only
 BuiltPayloadParis {
@@ -462,15 +475,15 @@ BuiltPayloadParis {
     block_value:             Uint256
 }
 
-# Shanghai — Paris + should_override_builder
-# (shouldOverrideBuilder was introduced in engine_getPayloadV3/Shanghai)
+# Shanghai — Paris + nothing new on the wrapper (getPayloadV2 added the
+# {executionPayload, blockValue} wrapper; that's already the Paris shape here)
 BuiltPayloadShanghai {
     payload:                 ExecutionPayloadShanghai
     block_value:             Uint256
-    should_override_builder: Boolean
 }
 
-# Cancun — Shanghai + blobs_bundle (V1)
+# Cancun — Shanghai + blobs_bundle (V1) + should_override_builder
+# (both introduced together in engine_getPayloadV3/Cancun)
 BuiltPayloadCancun {
     payload:                 ExecutionPayloadCancun
     block_value:             Uint256
@@ -507,7 +520,7 @@ BuiltPayloadAmsterdam {
 ```
 
 The Amsterdam variant is the one shown in the
-[endpoint section below](#get-amsterdampayloadspayloadid).
+[endpoint section below](#get-forkpayloadspayloadid).
 
 ### `ExecutionPayloadEnvelope` per fork
 
@@ -525,7 +538,7 @@ ExecutionPayloadEnvelopeShanghai {
     payload: ExecutionPayloadShanghai
 }
 
-# Cancun / Osaka — + parent_beacon_block_root
+# Cancun — + parent_beacon_block_root
 ExecutionPayloadEnvelopeCancun {
     payload:                  ExecutionPayloadCancun
     parent_beacon_block_root: Root
@@ -538,8 +551,8 @@ ExecutionPayloadEnvelopePrague {
     execution_requests:       List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
 }
 
-# Osaka = Prague shape (ExecutionPayloadOsaka inner)
-# Amsterdam = Prague shape (ExecutionPayloadAmsterdam inner)
+# Osaka = Prague shape, with ExecutionPayloadOsaka inner
+# Amsterdam = Prague shape, with ExecutionPayloadAmsterdam inner
 ```
 
 ### `ForkchoiceUpdate` per fork
@@ -616,15 +629,46 @@ CapabilitiesResponse {
 
 ## Endpoint containers
 
-### `POST /amsterdam/payloads`
+The endpoint sketches below use the **Amsterdam** shapes as the worked
+example. Every fork-scoped endpoint (`/{fork}/payloads`,
+`/{fork}/forkchoice`, `/{fork}/bodies`) is defined for **every fork
+from Paris onward**; substitute the matching entry from the
+[per-fork container catalogue](#per-fork-container-catalogue) for the
+URL's `{fork}`. For instance `POST /cancun/payloads` takes an
+`ExecutionPayloadEnvelopeCancun` wrapping an `ExecutionPayloadCancun`,
+and `GET /shanghai/payloads/{id}` returns a `BuiltPayloadShanghai`.
 
-Replaces `engine_newPayloadV5`.
+> **Fork-invariant containers.** `PayloadStatus`, `ForkchoiceState`,
+> `ForkchoiceUpdateResponse`, and `Withdrawal` have the **same shape
+> across all forks** — only the fork-scoped payload/attributes/body
+> containers and the `BuiltPayload` / `ExecutionPayloadEnvelope` /
+> `ForkchoiceUpdate` wrappers that embed them vary by fork.
 
-#### Request
+> **Implementation note (monolithic vs. per-fork types).** This
+> catalogue names a distinct container per fork
+> (`ExecutionPayloadParis`, `…Shanghai`, …) so the wire shape of each
+> fork is unambiguous. Implementations are free to model these as a
+> single *monolithic* superset container per type whose fields are
+> gated on the active fork (e.g. one `ExecutionPayload` struct where
+> `withdrawals` participates only from Shanghai, `block_access_list`
+> only from Amsterdam, etc.), driving the gate from the URL `{fork}`.
+> This is a valid strategy **as long as the bytes on the wire are
+> identical** to the per-fork shape for that fork — i.e. a gated-off
+> field contributes neither an offset nor content. go-ethereum's
+> implementation takes this monolithic approach.
+
+### `POST /{fork}/payloads`
+
+Replaces `engine_newPayloadV{1..5}` (Amsterdam shown; `engine_newPayloadV5`).
+Each fork uses its `ExecutionPayloadEnvelope{Fork}` from the catalogue
+above — Paris/Shanghai carry the bare payload, Cancun+ add
+`parent_beacon_block_root`, Prague+ add `execution_requests`.
+
+#### Request (Amsterdam)
 
 ```
-ExecutionPayloadEnvelope {
-    payload:                  ExecutionPayload
+ExecutionPayloadEnvelopeAmsterdam {
+    payload:                  ExecutionPayloadAmsterdam
     parent_beacon_block_root: Root
     execution_requests:       List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
 }
@@ -637,21 +681,25 @@ from `payload.transactions`).
 
 `PayloadStatus` (full enum, `0`/`1`/`2`/`3`).
 
-### `POST /amsterdam/forkchoice`
+### `POST /{fork}/forkchoice`
 
-Replaces `engine_forkchoiceUpdatedV4`.
+Replaces `engine_forkchoiceUpdatedV{1..4}` (Amsterdam shown;
+`engine_forkchoiceUpdatedV4`). Each fork uses its `ForkchoiceUpdate{Fork}`
+and `PayloadAttributes{Fork}` from the catalogue; `custody_columns`
+exists only from Amsterdam on. `ForkchoiceState` and the response are
+fork-invariant.
 
-#### Request
+#### Request (Amsterdam)
 
 ```
-ForkchoiceUpdate {
+ForkchoiceUpdateAmsterdam {
     forkchoice_state:    ForkchoiceState
-    payload_attributes:  Optional[PayloadAttributes]
+    payload_attributes:  Optional[PayloadAttributesAmsterdam]
     custody_columns:     Optional[Bitvector[CELLS_PER_EXT_BLOB]]
 }
 ```
 
-#### Response
+#### Response (all forks)
 
 ```
 ForkchoiceUpdateResponse {
@@ -660,15 +708,17 @@ ForkchoiceUpdateResponse {
 }
 ```
 
-### `GET /amsterdam/payloads/{payloadId}`
+### `GET /{fork}/payloads/{payloadId}`
 
-Replaces `engine_getPayloadV6`.
+Replaces `engine_getPayloadV{1..6}` (Amsterdam shown;
+`engine_getPayloadV6`). Each fork returns its `BuiltPayload{Fork}` from
+the catalogue.
 
-#### Response
+#### Response (Amsterdam)
 
 ```
-BuiltPayload {
-    payload:                 ExecutionPayload
+BuiltPayloadAmsterdam {
+    payload:                 ExecutionPayloadAmsterdam
     block_value:             Uint256
     blobs_bundle:            BlobsBundleV2          # see consensus-specs Osaka
     execution_requests:      List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
@@ -676,9 +726,9 @@ BuiltPayload {
 }
 
 BlobsBundleV2 {
-    commitments: List[Bytes48, MAX_BLOBS_PER_PAYLOAD]
-    proofs:      List[Bytes48, MAX_BLOBS_PER_PAYLOAD * CELLS_PER_EXT_BLOB]
-    blobs:       List[ByteVector[BYTES_PER_BLOB], MAX_BLOBS_PER_PAYLOAD]
+    commitments: List[Bytes48, MAX_BLOB_COMMITMENTS_PER_BLOCK]
+    proofs:      List[Bytes48, MAX_BLOB_COMMITMENTS_PER_BLOCK * CELLS_PER_EXT_BLOB]
+    blobs:       List[ByteVector[BYTES_PER_BLOB], MAX_BLOB_COMMITMENTS_PER_BLOCK]
 }
 ```
 
@@ -686,11 +736,12 @@ BlobsBundleV2 {
 have length `len(blobs) * CELLS_PER_EXT_BLOB` (mirrors the
 `engine_getPayloadV5` rule from osaka.md).
 
-### `POST /amsterdam/bodies/hash` and `GET /amsterdam/bodies?...`
+### `POST /{fork}/bodies/hash` and `GET /{fork}/bodies?...`
 
-Replace `engine_getPayloadBodiesByHashV2` and
-`engine_getPayloadBodiesByRangeV2`. Both return the same response
-container.
+Replace `engine_getPayloadBodiesByHashV{1,2}` and
+`engine_getPayloadBodiesByRangeV{1,2}` (Amsterdam shown). Both return
+the same response container; the inner `ExecutionPayloadBody` follows
+the URL `{fork}` per the catalogue.
 
 #### Request — `/bodies/hash`
 
