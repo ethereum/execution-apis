@@ -96,11 +96,11 @@ The formal proposal stage is where the bulk of time will be spent. A formal
 proposal is a PR to this repository ([ethereum/execution-apis][exec-apis]). A
 good proposal will have the following:
 
-* a modification to the specification implementing the proposal
-* test cases for proposal ([guide][test-gen])
-* motivation for the change
-* links to acknowledgements that proposal idea is sound
-* clear rationale for non-obvious design decisions
+- a modification to the specification implementing the proposal
+- test cases for proposal ([guide][test-gen])
+- motivation for the change
+- links to acknowledgements that proposal idea is sound
+- clear rationale for non-obvious design decisions
 
 When adding new method names, update [wordlist.txt][wordlist] if the spell
 checker flags them (e.g., camelCase or versioned names like `simulateV1`).
@@ -111,10 +111,10 @@ Once a formal proposal has been created, formal support of clients can be
 acquired. The issue or PR needs review from execution client developers to
 achieve rough consensus. There are several ways to bring proposals forward:
 
-* **All Core Devs Testing (ACDT) calls** — Recommended. Post a request on the
+- **All Core Devs Testing (ACDT) calls** — Recommended. Post a request on the
   AllCoreDevs agenda (usually in [ethereum/pm][pm]) to discuss the proposal.
-* **RPC Standards calls** — Bring the proposal to the RPC Standards meetings.
-* **json-rpc-api Discord channel** — Discuss in the json-rpc-api channel within
+- **RPC Standards calls** — Bring the proposal to the RPC Standards meetings.
+- **json-rpc-api Discord channel** — Discuss in the json-rpc-api channel within
   the [ETH R&D Discord][discord].
 
 Oftentimes, support will be conditional on certain changes. This means that
@@ -160,10 +160,10 @@ The end-to-end process from proposal to deployment:
 
 ## CI Requirements
 
-* **speccheck** — Must pass. Validates test cases in `tests/` against the
+- **speccheck** — Must pass. Validates test cases in `tests/` against the
   OpenRPC specification.
 
-* **rpctestgen / test fill** — Required for existing methods. For **new
+- **rpctestgen / test fill** — Required for existing methods. For **new
   methods** that require upstream go-ethereum changes, rpctestgen may not pass
   until go-ethereum implements the method. In such cases, maintainers may merge
   PRs with CI exceptions. The spec and speccheck must still pass.
@@ -176,14 +176,20 @@ For detailed instructions on running these tools locally, see the
 The [hive][hive] test framework runs conformance tests against execution
 clients via the [rpc-compat][rpc-compat] simulator. How it works:
 
-* **Consumption** — During Docker build, rpc-compat clones execution-apis and
+- **Consumption** — During Docker build, rpc-compat clones execution-apis and
   copies the `tests/` directory into the simulator container.
-* **Branch targeting** — The `branch` build arg (default: `main`) controls
+- **Branch targeting** — The `branch` build arg (default: `main`) controls
   which ref is fetched. This allows testing against specific commits or branches.
-* **Results** — Test results are published at [hive.ethpandaops.io][hivetests]
+- **Results** — Test results are published at [hive.ethpandaops.io][hivetests]
   under the `rpc-compat` tag.
-* **Future** — Versioned releases will allow hive to pin to specific
+- **Future** — Versioned releases will allow hive to pin to specific
   execution-apis versions.
+
+## GitHub Actions workflows
+
+For release pipeline, Pages deploy, and PR CI details (including Mermaid diagrams), see the [workflows README on GitHub][workflows-readme].
+
+The release github actions drives three kinds of automation: the **release pipeline** (tag → build → Pages → GitHub Release → stamped spec branch), **continuous deploy from `main`** (rolling docs site and unstamped spec branch), and **PR gating** (spec tests, docs smoke-build, spellcheck).
 
 [exec-apis]: https://github.com/ethereum/execution-apis
 [pm]: https://github.com/ethereum/pm
@@ -195,3 +201,4 @@ clients via the [rpc-compat][rpc-compat] simulator. How it works:
 [hive]: https://github.com/ethereum/hive
 [rpc-compat]: https://github.com/ethereum/hive/tree/master/simulators/ethereum/rpc-compat
 [hivetests]: https://hive.ethpandaops.io
+[workflows-readme]: https://github.com/ethereum/execution-apis/blob/main/.github/workflows/README.md
