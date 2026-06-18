@@ -1,0 +1,4 @@
+Triggering deploy rerun via no-op commit by Copilot
+
+This file was created to trigger GitHub Actions workflows (deploy.yaml) on the main branch.
+Timestamp: 2026-06-18T22:32:00Z
