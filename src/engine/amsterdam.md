@@ -226,10 +226,6 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
 
     2. `payloadAttributes.timestamp` does not fall within the time frame of the Amsterdam fork, return `-38005: Unsupported fork` on failure.
 
-    3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
-
-    4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
-
 2. Client software **MUST** use the target gas limit supplied in `payloadAttributes.targetGasLimit` when constructing a payload.
 
 3. If `custodyColumns` is provided (non-null), the following rules apply:
