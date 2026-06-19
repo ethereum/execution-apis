@@ -117,7 +117,7 @@ This method follows the same specification as [`engine_newPayloadV1`](./paris.md
 
 #### Request
 
-* method: "engine_forkchoiceUpdatedV2"
+* method: `engine_forkchoiceUpdatedV2`
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](./paris.md#PayloadAttributesV1) | [`PayloadAttributesV2`](#PayloadAttributesV2) or `null`, where:

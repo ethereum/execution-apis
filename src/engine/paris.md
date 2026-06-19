@@ -190,7 +190,7 @@ The payload build process is specified as follows:
 
 #### Request
 
-* method: "engine_forkchoiceUpdatedV1"
+* method: `engine_forkchoiceUpdatedV1`
 * params:
   1. `forkchoiceState`: `Object` - instance of [`ForkchoiceStateV1`](#ForkchoiceStateV1)
   2. `payloadAttributes`: `Object|null` - instance of [`PayloadAttributesV1`](#PayloadAttributesV1) or `null`
