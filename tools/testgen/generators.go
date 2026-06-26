@@ -80,6 +80,9 @@ var AllMethods = []MethodTests{
 	EthGetTransactionByBlockNumberAndIndex,
 	EthGetTransactionCount,
 	EthGetTransactionByHash,
+	EthGetRawTransactionByHash,
+	EthGetRawTransactionByBlockHashAndIndex,
+	EthGetRawTransactionByBlockNumberAndIndex,
 	EthGetTransactionReceipt,
 	EthGetBlockReceipts,
 	EthSendRawTransaction,
@@ -1401,6 +1404,172 @@ var EthGetTransactionByHash = MethodTests{
 	},
 }
 
+// EthGetRawTransactionByHash stores a list of all tests against the method.
+var EthGetRawTransactionByHash = MethodTests{
+	"eth_getRawTransactionByHash",
+	[]Test{
+		{
+			Name:  "get-legacy-tx",
+			About: "gets the RLP-encoded bytes of a legacy transaction",
+			Run: func(ctx context.Context, t *T) error {
+				want := t.chain.FindTransaction("legacy tx", matchLegacyValueTransfer)
+				var got hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByHash", want.Hash()); err != nil {
+					return err
+				}
+				raw, err := want.MarshalBinary()
+				if err != nil {
+					return err
+				}
+				if !bytes.Equal(got, raw) {
+					return fmt.Errorf("raw tx mismatch (got: %s, want: %s)", got, hexutil.Bytes(raw))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-empty-tx",
+			About: "requests the zero transaction hash",
+			Run: func(ctx context.Context, t *T) error {
+				var got *hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByHash", common.Hash{}); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", *got)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-notfound-tx",
+			About: "gets a non-existent transaction",
+			Run: func(ctx context.Context, t *T) error {
+				var got *hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByHash", common.HexToHash("deadbeef")); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", *got)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetRawTransactionByBlockHashAndIndex stores a list of all tests against the method.
+var EthGetRawTransactionByBlockHashAndIndex = MethodTests{
+	"eth_getRawTransactionByBlockHashAndIndex",
+	[]Test{
+		{
+			Name:  "get-block-n",
+			About: "gets raw tx 0 in a non-empty block by block hash",
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
+				want := block.Transactions()[0]
+				var got hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByBlockHashAndIndex", block.Hash(), hexutil.Uint(0)); err != nil {
+					return err
+				}
+				raw, err := want.MarshalBinary()
+				if err != nil {
+					return err
+				}
+				if !bytes.Equal(got, raw) {
+					return fmt.Errorf("raw tx mismatch (got: %s, want: %s)", got, hexutil.Bytes(raw))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-notfound-block",
+			About: "gets raw tx from a non-existent block hash",
+			Run: func(ctx context.Context, t *T) error {
+				var got *hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByBlockHashAndIndex", common.HexToHash("deadbeef"), hexutil.Uint(0)); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", *got)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-index-out-of-range",
+			About: "gets raw tx with index exceeding block transaction count",
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
+				var got *hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByBlockHashAndIndex", block.Hash(), hexutil.Uint(len(block.Transactions()))); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", *got)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+// EthGetRawTransactionByBlockNumberAndIndex stores a list of all tests against the method.
+var EthGetRawTransactionByBlockNumberAndIndex = MethodTests{
+	"eth_getRawTransactionByBlockNumberAndIndex",
+	[]Test{
+		{
+			Name:  "get-block-n",
+			About: "gets raw tx 0 in a non-empty block by block number",
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
+				want := block.Transactions()[0]
+				var got hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByBlockNumberAndIndex", hexutil.Uint64(block.NumberU64()), hexutil.Uint(0)); err != nil {
+					return err
+				}
+				raw, err := want.MarshalBinary()
+				if err != nil {
+					return err
+				}
+				if !bytes.Equal(got, raw) {
+					return fmt.Errorf("raw tx mismatch (got: %s, want: %s)", got, hexutil.Bytes(raw))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-notfound-block",
+			About: "gets raw tx from a non-existent block number",
+			Run: func(ctx context.Context, t *T) error {
+				var got *hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByBlockNumberAndIndex", hexutil.Uint64(99999999), hexutil.Uint(0)); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", *got)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-index-out-of-range",
+			About: "gets raw tx with index exceeding block transaction count",
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.BlockWithTransactions("", nil)
+				var got *hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getRawTransactionByBlockNumberAndIndex", hexutil.Uint64(block.NumberU64()), hexutil.Uint(len(block.Transactions()))); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", *got)
+				}
+				return nil
+			},
+		},
+	},
+}
+
 // EthGetTransactionReceipt stores a list of all tests against the method.
 var EthGetTransactionReceipt = MethodTests{
 	"eth_getTransactionReceipt",
@@ -2425,6 +2594,20 @@ var DebugGetRawTransaction = MethodTests{
 				err := t.rpc.CallContext(ctx, &got, "debug_getRawTransaction", "1000000000000000000000000000000000000000000000000000000000000001")
 				if !strings.HasPrefix(err.Error(), "invalid argument 0") {
 					return err
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-notfound-tx",
+			About: "gets a non-existent transaction",
+			Run: func(ctx context.Context, t *T) error {
+				var got *hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "debug_getRawTransaction", common.HexToHash("deadbeef")); err != nil {
+					return err
+				}
+				if got != nil {
+					return fmt.Errorf("expected null result, got %s", *got)
 				}
 				return nil
 			},
