@@ -1105,7 +1105,7 @@
   result:
     name: Payload status
     schema:
-      $ref: '#/components/schemas/PayloadStatusInclusionListUnsatisfied'
+      $ref: '#/components/schemas/PayloadStatusV2'
   errors:
     - code: -32602
       message: Invalid params

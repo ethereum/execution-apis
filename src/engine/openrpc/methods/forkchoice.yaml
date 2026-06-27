@@ -219,7 +219,7 @@
   result:
     name: Response object
     schema:
-      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV2'
   errors:
     - code: -38002
       message: Invalid forkchoice state
