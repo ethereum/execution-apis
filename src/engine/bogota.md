@@ -91,8 +91,7 @@ Method parameter list is extended with `inclusionListTransactions`.
 
 #### Response
 
-* result: [`PayloadStatusV1`](./paris.md#payloadstatusv1), values of the `status` field are modified in the following way:
-  - `INCLUSION_LIST_UNSATISFIED` status value is appended.
+* result: [`PayloadStatusV2`](#payloadstatusv2)
 * error: code and message set in case an exception happens while processing the payload.
 
 #### Specification
@@ -141,7 +140,10 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 #### Response
 
-Refer to the response for [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4).
+* result: `object`
+  - `payloadStatus`: [`PayloadStatusV2`](#payloadstatusv2), with the same `status` value restrictions as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4).
+  - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
+* error: code and message set in case an exception happens while the validating payload, updating the forkchoice or initiating the payload build process.
 
 #### Specification
 
