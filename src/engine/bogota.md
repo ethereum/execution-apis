@@ -67,6 +67,21 @@ This structure has the syntax of `PayloadStatusV1` and appends a single field: `
 
 ## Routines
 
+### Payload validation
+
+This routine follows the same specification as [Payload validation](./paris.md#payload-validation) with the following changes to the processing flow:
+
+1. Extend point (3) of the [Payload validation](./paris.md#payload-validation) by defining the additional response field that **MUST** be returned by the validation process:
+
+    1. The response **MUST** contain `{latestInclusionListSatisfiedHash: satisfiedHash}` where `satisfiedHash` **MUST** be:
+      - The block hash of the most recent valid block in the branch defined by the payload and its ancestors for which payload validation satisfied the inclusion list constraints with respect to the corresponding `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+
+    2. Inclusion list satisfaction **MUST** be determined only for payloads deemed `VALID`.
+
+2. Extend point (4) of the [Payload validation](./paris.md#payload-validation) by defining the idempotency of inclusion list satisfaction:
+
+    1. Whether a payload satisfies the inclusion list constraints **MAY** change between validations when different `inclusionListTransactions` are provided. The value of `latestInclusionListSatisfiedHash` **MAY** change accordingly.
+
 ### Payload building
 
 This routine follows the same specification as [Payload building](./paris.md#payload-building) with the following changes to the processing flow:
