@@ -12,6 +12,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Constants](#constants)
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
+  - [PayloadStatusV2](#payloadstatusv2)
 - [Routines](#routines)
   - [Payload building](#payload-building)
 - [Methods](#methods)
@@ -52,6 +53,17 @@ This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloada
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
 - `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
 - `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+
+### PayloadStatusV2
+
+This structure has the syntax of `PayloadStatusV1` and appends a single field: `latestInclusionListSatisfiedHash`
+
+- `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED"`
+- `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
+- `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
+- `latestInclusionListSatisfiedHash`: `DATA|null`, 32 Bytes - the hash of the most recent block that *satisfied the inclusion list constraints* in the branch defined by payload and its ancestors
+
+*Note:* `latestInclusionListSatisfiedHash` does not imply that all its ancestors have satisfied the inclusion list constraints.
 
 ## Routines
 
