@@ -14,6 +14,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
 - [Routines](#routines)
+  - [Payload validation](#payload-validation)
   - [Payload building](#payload-building)
 - [Methods](#methods)
   - [engine_newPayloadV6](#engine_newpayloadv6)
@@ -115,7 +116,9 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Bogota fork.
 
-2. Client software **MUST** return `{status: INCLUSION_LIST_UNSATISFIED, latestValidHash: null, validationError: null}` if `executionPayload` passed [payload validation](./paris.md#payload-validation) process and deemed `VALID` but fails to satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+2. Client software **MUST** store `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MUST** use the stored `inclusionListTransactions` when the payload is later validated.
+
+3. Client software **MUST** set `latestInclusionListSatisfiedHash` to `null` when returning a payload status not obtained from the [Payload validation](#payload-validation) process.
 
 ### engine_getInclusionListV1
 
@@ -170,9 +173,11 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     2. `payloadAttributes.timestamp` does not fall within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
 
-    3. `payloadAttributes.timestamp` is greater than `timestamp` of a block referenced by `forkchoiceState.headBlockHash`, return `-38003: Invalid payload attributes` on failure.
+2. Extend point (9) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining `payloadStatus.latestInclusionListSatisfiedHash`:
 
-    4. If any of the above checks fails, the `forkchoiceState` update **MUST NOT** be rolled back.
+    1. If `payloadStatus.latestValidHash` is the hash of a valid payload, `payloadStatus.latestInclusionListSatisfiedHash` **MUST** be the block hash of the most recent valid block in the branch defined by `payloadStatus.latestValidHash` and its ancestors for which payload validation satisfied the inclusion list constraints with respect to the corresponding `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+
+    2. Otherwise, `payloadStatus.latestInclusionListSatisfiedHash` **MUST** be `null`.
 
 ### Update the methods of previous forks
 
