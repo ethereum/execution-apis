@@ -8,7 +8,7 @@ description: ""
 import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_exchangeTransitionConfigurationV1\",\n  \"params\": [\n    {\n      \"terminalTotalDifficulty\": 0,\n      \"terminalBlockHash\": \"0x0000000000000000000000000000000000000000000000000000000000000000\",\n      \"terminalBlockNumber\": \"0x1\"\n    }\n  ],\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_exchangeTransitionConfigurationV1\",\n  \"params\": [\n    {\n      \"terminalBlockHash\": \"0x0000000000000000000000000000000000000000000000000000000000000000\",\n      \"terminalBlockNumber\": \"0x1\",\n      \"terminalTotalDifficulty\": \"0x0\"\n    }\n  ],\n  \"id\": 1\n}"} />}>
   # engine_exchangeTransitionConfigurationV1
 
 
@@ -31,14 +31,6 @@ import { useState } from 'react';
 
       #### `Consensus client configuration` fields
 
-      * **terminalTotalDifficulty** `string`
-
-        Terminal total difficulty
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-        ***
-
       * **terminalBlockHash** `string`
 
         Terminal block hash
@@ -52,6 +44,14 @@ import { useState } from 'react';
         Terminal block number
 
         *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+        ***
+
+      * **terminalTotalDifficulty** `string`
+
+        Terminal total difficulty
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
         ***
 
@@ -77,14 +77,6 @@ import { useState } from 'react';
 
       #### `Execution client configuration` fields
 
-      * **terminalTotalDifficulty** `string` *required*
-
-        Terminal total difficulty
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-        ***
-
       * **terminalBlockHash** `string` *required*
 
         Terminal block hash
@@ -98,6 +90,14 @@ import { useState } from 'react';
         Terminal block number
 
         *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+        ***
+
+      * **terminalTotalDifficulty** `string` *required*
+
+        Terminal total difficulty
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
         ***
 
@@ -121,9 +121,9 @@ import { useState } from 'react';
       {
         "params": [
           {
-            "terminalTotalDifficulty": 0,
             "terminalBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "terminalBlockNumber": "0x1"
+            "terminalBlockNumber": "0x1",
+            "terminalTotalDifficulty": "0x0"
           }
         ]
       }
@@ -133,9 +133,9 @@ import { useState } from 'react';
 
       ```json
       {
-        "terminalTotalDifficulty": 0,
         "terminalBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "terminalBlockNumber": "0x1"
+        "terminalBlockNumber": "0x1",
+        "terminalTotalDifficulty": "0x0"
       }
       ```
     </details>

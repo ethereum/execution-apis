@@ -8,7 +8,7 @@ description: ""
 import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_forkchoiceUpdatedV4\",\n  \"params\": [\n    {\n      \"headBlockHash\": \"string\",\n      \"safeBlockHash\": \"string\",\n      \"finalizedBlockHash\": \"string\"\n    },\n    {\n      \"timestamp\": \"string\",\n      \"prevRandao\": \"string\",\n      \"suggestedFeeRecipient\": \"string\",\n      \"withdrawals\": [\n        {\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\",\n          \"address\": \"string\",\n          \"amount\": \"string\"\n        }\n      ],\n      \"parentBeaconBlockRoot\": \"string\",\n      \"slotNumber\": \"string\"\n    }\n  ],\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_forkchoiceUpdatedV4\",\n  \"params\": [\n    {\n      \"finalizedBlockHash\": \"string\",\n      \"headBlockHash\": \"string\",\n      \"safeBlockHash\": \"string\"\n    },\n    {\n      \"parentBeaconBlockRoot\": \"string\",\n      \"prevRandao\": \"string\",\n      \"slotNumber\": \"string\",\n      \"suggestedFeeRecipient\": \"string\",\n      \"targetGasLimit\": \"string\",\n      \"timestamp\": \"string\",\n      \"withdrawals\": [\n        {\n          \"address\": \"string\",\n          \"amount\": \"string\",\n          \"index\": \"string\",\n          \"validatorIndex\": \"string\"\n        }\n      ]\n    },\n    \"string\"\n  ],\n  \"id\": 1\n}"} />}>
   # engine_forkchoiceUpdatedV4
 
 
@@ -31,6 +31,14 @@ import { useState } from 'react';
 
       #### `Forkchoice state` fields
 
+      * **finalizedBlockHash** `string`
+
+        Finalized block hash
+
+        *Match pattern:* `^0x[0-9a-f]{64}$`
+
+        ***
+
       * **headBlockHash** `string`
 
         Head block hash
@@ -42,14 +50,6 @@ import { useState } from 'react';
       * **safeBlockHash** `string`
 
         Safe block hash
-
-        *Match pattern:* `^0x[0-9a-f]{64}$`
-
-        ***
-
-      * **finalizedBlockHash** `string`
-
-        Finalized block hash
 
         *Match pattern:* `^0x[0-9a-f]{64}$`
 
@@ -75,11 +75,11 @@ import { useState } from 'react';
 
       #### `Payload attributes` fields
 
-      * **timestamp** `string`
+      * **parentBeaconBlockRoot** `string`
 
-        Timestamp
+        Parent beacon block root
 
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+        *Match pattern:* `^0x[0-9a-f]{64}$`
 
         ***
 
@@ -91,11 +91,35 @@ import { useState } from 'react';
 
         ***
 
+      * **slotNumber** `string`
+
+        Slot number
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+        ***
+
       * **suggestedFeeRecipient** `string`
 
         Suggested fee recipient
 
         *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+        ***
+
+      * **targetGasLimit** `string`
+
+        Target gas limit
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+        ***
+
+      * **timestamp** `string`
+
+        Timestamp
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
 
         ***
 
@@ -113,22 +137,6 @@ import { useState } from 'react';
 
             #### `withdrawals` fields
 
-            * **index** `string` *required*
-
-              Withdrawal index
-
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
-
-              ***
-
-            * **validatorIndex** `string` *required*
-
-              Validator index
-
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
-
-              ***
-
             * **address** `string` *required*
 
               Withdrawal address
@@ -145,31 +153,67 @@ import { useState } from 'react';
 
               ***
 
+            * **index** `string` *required*
+
+              Withdrawal index
+
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+              ***
+
+            * **validatorIndex** `string` *required*
+
+              Validator index
+
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+              ***
+
             * **additionalProperties** `true`
 
               ***
           </details>
         </div>
 
-      * **parentBeaconBlockRoot** `string`
-
-        Parent beacon block root
-
-        *Match pattern:* `^0x[0-9a-f]{64}$`
-
-        ***
-
-      * **slotNumber** `string`
-
-        Slot number
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
-
-        ***
-
       * **additionalProperties** `true`
 
         ***
+    </details>
+  </div>
+
+  **Custody columns** `string or null`
+
+  ***
+
+  <div>
+    <details>
+      <summary>
+        Show Option 1 `16 hex encoded bytes` string
+      </summary>
+
+      #### `16 hex encoded bytes` fields
+
+      **Custody columns** `string`
+
+      16 hex encoded bytes
+
+      *Match pattern:* `^0x[0-9a-f]{32}$`
+
+      ***
+    </details>
+  </div>
+
+  <div>
+    <details>
+      <summary>
+        Show Option 2 `Custody columns` null
+      </summary>
+
+      #### `Custody columns` fields
+
+      **Custody columns** `null`
+
+      ***
     </details>
   </div>
 
@@ -189,6 +233,14 @@ import { useState } from 'react';
 
       #### `Response object` fields
 
+      * **payloadId** `string`
+
+        Payload id
+
+        *Match pattern:* `^0x[0-9a-f]{16}$`
+
+        ***
+
       * **payloadStatus** `object` *required*
 
         Payload status
@@ -203,19 +255,19 @@ import { useState } from 'react';
 
             #### `payloadStatus` fields
 
-            * **status** `string` *required*
-
-              Set of possible values is restricted to VALID, INVALID, SYNCING
-
-              *Allowed values:* `VALID` `INVALID` `SYNCING`
-
-              ***
-
             * **latestValidHash** `string`
 
               The hash of the most recent valid block
 
               *Match pattern:* `^0x[0-9a-f]{64}$`
+
+              ***
+
+            * **status** `string` *required*
+
+              Set of possible values is restricted to VALID, INVALID, SYNCING
+
+              *Allowed values:* `VALID` `INVALID` `SYNCING`
 
               ***
 
@@ -230,14 +282,6 @@ import { useState } from 'react';
               ***
           </details>
         </div>
-
-      * **payloadId** `string`
-
-        Payload id
-
-        *Match pattern:* `^0x[0-9a-f]{16}$`
-
-        ***
 
       * **additionalProperties** `true`
 
@@ -297,5 +341,18 @@ import { useState } from 'react';
     * **message**
 
       Unsupported fork
+  </details>
+
+  <details>
+    <summary>
+      Error code: -38006
+    </summary>
+
+    * **code**
+
+      -38006
+    * **message**
+
+      Too deep reorg
   </details>
 </TwoColumnLayout>

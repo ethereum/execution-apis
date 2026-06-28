@@ -93,9 +93,9 @@ import { useState } from 'react';
 
       Fee history for the returned block range. This can be a subsection of the requested range if not all blocks are available.
 
-      * **oldestBlock** `string` *required*
+      * **baseFeePerBlobGas** `array<string>`
 
-        Lowest number block of returned range.
+        An array of block base fees per blob gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-4844 blocks.
 
         *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
@@ -109,11 +109,11 @@ import { useState } from 'react';
 
         ***
 
-      * **baseFeePerBlobGas** `array<string>`
+      * **blobGasUsedRatio** `array<number>`
 
-        An array of block base fees per blob gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-4844 blocks.
+        An array of block blob gas used ratios. These are calculated as the ratio of blobGasUsed and the max blob gas per block.
 
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+        Range: `>= 0 and <= 1`
 
         ***
 
@@ -125,11 +125,11 @@ import { useState } from 'react';
 
         ***
 
-      * **blobGasUsedRatio** `array<number>`
+      * **oldestBlock** `string` *required*
 
-        An array of block blob gas used ratios. These are calculated as the ratio of blobGasUsed and the max blob gas per block.
+        Lowest number block of returned range.
 
-        Range: `>= 0 and <= 1`
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
         ***
 
@@ -174,15 +174,6 @@ import { useState } from 'react';
 
       ```json
       {
-        "oldestblock": "0x10b52f",
-        "baseFeePerGas": [
-          "0x3fa63a3f",
-          "0x37f999ee",
-          "0x3e36f20a",
-          "0x4099f79a",
-          "0x430d532d",
-          "0x46fcd4a4"
-        ],
         "baseFeePerBlobGas": [
           "0x7b7609c19",
           "0x6dbe41789",
@@ -191,12 +182,13 @@ import { useState } from 'react';
           "0x7223341d4",
           "0x6574a002c"
         ],
-        "gasUsedRatio": [
-          0.017712333333333333,
-          0.9458865666666667,
-          0.6534561,
-          0.6517375666666667,
-          0.7347769666666667
+        "baseFeePerGas": [
+          "0x3fa63a3f",
+          "0x37f999ee",
+          "0x3e36f20a",
+          "0x4099f79a",
+          "0x430d532d",
+          "0x46fcd4a4"
         ],
         "blobGasUsedRatio": [
           0,
@@ -205,6 +197,14 @@ import { useState } from 'react';
           1,
           0
         ],
+        "gasUsedRatio": [
+          0.017712333333333333,
+          0.9458865666666667,
+          0.6534561,
+          0.6517375666666667,
+          0.7347769666666667
+        ],
+        "oldestblock": "0x10b52f",
         "reward": [
           [
             "0x3b9aca00",

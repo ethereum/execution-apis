@@ -31,11 +31,191 @@ import { useState } from 'react';
 
       #### `Transaction` fields
 
-      * **type** `string`
+      * **accessList** `array<object>`
 
-        type
+        EIP-2930 access list
 
-        *Match pattern:* `^0x([0-9a-fA-F]?){1,2}$`
+        ***
+
+        <div>
+          <details>
+            <summary>
+              Show `accessList` object
+            </summary>
+
+            #### `accessList` fields
+
+            EIP-2930 access list
+
+            * **address** `string` *required*
+
+              hex encoded address
+
+              *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+              ***
+
+            * **storageKeys** `array<string>` *required*
+
+              32 byte hex value
+
+              *Match pattern:* `^0x[0-9a-f]{64}$`
+
+              ***
+
+            * **additionalProperties** `false`
+
+              ***
+          </details>
+        </div>
+
+      * **authorizationList** `array<object>`
+
+        EIP-7702 authorization list
+
+        ***
+
+        <div>
+          <details>
+            <summary>
+              Show `authorizationList` object
+            </summary>
+
+            #### `authorizationList` fields
+
+            EIP-7702 authorization list
+
+            * **address** `string` *required*
+
+              hex encoded address
+
+              *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+              ***
+
+            * **chainId** `string` *required*
+
+              Chain ID on which this transaction is valid
+
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+              ***
+
+            * **nonce** `string` *required*
+
+              nonce
+
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+              ***
+
+            * **r** `string` *required*
+
+              r
+
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+              ***
+
+            * **s** `string` *required*
+
+              s
+
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+              ***
+
+            * **yParity** `string` *required*
+
+              The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature
+
+              *Match pattern:* `^0x([0-9a-fA-F]?){1,2}$`
+
+              ***
+
+            * **additionalProperties** `true`
+
+              ***
+          </details>
+        </div>
+
+      * **blobVersionedHashes** `array<string>`
+
+        List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+
+        *Match pattern:* `^0x[0-9a-f]{64}$`
+
+        ***
+
+      * **blobs** `array<string>`
+
+        Raw blob data.
+
+        *Match pattern:* `^0x[0-9a-f]*$`
+
+        ***
+
+      * **chainId** `string`
+
+        Chain ID that this transaction is valid on.
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+        ***
+
+      * **from** `string`
+
+        from address
+
+        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+        ***
+
+      * **gas** `string`
+
+        gas limit
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+        ***
+
+      * **gasPrice** `string`
+
+        The gas price willing to be paid by the sender in wei
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+        ***
+
+      * **input** `string`
+
+        input data
+
+        *Match pattern:* `^0x[0-9a-f]*$`
+
+        ***
+
+      * **maxFeePerBlobGas** `string`
+
+        The maximum total fee per gas the sender is willing to pay for blob gas in wei
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+        ***
+
+      * **maxFeePerGas** `string`
+
+        The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+        ***
+
+      * **maxPriorityFeePerGas** `string`
+
+        Maximum fee per gas the sender is willing to pay to miners in wei
+
+        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
         ***
 
@@ -85,19 +265,11 @@ import { useState } from 'react';
           </details>
         </div>
 
-      * **from** `string`
+      * **type** `string`
 
-        from address
+        type
 
-        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-        ***
-
-      * **gas** `string`
-
-        gas limit
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+        *Match pattern:* `^0x([0-9a-fA-F]?){1,2}$`
 
         ***
 
@@ -108,178 +280,6 @@ import { useState } from 'react';
         *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
         ***
-
-      * **input** `string`
-
-        input data
-
-        *Match pattern:* `^0x[0-9a-f]*$`
-
-        ***
-
-      * **gasPrice** `string`
-
-        The gas price willing to be paid by the sender in wei
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-        ***
-
-      * **maxPriorityFeePerGas** `string`
-
-        Maximum fee per gas the sender is willing to pay to miners in wei
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-        ***
-
-      * **maxFeePerGas** `string`
-
-        The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-        ***
-
-      * **maxFeePerBlobGas** `string`
-
-        The maximum total fee per gas the sender is willing to pay for blob gas in wei
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-        ***
-
-      * **accessList** `array<object>`
-
-        EIP-2930 access list
-
-        ***
-
-        <div>
-          <details>
-            <summary>
-              Show `accessList` object
-            </summary>
-
-            #### `accessList` fields
-
-            EIP-2930 access list
-
-            * **address** `string` *required*
-
-              hex encoded address
-
-              *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-              ***
-
-            * **storageKeys** `array<string>` *required*
-
-              32 byte hex value
-
-              *Match pattern:* `^0x[0-9a-f]{64}$`
-
-              ***
-
-            * **additionalProperties** `false`
-
-              ***
-          </details>
-        </div>
-
-      * **blobVersionedHashes** `array<string>`
-
-        List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
-
-        *Match pattern:* `^0x[0-9a-f]{64}$`
-
-        ***
-
-      * **blobs** `array<string>`
-
-        Raw blob data.
-
-        *Match pattern:* `^0x[0-9a-f]*$`
-
-        ***
-
-      * **chainId** `string`
-
-        Chain ID that this transaction is valid on.
-
-        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-        ***
-
-      * **authorizationList** `array<object>`
-
-        EIP-7702 authorization list
-
-        ***
-
-        <div>
-          <details>
-            <summary>
-              Show `authorizationList` object
-            </summary>
-
-            #### `authorizationList` fields
-
-            EIP-7702 authorization list
-
-            * **chainId** `string` *required*
-
-              Chain ID on which this transaction is valid
-
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-              ***
-
-            * **nonce** `string` *required*
-
-              nonce
-
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-              ***
-
-            * **address** `string` *required*
-
-              hex encoded address
-
-              *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-              ***
-
-            * **yParity** `string` *required*
-
-              The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature
-
-              *Match pattern:* `^0x([0-9a-fA-F]?){1,2}$`
-
-              ***
-
-            * **r** `string` *required*
-
-              r
-
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-              ***
-
-            * **s** `string` *required*
-
-              s
-
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-              ***
-
-            * **additionalProperties** `true`
-
-              ***
-          </details>
-        </div>
 
       * **additionalProperties** `false`
 
@@ -372,7 +372,7 @@ import { useState } from 'react';
       execution reverted
     * **data**
 
-      \{"title":"raw EVM revert data","$ref":"#/components/schemas/bytes"}
+      \{"pattern":"^0x\[0-9a-f]\*$","title":"raw EVM revert data","type":"string"}
   </details>
 
   ## Examples

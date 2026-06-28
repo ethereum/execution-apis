@@ -8,7 +8,7 @@ description: ""
 import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_exchangeCapabilities\",\n  \"params\": [\n    [\n      \"engine_exchangeTransitionConfigurationV1\",\n      \"engine_forkchoiceUpdatedV1\",\n      \"engine_getPayloadBodiesByHashV1\",\n      \"engine_getPayloadBodiesByRangeV1\",\n      \"engine_getPayloadV1\",\n      \"engine_newPayloadV1\"\n    ]\n  ],\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"engine_exchangeCapabilities\",\n  \"params\": [\n    [\n      \"engine_exchangeTransitionConfigurationV1\",\n      \"engine_forkchoiceUpdatedV1\",\n      \"engine_getPayloadBodiesByHashV1\",\n      \"engine_getPayloadBodiesByRangeV1\",\n      \"engine_getPayloadBodiesByHashV2\",\n      \"engine_getPayloadBodiesByRangeV2\",\n      \"engine_getPayloadV1\",\n      \"engine_newPayloadV1\"\n    ]\n  ],\n  \"id\": 1\n}"} />}>
   # engine_exchangeCapabilities
 
 
@@ -45,6 +45,8 @@ import { useState } from 'react';
             "engine_forkchoiceUpdatedV1",
             "engine_getPayloadBodiesByHashV1",
             "engine_getPayloadBodiesByRangeV1",
+            "engine_getPayloadBodiesByHashV2",
+            "engine_getPayloadBodiesByRangeV2",
             "engine_getPayloadV1",
             "engine_newPayloadV1"
           ]
@@ -65,7 +67,9 @@ import { useState } from 'react';
         "engine_forkchoiceUpdatedV2",
         "engine_exchangeTransitionConfigurationV1",
         "engine_getPayloadBodiesByHashV1",
-        "engine_getPayloadBodiesByRangeV1"
+        "engine_getPayloadBodiesByRangeV1",
+        "engine_getPayloadBodiesByHashV2",
+        "engine_getPayloadBodiesByRangeV2"
       ]
       ```
     </details>

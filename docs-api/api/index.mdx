@@ -3,7 +3,6 @@
 title: "Ethereum JSON-RPC Specification"
 description: "A specification of the standard interface for Ethereum clients."
 slug: /
-
 ---
 
 # Ethereum JSON-RPC Specification
@@ -12,13 +11,18 @@ Version: `0.0.0`
 
 A specification of the standard interface for Ethereum clients.
 
+
 ## Methods
 
 - [`debug_getBadBlocks`](./methods/debug_getBadBlocks.mdx)
 - [`debug_getRawBlock`](./methods/debug_getRawBlock.mdx)
+- [`debug_getRawBlockAccessList`](./methods/debug_getRawBlockAccessList.mdx)
 - [`debug_getRawHeader`](./methods/debug_getRawHeader.mdx)
 - [`debug_getRawReceipts`](./methods/debug_getRawReceipts.mdx)
 - [`debug_getRawTransaction`](./methods/debug_getRawTransaction.mdx)
+- [`debug_traceBlockByHash`](./methods/debug_traceBlockByHash.mdx)
+- [`debug_traceBlockByNumber`](./methods/debug_traceBlockByNumber.mdx)
+- [`debug_traceTransaction`](./methods/debug_traceTransaction.mdx)
 - [`engine_exchangeCapabilities`](./methods/engine_exchangeCapabilities.mdx)
 - [`engine_exchangeTransitionConfigurationV1`](./methods/engine_exchangeTransitionConfigurationV1.mdx)
 - [`engine_forkchoiceUpdatedV1`](./methods/engine_forkchoiceUpdatedV1.mdx)
@@ -28,8 +32,11 @@ A specification of the standard interface for Ethereum clients.
 - [`engine_getBlobsV1`](./methods/engine_getBlobsV1.mdx)
 - [`engine_getBlobsV2`](./methods/engine_getBlobsV2.mdx)
 - [`engine_getBlobsV3`](./methods/engine_getBlobsV3.mdx)
+- [`engine_getBlobsV4`](./methods/engine_getBlobsV4.mdx)
 - [`engine_getPayloadBodiesByHashV1`](./methods/engine_getPayloadBodiesByHashV1.mdx)
+- [`engine_getPayloadBodiesByHashV2`](./methods/engine_getPayloadBodiesByHashV2.mdx)
 - [`engine_getPayloadBodiesByRangeV1`](./methods/engine_getPayloadBodiesByRangeV1.mdx)
+- [`engine_getPayloadBodiesByRangeV2`](./methods/engine_getPayloadBodiesByRangeV2.mdx)
 - [`engine_getPayloadV1`](./methods/engine_getPayloadV1.mdx)
 - [`engine_getPayloadV2`](./methods/engine_getPayloadV2.mdx)
 - [`engine_getPayloadV3`](./methods/engine_getPayloadV3.mdx)
@@ -42,16 +49,20 @@ A specification of the standard interface for Ethereum clients.
 - [`engine_newPayloadV4`](./methods/engine_newPayloadV4.mdx)
 - [`engine_newPayloadV5`](./methods/engine_newPayloadV5.mdx)
 - [`eth_accounts`](./methods/eth_accounts.mdx)
+- [`eth_baseFee`](./methods/eth_baseFee.mdx)
 - [`eth_blobBaseFee`](./methods/eth_blobBaseFee.mdx)
 - [`eth_blockNumber`](./methods/eth_blockNumber.mdx)
 - [`eth_call`](./methods/eth_call.mdx)
+- [`eth_capabilities`](./methods/eth_capabilities.mdx)
 - [`eth_chainId`](./methods/eth_chainId.mdx)
 - [`eth_coinbase`](./methods/eth_coinbase.mdx)
+- [`eth_config`](./methods/eth_config.mdx)
 - [`eth_createAccessList`](./methods/eth_createAccessList.mdx)
 - [`eth_estimateGas`](./methods/eth_estimateGas.mdx)
 - [`eth_feeHistory`](./methods/eth_feeHistory.mdx)
 - [`eth_gasPrice`](./methods/eth_gasPrice.mdx)
 - [`eth_getBalance`](./methods/eth_getBalance.mdx)
+- [`eth_getBlockAccessList`](./methods/eth_getBlockAccessList.mdx)
 - [`eth_getBlockByHash`](./methods/eth_getBlockByHash.mdx)
 - [`eth_getBlockByNumber`](./methods/eth_getBlockByNumber.mdx)
 - [`eth_getBlockReceipts`](./methods/eth_getBlockReceipts.mdx)
@@ -63,13 +74,12 @@ A specification of the standard interface for Ethereum clients.
 - [`eth_getLogs`](./methods/eth_getLogs.mdx)
 - [`eth_getProof`](./methods/eth_getProof.mdx)
 - [`eth_getStorageAt`](./methods/eth_getStorageAt.mdx)
+- [`eth_getStorageValues`](./methods/eth_getStorageValues.mdx)
 - [`eth_getTransactionByBlockHashAndIndex`](./methods/eth_getTransactionByBlockHashAndIndex.mdx)
 - [`eth_getTransactionByBlockNumberAndIndex`](./methods/eth_getTransactionByBlockNumberAndIndex.mdx)
 - [`eth_getTransactionByHash`](./methods/eth_getTransactionByHash.mdx)
 - [`eth_getTransactionCount`](./methods/eth_getTransactionCount.mdx)
 - [`eth_getTransactionReceipt`](./methods/eth_getTransactionReceipt.mdx)
-- [`eth_getUncleCountByBlockHash`](./methods/eth_getUncleCountByBlockHash.mdx)
-- [`eth_getUncleCountByBlockNumber`](./methods/eth_getUncleCountByBlockNumber.mdx)
 - [`eth_maxPriorityFeePerGas`](./methods/eth_maxPriorityFeePerGas.mdx)
 - [`eth_newBlockFilter`](./methods/eth_newBlockFilter.mdx)
 - [`eth_newFilter`](./methods/eth_newFilter.mdx)
@@ -83,6 +93,9 @@ A specification of the standard interface for Ethereum clients.
 - [`eth_uninstallFilter`](./methods/eth_uninstallFilter.mdx)
 - [`net_version`](./methods/net_version.mdx)
 - [`testing_buildBlockV1`](./methods/testing_buildBlockV1.mdx)
+- [`txpool_content`](./methods/txpool_content.mdx)
+- [`txpool_contentFrom`](./methods/txpool_contentFrom.mdx)
+- [`txpool_status`](./methods/txpool_status.mdx)
 
 ---
 

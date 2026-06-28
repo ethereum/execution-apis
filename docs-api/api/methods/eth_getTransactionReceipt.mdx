@@ -65,25 +65,17 @@ import { useState } from 'react';
 
           #### `Receipt information` fields
 
-          * **type** `string`
+          * **blobGasPrice** `string`
 
-            type
+            The actual value per gas deducted from the sender's account for blob gas. Only specified for blob transactions as defined by EIP-4844.
 
-            *Match pattern:* `^0x([0-9a-fA-F]?){1,2}$`
-
-            ***
-
-          * **transactionHash** `string` *required*
-
-            transaction hash
-
-            *Match pattern:* `^0x[0-9a-f]{64}$`
+            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
             ***
 
-          * **transactionIndex** `string` *required*
+          * **blobGasUsed** `string`
 
-            transaction index
+            The amount of blob gas used for this specific transaction. Only specified for blob transactions as defined by EIP-4844.
 
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
@@ -100,82 +92,6 @@ import { useState } from 'react';
           * **blockNumber** `string` *required*
 
             block number
-
-            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-            ***
-
-          * **from** `string` *required*
-
-            from
-
-            *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-            ***
-
-          * **to** `null or string`
-
-            Address of the receiver or null in a contract creation transaction.
-
-            ***
-
-            <div>
-              <details>
-                <summary>
-                  Show Option 1 `Contract Creation (null)` null
-                </summary>
-
-                #### `Contract Creation (null)` fields
-
-                Address of the receiver or null in a contract creation transaction.
-
-                **to** `null`
-
-                Address of the receiver or null in a contract creation transaction.
-
-                ***
-              </details>
-            </div>
-
-            <div>
-              <details>
-                <summary>
-                  Show Option 2 `Recipient Address` string
-                </summary>
-
-                #### `Recipient Address` fields
-
-                Address of the receiver or null in a contract creation transaction.
-
-                **to** `string`
-
-                Address of the receiver or null in a contract creation transaction.
-
-                *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-                ***
-              </details>
-            </div>
-
-          * **cumulativeGasUsed** `string` *required*
-
-            The sum of gas used by this transaction and all preceding transactions in the same block.
-
-            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-            ***
-
-          * **gasUsed** `string` *required*
-
-            The amount of gas used for this specific transaction alone.
-
-            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-            ***
-
-          * **blobGasUsed** `string`
-
-            The amount of blob gas used for this specific transaction. Only specified for blob transactions as defined by EIP-4844.
 
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
@@ -225,6 +141,38 @@ import { useState } from 'react';
               </details>
             </div>
 
+          * **cumulativeGasUsed** `string` *required*
+
+            The sum of gas used by this transaction and all preceding transactions in the same block.
+
+            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+            ***
+
+          * **effectiveGasPrice** `string` *required*
+
+            The actual value per gas deducted from the sender's account. Before EIP-1559, this is equal to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas).
+
+            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+            ***
+
+          * **from** `string` *required*
+
+            from
+
+            *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+            ***
+
+          * **gasUsed** `string` *required*
+
+            The amount of gas used for this specific transaction alone.
+
+            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+            ***
+
           * **logs** `array<object>` *required*
 
             log
@@ -239,33 +187,11 @@ import { useState } from 'react';
 
                 #### `logs` fields
 
-                * **removed** `boolean`
+                * **address** `string`
 
-                  removed
+                  address
 
-                  ***
-
-                * **logIndex** `string`
-
-                  log index
-
-                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-                  ***
-
-                * **transactionIndex** `string`
-
-                  transaction index
-
-                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-                  ***
-
-                * **transactionHash** `string` *required*
-
-                  transaction hash
-
-                  *Match pattern:* `^0x[0-9a-f]{64}$`
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
 
                   ***
 
@@ -293,14 +219,6 @@ import { useState } from 'react';
 
                   ***
 
-                * **address** `string`
-
-                  address
-
-                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-                  ***
-
                 * **data** `string`
 
                   data
@@ -309,11 +227,41 @@ import { useState } from 'react';
 
                   ***
 
+                * **logIndex** `string`
+
+                  log index
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                  ***
+
+                * **removed** `boolean`
+
+                  removed
+
+                  ***
+
                 * **topics** `array<string>`
 
                   32 hex encoded bytes
 
                   *Match pattern:* `^0x[0-9a-f]{64}$`
+
+                  ***
+
+                * **transactionHash** `string` *required*
+
+                  transaction hash
+
+                  *Match pattern:* `^0x[0-9a-f]{64}$`
+
+                  ***
+
+                * **transactionIndex** `string`
+
+                  transaction index
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
                   ***
 
@@ -347,19 +295,71 @@ import { useState } from 'react';
 
             ***
 
-          * **effectiveGasPrice** `string` *required*
+          * **to** `null or string`
 
-            The actual value per gas deducted from the sender's account. Before EIP-1559, this is equal to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas).
+            Address of the receiver or null in a contract creation transaction.
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 1 `Contract Creation (null)` null
+                </summary>
+
+                #### `Contract Creation (null)` fields
+
+                Address of the receiver or null in a contract creation transaction.
+
+                **to** `null`
+
+                Address of the receiver or null in a contract creation transaction.
+
+                ***
+              </details>
+            </div>
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 2 `Recipient Address` string
+                </summary>
+
+                #### `Recipient Address` fields
+
+                Address of the receiver or null in a contract creation transaction.
+
+                **to** `string`
+
+                Address of the receiver or null in a contract creation transaction.
+
+                *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                ***
+              </details>
+            </div>
+
+          * **transactionHash** `string` *required*
+
+            transaction hash
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **transactionIndex** `string` *required*
+
+            transaction index
 
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
             ***
 
-          * **blobGasPrice** `string`
+          * **type** `string`
 
-            The actual value per gas deducted from the sender's account for blob gas. Only specified for blob transactions as defined by EIP-4844.
+            type
 
-            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+            *Match pattern:* `^0x([0-9a-fA-F]?){1,2}$`
 
             ***
 
@@ -408,15 +408,15 @@ import { useState } from 'react';
 
       ```json
       {
+        "blobGasPrice": "0x3",
+        "blobGasUsed": "0x20000",
         "blockHash": "0xe7212a92cfb9b06addc80dec2a0dfae9ea94fd344efeb157c41e12994fcad60a",
         "blockNumber": "0x50",
         "contractAddress": null,
         "cumulativeGasUsed": "0x5208",
+        "effectiveGasPrice": "0x1",
         "from": "0x627306090abab3a6e1400e9345bc60c78a8bef57",
         "gasUsed": "0x5208",
-        "blobGasUsed": "0x20000",
-        "effectiveGasPrice": "0x1",
-        "blobGasPrice": "0x3",
         "logs": [],
         "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "status": "0x1",

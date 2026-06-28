@@ -8,7 +8,7 @@ description: ""
 import {TwoColumnLayout, InteractiveRequest, ResponseExample} from '@open-rpc/docusaurus-plugin/components';
 import { useState } from 'react';
 
-<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_newFilter\",\n  \"params\": [\n    {\n      \"fromBlock\": \"0x137d3c2\",\n      \"toBlock\": \"0x137d3c3\",\n      \"address\": \"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\",\n      \"topics\": []\n    }\n  ],\n  \"id\": 1\n}"} />}>
+<TwoColumnLayout sidebar={<InteractiveRequest request={"{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"eth_newFilter\",\n  \"params\": [\n    {\n      \"address\": \"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\",\n      \"fromBlock\": \"0x137d3c2\",\n      \"toBlock\": \"0x137d3c3\",\n      \"topics\": []\n    }\n  ],\n  \"id\": 1\n}"} />}>
   # eth_newFilter
 
 
@@ -42,22 +42,6 @@ import { useState } from 'react';
           </summary>
 
           #### `Filter` fields
-
-          * **fromBlock** `string`
-
-            from block
-
-            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-            ***
-
-          * **toBlock** `string`
-
-            to block
-
-            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-            ***
 
           * **address** `null or string or array<string>`
 
@@ -110,6 +94,90 @@ import { useState } from 'react';
                 hex encoded address
 
                 *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                ***
+              </details>
+            </div>
+
+          * **fromBlock** `string or string`
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 1 `Block number` string
+                </summary>
+
+                #### `Block number` fields
+
+                **fromBlock** `string`
+
+                Block number
+
+                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                ***
+              </details>
+            </div>
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 2 `Block tag` string
+                </summary>
+
+                #### `Block tag` fields
+
+                `earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `latest`: The most recent block in the canonical chain observed by the client, this block may be re-orged out of the canonical chain even under healthy/normal conditions. Before the merge transition is finalized, any call querying for `finalized` or `safe` block MUST be responded to with `-39001: Unknown block` error
+
+                **fromBlock** `string`
+
+                `earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `latest`: The most recent block in the canonical chain observed by the client, this block may be re-orged out of the canonical chain even under healthy/normal conditions. Before the merge transition is finalized, any call querying for `finalized` or `safe` block MUST be responded to with `-39001: Unknown block` error
+
+                *Allowed values:* `earliest` `finalized` `safe` `latest`
+
+                ***
+              </details>
+            </div>
+
+          * **toBlock** `string or string`
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 1 `Block number` string
+                </summary>
+
+                #### `Block number` fields
+
+                **toBlock** `string`
+
+                Block number
+
+                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                ***
+              </details>
+            </div>
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 2 `Block tag` string
+                </summary>
+
+                #### `Block tag` fields
+
+                `earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `latest`: The most recent block in the canonical chain observed by the client, this block may be re-orged out of the canonical chain even under healthy/normal conditions. Before the merge transition is finalized, any call querying for `finalized` or `safe` block MUST be responded to with `-39001: Unknown block` error
+
+                **toBlock** `string`
+
+                `earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `latest`: The most recent block in the canonical chain observed by the client, this block may be re-orged out of the canonical chain even under healthy/normal conditions. Before the merge transition is finalized, any call querying for `finalized` or `safe` block MUST be responded to with `-39001: Unknown block` error
+
+                *Allowed values:* `earliest` `finalized` `safe` `latest`
 
                 ***
               </details>
@@ -215,14 +283,6 @@ import { useState } from 'react';
 
           #### `Filter` fields
 
-          * **blockHash** `string` *required*
-
-            block hash
-
-            *Match pattern:* `^0x[0-9a-f]{64}$`
-
-            ***
-
           * **address** `null or string or array<string>`
 
             ***
@@ -278,6 +338,14 @@ import { useState } from 'react';
                 ***
               </details>
             </div>
+
+          * **blockHash** `string` *required*
+
+            block hash
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
 
           * **topics** `null or array<unknown>`
 
@@ -381,9 +449,9 @@ import { useState } from 'react';
       {
         "params": [
           {
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
             "fromBlock": "0x137d3c2",
             "toBlock": "0x137d3c3",
-            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
             "topics": []
           }
         ]

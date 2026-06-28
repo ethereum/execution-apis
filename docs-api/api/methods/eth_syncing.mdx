@@ -47,14 +47,6 @@ import { useState } from 'react';
 
           #### `Syncing status` fields
 
-          * **startingBlock** `string`
-
-            Starting block
-
-            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-            ***
-
           * **currentBlock** `string`
 
             Current block
@@ -66,6 +58,14 @@ import { useState } from 'react';
           * **highestBlock** `string`
 
             Highest block
+
+            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+            ***
+
+          * **startingBlock** `string`
+
+            Starting block
 
             *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
 
@@ -117,9 +117,9 @@ import { useState } from 'react';
 
       ```json
       {
-        "startingBlock": "0x0",
         "currentBlock": "0x1518",
-        "highestBlock": "0x9567a3"
+        "highestBlock": "0x9567a3",
+        "startingBlock": "0x0"
       }
       ```
     </details>
