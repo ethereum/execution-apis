@@ -1,10 +1,12 @@
 # Engine API -- Refactor Proposal (REST + SSZ)
 
-> **Status:** Draft / discussion document. This file proposes a v2 of the
-> Engine API that moves from JSON-RPC over a single endpoint to a
-> resource-oriented HTTP/REST API where request and response bodies are
-> SSZ-encoded. It also takes the opportunity to simplify the surface that
-> has accumulated since Paris.
+> **Status:** Draft / discussion document. This file proposes a REST
+> refactor of the Engine API that moves from JSON-RPC over a single
+> endpoint to a resource-oriented HTTP/REST API where hot-path
+> request and response bodies are SSZ-encoded. The new API ships at
+> `/engine/v1/...` alongside the legacy `engine_*` JSON-RPC endpoint;
+> the legacy endpoint is retired at a future fork, at which point
+> the REST surface becomes the only way to drive an EL.
 >
 > **Target fork:** Amsterdam. The new API ships *as* the Amsterdam Engine
 > API; clients implement it instead of `engine_*` JSON-RPC at the
@@ -37,6 +39,8 @@
   - [Why SSZ?](#why-ssz)
   - [Simplifications & removed concepts](#simplifications--removed-concepts)
   - [Summary of design decisions](#summary-of-design-decisions)
+- [Future evolution](#future-evolution)
+  - [Progressive merkleization](#progressive-merkleization)
 
 > **Reading order note.** The endpoint sketches reference SSZ types
 > like `Optional[T]`, `BodyEntry`, and `BlobEntry`. If a definition
@@ -52,13 +56,16 @@
 If you're migrating from the JSON-RPC engine API, this is the lookup
 table. Detail on each new endpoint follows in the sections below.
 
+All hot-path endpoints select the fork via the
+`Eth-Execution-Version: <fork>` request header.
+
 | Old method | New endpoint | Notes |
 | - | - | - |
-| `engine_newPayloadV{1..5}` | `POST /{fork}/payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
-| `engine_forkchoiceUpdatedV{1..4}` | `POST /{fork}/forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
-| `engine_getPayloadV{1..6}` | `GET /{fork}/payloads/{id}` | poll-style, same semantics as today |
-| `engine_getPayloadBodiesByHashV{1,2}` | `POST /{fork}/bodies/hash` | `{fork}` selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
-| `engine_getPayloadBodiesByRangeV{1,2}` | `GET /{fork}/bodies?from=...&count=...` | `{fork}` selects both the response schema and the era of returned blocks |
+| `engine_newPayloadV{1..5}` | `POST /payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
+| `engine_forkchoiceUpdatedV{1..4}` | `POST /forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
+| `engine_getPayloadV{1..6}` | `GET /payloads/{id}` | poll-style, same semantics as today |
+| `engine_getPayloadBodiesByHashV{1,2}` | `POST /bodies/hash` | header selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
+| `engine_getPayloadBodiesByRangeV{1,2}` | `GET /bodies?from=...&count=...` | header selects both the response schema and the era of returned blocks |
 | `engine_getBlobsV1` | `POST /blobs/v1` | independently versioned; legacy version numbers carry forward |
 | `engine_getBlobsV2` | `POST /blobs/v2` | all-or-nothing cell proofs |
 | `engine_getBlobsV3` | `POST /blobs/v3` | partial-response cell proofs |
@@ -71,19 +78,20 @@ table. Detail on each new endpoint follows in the sections below.
 
 ## Resource model (overview)
 
-Hot-path endpoints are scoped under `/engine/v2/{fork}/...`. Diagnostic
-endpoints are unscoped.
+All endpoints live under `/engine/v1/...`. Hot-path endpoints
+require the `Eth-Execution-Version: <fork>` request header; diagnostic
+endpoints ignore it.
 
 | Resource | Endpoint | Purpose |
 | - | - | - |
-| Payload | `POST /engine/v2/{fork}/payloads` | Submit a payload received from the CL gossip network for the EL to validate / import. Replaces `engine_newPayload`. |
-| Payload | `GET /engine/v2/{fork}/payloads/{payloadId}` | Retrieve a built payload by id. Replaces `engine_getPayload`. CL polls when it wants a fresher snapshot. |
-| Forkchoice | `POST /engine/v2/{fork}/forkchoice` | Atomic forkchoice update: update head/safe/finalized, optionally start a payload build, optionally update custody set. Replaces `engine_forkchoiceUpdated`. |
-| Bodies | `POST /engine/v2/{fork}/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. `{fork}` selects both the response schema *and* the era of returned blocks; out-of-era blocks come back as `available=false`. |
-| Bodies | `GET /engine/v2/{fork}/bodies?from=N&count=M` | Replaces `engine_getPayloadBodiesByRange`. Same fork scoping as `/bodies/hash`. |
-| Blob pool | `POST /engine/v2/blobs/v{1..4}` | Replaces `engine_getBlobsV{1..4}`. The `vN` segment carries forward the legacy version numbers; `/v4` is the Amsterdam cell-range variant. |
-| Capabilities | `GET /engine/v2/capabilities` | Replaces `engine_exchangeCapabilities`. Unscoped; advertises supported forks, `/blobs/vN` revisions, and per-endpoint request-size limits. |
-| Identity | `GET /engine/v2/identity` | Replaces `engine_getClientVersion`. Unscoped. |
+| Payload | `POST /engine/v1/payloads` | Submit a payload received from the CL gossip network for the EL to validate / import. Replaces `engine_newPayload`. Fork-scoped via `Eth-Execution-Version`. |
+| Payload | `GET /engine/v1/payloads/{payloadId}` | Retrieve a built payload by id. Replaces `engine_getPayload`. Fork-scoped via `Eth-Execution-Version`. CL polls when it wants a fresher snapshot. |
+| Forkchoice | `POST /engine/v1/forkchoice` | Atomic forkchoice update: update head/safe/finalized, optionally start a payload build, optionally update custody set. Replaces `engine_forkchoiceUpdated`. Fork-scoped via `Eth-Execution-Version`. |
+| Bodies | `POST /engine/v1/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. `Eth-Execution-Version` selects both the response schema *and* the era of returned blocks; out-of-era blocks come back as `available=false`. |
+| Bodies | `GET /engine/v1/bodies?from=N&count=M` | Replaces `engine_getPayloadBodiesByRange`. Same fork scoping as `/bodies/hash`. |
+| Blob pool | `POST /engine/v1/blobs/v{1..4}` | Replaces `engine_getBlobsV{1..4}`. The `vN` segment carries forward the legacy version numbers; `/v4` is the Amsterdam cell-range variant. Independently versioned (not fork-scoped). |
+| Capabilities | `GET /engine/v1/capabilities` | Replaces `engine_exchangeCapabilities`. Unscoped; advertises supported forks, `/blobs/vN` revisions, and per-endpoint request-size limits. |
+| Identity | `GET /engine/v1/identity` | Replaces `engine_getClientVersion`. Unscoped. |
 
 Every hot-path body uses SSZ; every metadata endpoint uses JSON.
 
@@ -93,7 +101,7 @@ Every hot-path body uses SSZ; every metadata endpoint uses JSON.
 
 ### Payload submission
 
-#### `POST /engine/v2/{fork}/payloads`
+#### `POST /engine/v1/payloads`
 
 Replaces `engine_newPayloadV{1..5}`.
 
@@ -130,7 +138,7 @@ Replaces `engine_newPayloadV{1..5}`.
 
 ### Forkchoice update
 
-#### `POST /engine/v2/{fork}/forkchoice`
+#### `POST /engine/v1/forkchoice`
 
 Replaces `engine_forkchoiceUpdatedV{1..4}`.
 
@@ -184,20 +192,20 @@ Replaces `engine_forkchoiceUpdatedV{1..4}`.
   finalization should not be able to roll the EL back. We keep the
   behaviour that has caught buggy CLs in the past.
 
-- **Stale-fork URL:** an FCU at `/engine/v2/{fork}/forkchoice`
+- **Stale-fork header:** an FCU with `Eth-Execution-Version: <fork>`
   referencing a `head` from an earlier fork is **allowed**, *as long
   as `payload_attributes` is absent*. The CL needs to update head /
   safe / finalized across fork boundaries during sync and reorg
-  recovery, and the URL fork has no bearing on which historical
+  recovery, and the header fork has no bearing on which historical
   block can be referenced.
   TODO(MariusVanDerWijden) Is that really the case?
 
-  If `payload_attributes` is present, the URL `{fork}` MUST match
-  the fork that the new payload would belong to (i.e. the fork
-  determined by `payload_attributes.timestamp`). Mismatch returns
-  `400 unsupported-fork`. Building a payload is the only operation
-  where the URL fork is load-bearing on shape, so it's the only one
-  we strictly police.
+  If `payload_attributes` is present, the `Eth-Execution-Version`
+  header MUST match the fork that the new payload would belong to
+  (i.e. the fork determined by `payload_attributes.timestamp`).
+  Mismatch returns `400 unsupported-fork`. Building a payload is
+  the only operation where the header fork is load-bearing on shape,
+  so it's the only one we strictly police.
 
 - **Custody-set semantics** (Amsterdam+): the custody update runs
   independently of the forkchoice processing flow. An execution-time 
@@ -210,7 +218,7 @@ Replaces `engine_forkchoiceUpdatedV{1..4}`.
 
 ### Payload retrieval
 
-#### `GET /engine/v2/{fork}/payloads/{payloadId}`
+#### `GET /engine/v1/payloads/{payloadId}`
 
 Replaces `engine_getPayloadV{1..6}`.
 
@@ -238,7 +246,7 @@ Replaces `engine_getPayloadV{1..6}`.
 - **404** if `payloadId` is unknown or expired.
 
 Polling semantics are unchanged from `engine_getPayload`: the CL calls
-`GET /{fork}/payloads/{payloadId}` whenever it wants the latest
+`GET /payloads/{payloadId}` whenever it wants the latest
 snapshot of the build. Each call returns the most recent version
 available at the time of receipt; the EL MAY stop the build process
 after serving a call. `payloadId` values are opaque server-assigned
@@ -256,38 +264,38 @@ well-formed (8 bytes, hex) before dispatching to lookup logic; a
 malformed segment returns `400 invalid-request`.
 
 **Token TTL.** A `payloadId` is valid until either the payload was
-retrieved by `GET /{fork}/payloads/{payloadId}` or another payload
+retrieved by `GET /payloads/{payloadId}` or another payload
 was built via a forkchoice with payload attributes.
 
 ### Historical bodies
 
 These endpoints are **fork-scoped on both the response schema and the
-era of the returned blocks.** The `{fork}` segment tells the EL which
-`ExecutionPayloadBody` schema to use, *and* limits the response to
-blocks whose timestamp falls in `{fork}`'s active time range. A CL
-fetching bodies that span a fork boundary issues separate requests
-against each fork URL.
+era of the returned blocks.** The `Eth-Execution-Version` header
+tells the EL which `ExecutionPayloadBody` schema to use, *and* limits
+the response to blocks whose timestamp falls in that fork's active
+time range. A CL fetching bodies that span a fork boundary issues
+separate requests, one per header value.
 
-The EL **MUST** apply both meanings of `{fork}`: it **MUST** serialise
-each entry against the `{fork}` schema **and MUST** filter the response
-to blocks whose timestamp falls in `{fork}`'s active time range.
-Using the segment only for schema selection — and returning blocks
-from outside the fork's era — is **non-conformant**. A requested block
-that exists but whose timestamp lies outside the URL fork's range
-**MUST** come back as `available=false` (it is not omitted, unlike a
-past-head block in a range query; see below).
+The EL **MUST** apply both meanings of the header value: it **MUST**
+serialise each entry against the named schema **and MUST** filter the
+response to blocks whose timestamp falls in that fork's active time
+range. Using the header only for schema selection — and returning
+blocks from outside the fork's era — is **non-conformant**. A
+requested block that exists but whose timestamp lies outside the
+header fork's range **MUST** come back as `available=false` (it is
+not omitted, unlike a past-head block in a range query; see below).
 
 Concretely:
 
-- `/cancun/bodies/hash` returns bodies *only* for blocks in the
-  Cancun time range. Requesting a Shanghai or Amsterdam hash yields
-  `available=false` for that entry.
-- `/amsterdam/bodies/hash` returns bodies *only* for Amsterdam blocks.
-  All fields (including `block_access_list`) are unconditionally
-  present; older blocks the CL accidentally requested come back as
-  `available=false`.
+- `POST /bodies/hash` with `Eth-Execution-Version: cancun` returns
+  bodies *only* for blocks in the Cancun time range. Requesting a
+  Shanghai or Amsterdam hash yields `available=false` for that entry.
+- `POST /bodies/hash` with `Eth-Execution-Version: amsterdam` returns
+  bodies *only* for Amsterdam blocks. All fields (including
+  `block_access_list`) are unconditionally present; older blocks the
+  CL accidentally requested come back as `available=false`.
 
-#### `POST /engine/v2/{fork}/bodies/hash`
+#### `POST /engine/v1/bodies/hash`
 
 Replaces `engine_getPayloadBodiesByHashV{1,2}`. Uses `POST` so that
 large hash lists travel in the request body rather than the URL.
@@ -299,24 +307,25 @@ large hash lists travel in the request body rather than the URL.
   the beacon-API convention; this costs a 4-byte offset but lets future
   revisions add fields without a breaking wire change.
 
-#### `GET /engine/v2/{fork}/bodies?from=N&count=M`
+#### `GET /engine/v1/bodies?from=N&count=M`
 
 Replaces `engine_getPayloadBodiesByRangeV{1,2}`. Range fits comfortably
 in the URL. Block numbers whose timestamp falls outside the URL fork's
 active range come back as `available=false`; block numbers past the
 latest known block are **omitted entirely** (the response is truncated
 at head, not padded — see the response-length note below). If the
-requested range straddles a fork boundary the CL re-issues against the
-next fork URL for the unfilled suffix.
+requested range straddles a fork boundary the CL re-issues with a
+different `Eth-Execution-Version` for the unfilled suffix.
 
 - **Response body** (both endpoints): SSZ-encoded `BodiesResponse`
   (a single-field container wrapping
   `entries: List[BodyEntry, MAX_BODIES_REQUEST]`). Each `BodyEntry`
   carries an `available: boolean` flag and an `ExecutionPayloadBody`
-  serialised against the **`{fork}` schema from the URL**. `available`
-  is false in either of the following cases:
+  serialised against the **schema named by `Eth-Execution-Version`**.
+  `available` is false in either of the following cases:
   - the block is unavailable / pruned, or
-  - the block's timestamp falls outside the URL fork's active range.
+  - the block's timestamp falls outside the header fork's active
+    range.
 
   When `available=false`, the `body` field is zero-valued and CLs
   MUST ignore its contents. See
@@ -357,7 +366,7 @@ misses are reported via `BlobEntry.available = false` on revisions
 that support partial responses. Revision-specific contents live inside
 `BlobEntry.contents`.
 
-#### `POST /engine/v2/blobs/v1`
+#### `POST /engine/v1/blobs/v1`
 
 Replaces `engine_getBlobsV1` (Cancun, single-proof whole-blob).
 
@@ -369,7 +378,7 @@ Replaces `engine_getBlobsV1` (Cancun, single-proof whole-blob).
   `available=false` per entry. `204 No Content` only when the EL
   cannot serve the request at all (e.g. syncing).
 
-#### `POST /engine/v2/blobs/v2`
+#### `POST /engine/v1/blobs/v2`
 
 Replaces `engine_getBlobsV2` (Osaka, all-or-nothing cell proofs).
 
@@ -381,7 +390,7 @@ Replaces `engine_getBlobsV2` (Osaka, all-or-nothing cell proofs).
   returns `204 No Content`. Otherwise `200 OK` and all entries have
   `available=true`. This matches today's V2 semantics.
 
-#### `POST /engine/v2/blobs/v3`
+#### `POST /engine/v1/blobs/v3`
 
 Replaces `engine_getBlobsV3` (Osaka, partial responses with cell
 proofs).
@@ -392,7 +401,7 @@ proofs).
   the whole response. `204 No Content` only when the EL cannot serve
   the request at all.
 
-#### `POST /engine/v2/blobs/v4`
+#### `POST /engine/v1/blobs/v4`
 
 Replaces `engine_getBlobsV4` (Amsterdam, cell-range selection).
 
@@ -409,7 +418,7 @@ Replaces `engine_getBlobsV4` (Amsterdam, cell-range selection).
 
 ### Capabilities & identification
 
-#### `GET /engine/v2/capabilities`
+#### `GET /engine/v1/capabilities`
 
 Returns JSON. The advertisement includes per-endpoint maximum request
 sizes so the CL knows how many block-bodies / blob-cells / payloads
@@ -445,7 +454,7 @@ carries an explicit `/vN` revision. ELs MAY support multiple
 revisions concurrently (e.g. `["v1", "v2"]`); CLs pick whichever they
 implement.
 
-#### `GET /engine/v2/identity`
+#### `GET /engine/v1/identity`
 
 Returns JSON `ClientVersion[]` (same shape as today's
 `engine_getClientVersionV1`). The CL identifies itself with a
@@ -455,8 +464,9 @@ mutual-exchange handshake.
 ### Example: submit a payload
 
 ```bash
-curl -X POST http://localhost:8551/engine/v2/amsterdam/payloads \
+curl -X POST http://localhost:8551/engine/v1/payloads \
   -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Eth-Execution-Version: amsterdam" \
   -H "Content-Type: application/octet-stream" \
   -H "Accept: application/octet-stream" \
   -H "X-Engine-Client-Version: LH/v6.2.1" \
@@ -467,9 +477,10 @@ curl -X POST http://localhost:8551/engine/v2/amsterdam/payloads \
 Request:
 
 ```
-POST /engine/v2/amsterdam/payloads HTTP/2
+POST /engine/v1/payloads HTTP/2
 Host: localhost:8551
 Authorization: Bearer <JWT>
+Eth-Execution-Version: amsterdam
 Content-Type: application/octet-stream
 Content-Length: 584
 
@@ -486,7 +497,7 @@ Content-Length: 41
 <41 bytes: SSZ(PayloadStatus)>
 ```
 
-The 41 bytes break down as: `status` (1 byte = `0x00`,  `VALID`) +
+The 41 bytes break down as: `status` (1 byte = `0x01`, `VALID`) +
 `latest_valid_hash` (4-byte offset + 32-byte hash = 36 bytes)
 + `validation_error` (4-byte offset + 0 bytes empty list).
 
@@ -503,8 +514,9 @@ Content-Length: 49
 ### Example: poll a built payload
 
 ```bash
-curl http://localhost:8551/engine/v2/amsterdam/payloads/0x1234567890abcdef \
+curl http://localhost:8551/engine/v1/payloads/0x1234567890abcdef \
   -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Eth-Execution-Version: amsterdam" \
   -H "Accept: application/octet-stream" \
   -o built_payload.ssz
 ```
@@ -515,46 +527,47 @@ cache. See [Payload retrieval](#payload-retrieval).
 ### Examples: every fork
 
 The examples above use Amsterdam. The shapes below show how the two
-main hot-path bodies change fork-to-fork, so each fork's URL has a
-worked example. Field names follow the
+main hot-path bodies change fork-to-fork. The URL is the same for
+every fork — only the `Eth-Execution-Version` header value changes
+along with the body schema. Field names follow the
 [per-fork container catalogue](./refactor-ssz.md#per-fork-container-catalogue);
 `<…>` denotes nested SSZ. Only the fields that change per fork are
-called out; every fork from Paris on is a valid `{fork}` segment.
+called out; every fork from Paris on is a valid header value.
 
-#### `POST /{fork}/payloads` request body (`ExecutionPayloadEnvelope{Fork}`)
+#### `POST /payloads` request body (`ExecutionPayloadEnvelope{Fork}`)
 
 ```
-# POST /engine/v2/paris/payloads
+# Eth-Execution-Version: paris
 ExecutionPayloadEnvelopeParis {
     payload: <ExecutionPayloadParis>            # base fields only (no withdrawals/blob-gas/BAL)
 }
 
-# POST /engine/v2/shanghai/payloads
+# Eth-Execution-Version: shanghai
 ExecutionPayloadEnvelopeShanghai {
     payload: <ExecutionPayloadShanghai>         # + withdrawals
 }
 
-# POST /engine/v2/cancun/payloads
+# Eth-Execution-Version: cancun
 ExecutionPayloadEnvelopeCancun {
     payload:                  <ExecutionPayloadCancun>   # + blob_gas_used, excess_blob_gas
     parent_beacon_block_root: <Root>                     # NEW: was a side param since Cancun
 }
 
-# POST /engine/v2/prague/payloads
+# Eth-Execution-Version: prague
 ExecutionPayloadEnvelopePrague {
     payload:                  <ExecutionPayloadPrague>   # == Cancun payload shape
     parent_beacon_block_root: <Root>
     execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>  # NEW: was a side param since Prague
 }
 
-# POST /engine/v2/osaka/payloads — identical envelope shape to Prague
+# Eth-Execution-Version: osaka — identical envelope shape to Prague
 ExecutionPayloadEnvelopeOsaka {
     payload:                  <ExecutionPayloadOsaka>    # == Cancun payload shape
     parent_beacon_block_root: <Root>
     execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
 }
 
-# POST /engine/v2/amsterdam/payloads
+# Eth-Execution-Version: amsterdam
 ExecutionPayloadEnvelopeAmsterdam {
     payload:                  <ExecutionPayloadAmsterdam># + block_access_list, slot_number
     parent_beacon_block_root: <Root>
@@ -564,22 +577,22 @@ ExecutionPayloadEnvelopeAmsterdam {
 
 The response for **all** forks is `PayloadStatus` (fork-invariant).
 
-#### `GET /{fork}/payloads/{id}` response body (`BuiltPayload{Fork}`)
+#### `GET /payloads/{id}` response body (`BuiltPayload{Fork}`)
 
 ```
-# GET /engine/v2/paris/payloads/{id}
+# Eth-Execution-Version: paris
 BuiltPayloadParis {
     payload:     <ExecutionPayloadParis>
     block_value: <Uint256>
 }
 
-# GET /engine/v2/shanghai/payloads/{id}
+# Eth-Execution-Version: shanghai
 BuiltPayloadShanghai {
     payload:     <ExecutionPayloadShanghai>
     block_value: <Uint256>
 }
 
-# GET /engine/v2/cancun/payloads/{id}
+# Eth-Execution-Version: cancun
 BuiltPayloadCancun {
     payload:                 <ExecutionPayloadCancun>
     block_value:             <Uint256>
@@ -587,7 +600,7 @@ BuiltPayloadCancun {
     should_override_builder: <Boolean>                  # NEW in Cancun
 }
 
-# GET /engine/v2/prague/payloads/{id}
+# Eth-Execution-Version: prague
 BuiltPayloadPrague {
     payload:                 <ExecutionPayloadPrague>
     block_value:             <Uint256>
@@ -596,7 +609,7 @@ BuiltPayloadPrague {
     should_override_builder: <Boolean>
 }
 
-# GET /engine/v2/osaka/payloads/{id}
+# Eth-Execution-Version: osaka
 BuiltPayloadOsaka {
     payload:                 <ExecutionPayloadOsaka>
     block_value:             <Uint256>
@@ -605,7 +618,7 @@ BuiltPayloadOsaka {
     should_override_builder: <Boolean>
 }
 
-# GET /engine/v2/amsterdam/payloads/{id}
+# Eth-Execution-Version: amsterdam
 BuiltPayloadAmsterdam {
     payload:                 <ExecutionPayloadAmsterdam>
     block_value:             <Uint256>
@@ -615,7 +628,7 @@ BuiltPayloadAmsterdam {
 }
 ```
 
-#### `POST /{fork}/forkchoice` request body (`ForkchoiceUpdate{Fork}`)
+#### `POST /forkchoice` request body (`ForkchoiceUpdate{Fork}`)
 
 The wrapper is the same Paris→Osaka (`custody_columns` is Amsterdam+);
 only the inner `payload_attributes` shape changes per fork:
@@ -674,7 +687,7 @@ Error codes:
 | 400 Bad Request | `/engine-api/errors/parse-error` | -32700 | Body is not valid JSON / SSZ |
 | 400 Bad Request | `/engine-api/errors/invalid-request` | -32600 | Request shape is wrong (missing required field, etc.) |
 | 400 Bad Request | `/engine-api/errors/ssz-decode-error` | (new) | SSZ decode failed; canned error, no `detail` |
-| 400 Bad Request | `/engine-api/errors/unsupported-fork` | -38005 | URL `{fork}` is not supported by this EL |
+| 400 Bad Request | `/engine-api/errors/unsupported-fork` | -38005 | `Eth-Execution-Version` value missing, unknown, or unsupported by this EL |
 | 404 Not Found | `/engine-api/errors/method-not-found` | -32601 | URL does not match any endpoint |
 | 404 Not Found | `/engine-api/errors/unknown-payload` | -38001 | `payloadId` does not exist |
 | 409 Conflict | `/engine-api/errors/invalid-forkchoice` | -38002 | Forkchoice state is inconsistent (e.g. finalized not ancestor of head) |
@@ -714,42 +727,46 @@ format, and authentication problems.
 
 Three layers:
 
-1. **Major (`/v2`)** — bumped only for breaking transport changes
-   (e.g. moving away from REST, swapping SSZ for something else).
-2. **Per-fork body schema** — selected via the `{fork}` URL segment
-   on hot-path endpoints (`/{fork}/payloads`, `/{fork}/forkchoice`,
-   `/{fork}/bodies`). Tracks consensus-protocol changes that ride
-   along with fork activations. The named fork segments span
-   **Paris through Amsterdam** (`paris`, `shanghai`, `cancun`,
-   `prague`, `osaka`, `amsterdam`); Paris is the earliest fork with an
-   Engine API and therefore the lowest `{fork}` an EL accepts. A
-   request with a `{fork}` below the EL's earliest supported fork (or
-   one it doesn't recognise) returns
+1. **Major (`/v1`, future `/v2`)** — `/v1` is the first REST version
+   of the engine API. A future `/v2` is reserved for breaking
+   transport changes (e.g. moving away from REST, swapping SSZ for
+   something else).
+2. **Per-fork body schema** — selected via the
+   `Eth-Execution-Version: <fork>` request header on hot-path
+   endpoints (`/payloads`, `/forkchoice`, `/bodies`). Tracks
+   consensus-protocol changes that ride along with fork activations.
+   Accepted values span **Paris through Amsterdam** (`paris`,
+   `shanghai`, `cancun`, `prague`, `osaka`, `amsterdam`); Paris is
+   the earliest fork with an Engine API and therefore the lowest
+   value an EL accepts. A request with a header value below the EL's
+   earliest supported fork, one it doesn't recognise, or a missing
+   header on a fork-scoped endpoint returns
    `400 /engine-api/errors/unsupported-fork`.
 3. **Per-endpoint revisions** — selected via a `/vN` URL segment on
    endpoints whose protocol evolves independently of the fork
    schedule (currently just `/blobs/vN`). Tracks engine-API protocol
    changes that don't align with fork activations.
 
-**Blob-parameter-only (BPO) forks** do **not** get their own `{fork}`
-segment. A BPO fork only changes blob-count parameters, not any
-Engine API body schema, so a chain in a BPO era keeps negotiating the
-URL of the named fork it layers on — e.g. BPO1–BPO5 all use
-`/osaka/...` and the Osaka wire shapes. Only named forks that change a
-body schema introduce a new `{fork}` segment. CLs MUST map a BPO era
-onto its base named fork when constructing the URL.
+**Blob-parameter-only (BPO) forks** do **not** get their own
+`Eth-Execution-Version` value. A BPO fork only changes blob-count
+parameters, not any Engine API body schema, so a chain in a BPO era
+keeps negotiating against the named fork it layers on — e.g.
+BPO1–BPO5 all send `Eth-Execution-Version: osaka` and use the Osaka
+wire shapes. Only named forks that change a body schema introduce a
+new accepted header value. CLs MUST map a BPO era onto its base named
+fork when constructing the header.
 
 The server advertises which forks and which `/vN` revisions it
-understands via `GET /engine/v2/capabilities`.
+understands via `GET /engine/v1/capabilities`.
 
 `engine_exchangeCapabilities` is **removed**. Instead the server lists
 its supported fork schemas and endpoint set in a single JSON document
-at `/engine/v2/capabilities`.
+at `/engine/v1/capabilities`.
 
 ### Capabilities format
 
 We considered advertising capabilities as a flat list of per-endpoint
-strings (e.g. `"POST /amsterdam/payloads"`, the format used by the
+strings (e.g. `"POST /payloads@amsterdam"`, the format used by the
 existing `engine_exchangeCapabilities` method). The structured form
 in `GET /capabilities` (separate `supported_forks`,
 `fork_scoped_endpoints`, `independently_versioned`,
@@ -766,25 +783,26 @@ because:
 
 ### Transition-window behavior
 
-During the rollout window, a CL upgraded to v2 may interact with an
-EL still on the legacy JSON-RPC engine API. Two cases:
+During the rollout window, a CL upgraded to the REST API may
+interact with an EL still on the legacy JSON-RPC engine API. Two
+cases:
 
-- **EL doesn't expose `/engine/v2/...` at all.** The CL hits any v2
-  URL and gets `404 Not Found` from the legacy server. The CL falls
-  back to JSON-RPC for the duration of that EL's lifetime — no
+- **EL doesn't expose `/engine/v1/...` at all.** The CL hits any
+  REST URL and gets `404 Not Found` from the legacy server. The CL
+  falls back to JSON-RPC for the duration of that EL's lifetime — no
   per-method retry dance.
-- **EL exposes `/engine/v2/...` but doesn't know the URL fork.** The
-  CL hits `/{fork}/...` against an EL that only advertised
-  `supported_forks: [..., cancun]` while the CL is asking for
-  `amsterdam`. The EL returns
+- **EL exposes `/engine/v1/...` but doesn't know the requested fork.**
+  The CL hits a fork-scoped endpoint with
+  `Eth-Execution-Version: amsterdam` against an EL that only
+  advertised `supported_forks: [..., cancun]`. The EL returns
   `400 /engine-api/errors/unsupported-fork`. The CL learns this once
   from `GET /capabilities` and avoids issuing such requests; if it
   doesn't, the per-request error is structured and explicit, not a
   silent downgrade.
 
-There is **no per-method fallback ladder**. A CL either uses v2 or
-JSON-RPC for the lifetime of an EL connection; mixing transports
-within a connection is permitted but not required.
+There is **no per-method fallback ladder**. A CL either uses the
+REST API or JSON-RPC for the lifetime of an EL connection; mixing
+transports within a connection is permitted but not required.
 
 ---
 
@@ -831,12 +849,20 @@ Unchanged in spirit: JWT (HS256, 256-bit shared secret). Differences:
 - **Default port:** `8551`, shared with the legacy JSON-RPC engine API.
   The two surfaces are distinguished by path: legacy JSON-RPC remains
   at `/` (and accepts JSON-RPC method calls), the new API lives under
-  `/engine/v2/...`. The same JWT secret authenticates both.
-- **Base path:** `/engine/v2/{fork}/...`. The `/v2` segment is the
-  major-protocol version; the `{fork}` segment selects the fork-scoped
-  body schema (`paris`, `shanghai`, `cancun`, `prague`, `osaka`,
-  `amsterdam`, …). Adding a fork = adding one path prefix and one set
-  of SSZ schemas. See [Versioning](#versioning-model).
+  `/engine/v1/...`. The same JWT secret authenticates both.
+- **Base path:** `/engine/v1/...`. `/v1` is the first major REST
+  version (a future `/v2` is reserved for breaking transport
+  changes). The fork-scoped body schema is selected by the
+  `Eth-Execution-Version: <fork>` request header rather than a URL
+  segment (`paris`, `shanghai`, `cancun`, `prague`, `osaka`,
+  `amsterdam`, …). Adding a fork = adding one accepted header value
+  and one set of SSZ schemas. See [Versioning](#versioning-model).
+- **Fork header:** every hot-path request MUST carry
+  `Eth-Execution-Version: <fork>`. Missing or unknown header on a
+  fork-scoped endpoint returns
+  `400 /engine-api/errors/unsupported-fork`. Unscoped endpoints
+  (`/capabilities`, `/identity`, `/blobs/vN`) MUST ignore the header
+  if present.
 - **Content-Type / Accept matrix:**
 
   | Channel | Header | Value |
@@ -863,23 +889,29 @@ Unchanged in spirit: JWT (HS256, 256-bit shared secret). Differences:
   request or reuse a long-lived connection. JWT is per-request so
   token rotation works the same way in both patterns.
 
-### Why fork-in-URL instead of method versioning?
+### Why a fork header instead of method versioning?
 
 Today every change of a single field bumps the method version
-(`engine_newPayloadV1..V5`). The new API puts the fork in the URL:
+(`engine_newPayloadV1..V5`). The new API puts the fork in a request
+header:
 
 ```
-POST /engine/v2/amsterdam/payloads
+POST /engine/v1/payloads
+Eth-Execution-Version: amsterdam
 Content-Type: application/octet-stream
 Authorization: Bearer <JWT>
 
 <SSZ-encoded ExecutionPayloadEnvelope>
 ```
 
-The EL routes by fork segment, parses the body according to that fork's
-SSZ schema, and returns a fork-shaped response. Adding a fork = adding
-one path prefix and one set of SSZ schemas. URLs stay greppable and
-discoverable in logs.
+The EL routes by header value, parses the body according to that
+fork's SSZ schema, and returns a fork-shaped response. Adding a fork
+= adding one accepted header value and one set of SSZ schemas. We
+considered putting the fork in the URL (`/{fork}/payloads`) but
+chose the header because it keeps URLs stable across forks — content
+negotiation is the standard HTTP idiom for "same resource, different
+schema version" and the Beacon API already uses
+`Eth-Consensus-Version` for the same purpose on the CL side.
 
 ---
 
@@ -931,16 +963,16 @@ base types map onto SSZ as follows:
 Endpoints that return data spanning multiple block-eras come in two
 flavours:
 
-1. **Fork-scoped** (e.g. `/bodies`): the URL `{fork}` selects the
-   container schema *and* limits the response to blocks from that
-   fork's time range. Every field in the fork's body container is
-   unconditionally present (no `Optional[T]` for cross-fork
+1. **Fork-scoped** (e.g. `/bodies`): `Eth-Execution-Version` selects
+   the container schema *and* limits the response to blocks from
+   that fork's time range. Every field in the fork's body container
+   is unconditionally present (no `Optional[T]` for cross-fork
    nullability); blocks outside the fork's range come back as
    `available=false` on the outer entry instead of as a
    zero-valued body:
 
    ```
-   # /amsterdam/bodies/hash response
+   # POST /bodies/hash with Eth-Execution-Version: amsterdam
    BodyEntry {
        available: boolean
        body:      ExecutionPayloadBody
@@ -954,10 +986,11 @@ flavours:
    }
    ```
 
-   A CL fetching a Cancun-era block calls `/cancun/bodies/hash` and
-   receives the Cancun container (no `block_access_list` field at
-   all, and no `Optional` wrapper on `withdrawals`). Cross-fork
-   ranges require multiple requests, one per fork URL.
+   A CL fetching a Cancun-era block sends
+   `Eth-Execution-Version: cancun` and receives the Cancun container
+   (no `block_access_list` field at all, and no `Optional` wrapper on
+   `withdrawals`). Cross-fork ranges require multiple requests, one
+   per header value.
 
 2. **Independently versioned** (e.g. `/blobs/vN`): each revision is
    its own container, no nullable optionals across revisions. Old
@@ -1037,7 +1070,7 @@ decision log for quick scanning.
 2. **Stop the version sprawl.** Today every fork bumps every method that
    touches a changed structure (`engine_newPayload` is at V5,
    `engine_getPayload` at V6, etc.). The new API puts the fork in the
-   URL (`/engine/v2/{fork}/...`) so a single endpoint accepts whatever
+   URL (`/engine/v1/...`) so a single endpoint accepts whatever
    schema that fork mandates; adding a fork = adding one path prefix
    plus one set of SSZ schemas, not bumping every method name.
 3. **Self-contained requests.** No more side-channel parameters
@@ -1072,9 +1105,9 @@ that prompt this refactor:
   routinely multi-megabyte.
 - **No content negotiation.** A new fork structure forces a new method
   name (`engine_newPayloadV5`), even when the only change is one added
-  field. With a REST endpoint, the fork is part of the URL
-  (`/engine/v2/amsterdam/payloads`) and the body schema is selected by
-  routing, not by method-name suffix.
+  field. With a REST endpoint and a fork header
+  (`Eth-Execution-Version: amsterdam`), the body schema is selected
+  by routing + content negotiation, not by method-name suffix.
 - **Side-channel params.** JSON-RPC's positional params encourage
   bolting on extras like `parentBeaconBlockRoot` and
   `executionRequests` next to the payload, instead of inside it.
@@ -1168,7 +1201,7 @@ the summary exists for quick scanning.
 - **`eth_*` JSON-RPC subset** (`eth_blockNumber`, `eth_call`,
   `eth_chainId`, `eth_getCode`, `eth_getBlockByHash`,
   `eth_getBlockByNumber`, `eth_getLogs`, `eth_sendRawTransaction`,
-  `eth_syncing`) is **not** mirrored under `/engine/v2/...`. CLs that
+  `eth_syncing`) is **not** mirrored under `/engine/v1/...`. CLs that
   need state / log access continue to call them via the legacy
   JSON-RPC root.
 
@@ -1194,9 +1227,8 @@ the summary exists for quick scanning.
 
 #### Versioning
 
-- **Fork-scoped endpoints:** `/{fork}/payloads`, `/{fork}/forkchoice`,
-  `/{fork}/bodies`. Fork in the URL, no `Eth-Consensus-Version`
-  header.
+- **Fork-scoped endpoints:** `/payloads`, `/forkchoice`, `/bodies`.
+  Fork in the `Eth-Execution-Version` request header.
 - **Independently versioned endpoints:** `/blobs/vN`. Legacy
   `engine_getBlobsVN` numbers carry forward onto the URL. ELs MUST
   serve at least the revision matching their current fork
@@ -1204,13 +1236,18 @@ the summary exists for quick scanning.
   alongside. Future blob-shape changes ship as `/blobs/v5`, `/v6`,
   etc.
 - **Unscoped endpoints:** `/capabilities`, `/identity`.
-- **Major version `/v2`** is bumped only for breaking transport
-  changes (e.g. dropping REST or SSZ).
+- **Major version `/v1`** is the first REST version; future `/v2`
+  reserved for breaking transport changes (e.g. dropping REST or
+  SSZ).
 
 #### Encoding
 
 - **Hot-path bodies use SSZ.** Diagnostic / metadata endpoints
-  (`/capabilities`, `/identity`, error bodies) use JSON.
+  (`/capabilities`, `/identity`, error bodies) use JSON. The legacy
+  `engine_*` JSON-RPC endpoint at `/` remains available alongside
+  this surface during the rollout window and is retired at a future
+  fork `F` (TODO: pin), at which point the REST + SSZ surface
+  becomes the only way to drive an EL.
 - **`Optional[T]` ≡ `List[T, 1]`** (length 0 = absent, length 1 =
   present). Universally supported by SSZ libraries.
 - **Strings ≡ `List[byte, MAX_ERROR_BYTES]`**, `MAX_ERROR_BYTES = 1024`.
@@ -1222,9 +1259,9 @@ the summary exists for quick scanning.
 - **`MAX_*` constants** are defined in fork-scoped SSZ schema files;
   `MAX_ERROR_BYTES` is global.
 - **Cross-fork response containers** come in two flavours:
-  fork-scoped (`/bodies`) uses the URL `{fork}` to pick *both* the
-  schema and the era of returned blocks (every body field always
-  present; out-of-era blocks come back as `available=false`);
+  fork-scoped (`/bodies`) uses `Eth-Execution-Version` to pick
+  *both* the schema and the era of returned blocks (every body field
+  always present; out-of-era blocks come back as `available=false`);
   independently versioned (`/blobs/vN`) gives each revision its own
   dedicated container. Both wrap their entries in
   `BodyEntry { available, body }` / `BlobEntry { available, contents }`.
@@ -1250,23 +1287,24 @@ the summary exists for quick scanning.
   `ACCEPTED → VALID/INVALID`) are allowed; ELs MUST NOT short-circuit
   retries.
 
-#### Forkchoice update (`POST /{fork}/forkchoice`)
+#### Forkchoice update (`POST /forkchoice`)
 
 - **Single atomic call** carrying forkchoice state, optional
   `payload_attributes`, and optional `custody_columns`.
 - **Skip-allowed semantics:** EL MAY skip applying state when the
   new `head` is a `VALID` ancestor of the latest finalized block,
   guarding against malformed CL FCUs.
-- **Stale-fork URL** is allowed when `payload_attributes` is absent;
-  with `payload_attributes` present, URL `{fork}` MUST match the
-  timestamp's fork (otherwise `400 unsupported-fork`).
+- **Stale-fork header** is allowed when `payload_attributes` is
+  absent; with `payload_attributes` present,
+  `Eth-Execution-Version` MUST match the timestamp's fork
+  (otherwise `400 unsupported-fork`).
 - **No HTTP-layer body cap** beyond SSZ `MAX_*` constants.
 - **Custody-set updates** run independently of the forkchoice flow;
   custody errors do not affect `payload_status`.
 - **Custody-set lifetime:** set until the next FCU that includes a
   `custody_columns` field. FCUs that omit it leave the set unchanged.
 
-#### Payload submission (`POST /{fork}/payloads`)
+#### Payload submission (`POST /payloads`)
 
 - **`expectedBlobVersionedHashes` removed.** EL recomputes from
   `payload.transactions`; block-hash check covers transactions.
@@ -1275,7 +1313,7 @@ the summary exists for quick scanning.
 - **Transaction min-length** ("at least 1 byte") remains a
   receiver-side validation rule, not an SSZ schema invariant.
 
-#### Payload retrieval (`GET /{fork}/payloads/{payloadId}`)
+#### Payload retrieval (`GET /payloads/{payloadId}`)
 
 - **Poll-only**, same semantics as today's `engine_getPayload`. No
   SSE / long-poll.
@@ -1283,7 +1321,7 @@ the summary exists for quick scanning.
   `POST /forkchoice`. CLs MUST NOT recompute or validate it.
 - **`payload_id` lifetime is build-bound, not time-bound.** A token
   remains valid until either the payload was retrieved by
-  `GET /{fork}/payloads/{payloadId}` or another payload was built
+  `GET /payloads/{payloadId}` or another payload was built
   via a forkchoice with payload attributes.
 - **`shouldOverrideBuilder`** lives inside the SSZ `BuiltPayload`
   body.
@@ -1317,3 +1355,25 @@ the summary exists for quick scanning.
 - The mutual-exchange handshake of `engine_getClientVersionV1` —
   replaced by one-way `GET /identity` plus the
   `X-Engine-Client-Version` request header.
+
+---
+
+## Future evolution
+
+### Progressive merkleization
+
+Progressive (chunked / streaming) SSZ merkleization is **not used**
+in this draft. It would let the EL stream a partially-built
+`BuiltPayload` without recomputing the `hash_tree_root` from
+scratch on every `GET` poll, which is attractive for the polling
+loop on `/payloads/{id}` — but the spec depends on container
+shapes that are still in flux pending
+[EIP-7688](https://eips.ethereum.org/EIPS/eip-7688). Adopting
+progressive merkleization now would freeze container layout
+choices we may want to revisit once 7688 is SFI-ed.
+
+Plan: revisit progressive merkleization in a follow-up revision of
+this spec once EIP-7688 is SFI-ed. At that point we can redesign
+the affected containers (`BuiltPayload`, `BlobsBundle`) to be
+progressive-friendly without inheriting any constraints from the
+current shapes.

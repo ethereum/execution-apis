@@ -38,10 +38,10 @@
   - [`BlobAndProof` per revision](#blobandproof-per-revision)
   - [Identification & capabilities](#identification--capabilities)
 - [Endpoint containers](#endpoint-containers)
-  - [`POST /{fork}/payloads`](#post-forkpayloads)
-  - [`POST /{fork}/forkchoice`](#post-forkforkchoice)
-  - [`GET /{fork}/payloads/{payloadId}`](#get-forkpayloadspayloadid)
-  - [`POST /{fork}/bodies/hash` and `GET /{fork}/bodies?...`](#post-forkbodieshash-and-get-forkbodies)
+  - [`POST /payloads`](#post-payloads)
+  - [`POST /forkchoice`](#post-forkchoice)
+  - [`GET /payloads/{payloadId}`](#get-payloadspayloadid)
+  - [`POST /bodies/hash` and `GET /bodies?...`](#post-bodieshash-and-get-bodies)
   - [`POST /blobs/v1`](#post-blobsv1)
   - [`POST /blobs/v2`](#post-blobsv2)
   - [`POST /blobs/v3`](#post-blobsv3)
@@ -276,16 +276,17 @@ source of the divergence.
 
 ## Per-fork container catalogue
 
-Each fork URL (`/{fork}/payloads`, `/{fork}/forkchoice`,
-`/{fork}/bodies`) uses its own SSZ container shape. ELs serving
-`/cancun/...` MUST use the Cancun containers; ELs serving
-`/amsterdam/...` MUST use the Amsterdam containers; etc. This section
-catalogues every fork-scoped variant.
+Each fork-scoped endpoint (`/payloads`, `/forkchoice`, `/bodies`)
+uses its own SSZ container shape, selected by the
+`Eth-Execution-Version` request header. ELs handling
+`Eth-Execution-Version: cancun` MUST use the Cancun containers; ELs
+handling `Eth-Execution-Version: amsterdam` MUST use the Amsterdam
+containers; etc. This section catalogues every fork-scoped variant.
 
 ### `ExecutionPayload` per fork
 
-Used by `POST /{fork}/payloads` (the inner `payload` field of
-`ExecutionPayloadEnvelope`) and `GET /{fork}/payloads/{payloadId}`
+Used by `POST /payloads` (the inner `payload` field of
+`ExecutionPayloadEnvelope`) and `GET /payloads/{payloadId}`
 (the inner `payload` field of `BuiltPayload`).
 
 ```
@@ -341,7 +342,7 @@ above; this section just makes the progression explicit.
 ### `PayloadAttributes` per fork
 
 Used by the `payload_attributes` field of `ForkchoiceUpdate` (the
-request body of `POST /{fork}/forkchoice`).
+request body of `POST /forkchoice`).
 
 ```
 # Paris
@@ -434,7 +435,7 @@ Osaka / Amsterdam carries `BlobsBundleV2`.
 
 ### `BuiltPayload` per fork
 
-Returned by `GET /{fork}/payloads/{payloadId}`. Like the
+Returned by `GET /payloads/{payloadId}`. Like the
 `ExecutionPayload` catalogue above, the shape evolves per fork; this
 section pins every variant so there is no ambiguity for pre-Amsterdam
 forks. **All variants use the same field order; SSZ fields are
@@ -524,7 +525,7 @@ The Amsterdam variant is the one shown in the
 
 ### `ExecutionPayloadEnvelope` per fork
 
-The request body of `POST /{fork}/payloads`. `parent_beacon_block_root`
+The request body of `POST /payloads`. `parent_beacon_block_root`
 exists from Cancun on (it was a separate `engine_newPayload` parameter
 since Cancun); `execution_requests` from Prague on. Field order is
 normative.
@@ -557,7 +558,7 @@ ExecutionPayloadEnvelopePrague {
 
 ### `ForkchoiceUpdate` per fork
 
-The request body of `POST /{fork}/forkchoice`. `payload_attributes`
+The request body of `POST /forkchoice`. `payload_attributes`
 selects the matching per-fork `PayloadAttributes` shape;
 `custody_columns` exists only from Amsterdam on.
 
@@ -630,13 +631,15 @@ CapabilitiesResponse {
 ## Endpoint containers
 
 The endpoint sketches below use the **Amsterdam** shapes as the worked
-example. Every fork-scoped endpoint (`/{fork}/payloads`,
-`/{fork}/forkchoice`, `/{fork}/bodies`) is defined for **every fork
-from Paris onward**; substitute the matching entry from the
+example. Every fork-scoped endpoint (`/payloads`, `/forkchoice`,
+`/bodies`) is defined for **every fork from Paris
+onward**; substitute the matching entry from the
 [per-fork container catalogue](#per-fork-container-catalogue) for the
-URL's `{fork}`. For instance `POST /cancun/payloads` takes an
+value of the `Eth-Execution-Version` request header. For instance
+`POST /payloads` with `Eth-Execution-Version: cancun` takes an
 `ExecutionPayloadEnvelopeCancun` wrapping an `ExecutionPayloadCancun`,
-and `GET /shanghai/payloads/{id}` returns a `BuiltPayloadShanghai`.
+and `GET /payloads/{id}` with `Eth-Execution-Version: shanghai`
+returns a `BuiltPayloadShanghai`.
 
 > **Fork-invariant containers.** `PayloadStatus`, `ForkchoiceState`,
 > `ForkchoiceUpdateResponse`, and `Withdrawal` have the **same shape
@@ -651,13 +654,14 @@ and `GET /shanghai/payloads/{id}` returns a `BuiltPayloadShanghai`.
 > single *monolithic* superset container per type whose fields are
 > gated on the active fork (e.g. one `ExecutionPayload` struct where
 > `withdrawals` participates only from Shanghai, `block_access_list`
-> only from Amsterdam, etc.), driving the gate from the URL `{fork}`.
+> only from Amsterdam, etc.), driving the gate from the
+> `Eth-Execution-Version` header.
 > This is a valid strategy **as long as the bytes on the wire are
 > identical** to the per-fork shape for that fork — i.e. a gated-off
 > field contributes neither an offset nor content. go-ethereum's
 > implementation takes this monolithic approach.
 
-### `POST /{fork}/payloads`
+### `POST /payloads`
 
 Replaces `engine_newPayloadV{1..5}` (Amsterdam shown; `engine_newPayloadV5`).
 Each fork uses its `ExecutionPayloadEnvelope{Fork}` from the catalogue
@@ -681,7 +685,7 @@ from `payload.transactions`).
 
 `PayloadStatus` (full enum, `0`/`1`/`2`/`3`).
 
-### `POST /{fork}/forkchoice`
+### `POST /forkchoice`
 
 Replaces `engine_forkchoiceUpdatedV{1..4}` (Amsterdam shown;
 `engine_forkchoiceUpdatedV4`). Each fork uses its `ForkchoiceUpdate{Fork}`
@@ -708,7 +712,7 @@ ForkchoiceUpdateResponse {
 }
 ```
 
-### `GET /{fork}/payloads/{payloadId}`
+### `GET /payloads/{payloadId}`
 
 Replaces `engine_getPayloadV{1..6}` (Amsterdam shown;
 `engine_getPayloadV6`). Each fork returns its `BuiltPayload{Fork}` from
@@ -736,12 +740,12 @@ BlobsBundleV2 {
 have length `len(blobs) * CELLS_PER_EXT_BLOB` (mirrors the
 `engine_getPayloadV5` rule from osaka.md).
 
-### `POST /{fork}/bodies/hash` and `GET /{fork}/bodies?...`
+### `POST /bodies/hash` and `GET /bodies?...`
 
 Replace `engine_getPayloadBodiesByHashV{1,2}` and
 `engine_getPayloadBodiesByRangeV{1,2}` (Amsterdam shown). Both return
 the same response container; the inner `ExecutionPayloadBody` follows
-the URL `{fork}` per the catalogue.
+the `Eth-Execution-Version` request header per the catalogue.
 
 #### Request — `/bodies/hash`
 
@@ -769,7 +773,7 @@ BodyEntry {
 ```
 
 `available` is `false` when the requested block is unavailable /
-pruned, **or** when the block's timestamp falls outside the URL
+pruned, **or** when the block's timestamp falls outside the header
 fork's active range. When `available=false`, `body` is zero-valued
 and CLs MUST ignore its contents.
 
@@ -783,11 +787,12 @@ appears for in-range-but-out-of-era or pruned blocks; never as
 trailing padding. See
 [refactor.md § Historical bodies](./refactor.md#historical-bodies).
 
-Each fork URL pairs with its own `ExecutionPayloadBody` schema. The
-Amsterdam variant carries every field unconditionally:
+Each `Eth-Execution-Version` value pairs with its own
+`ExecutionPayloadBody` schema. The Amsterdam variant carries every
+field unconditionally:
 
 ```
-# Amsterdam ExecutionPayloadBody (used by /amsterdam/bodies/...)
+# Amsterdam ExecutionPayloadBody (Eth-Execution-Version: amsterdam)
 ExecutionPayloadBody {
     transactions:      List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
     withdrawals:       List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
@@ -799,19 +804,19 @@ Earlier-fork variants drop the fields their fork didn't have. For
 reference:
 
 ```
-# Cancun ExecutionPayloadBody (used by /cancun/bodies/...)
+# Cancun ExecutionPayloadBody (Eth-Execution-Version: cancun)
 ExecutionPayloadBody {
     transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
     withdrawals:  List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]
 }
 
-# Paris ExecutionPayloadBody (used by /paris/bodies/...)
+# Paris ExecutionPayloadBody (Eth-Execution-Version: paris)
 ExecutionPayloadBody {
     transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
 }
 ```
 
-No `Optional[T]` cross-fork nullability anywhere — each fork URL
+No `Optional[T]` cross-fork nullability anywhere — each fork
 returns only blocks from its own era, so every field is always
 present.
 
