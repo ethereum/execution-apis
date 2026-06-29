@@ -133,3 +133,30 @@
       result:
         name: Network ID
         value: '1'
+- name: net_listening
+  summary: Returns true if the client is actively listening for network connections.
+  params: []
+  result:
+    name: Listening
+    schema:
+      title: Listening
+      type: boolean
+  examples:
+    - name: net_listening example
+      params: []
+      result:
+        name: Listening
+        value: true
+- name: net_peerCount
+  summary: Returns the number of peers currently connected to the client.
+  params: []
+  result:
+    name: Peer count
+    schema:
+      $ref: '#/components/schemas/uint'
+  examples:
+    - name: net_peerCount example
+      params: []
+      result:
+        name: Peer count
+        value: '0x2'

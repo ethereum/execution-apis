@@ -98,6 +98,8 @@ var AllMethods = []MethodTests{
 	EthConfig,
 	EthCapabilities,
 	NetVersion,
+	NetListening,
+	NetPeerCount,
 	TestingBuildBlockV1,
 	TxpoolStatus,
 	TxpoolContent,
@@ -2445,6 +2447,46 @@ var NetVersion = MethodTests{
 				}
 				if id.Cmp(t.chain.genesis.Config.ChainID) != 0 {
 					return fmt.Errorf("wrong networkID %v returned", id)
+				}
+				return nil
+			},
+		},
+	},
+}
+
+var NetListening = MethodTests{
+	"net_listening",
+	[]Test{
+		{
+			Name:  "get-listening",
+			About: "Calls net_listening to check whether the client is listening for network connections.",
+			Run: func(ctx context.Context, t *T) error {
+				var got bool
+				if err := t.rpc.CallContext(ctx, &got, "net_listening"); err != nil {
+					return err
+				}
+				if !got {
+					return fmt.Errorf("net_listening returned false, want true")
+				}
+				return nil
+			},
+		},
+	},
+}
+
+var NetPeerCount = MethodTests{
+	"net_peerCount",
+	[]Test{
+		{
+			Name:  "get-peer-count",
+			About: "Calls net_peerCount to retrieve the number of connected peers. The test client runs without peers, so the expected value is zero.",
+			Run: func(ctx context.Context, t *T) error {
+				var got hexutil.Uint
+				if err := t.rpc.CallContext(ctx, &got, "net_peerCount"); err != nil {
+					return err
+				}
+				if got != 0 {
+					return fmt.Errorf("unexpected peer count (got: %d, want: 0)", got)
 				}
 				return nil
 			},
