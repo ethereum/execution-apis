@@ -16,6 +16,7 @@
       type: array
       items:
         type: string
+  errors: []
   examples:
     - name: engine_exchangeCapabilities example
       params:
