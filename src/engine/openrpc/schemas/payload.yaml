@@ -58,9 +58,11 @@ PayloadStatusV2:
       $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/latestValidHash'
     validationError:
       $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/validationError'
-    latestInclusionListSatisfiedHash:
-      title: The hash of the most recent inclusion list satisfied block
-      $ref: '#/components/schemas/hash32'
+    inclusionListSatisfied:
+      title: Whether the payload satisfied the inclusion list constraints
+      oneOf:
+        - type: boolean
+        - type: 'null'
 ExecutionPayloadV1:
   title: Execution payload object V1
   type: object
