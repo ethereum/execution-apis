@@ -1,0 +1,109 @@
+- name: testing_commitBlockV1
+  summary: Builds a block on top of a given parentHash using the provided parameters and commits it to the canonical chain. This is a testing-only method for generating and applying test blocks.
+  description: |
+    This method is a debugging and testing tool that simplifies the full block production and application flow into a single call.
+    It takes the same inputs as `testing_buildBlockV1`, but instead of only returning the built execution payload, it also
+    inserts the resulting block into the client's block tree and advances the canonical head to it.
+
+    **Specification:**
+    - The client MUST build a new execution payload using the block specified by `parentBlockHash` as its parent, following the exact same rules as `testing_buildBlockV1`.
+    - The client MUST use the provided `payloadAttributes` to define the context of the new block.
+    - If the `transactions` parameter is an empty array `[]`, the client MUST build an empty block (no transactions).
+    - If the `transactions` parameter is JSON `null`, the client MAY build a block from its local transaction pool (mempool).
+    - If the `transactions` parameter is a non-empty array, the client MUST include all transactions from the array on the block's transaction list, in the order they were provided, and MUST NOT include any transactions from its local transaction pool.
+    - If `extraData` is provided, the client MUST set the `extraData` field of the resulting payload to this value.
+    - After the block has been successfully built, the client MUST validate it, insert it into its block tree, and set it as the new canonical head (as if it had been received via `engine_newPayload` followed by `engine_forkchoiceUpdated` pointing at the new block).
+    - On success, the client MUST return a Response object whose `blockHash` field is the hash of the block that was committed to the canonical chain.
+    - On failure (e.g. block building failed, block validation failed, or the block could not be committed to the chain), the client MUST return a Response object whose `blockHash` field is `null`, and MUST report the reason via a standard JSON-RPC error response (see the `errors` section).
+    - Unlike `testing_buildBlockV1`, this method DOES modify the client's canonical chain and head block.
+
+    **Security Considerations:**
+    - This method is intended for testing environments ONLY and MUST NOT be exposed on public-facing RPC APIs.
+    - Because this method mutates the canonical chain, it is strongly recommended that it be disabled by default and only enabled in explicit test configurations.
+  params:
+    - name: Parent block hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Payload attributes
+      required: true
+      schema:
+        title: PayloadAttributesV3
+        type: object
+        properties:
+          timestamp:
+            $ref: '#/components/schemas/uint'
+          prevRandao:
+            $ref: '#/components/schemas/hash32'
+          suggestedFeeRecipient:
+            $ref: '#/components/schemas/address'
+          withdrawals:
+            title: Withdrawals
+            type: array
+            items:
+              $ref: '#/components/schemas/Withdrawal'
+          parentBeaconBlockRoot:
+            $ref: '#/components/schemas/hash32'
+    - name: Transactions
+      required: true
+      description: |
+        An array of raw, signed transactions (hex-encoded) to include in the generated block, or null.
+        - If an empty array `[]`: The client MUST build an empty block (no transactions).
+        - If `null`: The client MAY build a block from its local transaction pool (mempool).
+        - If a non-empty array: The client MUST include ALL transactions from this array in the resulting block, in the order provided, and MUST NOT include any transactions from its local mempool.
+      schema:
+        title: Transactions
+        oneOf:
+          - type: array
+            items:
+              $ref: '#/components/schemas/bytes'
+          - type: 'null'
+    - name: Extra data
+      required: false
+      description: |
+        Data to be set as the extraData field of the built block. If provided, the client MUST use this exact value.
+      schema:
+        oneOf:
+          - $ref: '#/components/schemas/bytes'
+          - type: 'null'
+  result:
+    name: Response object
+    schema:
+      title: Response object
+      type: object
+      required:
+        - blockHash
+      properties:
+        blockHash:
+          title: Committed block hash
+          description: |
+            Hash of the block that was built and committed to the canonical chain.
+            `null` if the block could not be built, validated, or committed; in that case the reason is returned via a JSON-RPC error response.
+          oneOf:
+            - $ref: '#/components/schemas/hash32'
+            - type: 'null'
+  errors:
+    - code: -32602
+      message: Invalid parameters
+    - code: -32603
+      message: Internal error
+  examples:
+    - name: testing_commitBlockV1 example
+      params:
+        - name: Parent block hash
+          value: '0xe27a3e81bd7cfe2aec2cc9e832c73a17c93e7efcf659cf4b39883b96c48708c2'
+        - name: Payload attributes
+          value:
+            timestamp: '0x1ce'
+            prevRandao: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            suggestedFeeRecipient: '0x0000000000000000000000000000000000000000'
+            withdrawals: []
+            parentBeaconBlockRoot: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822'
+        - name: Transactions
+          value: []
+        - name: Extra data
+          value: null
+      result:
+        name: Response object
+        value:
+          blockHash: '0x1234567890123456789012345678901234567890123456789012345678901234'
