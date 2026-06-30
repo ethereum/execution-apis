@@ -124,6 +124,87 @@
           v: '0xfe7'
           r: '0x84caf09aefbd5e539295acc67217563438a4efb224879b6855f56857fa2037d3'
           s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
+- name: eth_getRawTransactionByHash
+  summary: Returns the raw RLP-encoded transaction bytes requested by transaction hash.
+  params:
+    - name: Transaction hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Raw transaction
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/bytes'
+  examples:
+    - name: eth_getRawTransactionByHash example
+      params:
+        - name: Transaction hash
+          value: '0xa52be92809541220ee0aaaede6047d9a6c5d0cd96a517c854d944ee70a0ebb44'
+      result:
+        name: Raw transaction
+        value: '0x02f86f010185012a05f20085012a05f2008252089400000000219ab540356cbb839cbe05303d7705fa8806f05b59d3b2000080c080a09a70c8a9f7255b4f5e36a4d14c5fd5c1f7da60ba7cda7a2aa7b6e5d5a41e5f0a07b2da7e3a8d15b2a61fb4e0e1a6f47c3b82d6e4f9c1a0b3e5d7c2f4a6b8d0e2'
+- name: eth_getRawTransactionByBlockHashAndIndex
+  summary: Returns the raw RLP-encoded transaction bytes by block hash and transaction index position.
+  params:
+    - name: Block hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Transaction index
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Raw transaction
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/bytes'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
+  examples:
+    - name: eth_getRawTransactionByBlockHashAndIndex example
+      params:
+        - name: Block hash
+          value: '0xbf137c3a7a1ebdfac21252765e5d7f40d115c2757e4a4abee929be88c624fdb7'
+        - name: Transaction index
+          value: '0x2'
+      result:
+        name: Raw transaction
+        value: '0x02f86f010185012a05f20085012a05f2008252089400000000219ab540356cbb839cbe05303d7705fa8806f05b59d3b2000080c080a09a70c8a9f7255b4f5e36a4d14c5fd5c1f7da60ba7cda7a2aa7b6e5d5a41e5f0a07b2da7e3a8d15b2a61fb4e0e1a6f47c3b82d6e4f9c1a0b3e5d7c2f4a6b8d0e2'
+- name: eth_getRawTransactionByBlockNumberAndIndex
+  summary: Returns the raw RLP-encoded transaction bytes by block number and transaction index position.
+  params:
+    - name: Block
+      required: true
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTag'
+    - name: Transaction index
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint'
+  result:
+    name: Raw transaction
+    schema:
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/bytes'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
+  examples:
+    - name: eth_getRawTransactionByBlockNumberAndIndex example
+      params:
+        - name: Block
+          value: '0x1442e'
+        - name: Transaction index
+          value: '0x2'
+      result:
+        name: Raw transaction
+        value: '0x02f86f010185012a05f20085012a05f2008252089400000000219ab540356cbb839cbe05303d7705fa8806f05b59d3b2000080c080a09a70c8a9f7255b4f5e36a4d14c5fd5c1f7da60ba7cda7a2aa7b6e5d5a41e5f0a07b2da7e3a8d15b2a61fb4e0e1a6f47c3b82d6e4f9c1a0b3e5d7c2f4a6b8d0e2'
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
   params:
