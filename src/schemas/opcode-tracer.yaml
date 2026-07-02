@@ -10,8 +10,7 @@ TraceConfig:
     only apply to the opcode logger and are ignored when a named tracer is set.
 
     When the tracer field is set to a named tracer (e.g. "callTracer",
-    "prestateTracer"), the result format is tracer-specific. Defining the
-    output schemas of named tracers is outside the scope of this specification.
+    "prestateTracer"), the result format is tracer-specific. The callTracer output is defined by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
   type: object
   properties:
     tracer:
@@ -129,6 +128,27 @@ StructLog:
         (e.g. cold vs. warm SLOAD/SSTORE).
       type: integer
       minimum: 0
+    stateGasCost:
+      title: state-gas cost
+      description: >-
+        EIP-8037 (Amsterdam+) only. The state-gas portion of gasCost for this
+        step - the amount charged to the state-gas dimension, nonzero only for
+        state-creating operations (an SSTORE into a new slot, account creation,
+        code deposit, or an EIP-7702 authorization to a new account). gasCost
+        minus stateGasCost is the regular-gas portion. Clients MUST include this
+        field at every step when it is non-zero and SHOULD include it at every
+        step even when zero. Absent before the Amsterdam fork.
+      type: integer
+      minimum: 0
+    stateGasReservoir:
+      title: state-gas reservoir remaining
+      description: >-
+        EIP-8037 (Amsterdam+) only. The remaining state-gas reservoir before
+        this opcode. The GAS opcode and the gas field report gas_left only
+        (excluding the reservoir); this field exposes the reservoir separately.
+        MAY be omitted.
+      type: integer
+      minimum: 0
     depth:
       title: call depth
       description: The call stack depth at this execution step. Starts at 1 for the outermost call.
@@ -205,6 +225,30 @@ OpcodeTransactionTrace:
     gas:
       title: gas used
       description: Total amount of gas consumed by the transaction.
+      type: integer
+      minimum: 0
+    regularGasUsed:
+      title: regular gas used (gross)
+      description: >-
+        EIP-8037 (Amsterdam+) only. The transaction gross (pre-refund)
+        regular-gas contribution to the block (summed into
+        block_regular_gas_used, EIP-7778). Absent before the Amsterdam fork.
+      type: integer
+      minimum: 0
+    stateGasUsed:
+      title: state gas used (gross)
+      description: >-
+        EIP-8037 (Amsterdam+) only. The transaction gross (pre-refund)
+        state-gas contribution to the block (summed into block_state_gas_used).
+        Absent before the Amsterdam fork.
+      type: integer
+      minimum: 0
+    gasRefund:
+      title: gas refund
+      description: >-
+        EIP-3529 refund for this transaction. Under EIP-7778 it reduces the
+        receipt gas but not the block counters, so
+        regularGasUsed + stateGasUsed == gas + gasRefund (except when the EIP-7976 calldata floor binds). Absent before the Amsterdam fork.
       type: integer
       minimum: 0
     failed:

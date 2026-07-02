@@ -1,0 +1,166 @@
+CallFrame:
+  title: Call frame
+  description: >-
+    Output of the "callTracer" named tracer: the tree of EVM call frames
+    executed by a transaction. Amsterdam (EIP-8037) adds the two-dimensional
+    gas breakdown - regularGasUsed and stateGasUsed - together with the
+    EIP-3529 refund (gasRefund) on the top frame. Only transactions contribute
+    to the block gas counters (system-contract calls and withdrawals are
+    unmetered), so summing the top-frame values across a block's transactions
+    reconstructs block_regular_gas_used and block_state_gas_used exactly.
+  type: object
+  required:
+    - type
+    - from
+    - gas
+    - gasUsed
+    - input
+  properties:
+    type:
+      title: call type
+      description: The operation that opened this frame.
+      type: string
+      enum:
+        - CALL
+        - CALLCODE
+        - DELEGATECALL
+        - STATICCALL
+        - CREATE
+        - CREATE2
+        - SELFDESTRUCT
+    from:
+      title: sender
+      description: The address that initiated this frame.
+      $ref: '#/components/schemas/address'
+    to:
+      title: recipient
+      description: >-
+        The call recipient, or for CREATE and CREATE2 the address of the
+        created contract. MUST be absent when a contract-creation frame failed.
+      $ref: '#/components/schemas/address'
+    value:
+      title: value
+      description: >-
+        The value transferred by this frame, in wei. Absent for call types that
+        cannot carry value (DELEGATECALL, STATICCALL); present ("0x0" when zero)
+        otherwise.
+      $ref: '#/components/schemas/uint'
+    gas:
+      title: gas provided
+      description: The amount of gas provided to this frame.
+      $ref: '#/components/schemas/uint'
+    gasUsed:
+      title: gas used
+      description: >-
+        The gas used by this frame after refunds. For the top frame this equals
+        the transaction receipt gasUsed (post-refund and after the EIP-7976 calldata floor is applied).
+      $ref: '#/components/schemas/uint'
+    regularGasUsed:
+      title: regular gas used
+      description: >-
+        EIP-8037: the gross (pre-refund) regular-gas used by this frame and its
+        children. On the top frame this is the transaction contribution to
+        block_regular_gas_used (EIP-7778) and, together with stateGasUsed,
+        satisfies regularGasUsed + stateGasUsed == gasUsed + gasRefund unless the EIP-7976 calldata floor binds. MUST be present on the top frame for
+        blocks at or after the Amsterdam fork and MUST be absent before it.
+      $ref: '#/components/schemas/uint'
+    stateGasUsed:
+      title: state gas used
+      description: >-
+        EIP-8037: the gross (pre-refund) state-gas used by this frame and its
+        children - gas charged for state creation (a new storage slot, account
+        creation, code deposit, or an EIP-7702 authorization to a new account).
+        On the top frame this is the transaction contribution to
+        block_state_gas_used. MUST be present on the top frame for Amsterdam+
+        blocks and MUST be absent before it.
+      $ref: '#/components/schemas/uint'
+    gasRefund:
+      title: gas refund
+      description: >-
+        The EIP-3529 gas refund applied to this transaction (capped at one fifth
+        of the pre-refund gas). Under EIP-7778 the refund lowers the receipt gas
+        but not the block gas counters. MUST be present on the top frame for
+        Amsterdam+ blocks, MUST be absent before the Amsterdam fork, and MUST
+        be absent on subcalls (refunds resolve at the transaction boundary).
+      $ref: '#/components/schemas/uint'
+    stateGasRefund:
+      title: state gas refund
+      description: >-
+        The total state-gas refunded within this transaction (for example the
+        account-creation charge returned when a CREATE reverts or halts, or an
+        EIP-7702 authorization refund), already netted out of stateGasUsed.
+        Clients MAY include this field on the top frame for Amsterdam+ blocks;
+        it makes state-gas refund handling directly observable when diagnosing
+        cross-client attribution differences.
+      $ref: '#/components/schemas/uint'
+    input:
+      title: input
+      description: The call data supplied to this frame.
+      $ref: '#/components/schemas/bytes'
+    output:
+      title: output
+      description: The data returned by this frame. Absent when the frame returned no data.
+      $ref: '#/components/schemas/bytes'
+    error:
+      title: error
+      description: >-
+        The execution error for this frame, if any. MUST be absent when the
+        frame did not error.
+      type: string
+    revertReason:
+      title: revert reason
+      description: >-
+        The decoded reason string when the frame reverted with a standard
+        Solidity Error(string). Absent otherwise.
+      type: string
+    logs:
+      title: logs
+      description: >-
+        The event logs emitted directly by this frame, in emission order.
+        Present only when the callTracer withLog option is enabled and MUST be
+        absent otherwise.
+      type: array
+      items:
+        $ref: '#/components/schemas/CallLog'
+    calls:
+      title: subcalls
+      description: >-
+        The child call frames invoked by this frame, in execution order. Each
+        element has the same shape as this schema (CallFrame), nested recursively
+        to arbitrary depth. Absent when the frame made no subcalls.
+      type: array
+      items:
+        title: Nested call frame
+        description: A child call frame with the same shape as CallFrame.
+        type: object
+CallLog:
+  title: Call log
+  description: An event log captured by the callTracer when the withLog option is enabled.
+  type: object
+  required:
+    - address
+    - topics
+    - data
+  properties:
+    address:
+      title: emitter
+      description: The address of the contract that emitted the log.
+      $ref: '#/components/schemas/address'
+    topics:
+      title: topics
+      description: The indexed log topics, from zero to four entries.
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    data:
+      title: data
+      description: The non-indexed log data.
+      $ref: '#/components/schemas/bytes'
+    index:
+      title: log index
+      description: The index of this log among all logs in the block.
+      $ref: '#/components/schemas/uint'
+    position:
+      title: position
+      description: The position of this log relative to the subcalls within the same frame.
+      $ref: '#/components/schemas/uint'
