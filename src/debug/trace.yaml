@@ -13,8 +13,8 @@
     OpcodeTransactionTrace.
 
     When a named tracer is specified via the tracer field in TraceConfig (e.g.
-    "callTracer", "prestateTracer"), the result field of each entry contains
-    tracer-specific output. The callTracer output is defined by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
+    "callTracer", "stateGasTracer", "prestateTracer"), the result field of each entry contains
+    tracer-specific output. The stateGasTracer output is defined by the StateGasTrace schema and the gas-related portion of the callTracer output by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
@@ -60,9 +60,12 @@
                 $ref: '#/components/schemas/hash32'
               result:
                 $ref: '#/components/schemas/CallFrame'
+          - title: stateGasTracer entry
+            description: Returned when the tracer field is "stateGasTracer".
+            $ref: '#/components/schemas/StateGasBlockTrace'
           - title: Named tracer entry
             description: >-
-              Returned when a named tracer other than "callTracer" is specified. The result field contains that tracer output, which is not defined by this specification.
+              Returned when a named tracer other than "callTracer" or "stateGasTracer" is specified. The result field contains that tracer output, which is not defined by this specification.
             type: object
             required:
               - txHash
@@ -130,8 +133,8 @@
     OpcodeTransactionTrace.
 
     When a named tracer is specified via the tracer field in TraceConfig (e.g.
-    "callTracer", "prestateTracer"), the result field of each entry contains
-    tracer-specific output. The callTracer output is defined by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
+    "callTracer", "stateGasTracer", "prestateTracer"), the result field of each entry contains
+    tracer-specific output. The stateGasTracer output is defined by the StateGasTrace schema and the gas-related portion of the callTracer output by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
@@ -179,9 +182,12 @@
                 $ref: '#/components/schemas/hash32'
               result:
                 $ref: '#/components/schemas/CallFrame'
+          - title: stateGasTracer entry
+            description: Returned when the tracer field is "stateGasTracer".
+            $ref: '#/components/schemas/StateGasBlockTrace'
           - title: Named tracer entry
             description: >-
-              Returned when a named tracer other than "callTracer" is specified. The result field contains that tracer output, which is not defined by this specification.
+              Returned when a named tracer other than "callTracer" or "stateGasTracer" is specified. The result field contains that tracer output, which is not defined by this specification.
             type: object
             required:
               - txHash
@@ -245,8 +251,8 @@
     (struct) logger is used and the result conforms to OpcodeTransactionTrace.
 
     When a named tracer is specified via the tracer field in TraceConfig (e.g.
-    "callTracer", "prestateTracer"), the result contains tracer-specific output.
-    The callTracer output is defined by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
+    "callTracer", "stateGasTracer", "prestateTracer"), the result contains tracer-specific output.
+    The stateGasTracer output is defined by the StateGasTrace schema and the gas-related portion of the callTracer output by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
   params:
     - name: Transaction hash
       required: true
@@ -270,9 +276,12 @@
         - title: callTracer result
           description: Returned when the tracer field is "callTracer".
           $ref: '#/components/schemas/CallFrame'
+        - title: stateGasTracer result
+          description: Returned when the tracer field is "stateGasTracer".
+          $ref: '#/components/schemas/StateGasTrace'
         - title: Named tracer result
           description: >-
-            Returned when a named tracer other than "callTracer" is specified. The format is tracer-specific and not defined by this specification.
+            Returned when a named tracer other than "callTracer" or "stateGasTracer" is specified. The format is tracer-specific and not defined by this specification.
   examples:
     - name: debug_traceTransaction example (opcode tracer)
       params:
@@ -375,3 +384,17 @@
           gasRefund: '0x0'
           input: '0xff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00'
           output: '0x'
+    - name: debug_traceTransaction example (stateGasTracer)
+      params:
+        - name: Transaction hash
+          value: '0xa1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2'
+        - name: TraceConfig
+          value:
+            tracer: stateGasTracer
+      result:
+        name: Transaction trace (stateGasTracer)
+        value:
+          gasUsed: '0x34bfd'
+          regularGasUsed: '0x7ecd'
+          stateGasUsed: '0x2cd30'
+          gasRefund: '0x0'

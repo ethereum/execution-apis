@@ -10,7 +10,7 @@ TraceConfig:
     only apply to the opcode logger and are ignored when a named tracer is set.
 
     When the tracer field is set to a named tracer (e.g. "callTracer",
-    "prestateTracer"), the result format is tracer-specific. The callTracer output is defined by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
+    "stateGasTracer", "prestateTracer"), the result format is tracer-specific. The stateGasTracer output is defined by the StateGasTrace schema and the gas-related portion of the callTracer output by the CallFrame schema; defining the output schemas of other named tracers is outside the scope of this specification.
   type: object
   properties:
     tracer:
@@ -125,21 +125,29 @@ StructLog:
         The gas cost computed for this opcode step — the amount that will be
         deducted from the remaining gas assuming successful execution. Includes
         dynamic costs such as memory expansion and storage access charges
-        (e.g. cold vs. warm SLOAD/SSTORE).
+        (e.g. cold vs. warm SLOAD/SSTORE). Under EIP-8037 (Amsterdam+) this is
+        the charge to the regular gas dimension, including any state gas paid
+        from regular gas after the state-gas reservoir is exhausted;
+        reservoir-funded state gas appears only in stateGasCost.
       type: integer
       minimum: 0
     stateGasCost:
       title: state-gas cost
       description: >-
-        EIP-8037 (Amsterdam+) only. The state-gas portion of gasCost for this
-        step - the amount charged to the state-gas dimension, nonzero only for
-        state-creating operations (an SSTORE into a new slot, account creation,
-        code deposit, or an EIP-7702 authorization to a new account). gasCost
-        minus stateGasCost is the regular-gas portion. Clients MUST include this
-        field at every step when it is non-zero and SHOULD include it at every
-        step even when zero. Absent before the Amsterdam fork.
+        EIP-8037 (Amsterdam+) only. The net change to the transaction's state
+        gas used caused by this step, regardless of whether the charge was
+        funded from the state-gas reservoir or spilled over into regular gas.
+        Nonzero only for steps that create state (for example an SSTORE into
+        a new slot, or a call that creates a new account), and MAY be
+        negative when a source-based state-gas refund is applied (for example
+        a reverting CREATE returning its account-creation charge). Some state
+        gas is charged outside opcode steps entirely (intrinsic state gas,
+        code deposit at contract-creation completion, EIP-7702 authorization
+        processing), so the sum of stateGasCost over all steps does not in
+        general equal the transaction's stateGasUsed. Clients MAY include
+        this field; when included it SHOULD be present at every step where it
+        is non-zero. Absent before the Amsterdam fork.
       type: integer
-      minimum: 0
     stateGasReservoir:
       title: state-gas reservoir remaining
       description: >-
