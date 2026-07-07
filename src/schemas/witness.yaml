@@ -1,0 +1,28 @@
+ExecutionWitness:
+  title: Execution witness
+  description: The canonical execution witness of a block, as defined by the execution-specs stateless validation interface (ExecutionWitness). All byte items are hex encoded. An empty array indicates no data of that category was accessed during execution.
+  type: object
+  additionalProperties: false
+  required:
+    - state
+    - codes
+    - headers
+  properties:
+    state:
+      title: State trie node preimages
+      description: Hashed trie-node preimages needed during execution and state-root recomputation, sorted lexicographically and deduplicated.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    codes:
+      title: Contract code preimages
+      description: Contract-code preimages (created or accessed) needed during execution, sorted lexicographically and deduplicated.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    headers:
+      title: Ancestor headers
+      description: RLP-encoded block headers needed for pre-state and BLOCKHASH correctness proofs, ordered by ascending block number and ending with the parent header.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
