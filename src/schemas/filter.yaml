@@ -71,6 +71,8 @@ FilterTopics:
 FilterTopic:
   title: Filter Topic List Entry
   oneOf:
+    - title: Any Topic Match
+      type: 'null'
     - title: Single Topic Match
       $ref: '#/components/schemas/bytes32'
     - title: Multiple Topic Match

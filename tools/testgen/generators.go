@@ -2285,6 +2285,34 @@ var EthGetLogs = MethodTests{
 			},
 		},
 		{
+			Name:  "topic-null-wildcard",
+			About: "queries for logs with a null topic in position zero, acting as a wildcard for that position",
+			Run: func(ctx context.Context, t *T) error {
+				// Find a topic.
+				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
+					return tx.Block > 2
+				})
+				if i == -1 {
+					return fmt.Errorf("no suitable tx found")
+				}
+				info := t.chain.txinfo.LegacyEmit[i]
+				startBlock := uint64(info.Block - 1)
+				endBlock := uint64(info.Block + 2)
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: new(big.Int).SetUint64(startBlock),
+					ToBlock:   new(big.Int).SetUint64(endBlock),
+					Topics:    [][]common.Hash{nil, {*info.LogTopic1}},
+				})
+				if err != nil {
+					return err
+				}
+				if len(result) != 1 {
+					return fmt.Errorf("result contains %d logs, want 1", len(result))
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "filter-with-blockHash",
 			About: "queries for all logs of a block, identified by blockHash",
 			Run: func(ctx context.Context, t *T) error {
