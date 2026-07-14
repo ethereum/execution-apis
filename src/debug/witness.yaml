@@ -3,7 +3,8 @@
   description: |
     Re-executes the block and returns the canonical execution witness: the
     state trie-node preimages, contract-code preimages, and RLP-encoded
-    ancestor headers required to statelessly validate the block.
+    ancestor headers required to statelessly validate the block. Clients may
+    additionally include the accessed state keys.
   params:
     - name: Block
       required: true
