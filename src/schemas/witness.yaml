@@ -1,6 +1,6 @@
 ExecutionWitness:
   title: Execution witness
-  description: The canonical execution witness of a block, as defined by the execution-specs stateless validation interface (ExecutionWitness). All byte items are hex encoded. An empty array indicates no data of that category was accessed during execution.
+  description: The canonical execution witness of a block, as defined by the execution-specs stateless validation interface (ExecutionWitness), plus an optional keys field. All byte items are hex encoded. An empty array indicates no data of that category was accessed during execution.
   type: object
   additionalProperties: false
   required:
@@ -17,6 +17,12 @@ ExecutionWitness:
     codes:
       title: Contract code preimages
       description: Contract-code preimages (created or accessed) needed during execution, sorted lexicographically and deduplicated.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    keys:
+      title: State access keys
+      description: Preimages of the hashed trie keys (account addresses and storage-slot keys) accessed during execution, sorted lexicographically and deduplicated. Optional; clients may omit this field.
       type: array
       items:
         $ref: '#/components/schemas/bytes'
