@@ -105,7 +105,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
     2. Otherwise, `inclusionListSatisfied` **MUST** be `null`.
 
-3. Client software **MUST** retain `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch. Client software **MUST** use the retained `inclusionListTransactions` if it later checks whether the payload satisfies the inclusion list constraints.
+3. Client software **MUST** retain `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
 
 ### engine_getInclusionListV1
 
@@ -164,7 +164,9 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     1. If the payload referenced by `forkchoiceState.headBlockHash` is deemed `VALID`, `payloadStatus.inclusionListSatisfied` **MUST** be set to whether the payload satisfied the inclusion list constraints.
 
-    2. Otherwise, `payloadStatus.inclusionListSatisfied` **MUST** be `null`.
+    2. Client software **MUST** use the retained `inclusionListTransactions` if it validates the payload and checks whether the payload satisfies the inclusion list constraints while processing the call.
+
+    3. Otherwise, `payloadStatus.inclusionListSatisfied` **MUST** be `null`.
 
 ### Update the methods of previous forks
 
