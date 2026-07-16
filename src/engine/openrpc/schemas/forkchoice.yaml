@@ -35,7 +35,7 @@ ForkchoiceUpdatedResponseV2:
   properties:
     payloadStatus:
       title: Payload status
-      $ref: '#/components/schemas/PayloadStatusV2'
+      $ref: '#/components/schemas/RestrictedPayloadStatusV2'
     payloadId:
       title: Payload id
       $ref: '#/components/schemas/bytes8'
