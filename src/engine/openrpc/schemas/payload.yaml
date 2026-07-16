@@ -63,6 +63,22 @@ PayloadStatusV2:
       oneOf:
         - type: boolean
         - type: 'null'
+RestrictedPayloadStatusV2:
+  $ref: '#/components/schemas/PayloadStatusV2'
+  properties:
+    status:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/status'
+      description: Set of possible values is restricted to VALID, INVALID, SYNCING
+      enum:
+        - VALID
+        - INVALID
+        - SYNCING
+    latestValidHash:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/latestValidHash'
+    validationError:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/validationError'
+    inclusionListSatisfied:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/inclusionListSatisfied'
 ExecutionPayloadV1:
   title: Execution payload object V1
   type: object
