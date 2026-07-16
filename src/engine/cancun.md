@@ -98,6 +98,7 @@ This structure has the syntax of [`PayloadAttributesV2`](./shanghai.md#payloadat
   1. `executionPayload`: [`ExecutionPayloadV3`](#ExecutionPayloadV3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+* timeout: 8s
 
 #### Response
 
