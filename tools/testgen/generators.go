@@ -5480,7 +5480,7 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
-			Name:  "ethSimulate-simple-state-diff",
+			Name:  "ethSimulate-simple-state",
 			About: "override one state variable with state",
 			Run: func(ctx context.Context, t *T) error {
 				stateChanges := make(map[common.Hash]common.Hash)
