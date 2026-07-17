@@ -112,6 +112,7 @@ This method is updated to support the new `ExecutionPayloadV4` structure.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests.
+* timeout: 6s
 
 #### Response
 
