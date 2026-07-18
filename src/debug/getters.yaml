@@ -57,7 +57,9 @@
   result:
     name: EIP-2718 binary-encoded transaction
     schema:
-      $ref: '#/components/schemas/bytes'
+      oneOf:
+        - $ref: '#/components/schemas/notFound'
+        - $ref: '#/components/schemas/bytes'
   examples:
     - name: debug_getRawTransaction example
       params:
