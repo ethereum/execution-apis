@@ -1022,6 +1022,32 @@ var EthCreateAccessList = MethodTests{
 			},
 		},
 		{
+			Name: "create-al-unfunded-sender",
+			About: `Creates an access list for a zero-value transfer from an unfunded sender with all gas fee
+fields omitted. The client selects implementation-defined fee defaults for simulation, and the
+request must not fail merely because the sender cannot afford those defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var result struct {
+					AccessList types.AccessList `json:"accessList"`
+					GasUsed    hexutil.Uint64   `json:"gasUsed"`
+				}
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest"); err != nil {
+					return err
+				}
+				if len(result.AccessList) != 0 {
+					return fmt.Errorf("expected empty access list, got %d entries", len(result.AccessList))
+				}
+				if result.GasUsed != 21000 {
+					return fmt.Errorf("unexpected gasUsed (got %d want 21000)", uint64(result.GasUsed))
+				}
+				return nil
+			},
+		},
+		{
 			Name:     "create-al-contract",
 			About:    "creates an access list for a contract invocation that accesses storage",
 			SpecOnly: true,

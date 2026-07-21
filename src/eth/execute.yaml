@@ -67,6 +67,13 @@
 
 - name: eth_createAccessList
   summary: Generates an access list for a transaction.
+  description: |
+    Generates an access list for a transaction.
+
+    When the gas fee fields (`gasPrice`, `maxFeePerGas`, `maxPriorityFeePerGas`) are omitted, the
+    client may select implementation-defined fee values for the simulation. The request MUST NOT
+    fail solely because the sender cannot afford the gas fees implied by those client-selected
+    defaults. This does not waive balance requirements for a non-zero transaction `value`.
   params:
     - name: Transaction
       required: true
