@@ -1345,7 +1345,7 @@ func findAccountWithNonce(c *Chain) common.Address {
 }
 
 func matchLegacyValueTransfer(i int, tx *types.Transaction) bool {
-	return tx.Type() == types.LegacyTxType && tx.To() != nil && len(tx.Data()) == 0
+	return tx.Type() == types.LegacyTxType && tx.To() != nil && len(tx.Data()) == 0 && tx.Value().Sign() > 0
 }
 
 func matchLegacyCreate(i int, tx *types.Transaction) bool {
@@ -1866,19 +1866,20 @@ var EthSendRawTransaction = MethodTests{
 			About: "sends a blob transaction",
 			Run: func(ctx context.Context, t *T) error {
 				var (
-					sender, nonce      = t.chain.GetSender(3)
-					basefee            = uint256.MustFromBig(t.chain.Head().BaseFee())
-					fee                = uint256.NewInt(500)
-					emptyBlob          = kzg4844.Blob{}
-					emptyBlobCommit, _ = kzg4844.BlobToCommitment(&emptyBlob)
-					emptyBlobProof, _  = kzg4844.ComputeBlobProof(&emptyBlob, emptyBlobCommit)
+					sender, nonce          = t.chain.GetSender(3)
+					basefee                = uint256.MustFromBig(t.chain.Head().BaseFee())
+					fee                    = uint256.NewInt(500)
+					emptyBlob              = kzg4844.Blob{}
+					emptyBlobCommit, _     = kzg4844.BlobToCommitment(&emptyBlob)
+					emptyBlobCellProofs, _ = kzg4844.ComputeCellProofs(&emptyBlob)
 				)
 				fee.Add(basefee, fee)
-				sidecar := &types.BlobTxSidecar{
-					Blobs:       []kzg4844.Blob{emptyBlob},
-					Commitments: []kzg4844.Commitment{emptyBlobCommit},
-					Proofs:      []kzg4844.Proof{emptyBlobProof},
-				}
+				sidecar := types.NewBlobTxSidecar(
+					types.BlobSidecarVersion1,
+					[]kzg4844.Blob{emptyBlob},
+					[]kzg4844.Commitment{emptyBlobCommit},
+					emptyBlobCellProofs,
+				)
 
 				txdata := &types.BlobTx{
 					Nonce:     nonce,
@@ -4448,7 +4449,8 @@ var EthSimulateV1 = MethodTests{
 							From:  &common.Address{0xc0},
 							To:    &common.Address{0xc1},
 							Value: *newRPCBalance(1000),
-							Input: hex2Bytes("4b64e4920000000000000000000000000000000000000000000000000000000000000100"),
+							// forward(0xc2); must not target a precompile: the 2300 gas send stipend can't cover P256VERIFY (0x100 since Osaka)
+							Input: hex2Bytes("4b64e49200000000000000000000000000000000000000000000000000000000000000c2"),
 						}},
 					}},
 					TraceTransfers: true,
