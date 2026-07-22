@@ -30,6 +30,7 @@ To facilitate a more accurate measurement of execution layer client diversity st
 This enum defines a standard for specifying a client with just two letters. Clients teams which have a code reserved in this list **MUST** use this code when identifying themselves. The code is specified here only to facilitate standardization and NOT to imply that these are the only supported Ethereum clients. Any clients not listed here are free to use any two letters which don't collide with an existing client code. They are encouraged to make a PR to this repo to reserve their own code. Existing codes are as follows:
 
  - `BU`: besu
+ - `CN`: caplin
  - `EJ`: ethereumJS
  - `EG`: erigon
  - `EX`: ethrex

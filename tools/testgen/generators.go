@@ -211,6 +211,22 @@ the delegation designator.`,
 				return nil
 			},
 		},
+		{
+			Name:  "get-code-default-block",
+			About: "requests code of an existing contract with the block parameter omitted, which defaults to latest",
+			Run: func(ctx context.Context, t *T) error {
+				var got hexutil.Bytes
+				err := t.rpc.CallContext(ctx, &got, "eth_getCode", emitContract)
+				if err != nil {
+					return err
+				}
+				want := t.chain.state[emitContract].Code
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("unexpected code (got: %s, want %s)", got, want)
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -275,6 +291,27 @@ var EthGetStorage = MethodTests{
 				err := t.rpc.CallContext(ctx, nil, "eth_getStorageAt", "0xaa00000000000000000000000000000000000000", "0xasdf", "latest")
 				if err == nil {
 					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-storage-default-block",
+			About: "gets storage of a contract with the block parameter omitted, which defaults to latest",
+			Run: func(ctx context.Context, t *T) error {
+				addr := emitContract
+				key := common.Hash{}
+				var got hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &got, "eth_getStorageAt", addr, key); err != nil {
+					return err
+				}
+				want := t.chain.Storage(addr, key)
+				if !bytes.Equal(got, want) {
+					return fmt.Errorf("unexpected storage value (got: %s, want %s)", got, want)
+				}
+				nz := slices.ContainsFunc(got, func(b byte) bool { return b != 0 })
+				if !nz {
+					return fmt.Errorf("requested storage slot is zero")
 				}
 				return nil
 			},
@@ -381,6 +418,29 @@ var EthGetStorageValues = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "get-storage-values-default-block",
+			About: "gets storage values with the block parameter omitted, which defaults to latest",
+			Run: func(ctx context.Context, t *T) error {
+				addr := emitContract
+				key := common.Hash{}
+				requests := map[common.Address][]common.Hash{
+					addr: {key},
+				}
+				var result map[common.Address][]hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &result, "eth_getStorageValues", requests); err != nil {
+					return err
+				}
+				values, ok := result[addr]
+				if !ok {
+					return fmt.Errorf("missing address in result")
+				}
+				if len(values) != 1 || len(values[0]) != 32 {
+					return fmt.Errorf("unexpected result for %s: %v", addr, values)
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -478,6 +538,22 @@ var EthGetBalance = MethodTests{
 				// balance shouldn't be zero.
 				if got.ToInt().Sign() <= 0 {
 					return errors.New("invalid historical balance, should be > zero")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-balance-default-block",
+			About: "retrieves an account balance with the block parameter omitted, which defaults to latest",
+			Run: func(ctx context.Context, t *T) error {
+				addr := emitContract
+				var got hexutil.Big
+				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", addr); err != nil {
+					return err
+				}
+				want := t.chain.Balance(addr)
+				if got.ToInt().Cmp(want) != 0 {
+					return fmt.Errorf("unexpect balance (got: %d, want: %d)", got.ToInt(), want)
 				}
 				return nil
 			},
@@ -1242,6 +1318,25 @@ For such accounts, the nonce stored in state does not match the 'transaction cou
 				return nil
 			},
 		},
+		{
+			Name:  "get-nonce-default-block",
+			About: "gets nonce for a known account with the block parameter omitted, which defaults to latest",
+			Run: func(ctx context.Context, t *T) error {
+				addr := findAccountWithNonce(t.chain)
+				var got hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &got, "eth_getTransactionCount", addr); err != nil {
+					return err
+				}
+				want := t.chain.state[addr].Nonce
+				if uint64(got) != want {
+					return fmt.Errorf("unexpected nonce (got: %d, want: %d)", uint64(got), want)
+				}
+				if want == 0 {
+					return fmt.Errorf("nonce for account %v is zero", addr)
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -1257,7 +1352,7 @@ func findAccountWithNonce(c *Chain) common.Address {
 }
 
 func matchLegacyValueTransfer(i int, tx *types.Transaction) bool {
-	return tx.Type() == types.LegacyTxType && tx.To() != nil && len(tx.Data()) == 0
+	return tx.Type() == types.LegacyTxType && tx.To() != nil && len(tx.Data()) == 0 && tx.Value().Sign() > 0
 }
 
 func matchLegacyCreate(i int, tx *types.Transaction) bool {
@@ -1778,19 +1873,20 @@ var EthSendRawTransaction = MethodTests{
 			About: "sends a blob transaction",
 			Run: func(ctx context.Context, t *T) error {
 				var (
-					sender, nonce      = t.chain.GetSender(3)
-					basefee            = uint256.MustFromBig(t.chain.Head().BaseFee())
-					fee                = uint256.NewInt(500)
-					emptyBlob          = kzg4844.Blob{}
-					emptyBlobCommit, _ = kzg4844.BlobToCommitment(&emptyBlob)
-					emptyBlobProof, _  = kzg4844.ComputeBlobProof(&emptyBlob, emptyBlobCommit)
+					sender, nonce          = t.chain.GetSender(3)
+					basefee                = uint256.MustFromBig(t.chain.Head().BaseFee())
+					fee                    = uint256.NewInt(500)
+					emptyBlob              = kzg4844.Blob{}
+					emptyBlobCommit, _     = kzg4844.BlobToCommitment(&emptyBlob)
+					emptyBlobCellProofs, _ = kzg4844.ComputeCellProofs(&emptyBlob)
 				)
 				fee.Add(basefee, fee)
-				sidecar := &types.BlobTxSidecar{
-					Blobs:       []kzg4844.Blob{emptyBlob},
-					Commitments: []kzg4844.Commitment{emptyBlobCommit},
-					Proofs:      []kzg4844.Proof{emptyBlobProof},
-				}
+				sidecar := types.NewBlobTxSidecar(
+					types.BlobSidecarVersion1,
+					[]kzg4844.Blob{emptyBlob},
+					[]kzg4844.Commitment{emptyBlobCommit},
+					emptyBlobCellProofs,
+				)
 
 				txdata := &types.BlobTx{
 					Nonce:     nonce,
@@ -2072,6 +2168,27 @@ var EthGetProof = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "get-account-proof-default-block",
+			About: "requests the account proof with the block parameter omitted, which defaults to latest",
+			Run: func(ctx context.Context, t *T) error {
+				type accountResult struct {
+					Balance *hexutil.Big `json:"balance"`
+				}
+				var result accountResult
+				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, []string{}); err != nil {
+					return err
+				}
+				balance := t.chain.Balance(emitContract)
+				if result.Balance.ToInt().Cmp(balance) != 0 {
+					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
+				}
+				if result.Balance.ToInt().Sign() == 0 {
+					return fmt.Errorf("balance is zero, does the account exist?")
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -2165,6 +2282,34 @@ var EthGetLogs = MethodTests{
 					FromBlock: new(big.Int).SetUint64(startBlock),
 					ToBlock:   new(big.Int).SetUint64(endBlock),
 					Topics:    [][]common.Hash{{}, {*info.LogTopic1}},
+				})
+				if err != nil {
+					return err
+				}
+				if len(result) != 1 {
+					return fmt.Errorf("result contains %d logs, want 1", len(result))
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "topic-null-wildcard",
+			About: "queries for logs with a null topic in position zero, acting as a wildcard for that position",
+			Run: func(ctx context.Context, t *T) error {
+				// Find a topic.
+				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
+					return tx.Block > 2
+				})
+				if i == -1 {
+					return fmt.Errorf("no suitable tx found")
+				}
+				info := t.chain.txinfo.LegacyEmit[i]
+				startBlock := uint64(info.Block - 1)
+				endBlock := uint64(info.Block + 2)
+				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: new(big.Int).SetUint64(startBlock),
+					ToBlock:   new(big.Int).SetUint64(endBlock),
+					Topics:    [][]common.Hash{nil, {*info.LogTopic1}},
 				})
 				if err != nil {
 					return err
@@ -4631,7 +4776,8 @@ var EthSimulateV1 = MethodTests{
 							From:  &common.Address{0xc0},
 							To:    &common.Address{0xc1},
 							Value: *newRPCBalance(1000),
-							Input: hex2Bytes("4b64e4920000000000000000000000000000000000000000000000000000000000000100"),
+							// forward(0xc2); must not target a precompile: the 2300 gas send stipend can't cover P256VERIFY (0x100 since Osaka)
+							Input: hex2Bytes("4b64e49200000000000000000000000000000000000000000000000000000000000000c2"),
 						}},
 					}},
 					TraceTransfers: true,
