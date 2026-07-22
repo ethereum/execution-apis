@@ -112,9 +112,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 #### Request
 
 * method: `engine_getInclusionListV1`
-* params:
-  1. `blockHash`: `DATA`, 32 Bytes - block hash of the block upon which the inclusion list should be built.
-
+* params: []
 * timeout: 1s
 
 #### Response
@@ -124,13 +122,11 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 #### Specification
 
-1. Client software **MUST** return `-38001: Unknown payload` error if a block with the given `blockHash` does not exist.
+1. Client software **MUST** provide a list of transactions for the inclusion list based on the local view of the mempool. The strategy for selecting which transactions to include is implementation dependent.
 
-2. Client software **MUST** provide a list of transactions for the inclusion list based on the local view of the mempool. The strategy for selecting which transactions to include is implementation dependent.
+2. Client software **MUST** ensure the byte length of the RLP encoding of the returned transaction list does not exceed `MAX_BYTES_PER_INCLUSION_LIST`.
 
-3. Client software **MUST** ensure the byte length of the RLP encoding of the returned transaction list does not exceed `MAX_BYTES_PER_INCLUSION_LIST`.
-
-4. Client software **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction) in the returned transaction list.
+3. Client software **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction) in the returned transaction list.
  
 ### engine_forkchoiceUpdatedV5
 
