@@ -21,7 +21,7 @@
     "osakaTime": 480,
     "bpo1Time": 510,
     "bpo2Time": 540,
-    "terminalTotalDifficulty": 4732736,
+    "terminalTotalDifficulty": 4732352,
     "depositContractAddress": "0x0000000000000000000000000000000000000000",
     "ethash": {},
     "blobSchedule": {
