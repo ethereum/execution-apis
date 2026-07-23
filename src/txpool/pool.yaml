@@ -9,6 +9,7 @@
     name: Transaction pool status
     schema:
       $ref: '#/components/schemas/TxpoolStatus'
+  errors: []
   examples:
     - name: txpool_status example
       params: []
@@ -30,6 +31,7 @@
     name: Transaction pool content
     schema:
       $ref: '#/components/schemas/TxpoolContent'
+  errors: []
   examples:
     - name: txpool_content example
       params: []
@@ -79,6 +81,7 @@
     name: Transaction pool content from address
     schema:
       $ref: '#/components/schemas/TxpoolContentFromResult'
+  errors: []
   examples:
     - name: txpool_contentFrom example
       params:

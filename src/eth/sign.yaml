@@ -13,6 +13,9 @@
     name: Signature
     schema:
       $ref: '#/components/schemas/bytes65'
+  errors:
+    - code: -32000
+      message: Unknown account
   examples:
     - name: eth_sign example
       params:
@@ -34,6 +37,9 @@
     name: Encoded transaction
     schema:
       $ref: '#/components/schemas/bytes'
+  errors:
+    - code: -32000
+      message: Unknown account
   examples:
     - name: eth_signTransaction example
       params:

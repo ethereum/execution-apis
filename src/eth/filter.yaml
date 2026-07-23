@@ -9,6 +9,7 @@
     name: Filter identifier
     schema:
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_newFilter example
       params:
@@ -28,6 +29,7 @@
     name: Filter identifier
     schema:
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_newBlockFilter example
       params: []
@@ -41,6 +43,7 @@
     name: Filter identifier
     schema:
       $ref: '#/components/schemas/uint'
+  errors: []
   examples:
     - name: eth_newPendingTransactionFilter example
       params: []
@@ -58,6 +61,7 @@
     name: Success
     schema:
       type: boolean
+  errors: []
   examples:
     - name: eth_uninstallFilter example
       params:
@@ -77,6 +81,7 @@
     name: Log objects
     schema:
       $ref: '#/components/schemas/FilterResults'
+  errors: []
   examples:
     - name: eth_getFilterChanges example
       params:
@@ -118,6 +123,7 @@
     name: Log objects
     schema:
       $ref: '#/components/schemas/FilterResults'
+  errors: []
   examples:
     - name: eth_getFilterLogs example
       params:

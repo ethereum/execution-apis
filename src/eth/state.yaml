@@ -14,6 +14,9 @@
     name: Balance
     schema:
       $ref: '#/components/schemas/uint'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getBalance example
       params:
@@ -46,6 +49,9 @@
     name: Value
     schema:
       $ref: '#/components/schemas/bytes'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getStorageAt example
       params:
@@ -86,6 +92,9 @@
         type: array
         items:
           $ref: '#/components/schemas/bytes'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getStorageValues example
       params:
@@ -122,6 +131,9 @@
     name: Account nonce
     schema:
       $ref: '#/components/schemas/uint'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getTransactionCount example
       params:
@@ -148,6 +160,9 @@
     name: Bytecode
     schema:
       $ref: '#/components/schemas/bytes'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getCode example
       params:
@@ -181,6 +196,9 @@
     name: Account
     schema:
       $ref: '#/components/schemas/AccountProof'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
   examples:
     - name: eth_getProof example
       params:
