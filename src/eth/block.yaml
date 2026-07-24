@@ -244,6 +244,14 @@
             type: '0x2'
 - name: eth_getBlockAccessList
   summary: Returns the block access list for a given block.
+  description: >-
+    Returns the EIP-7928 block access list of the given block, decoded into JSON.
+    Every account entry contains all six fields, with empty change lists encoded
+    as empty arrays, and entries follow the ordering of the canonical RLP
+    encoding. The result is `null` if the block is unknown or the `pending` tag
+    is requested. For blocks that predate the Amsterdam fork clients MUST return
+    the `-32001: Resource not found` error, and for blocks whose access list has
+    been pruned clients MUST return the `4444: Pruned history unavailable` error.
   params:
     - name: Block
       required: true
