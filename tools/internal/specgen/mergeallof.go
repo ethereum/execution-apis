@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+	"strings"
 )
 
 // mergeAllOf recursively walks schema, merging every allOf it encounters into
@@ -41,6 +42,14 @@ func mergeSlice(arr []any) []any {
 
 func mergeObject(obj object) object {
 	if ref, ok := obj["$ref"].(string); ok {
+		// Absolute-URI refs survive dereference by design (see dereference.go).
+		if !strings.HasPrefix(ref, "#") {
+			out := make(object, len(obj))
+			for k, v := range obj {
+				out[k] = v
+			}
+			return out
+		}
 		panic(fmt.Sprintf("mergeObject: unexpected $ref %q (dereference input first)", ref))
 	}
 
