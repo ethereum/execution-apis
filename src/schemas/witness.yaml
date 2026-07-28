@@ -28,7 +28,7 @@ ExecutionWitness:
         $ref: '#/components/schemas/bytes'
     headers:
       title: Ancestor headers
-      description: RLP-encoded block headers needed for pre-state and BLOCKHASH correctness proofs, ordered by ascending block number and ending with the parent header. The parent header is always required, so this array is never empty.
+      description: RLP-encoded block headers needed for pre-state and BLOCKHASH correctness proofs, ordered by ascending block number and ending with the parent header. The parent header is always required, so this array is never empty, and it contains at most 256 headers since BLOCKHASH can reach back no further.
       type: array
       items:
         $ref: '#/components/schemas/bytes'
