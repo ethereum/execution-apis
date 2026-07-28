@@ -1,10 +1,15 @@
 - name: debug_executionWitness
   summary: Returns the execution witness of a block.
-  description: |
+  description: >-
     Re-executes the block and returns the canonical execution witness: the
-    state trie-node preimages, contract-code preimages, and RLP-encoded
-    ancestor headers required to statelessly validate the block. Clients may
+    state trie-node preimages, contract bytecodes, and RLP-encoded ancestor
+    headers required to statelessly validate the block. Clients may
     additionally include the accessed state keys.
+
+    The parent block must be present in the client's database. The genesis
+    block (block 0) has no execution witness because it has no parent header
+    to prove the pre-state against; clients MUST return an error for this
+    input.
   params:
     - name: Block
       required: true
