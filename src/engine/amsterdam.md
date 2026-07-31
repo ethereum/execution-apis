@@ -210,7 +210,7 @@ This method follows the same specification as [`engine_getPayloadBodiesByRangeV1
 * params:
   1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
   2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
-  3. `custodyColumns`: `DATA|null`, 16 Bytes - Interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the CL's custody set, or `null` if the CL does not provide custody services.
+  3. `custodyColumns`: `DATA|null`, 16 Bytes - Interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the CL's custody set, or `null` if the CL does not provide custody services. The value is the SSZ serialization of `BitVector[CELLS_PER_EXT_BLOB]`: column `i` is bit `i % 8` of byte `i / 8`.
 * timeout: 8s
 
 #### Response
@@ -253,7 +253,7 @@ Consensus layer clients **MAY** use this method to fetch blob cells from the exe
 * method: `engine_getBlobsV4`
 * params:
   1. `versioned_blob_hashes`: `Array of DATA`, 32 Bytes - an array of blob versioned hashes.
-  2. `indices_bitarray`: `DATA`, 16 Bytes - a bitarray denoting the indices of the cells to retrieve.
+  2. `indices_bitarray`: `DATA`, 16 Bytes - a bitarray denoting the indices of the cells to retrieve. The value is the SSZ serialization of `BitVector[CELLS_PER_EXT_BLOB]`: cell index `i` is bit `i % 8` of byte `i / 8`.
 * timeout: 1s
 
 #### Response
