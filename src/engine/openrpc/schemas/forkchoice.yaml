@@ -16,7 +16,7 @@ ForkchoiceStateV1:
       title: Finalized block hash
       $ref: '#/components/schemas/hash32'
 ForkchoiceUpdatedResponseV1:
-  title: Forkchoice updated response
+  title: Forkchoice updated response object V1
   type: object
   required:
     - payloadStatus
@@ -24,6 +24,18 @@ ForkchoiceUpdatedResponseV1:
     payloadStatus:
       title: Payload status
       $ref: '#/components/schemas/RestrictedPayloadStatusV1'
+    payloadId:
+      title: Payload id
+      $ref: '#/components/schemas/bytes8'
+ForkchoiceUpdatedResponseV2:
+  title: Forkchoice updated response object V2
+  type: object
+  required:
+    - payloadStatus
+  properties:
+    payloadStatus:
+      title: Payload status
+      $ref: '#/components/schemas/RestrictedPayloadStatusV2'
     payloadId:
       title: Payload id
       $ref: '#/components/schemas/bytes8'
@@ -113,3 +125,35 @@ PayloadAttributesV4:
     targetGasLimit:
       title: Target gas limit
       $ref: '#/components/schemas/uint64'
+PayloadAttributesV5:
+  title: Payload attributes object V5
+  type: object
+  required:
+    - timestamp
+    - prevRandao
+    - suggestedFeeRecipient
+    - withdrawals
+    - parentBeaconBlockRoot
+    - slotNumber
+    - targetGasLimit
+    - inclusionListTransactions
+  properties:
+    timestamp:
+      $ref: '#/components/schemas/PayloadAttributesV4/properties/timestamp'
+    prevRandao:
+      $ref: '#/components/schemas/PayloadAttributesV4/properties/prevRandao'
+    suggestedFeeRecipient:
+      $ref: '#/components/schemas/PayloadAttributesV4/properties/suggestedFeeRecipient'
+    withdrawals:
+      $ref: '#/components/schemas/PayloadAttributesV4/properties/withdrawals'
+    parentBeaconBlockRoot:
+      $ref: '#/components/schemas/PayloadAttributesV4/properties/parentBeaconBlockRoot'
+    slotNumber:
+      $ref: '#/components/schemas/PayloadAttributesV4/properties/slotNumber'
+    targetGasLimit:
+      $ref: '#/components/schemas/PayloadAttributesV4/properties/targetGasLimit'
+    inclusionListTransactions:
+      title: Inclusion list transactions
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
