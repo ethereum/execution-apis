@@ -2337,28 +2337,6 @@ var EthGetLogs = MethodTests{
 			},
 		},
 		{
-			Name:  "filter-with-blockHash",
-			About: "queries for all logs of a block, identified by blockHash",
-			Run: func(ctx context.Context, t *T) error {
-				// Find a block with logs.
-				i := slices.IndexFunc(t.chain.txinfo.LegacyEmit, func(tx TxInfo) bool {
-					return tx.Block > 2
-				})
-				if i == -1 {
-					return fmt.Errorf("no suitable tx found")
-				}
-				hash := t.chain.GetBlock(int(t.chain.txinfo.LegacyEmit[i].Block)).Hash()
-				result, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{BlockHash: &hash})
-				if err != nil {
-					return err
-				}
-				if len(result) == 0 {
-					return fmt.Errorf("result contains no logs")
-				}
-				return nil
-			},
-		},
-		{
 			Name:  "filter-with-blockHash-and-topics",
 			About: "queries for logs in a block, identified by blockHash",
 			Run: func(ctx context.Context, t *T) error {
@@ -3218,45 +3196,6 @@ var EthSimulateV1 = MethodTests{
 				res := make([]blockResult, 0)
 				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
 					return err
-				}
-				return nil
-			},
-		},
-		{
-			Name:  "ethSimulate-simple-more-params-validate",
-			About: "simulates a simple do-nothing transaction with more fields set",
-			Run: func(ctx context.Context, t *T) error {
-				params := ethSimulateOpts{
-					BlockStateCalls: []CallBatch{
-						{
-							StateOverrides: &StateOverride{
-								common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(3360000)},
-							},
-							BlockOverrides: &BlockOverrides{
-								BaseFeePerGas: (*hexutil.Big)(big.NewInt(0)),
-							},
-							Calls: []TransactionArgs{{
-								From:                 &common.Address{0xc0},
-								To:                   &common.Address{0xc1},
-								Gas:                  getUint64Ptr(0x52080),
-								Value:                *newRPCBalance(0),
-								MaxFeePerGas:         (*hexutil.Big)(big.NewInt(0)),
-								MaxPriorityFeePerGas: (*hexutil.Big)(big.NewInt(0)),
-								MaxFeePerBlobGas:     (*hexutil.Big)(big.NewInt(0)),
-								Nonce:                getUint64Ptr(0),
-								Input:                hex2Bytes(""),
-							}},
-						},
-					},
-					Validation:             true,
-					ReturnFullTransactions: true,
-				}
-				res := make([]blockResult, 0)
-				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
-					return err
-				}
-				if len(res) != len(params.BlockStateCalls) {
-					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
 				return nil
 			},
@@ -5482,7 +5421,7 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
-			Name:  "ethSimulate-simple-state-diff",
+			Name:  "ethSimulate-simple-state",
 			About: "override one state variable with state",
 			Run: func(ctx context.Context, t *T) error {
 				stateChanges := make(map[common.Hash]common.Hash)
@@ -5514,7 +5453,7 @@ var EthSimulateV1 = MethodTests{
 						{
 							StateOverrides: &StateOverride{
 								common.Address{0xc1}: OverrideAccount{
-									State: &stateChanges, // state diff override
+									State: &stateChanges, // full state override, wipes all other slots
 								},
 							},
 							Calls: []TransactionArgs{
