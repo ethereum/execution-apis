@@ -854,6 +854,8 @@
       items:
         $ref: '#/components/schemas/ExecutionPayloadBodyV1'
   errors:
+    - code: -32602
+      message: Invalid params
     - code: -38004
       message: Too large request
   examples:
@@ -958,6 +960,8 @@
       items:
         $ref: '#/components/schemas/ExecutionPayloadBodyV2'
   errors:
+    - code: -32602
+      message: Invalid params
     - code: -38004
       message: Too large request
   examples:
