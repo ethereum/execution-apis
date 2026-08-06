@@ -2732,6 +2732,11 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
+				}
+
 				// Use sender index 2 so nonce matches geth state: index 0 (and 3) are used by
 				// eth_sendRawTransaction tests which call IncNonce, so they diverge from geth when run in full suite.
 				sender, nonce := t.chain.GetSender(2)
@@ -2821,6 +2826,11 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
+				}
+
 				extraData := hexutil.Encode([]byte{})
 				var result map[string]interface{}
 				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
@@ -2873,6 +2883,11 @@ var TestingBuildBlockV1 = MethodTests{
 				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
 				// Add a transaction to the mempool first
@@ -2955,6 +2970,11 @@ var TestingBuildBlockV1 = MethodTests{
 				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
 				// Use an invalid nonce (e.g. 999) so the tx cannot be applied; client MUST fail.
