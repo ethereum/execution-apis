@@ -65,6 +65,11 @@ AccountAccess:
   type: object
   required:
     - address
+    - storageChanges
+    - storageReads
+    - balanceChanges
+    - nonceChanges
+    - codeChanges
   additionalProperties: false
   properties:
     address:
