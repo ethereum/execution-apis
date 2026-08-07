@@ -13,6 +13,7 @@ blockAccessList
 BlockAccessList
 bodiesbyhashv
 buildBlockV
+commitBlockV
 bodiesbyrangev
 bodyv
 bytecode
