@@ -165,3 +165,35 @@
       message: Max init code size exceeded
     - code: -38026
       message: Client adjustable limit exceeded
+  examples:
+    - name: eth_simulateV1 simple transfer
+      params:
+        - name: Payload
+          value:
+            blockStateCalls:
+              - stateOverrides:
+                  '0xc000000000000000000000000000000000000000':
+                    balance: '0x3e8'
+                calls:
+                  - from: '0xc000000000000000000000000000000000000000'
+                    to: '0xc100000000000000000000000000000000000000'
+                    value: '0x3e8'
+                  - from: '0xc100000000000000000000000000000000000000'
+                    to: '0xc200000000000000000000000000000000000000'
+                    value: '0x3e8'
+        - name: Block tag
+          value: 'latest'
+      result:
+        name: Result of calls
+        value:
+          - calls:
+              - returnData: '0x'
+                logs: []
+                gasUsed: '0x5208'
+                maxUsedGas: '0x5208'
+                status: '0x1'
+              - returnData: '0x'
+                logs: []
+                gasUsed: '0x5208'
+                maxUsedGas: '0x5208'
+                status: '0x1'
