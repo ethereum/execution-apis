@@ -1,18 +1,31 @@
 TraceConfig:
   title: Trace configuration
   description: >-
-    Configuration object accepted by debug_traceBlockByNumber and
-    debug_traceTransaction.
+    Configuration object accepted by debug_traceBlockByNumber,
+    debug_traceBlockByHash, debug_traceTransaction, and (extended as
+    TraceCallConfig) debug_traceCall.
 
     When the tracer field is absent or empty, the opcode (struct) logger is
     used and the result conforms to OpcodeTransactionTrace. The fields
     enableMemory, disableStack, disableStorage, enableReturnData, and limit
     only apply to the opcode logger and are ignored when a named tracer is set.
 
-    When the tracer field is set to a named tracer (e.g. "callTracer",
-    "prestateTracer"), the result format is tracer-specific. Defining the
-    output schemas of named tracers is outside the scope of this specification.
+    When the tracer field is "callTracer", the result conforms to CallFrame
+    and tracerConfig accepts CallTracerConfig. For other named tracers (e.g.
+    "prestateTracer"), the result format is tracer-specific; defining the
+    output schemas of other named tracers is outside the scope of this
+    specification.
   type: object
+  if:
+    required:
+      - tracer
+    properties:
+      tracer:
+        const: callTracer
+  then:
+    properties:
+      tracerConfig:
+        $ref: '#/components/schemas/CallTracerConfig'
   properties:
     tracer:
       title: tracer name
@@ -33,7 +46,8 @@ TraceConfig:
       description: >-
         An optional tracer-specific configuration object passed to the named
         tracer. Only applicable when the tracer field is set.
-        The fields accepted here depend on the named tracer in use.
+        The fields accepted here depend on the named tracer in use; for
+        "callTracer" this is CallTracerConfig.
       type: object
     timeout:
       title: execution timeout
@@ -230,11 +244,16 @@ OpcodeBlockTransactionTrace:
   description: >-
     A single transaction's opcode trace result within a debug_traceBlockByNumber
     or debug_traceBlockByHash response when no named tracer is used. Pairs the
-    transaction hash with its opcode trace.
+    transaction hash with its opcode trace. Either result or error (the reason
+    this transaction could not be traced) is present.
   type: object
   required:
     - txHash
-    - result
+  anyOf:
+    - required:
+        - result
+    - required:
+        - error
   properties:
     txHash:
       title: transaction hash
@@ -244,3 +263,29 @@ OpcodeBlockTransactionTrace:
       title: opcode transaction trace
       description: The opcode trace for this transaction.
       $ref: '#/components/schemas/OpcodeTransactionTrace'
+    error:
+      title: trace failure
+      description: The error that prevented tracing this transaction.
+      type: string
+
+TraceCallConfig:
+  title: Trace call configuration
+  description: >-
+    Configuration object accepted by debug_traceCall. Extends TraceConfig with
+    state and block overrides applied before the call executes, reusing the
+    override semantics of eth_simulateV1.
+  allOf:
+    - $ref: '#/components/schemas/TraceConfig'
+    - type: object
+      properties:
+        stateOverrides:
+          title: state overrides
+          description: >-
+            State modifications applied to the block's state before executing
+            the call.
+          $ref: '#/components/schemas/StateOverrides'
+        blockOverrides:
+          title: block overrides
+          description: >-
+            Modifications to the block environment the call executes in.
+          $ref: '#/components/schemas/BlockOverrides'

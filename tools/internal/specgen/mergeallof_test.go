@@ -152,6 +152,28 @@ func TestMergeAllOf_RequiredDedup(t *testing.T) {
 	}
 }
 
+// verifies that absolute-URI $refs kept by dereference do not panic and pass
+// through mergeAllOf unchanged
+func TestMergeAllOf_AbsoluteURIRefPassThrough(t *testing.T) {
+	const uri = "https://ethereum.github.io/execution-apis/schemas/callframe"
+	schema := object{
+		"$id":  uri,
+		"type": "object",
+		"properties": object{
+			"calls": object{
+				"type":  "array",
+				"items": object{"$ref": uri},
+			},
+		},
+	}
+
+	got := mergeAllOf(schema)
+	items := got["properties"].(object)["calls"].(object)["items"].(object)
+	if items["$ref"] != uri {
+		t.Errorf("items.$ref: want %q, got %v", uri, items["$ref"])
+	}
+}
+
 // verifies that allOf nested inside a property value is also merged
 func TestMergeAllOf_NestedAllOf(t *testing.T) {
 	schema := object{
