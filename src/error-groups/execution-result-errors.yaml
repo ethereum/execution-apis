@@ -1,0 +1,10 @@
+ExecutionResultErrors:
+  # Errors produced while executing the EVM.
+  errors:
+    - code: 3
+      message: "Execution reverted"
+      data:
+        title: "raw EVM revert data"
+        $ref: "#/components/schemas/bytes"
+    - code: -32015
+      message: "VM execution error"
