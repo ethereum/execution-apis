@@ -1,0 +1,44 @@
+LogSubscription:
+  type: array
+  description: Notify about logs that are included in new imported blocks and match the given filter criteria
+  prefixItems:
+    - type: string
+      const: logs
+    - type: object
+      properties:
+        address:
+          description: Either an address or an array of addresses. Only logs that are created from these addresses are returned
+          oneOf:
+            - $ref: '#/components/schemas/address'
+            - $ref: '#/components/schemas/addresses'
+        topics:
+          title: topics
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes32'
+      additionalProperties: false
+
+PendingTxnSubscription:
+  type: array
+  description: Notify about pending transactions added to the transaction pool
+  prefixItems:
+    - type: string
+      const: newPendingTransactions
+    - type: object
+      properties:
+        includeTransactions:
+          description: Setting this to true ensures that the raw transaction data is included
+          type: boolean
+      additionalProperties: false
+
+SupportedSubscriptions:
+  title: Supported Subscriptions
+  oneOf:
+    - const: newHeads
+      description: Notify each time a new header is appended to the chain, including chain reorganizations
+    - const: syncing
+      description: Notify about synchronization progress
+    - title: Log Subscription
+      $ref: '#/components/schemas/LogSubscription'
+    - title: Pending Transactions Subscription
+      $ref: '#/components/schemas/PendingTxnSubscription'
