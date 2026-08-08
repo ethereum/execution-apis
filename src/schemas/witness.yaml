@@ -1,0 +1,34 @@
+ExecutionWitness:
+  title: Execution witness
+  description: The canonical execution witness of a block, as defined by the execution-specs stateless validation interface (ExecutionWitness), plus an optional keys field. All byte items are hex encoded.
+  type: object
+  additionalProperties: false
+  required:
+    - state
+    - codes
+    - headers
+  properties:
+    state:
+      title: State trie node preimages
+      description: RLP-encoded preimages of the hashed MPT nodes accessed during execution and state-root recomputation, including sibling nodes needed when branches collapse, sorted lexicographically and deduplicated.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    codes:
+      title: Contract bytecodes
+      description: Contract bytecodes fetched from the pre-state during execution, excluding empty code and any code the accessed address did not already have in the pre-state (e.g. bytecode created earlier in the same block), sorted lexicographically and deduplicated.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    keys:
+      title: State access keys
+      description: Preimages of the hashed trie keys (account addresses and storage-slot keys) accessed during execution, sorted lexicographically and deduplicated. Optional; clients may omit this field.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    headers:
+      title: Ancestor headers
+      description: RLP-encoded block headers needed for pre-state and BLOCKHASH correctness proofs, ordered by ascending block number and ending with the parent header. The parent header is always required, so this array is never empty, and it contains at most 256 headers since BLOCKHASH can reach back no further.
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
