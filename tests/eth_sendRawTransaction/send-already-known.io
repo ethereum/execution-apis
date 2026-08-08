@@ -1,0 +1,5 @@
+// re-sends a transaction that is already in the pool
+>> {"jsonrpc":"2.0","id":1,"method":"eth_sendRawTransaction","params":["0xf86c048405763d658261a894aa000000000000000000000000000000000000000a8211118718e5bb3abd10a0a0a4499575f90691cd45e1535022fa972ab54a4b1c9328a3cc6f2341ef534c1e9ba015d5834bc004a1c7cdc3c1f193a7536c9749de0fa4f23c890250b6b731d64e2c"]}
+<< {"jsonrpc":"2.0","id":1,"result":"0x2e8d0f5a901e194f349f21068312b40da5c7936f565b7e4137abaaa81adfc495"}
+>> {"jsonrpc":"2.0","id":2,"method":"eth_sendRawTransaction","params":["0xf86c048405763d658261a894aa000000000000000000000000000000000000000a8211118718e5bb3abd10a0a0a4499575f90691cd45e1535022fa972ab54a4b1c9328a3cc6f2341ef534c1e9ba015d5834bc004a1c7cdc3c1f193a7536c9749de0fa4f23c890250b6b731d64e2c"]}
+<< {"jsonrpc":"2.0","id":2,"error":{"code":1000,"message":"already known"}}

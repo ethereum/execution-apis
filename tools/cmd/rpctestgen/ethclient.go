@@ -7,10 +7,14 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/rpc"
 )
+
+// errorCodeRe matches the `"code":<int>` field inside a JSON-RPC error object.
+var errorCodeRe = regexp.MustCompile(`("error"\s*:\s*\{[^}]*?"code"\s*:\s*)-?\d+`)
 
 type ethclientHandler struct {
 	rpc       *rpc.Client
@@ -70,6 +74,44 @@ func (l *ethclientHandler) Close() {
 	if l.logFile != nil {
 		l.logFile.Close()
 	}
+}
+
+// RewriteLastErrorCode substitutes the `code` digits in the last "<< " error
+// response of the current log file, so fixtures assert the spec-mandated code
+// regardless of what the reference client returned.
+func (l *ethclientHandler) RewriteLastErrorCode(code int) error {
+	if l.logFile == nil {
+		return fmt.Errorf("no log file open")
+	}
+	filename := l.logFile.Name()
+	if err := l.logFile.Close(); err != nil {
+		return err
+	}
+	l.logFile = nil
+	l.transport.w = nil
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(string(data), "\n")
+	idx := -1
+	for i := len(lines) - 1; i >= 0; i-- {
+		if strings.HasPrefix(lines[i], "<< ") {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		return fmt.Errorf("no response line found in %s", filename)
+	}
+	replacement := fmt.Sprintf("${1}%d", code)
+	rewritten := errorCodeRe.ReplaceAllString(lines[idx], replacement)
+	if rewritten == lines[idx] {
+		return fmt.Errorf("ExpectErrorCode set but no error.code field found in %s", filename)
+	}
+	lines[idx] = rewritten
+	return os.WriteFile(filename, []byte(strings.Join(lines, "\n")), 0644)
 }
 
 // loggingRoundTrip writes requests and responses to the test log.
