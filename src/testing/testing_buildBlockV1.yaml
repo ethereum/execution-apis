@@ -89,11 +89,6 @@
           type: array
           items:
             $ref: '#/components/schemas/bytes'
-  errors:
-    - code: -32602
-      message: Invalid parameters
-    - code: -32603
-      message: Internal error
   examples:
     - name: testing_buildBlockV1 example
       params:

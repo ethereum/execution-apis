@@ -1,0 +1,20 @@
+TransactionValidationErrors:
+  # Errors detected when validating a transaction against state and block context,
+  # before EVM execution.
+  errors:
+    - code: -38010
+      message: "Nonce too low"
+    - code: -38011
+      message: "Nonce too high"
+    - code: -38012
+      message: "Max fee per gas less than block base fee"
+    - code: -38013
+      message: "Intrinsic gas too low"
+    - code: -38014
+      message: "Insufficient funds for gas * price + value"
+    - code: -38015
+      message: "Block gas limit exceeded"
+    - code: -38024
+      message: "Sender is not an EOA"
+    - code: -38025
+      message: "Max init code size exceeded"
