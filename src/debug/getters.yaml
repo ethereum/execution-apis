@@ -72,7 +72,7 @@
     - name: Block
       required: true
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   errors:
     - code: 4444
       message: Pruned history unavailable
