@@ -38,6 +38,8 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | Name | Value |
 | - | - |
 | `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
+| `INCLUSION_LIST_COMMITTEE_SIZE` |  `uint64(16) = 2**4` |
+| `MAX_TRANSACTIONS_BYTES_PER_AGGREGATED_INCLUSION_LIST` |  `uint64(131072) = INCLUSION_LIST_COMMITTEE_SIZE * MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |
 
 ## Structures
 
@@ -107,6 +109,8 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 3. Client software **MUST** retain `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
 
+4. Client software **MUST** return `-32602: Invalid params` error if the sum of the byte lengths of the entries of `inclusionListTransactions` exceeds `MAX_TRANSACTIONS_BYTES_PER_AGGREGATED_INCLUSION_LIST`.
+
 ### engine_getInclusionListV1
 
 #### Request
@@ -155,6 +159,8 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
     1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure, return `-38003: Invalid payload attributes` on failure.
 
     2. `payloadAttributes.timestamp` does not fall within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
+
+    3. The sum of the byte lengths of the entries of `payloadAttributes.inclusionListTransactions` does not exceed `MAX_TRANSACTIONS_BYTES_PER_AGGREGATED_INCLUSION_LIST`, return `-38003: Invalid payload attributes` on failure.
 
 2. Extend point (9) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining `payloadStatus.inclusionListSatisfied`:
 
