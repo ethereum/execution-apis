@@ -2504,6 +2504,13 @@ var DebugGetRawReceipts = MethodTests{
 			},
 		},
 		{
+			Name:  "get-block-hash",
+			About: "gets receipts for block hash",
+			Run: func(ctx context.Context, t *T) error {
+				return t.rpc.CallContext(ctx, nil, "debug_getRawReceipts", t.chain.GetBlock(3).Hash())
+			},
+		},
+		{
 			Name:  "get-invalid-number",
 			About: "gets receipts with invalid number formatting",
 			Run: func(ctx context.Context, t *T) error {
