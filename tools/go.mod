@@ -5,9 +5,7 @@ go 1.26.0
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/cespare/cp v1.1.1
-	github.com/dop251/goja v0.0.0-20260911104922-fabc3b8078ad
-	github.com/dop251/goja_nodejs v0.0.0-20260212111938-1f56ff5bcf14
-	github.com/ethereum/go-ethereum v1.17.9-0.20261015103220-8a8efd332457
+	github.com/ethereum/go-ethereum v1.17.6-0.20260813154252-aa1f2fcf5129
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/spec-types/generated/packages/go v0.1.1
@@ -71,7 +69,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v1.0.1-0.20260716114414-9ae09f520e93 // indirect
-	github.com/google/pprof v0.0.0-20240727154555-813a5fbdbec8 // indirect
+	github.com/google/pprof v0.0.0-20230207041349-798e818bf904 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grafana/pyroscope-go v1.2.7 // indirect
