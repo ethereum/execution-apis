@@ -37,7 +37,7 @@ const config: Config = {
    "docusaurus-plugin-copy-page-button",
 
     ['@open-rpc/docusaurus-plugin', {
-      openRPCSpecPath: './openrpc.json',
+      openRPCSpecPath: './openrpc-docs.json',
       docOutputPath: './docs-api/api',
       indexSlug: '/'
     }],
