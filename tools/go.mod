@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/cespare/cp v1.1.1
-	github.com/ethereum/go-ethereum v1.17.5-0.20260707124025-4d2181aa413d
+	github.com/ethereum/go-ethereum v1.17.6-0.20260813154252-aa1f2fcf5129
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/spec-types/generated/packages/go v0.1.1
@@ -49,7 +49,7 @@ require (
 	github.com/donovanhide/eventsource v0.0.0-20210830082556-c59027999da0 // indirect
 	github.com/dop251/goja v0.0.0-20230806174421-c933cf95e127 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
-	github.com/ethereum/c-kzg-4844/v2 v2.1.6 // indirect
+	github.com/ethereum/c-kzg-4844/v2 v2.1.8 // indirect
 	github.com/ethereum/go-bigmodexpfix v0.0.0-20250911101455-f9e208c548ab // indirect
 	github.com/ethereum/hid v1.0.1-0.20260421154323-c2ab8d9bf68a // indirect
 	github.com/fatih/color v1.16.0 // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v1.0.0 // indirect
+	github.com/golang/snappy v1.0.1-0.20260716114414-9ae09f520e93 // indirect
 	github.com/google/pprof v0.0.0-20230207041349-798e818bf904 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
