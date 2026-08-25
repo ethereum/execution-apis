@@ -22,10 +22,12 @@ ExecutionWitness:
         $ref: '#/components/schemas/bytes'
     keys:
       title: State access keys
-      description: Preimages of the hashed trie keys (account addresses and storage-slot keys) accessed during execution, sorted lexicographically and deduplicated. Optional; clients may omit this field.
+      description: Preimages of the hashed trie keys that execution reads or writes, as 20-byte account addresses and 32-byte storage-slot keys in one flat array, sorted lexicographically and deduplicated. Optional; clients that do not track preimages omit this field, and clients MUST omit it rather than return null or an empty array when there are no keys.
       type: array
       items:
-        $ref: '#/components/schemas/bytes'
+        oneOf:
+          - $ref: '#/components/schemas/address'
+          - $ref: '#/components/schemas/bytes32'
     headers:
       title: Ancestor headers
       description: RLP-encoded block headers needed for pre-state and BLOCKHASH correctness proofs, ordered by ascending block number and ending with the parent header. The parent header is always required, so this array is never empty, and it contains at most 256 headers since BLOCKHASH can reach back no further.

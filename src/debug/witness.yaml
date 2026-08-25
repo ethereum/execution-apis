@@ -3,13 +3,22 @@
   description: >-
     Re-executes the block and returns the canonical execution witness: the
     state trie-node preimages, contract bytecodes, and RLP-encoded ancestor
-    headers required to statelessly validate the block. Clients may
-    additionally include the accessed state keys.
+    headers required to statelessly validate the block. The state, codes,
+    and headers fields MUST match the output of the canonical witness
+    builder in the execution-specs stateless validation interface, which
+    defines a single canonical witness for each block. Clients may also
+    include the accessed state keys; the keys field is not part of the
+    canonical witness. Clients that accept an additional non-standard
+    parameter to select another witness format MUST return the canonical
+    witness when the caller omits that parameter.
 
-    The parent block must be present in the client's database. The genesis
-    block (block 0) has no execution witness because it has no parent header
-    to prove the pre-state against; clients MUST return an error for this
-    input.
+    Serving a block requires its parent header, the state at the parent's
+    state root, and the older ancestor headers the block accesses. The
+    genesis block (block 0) has no witness because it has no parent header
+    to prove the pre-state against. The pending tag does not identify an
+    executed block. Clients MUST return an error for both inputs. Clients
+    MAY serve a hash that names a non-canonical block when they retain the
+    required data for it.
   params:
     - name: Block
       required: true
