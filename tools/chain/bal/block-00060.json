@@ -1,0 +1,206 @@
+{
+  "number": 60,
+  "hash": "0x52bccfc9c4d4874b1898c0fbd0ae3b598a0edc7b94d9b796857dbbe1093c32e0",
+  "timestamp": 600,
+  "blockAccessListHash": "0x54306fbc4e818446e59cbd69acd4075fe1be6ca64d968b11da6d1b410ed2a86b",
+  "blockAccessListRootOfList": "0x54306fbc4e818446e59cbd69acd4075fe1be6ca64d968b11da6d1b410ed2a86b",
+  "transactions": [
+    "0x64c1cb4199575875027842cd5dbecae22aadd297916ffc4abbcc6b96f70f681e",
+    "0x96a3becefcea65fa5b0e6ac712234efec5acaf679827c9f75140038e0f340449",
+    "0xf5d58b47de86f548fb4ee0020417772f6294606f5afbf7207dc7cf4ca3891ee4"
+  ],
+  "blockAccessList": [
+    {
+      "address": "0x0000000000000000000000000000000000000000",
+      "storageChanges": null,
+      "storageReads": null,
+      "balanceChanges": [
+        {
+          "blockAccessIndex": "0x1",
+          "postBalance": "0x7b6fb90bf0425bc4d"
+        },
+        {
+          "blockAccessIndex": "0x2",
+          "postBalance": "0x7b6fb90bf04270721"
+        },
+        {
+          "blockAccessIndex": "0x3",
+          "postBalance": "0x7b6fb90bf0427b531"
+        }
+      ],
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x00000961ef480eb55e80d19ad83579a64c007002",
+      "storageChanges": null,
+      "storageReads": [
+        "0x0",
+        "0x1",
+        "0x2",
+        "0x3"
+      ],
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x000064d678505ad48f8ccb093bc65613800e8282",
+      "storageChanges": null,
+      "storageReads": [
+        "0x0",
+        "0x1",
+        "0x2",
+        "0x3"
+      ],
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x0000bbddc7ce488642fb579f8b00f3a590007251",
+      "storageChanges": null,
+      "storageReads": [
+        "0x0",
+        "0x1",
+        "0x2",
+        "0x3"
+      ],
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x0000bff46984e3725691fa540a8c7589300d8282",
+      "storageChanges": null,
+      "storageReads": [
+        "0x0",
+        "0x1",
+        "0x2",
+        "0x3"
+      ],
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x0000f90827f1c53a10cb7a02335b175320002935",
+      "storageChanges": [
+        {
+          "slot": "0x3b",
+          "slotChanges": [
+            {
+              "blockAccessIndex": "0x0",
+              "postValue": "0x6e3bd94343c61839a0044d28115f28a7dd4f6a2b2add2335991e9520adcd3d18"
+            }
+          ]
+        }
+      ],
+      "storageReads": null,
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x000f3df6d732807ef1319fb7b8bb8522d0beac02",
+      "storageChanges": [
+        {
+          "slot": "0x258",
+          "slotChanges": [
+            {
+              "blockAccessIndex": "0x0",
+              "postValue": "0x258"
+            }
+          ]
+        },
+        {
+          "slot": "0x2257",
+          "slotChanges": [
+            {
+              "blockAccessIndex": "0x0",
+              "postValue": "0xefc50f4fc1430b6d5d043065201692a4a02252fef0699394631f5213a5667547"
+            }
+          ]
+        }
+      ],
+      "storageReads": null,
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x40c8fb44dfe056608bad5d94cbebc5e5ad9723b9",
+      "storageChanges": null,
+      "storageReads": null,
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0x7435ed30a8b4aeb0877cef0c6e8cffe834eb865f",
+      "storageChanges": null,
+      "storageReads": null,
+      "balanceChanges": [
+        {
+          "blockAccessIndex": "0x1",
+          "postBalance": "0xc097ce7bc90715a5646cdaa085479a"
+        },
+        {
+          "blockAccessIndex": "0x2",
+          "postBalance": "0xc097ce7bc90715a5646be710aea536"
+        },
+        {
+          "blockAccessIndex": "0x3",
+          "postBalance": "0xc097ce7bc90715a5646b66eac651e6"
+        }
+      ],
+      "nonceChanges": [
+        {
+          "blockAccessIndex": "0x1",
+          "postNonce": "0x10e"
+        },
+        {
+          "blockAccessIndex": "0x2",
+          "postNonce": "0x10f"
+        },
+        {
+          "blockAccessIndex": "0x3",
+          "postNonce": "0x110"
+        }
+      ],
+      "codeChanges": null
+    },
+    {
+      "address": "0x7dcd17433742f4c0ca53122ab541d0ba67fc27df",
+      "storageChanges": null,
+      "storageReads": [
+        "0x0",
+        "0xecfadeb8d4983cdbe5b909a5498126da1e9bf039e8b745c77093ff074e75a210"
+      ],
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0xab12a5f97f03edbff03eded9d1a2a1179d2fc69e",
+      "storageChanges": null,
+      "storageReads": null,
+      "balanceChanges": null,
+      "nonceChanges": null,
+      "codeChanges": null
+    },
+    {
+      "address": "0xe7d13f7aa2a838d24c59b40186a0aca1e21cffcc",
+      "storageChanges": null,
+      "storageReads": null,
+      "balanceChanges": [
+        {
+          "blockAccessIndex": "0x4",
+          "postBalance": "0xc097ce7bc90715b34b9f274876e802"
+        }
+      ],
+      "nonceChanges": null,
+      "codeChanges": null
+    }
+  ]
+}
