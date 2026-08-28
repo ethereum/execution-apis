@@ -3,6 +3,7 @@ package testgen
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -17,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/holiman/uint256"
 	"golang.org/x/exp/maps"
@@ -90,6 +92,7 @@ var AllMethods = []MethodTests{
 	DebugGetRawBlock,
 	DebugGetRawReceipts,
 	DebugGetRawTransaction,
+	DebugExecutionWitness,
 	DebugTraceTransaction,
 	DebugTraceBlockByNumber,
 	DebugTraceBlockByHash,
@@ -2410,6 +2413,124 @@ var EthGetLogs = MethodTests{
 				})
 				if err == nil {
 					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
+	},
+}
+
+type executionWitnessResult struct {
+	State   []hexutil.Bytes `json:"state"`
+	Codes   []hexutil.Bytes `json:"codes"`
+	Headers []hexutil.Bytes `json:"headers"`
+}
+
+func checkExecutionWitness(raw json.RawMessage, block *types.Block) error {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return fmt.Errorf("witness is not a JSON object: %v", err)
+	}
+	if keysRaw, ok := fields["keys"]; ok {
+		var keys []hexutil.Bytes
+		if err := json.Unmarshal(keysRaw, &keys); err != nil || len(keys) == 0 {
+			return fmt.Errorf("keys must be omitted rather than null or empty, got %s", keysRaw)
+		}
+	}
+	var got executionWitnessResult
+	if err := json.Unmarshal(raw, &got); err != nil {
+		return fmt.Errorf("witness does not decode: %v", err)
+	}
+	if len(got.Headers) == 0 {
+		return fmt.Errorf("witness has no headers")
+	}
+	if len(got.Headers) > 256 {
+		return fmt.Errorf("witness has %d headers, the BLOCKHASH reach caps it at 256", len(got.Headers))
+	}
+	headers := make([]types.Header, len(got.Headers))
+	for i, enc := range got.Headers {
+		if err := rlp.DecodeBytes(enc, &headers[i]); err != nil {
+			return fmt.Errorf("witness header %d is not valid RLP: %v", i, err)
+		}
+	}
+	if !slices.IsSortedFunc(headers, func(a, b types.Header) int { return a.Number.Cmp(b.Number) }) {
+		return fmt.Errorf("witness headers are not in ascending block number order")
+	}
+	parent := headers[len(headers)-1]
+	if parent.Hash() != block.ParentHash() {
+		return fmt.Errorf("last witness header %v is not the parent %v", parent.Hash(), block.ParentHash())
+	}
+	if len(got.State) == 0 {
+		return fmt.Errorf("witness state is empty")
+	}
+	for name, items := range map[string][]hexutil.Bytes{"state": got.State, "codes": got.Codes} {
+		for i := 1; i < len(items); i++ {
+			if bytes.Compare(items[i-1], items[i]) >= 0 {
+				return fmt.Errorf("witness %s is not sorted and deduplicated at index %d", name, i)
+			}
+		}
+	}
+	return nil
+}
+
+var DebugExecutionWitness = MethodTests{
+	"debug_executionWitness",
+	[]Test{
+		{
+			Name:     "get-witness-by-number",
+			About:    "gets the execution witness of a block with transactions, requested by number",
+			SpecOnly: true, // witness content is canonical only once the client implements the canonical builder
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.Head()
+				var raw json.RawMessage
+				if err := t.rpc.CallContext(ctx, &raw, "debug_executionWitness", hexutil.Uint64(block.NumberU64()).String()); err != nil {
+					return err
+				}
+				return checkExecutionWitness(raw, block)
+			},
+		},
+		{
+			Name:     "get-witness-by-hash",
+			About:    "gets the execution witness of a block with transactions, requested by hash",
+			SpecOnly: true, // witness content is canonical only once the client implements the canonical builder
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.Head()
+				var raw json.RawMessage
+				if err := t.rpc.CallContext(ctx, &raw, "debug_executionWitness", block.Hash()); err != nil {
+					return err
+				}
+				return checkExecutionWitness(raw, block)
+			},
+		},
+		{
+			Name:  "get-witness-genesis",
+			About: "requests the witness of the genesis block; an error is expected because genesis has no parent header",
+			Run: func(ctx context.Context, t *T) error {
+				err := t.rpc.CallContext(ctx, nil, "debug_executionWitness", "0x0")
+				if err == nil {
+					return fmt.Errorf("expected error for genesis block, got success")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-witness-invalid-block",
+			About: "requests the witness of a non-existent block; an error is expected",
+			Run: func(ctx context.Context, t *T) error {
+				err := t.rpc.CallContext(ctx, nil, "debug_executionWitness", "0xfffffffff")
+				if err == nil {
+					return fmt.Errorf("expected error for non-existent block, got success")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-witness-pending",
+			About: "requests the witness of the pending tag; an error is expected because pending does not identify an executed block",
+			Run: func(ctx context.Context, t *T) error {
+				err := t.rpc.CallContext(ctx, nil, "debug_executionWitness", "pending")
+				if err == nil {
+					return fmt.Errorf("expected error for pending tag, got success")
 				}
 				return nil
 			},
