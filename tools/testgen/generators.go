@@ -867,8 +867,10 @@ var EthEstimateGas = MethodTests{
 				if err != nil {
 					return err
 				}
-				if got != params.TxGas {
-					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				// post-Amsterdam (EIP-2780), a zero-value transfer to an existing account costs 15000
+				want := uint64(15000)
+				if got != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
@@ -3081,6 +3083,9 @@ func commitBlockV1PayloadAttrs(t *T, parentBlock *types.Block, salt string) map[
 	if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 		beaconRoot := common.HexToHash("0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822")
 		attrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+	}
+	if slot := parentBlock.SlotNumber(); slot != nil {
+		attrs["slotNumber"] = hexutil.Uint64(*slot + 1)
 	}
 	_ = salt
 	return attrs
