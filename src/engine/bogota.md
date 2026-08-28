@@ -37,7 +37,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 
 | Name | Value |
 | - | - |
-| `MAX_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
+| `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
 
 ## Structures
 
@@ -124,7 +124,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 1. Client software **MUST** provide a list of transactions for the inclusion list based on the local view of the mempool. The strategy for selecting which transactions to include is implementation dependent.
 
-2. Client software **MUST** ensure the byte length of the RLP encoding of the returned transaction list does not exceed `MAX_BYTES_PER_INCLUSION_LIST`.
+2. Client software **MUST** ensure the byte length of the RLP encoding of the returned transaction list does not exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
 3. Client software **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction) in the returned transaction list.
  
