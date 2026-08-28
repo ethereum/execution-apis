@@ -124,7 +124,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 1. Client software **MUST** provide a list of transactions for the inclusion list based on the local view of the mempool. The strategy for selecting which transactions to include is implementation dependent.
 
-2. Client software **MUST** ensure the byte length of the RLP encoding of the returned transaction list does not exceed `MAX_BYTES_PER_INCLUSION_LIST`.
+2. Client software **MUST** ensure the sum of the byte lengths of the returned transactions does not exceed `MAX_BYTES_PER_INCLUSION_LIST`, and **MUST NOT** return an empty transaction. This is the measure the consensus layer applies to `InclusionList.transactions` (`MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`, every transaction non-empty), so a list satisfying it is always valid to broadcast.
 
 3. Client software **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction) in the returned transaction list.
  
