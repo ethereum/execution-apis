@@ -274,6 +274,25 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
+			Name:     "trace-call-omitted-block",
+			About:    "traces a call with the block parameter omitted; the trace runs at the latest block",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				call := map[string]interface{}{
+					"from":  sender,
+					"to":    calltreeCallmeAddr,
+					"input": "0xff01",
+					"gas":   "0x100000",
+				}
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call); err != nil {
+					return err
+				}
+				return validateOpcodeTransactionTrace(result)
+			},
+		},
+		{
 			Name:     "calltracer-nested",
 			About:    "traces a call to the calltree contract with the callTracer; the frame tree must contain every call type",
 			SpecOnly: true,
