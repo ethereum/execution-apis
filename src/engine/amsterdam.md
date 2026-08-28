@@ -126,6 +126,8 @@ This method follows the same specification as [`engine_newPayloadV4`](./prague.m
 
 2. Client software **MUST** return `-32602: Invalid params` error if the `blockAccessList` field is missing.
 
+3. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockAccessList` field is not a valid RLP encoding of the block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928).
+
 ### engine_getPayloadV6
 
 This method is updated to return the new `ExecutionPayloadV4` structure.
