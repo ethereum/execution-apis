@@ -150,6 +150,14 @@
               - '0x04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3'
 - name: eth_getLogs
   summary: Returns an array of all logs matching the specified filter.
+  description: >-
+    Returns all logs that match the given filter. `fromBlock` and `toBlock`
+    bound an inclusive block range; block tags resolve against the current
+    head block. If either bound resolves to a block number
+    greater than the current head block, or if `fromBlock` resolves to a block
+    number greater than `toBlock`, clients MUST return the `-32602: Invalid
+    params` error. Clients MUST NOT clamp the range to the head block or
+    return a partial result.
   params:
     - name: Filter
       schema:

@@ -2386,6 +2386,33 @@ var EthGetLogs = MethodTests{
 			},
 		},
 		{
+			Name:  "filter-error-fully-future-block-range",
+			About: "checks that an error is returned if both `fromBlock` and `toBlock` are greater than the latest block",
+			Run: func(ctx context.Context, t *T) error {
+				_, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: big.NewInt(int64(len(t.chain.blocks) + 1)),
+					ToBlock:   big.NewInt(int64(len(t.chain.blocks) + 3)),
+				})
+				if err == nil {
+					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "filter-error-future-block-to-latest",
+			About: "checks that an error is returned if `fromBlock` is greater than the latest block and `toBlock` is `latest`",
+			Run: func(ctx context.Context, t *T) error {
+				_, err := t.eth.FilterLogs(ctx, ethereum.FilterQuery{
+					FromBlock: big.NewInt(int64(len(t.chain.blocks) + 1)),
+				})
+				if err == nil {
+					return fmt.Errorf("expected error")
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "filter-error-reversed-block-range",
 			About: "checks that an error is returned if `fromBlock` is larger than `toBlock`",
 			Run: func(ctx context.Context, t *T) error {
