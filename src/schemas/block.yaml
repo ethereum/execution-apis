@@ -119,6 +119,7 @@ Block:
 Header:
   title: Header object
   type: object
+  additionalProperties: false
   required:
     - hash
     - parentHash
