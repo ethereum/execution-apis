@@ -113,6 +113,102 @@ Block:
     blockAccessListHash:
       title: EIP-7928 block access list hash
       $ref: '#/components/schemas/hash32'
+    slotNumber:
+      title: EIP-7843 slot number
+      $ref: '#/components/schemas/uint'
+Header:
+  title: Header object
+  type: object
+  required:
+    - hash
+    - parentHash
+    - sha3Uncles
+    - miner
+    - stateRoot
+    - transactionsRoot
+    - receiptsRoot
+    - logsBloom
+    - difficulty
+    - number
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - mixHash
+    - nonce
+  properties:
+    hash:
+      title: Hash
+      $ref: '#/components/schemas/hash32'
+    parentHash:
+      title: Parent block hash
+      $ref: '#/components/schemas/hash32'
+    sha3Uncles:
+      title: Ommers hash
+      $ref: '#/components/schemas/hash32'
+    miner:
+      title: Coinbase
+      $ref: '#/components/schemas/address'
+    stateRoot:
+      title: State root
+      $ref: '#/components/schemas/hash32'
+    transactionsRoot:
+      title: Transactions root
+      $ref: '#/components/schemas/hash32'
+    receiptsRoot:
+      title: Receipts root
+      $ref: '#/components/schemas/hash32'
+    logsBloom:
+      title: Bloom filter
+      $ref: '#/components/schemas/bytes256'
+    difficulty:
+      title: Difficulty
+      $ref: '#/components/schemas/uint'
+    number:
+      title: Number
+      $ref: '#/components/schemas/uint'
+    gasLimit:
+      title: Gas limit
+      $ref: '#/components/schemas/uint'
+    gasUsed:
+      title: Gas used
+      $ref: '#/components/schemas/uint'
+    timestamp:
+      title: Timestamp
+      $ref: '#/components/schemas/uint'
+    extraData:
+      title: Extra data
+      $ref: '#/components/schemas/bytes'
+    mixHash:
+      title: Mix hash
+      $ref: '#/components/schemas/hash32'
+    nonce:
+      title: Nonce
+      $ref: '#/components/schemas/bytes8'
+    baseFeePerGas:
+      title: Base fee per gas
+      $ref: '#/components/schemas/uint'
+    withdrawalsRoot:
+      title: Withdrawals root
+      $ref: '#/components/schemas/hash32'
+    blobGasUsed:
+      title: Blob gas used
+      $ref: '#/components/schemas/uint'
+    excessBlobGas:
+      title: Excess blob gas
+      $ref: '#/components/schemas/uint'
+    parentBeaconBlockRoot:
+      title: Parent Beacon Block Root
+      $ref: '#/components/schemas/hash32'
+    requestsHash:
+      title: EIP-7685 requests hash
+      $ref: '#/components/schemas/hash32'
+    blockAccessListHash:
+      title: EIP-7928 block access list hash
+      $ref: '#/components/schemas/hash32'
+    slotNumber:
+      title: EIP-7843 slot number
+      $ref: '#/components/schemas/uint'
 BlockTag:
   title: Block tag
   type: string
