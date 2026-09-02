@@ -6,7 +6,8 @@
       schema:
         $ref: '#/components/schemas/address'
     - name: Block
-      required: true
+      required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -37,7 +38,8 @@
         # so we can't disallow it.
         $ref: '#/components/schemas/bytesMax32'
     - name: Block
-      required: true
+      required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -70,7 +72,8 @@
           items:
             $ref: '#/components/schemas/bytesMax32'
     - name: Block
-      required: true
+      required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -111,7 +114,8 @@
       schema:
         $ref: '#/components/schemas/address'
     - name: Block
-      required: true
+      required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -136,7 +140,8 @@
       schema:
         $ref: '#/components/schemas/address'
     - name: Block
-      required: true
+      required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -168,7 +173,8 @@
         items:
           $ref: '#/components/schemas/bytesMax32'
     - name: Block
-      required: true
+      required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:

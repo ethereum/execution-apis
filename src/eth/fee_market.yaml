@@ -12,6 +12,20 @@
       result:
         name: Gas price
         value: '0x3e8'
+- name: eth_baseFee
+  summary: Returns the base fee per gas of the next block in wei.
+  params: []
+  result:
+    name: Base fee
+    schema:
+      title: Base fee
+      $ref: '#/components/schemas/uint'
+  examples:
+    - name: eth_baseFee example
+      params: []
+      result:
+        name: Base fee
+        value: '0x3b9aca00'
 - name: eth_blobBaseFee
   summary: Returns the base fee per blob gas in wei.
   params: []

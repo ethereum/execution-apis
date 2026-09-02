@@ -26,7 +26,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test build website
+      - name: Test build website (no versions)
         run: |
           npm run build:spec
           npm run build:docs
+
+      - name: Test versioned build (synthesized snapshot)
+        run: |
+          npm run build:spec
+          npm run docs:copy
+          npx docusaurus docs:version:api 0.0.0-test
+          npm run build:docusaurus
+          test -d build/next || (echo "build/next missing — current docs not under /next when versions present" && exit 1)
+          test -f build/index.html || (echo "build/index.html missing — latest version landing not built at root" && exit 1)
+          grep -q '0.0.0-test' build/index.html || (echo "version dropdown not wired into latest landing" && exit 1)
+          echo "versioned build OK: /next + / (latest=0.0.0-test) both present"

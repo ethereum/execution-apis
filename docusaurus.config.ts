@@ -1,6 +1,14 @@
+import {existsSync, readFileSync} from 'node:fs';
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+
+const versionsFile = './api_versions.json';
+const allVersions: string[] = existsSync(versionsFile)
+  ? JSON.parse(readFileSync(versionsFile, 'utf8'))
+  : [];
+const hasVersions = allVersions.length > 0;
+const top10 = allVersions.slice(0, 10);
 
 const config: Config = {
   title: 'Ethereum Execution APIs',
@@ -38,6 +46,16 @@ const config: Config = {
       path: 'docs-api',
       routeBasePath: '/',
       sidebarPath: './docs-api/sidebars.ts',
+      ...(hasVersions && {
+        versions: { current: { label: 'Next', path: 'next' } },
+        onlyIncludeVersions: ['current', ...top10],
+      }),
+    }],
+    ['@docusaurus/plugin-content-docs', {
+      id: 'releases',
+      path: 'docs-releases',
+      routeBasePath: 'releases',
+      sidebarPath: './docs-releases/sidebars.ts',
     }],
     ['@docusaurus/plugin-client-redirects', {
       redirects: [{ from: '/api', to: '/' }],
@@ -74,6 +92,8 @@ const config: Config = {
       title: 'Execution APIs',
       items: [
         { type: 'docSidebar', sidebarId: 'docsSidebar', docsPluginId: 'api', label: 'Docs', position: 'left' },
+        { to: '/releases', label: 'Releases', position: 'left' },
+        { type: 'docsVersionDropdown', docsPluginId: 'api', position: 'right' },
         { href: 'https://github.com/ethereum/execution-apis', label: 'GitHub', position: 'right' },
       ],
     },

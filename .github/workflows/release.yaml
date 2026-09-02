@@ -1,0 +1,142 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)release, e.g. v1.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    env:
+      # Resolve the tag from either trigger: workflow_dispatch input or the published release event.
+      # (github.ref_name is a defensive fallback)
+      TAG: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref }}
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ^1.26
+        id: go
+
+      - name: Build the spec
+        run: make build
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Stamp spec version from tag
+        run: npm run spec:set-version -- --version "$TAG"
+
+      - name: Build docs
+        # Spec is already built (make build) and stamped (spec:set-version).
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build:docs:ci:release
+
+      - name: Snapshot versioned docs
+        run: |
+          VER="${TAG#v}"
+          npx docusaurus docs:version:api "$VER"
+          tar -czf "docs-snapshot-${TAG}.tar.gz" \
+            "api_versioned_docs/version-${VER}" \
+            "api_versioned_sidebars/version-${VER}-sidebars.json"
+
+      - name: Upload openrpc spec
+        uses: actions/upload-artifact@v4
+        with:
+          name: openrpc-spec
+          path: |
+            openrpc.json
+            refs-openrpc.json
+
+      - name: Upload docs snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-snapshot
+          path: docs-snapshot-*.tar.gz
+
+  github-release:
+    runs-on: ubuntu-latest
+    needs: build-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: openrpc-spec
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-snapshot
+
+      - name: Attach assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
+        run: |
+          set -euo pipefail
+          ASSETS=(openrpc.json refs-openrpc.json "docs-snapshot-${TAG}.tar.gz")
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # add/replace these strictly these assets
+            echo "Release $TAG exists; attaching assets (additive)"
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${ASSETS[@]}"
+          else
+            # No release for this tag: fail the job 
+            echo "No release found for $TAG; cannot attach assets."
+            exit 1
+          fi
+
+  publish-spec:
+    runs-on: ubuntu-latest
+    needs: github-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download stamped spec artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openrpc-spec
+      - name: setup git config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - name: Deploy assembled spec (stamped release)
+        env:
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}
+        run: |
+          git checkout -b assembled-spec
+          git add -f openrpc.json
+          git add -f refs-openrpc.json
+          git commit -m "release ${TAG}"
+          git push -fu origin assembled-spec
+
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    needs: github-release
+    permissions:
+      actions: write
+    steps:
+      - name: Refresh Pages from main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yaml --ref main --repo "$GITHUB_REPOSITORY"

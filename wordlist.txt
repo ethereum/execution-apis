@@ -2,6 +2,8 @@ ACDT
 ALPN
 apis
 arg
+BLS
+BN
 attributesv
 BAL
 besu
@@ -15,6 +17,7 @@ blockAccessList
 BlockAccessList
 bodiesbyhashv
 buildBlockV
+commitBlockV
 bodiesbyrangev
 bodyv
 BPO
@@ -25,6 +28,7 @@ cli
 clientversionv
 CLs
 configurationv
+CRC
 crypto
 DocToc
 eg
@@ -49,10 +53,13 @@ FCU
 FCUs
 feeRecipient
 forkchoiceupdatedresponsev
+FP
 Fulu
 getblobsbundlev
 getblobsv
 getclientversionv
+getinclusionlistv
+getInclusionListV
 graphql
 greppable
 gwei
@@ -68,6 +75,8 @@ mempool
 merkle
 merkleization
 MiB
+MSM
+MUL
 multicallV
 natively
 npm
@@ -90,6 +99,8 @@ SFI
 sha
 SHOULDs
 simulateV
+SLOAD
+SSTORE
 src
 ssz
 statev

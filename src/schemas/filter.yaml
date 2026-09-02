@@ -18,10 +18,10 @@ Filter:
       properties:
         fromBlock:
           title: from block
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/BlockNumberOrTagForRange'
         toBlock:
           title: to block
-          $ref: '#/components/schemas/uint'
+          $ref: '#/components/schemas/BlockNumberOrTagForRange'
         address:
           title: Address(es)
           oneOf:
@@ -71,6 +71,8 @@ FilterTopics:
 FilterTopic:
   title: Filter Topic List Entry
   oneOf:
+    - title: Any Topic Match
+      type: 'null'
     - title: Single Topic Match
       $ref: '#/components/schemas/bytes32'
     - title: Multiple Topic Match

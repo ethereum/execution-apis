@@ -17,3 +17,94 @@ SyncingStatus:
     - title: Not syncing
       description: Should always return false if not syncing.
       type: boolean
+ConfigurationResponse:
+  title: Configuration response
+  description: Response object for eth_config method containing current, next, and last fork configurations
+  type: object
+  additionalProperties: false
+  properties:
+    current:
+      title: Current configuration
+      $ref: '#/components/schemas/ConfigObject'
+    next:
+      title: Next configuration
+      description: Configuration for the next scheduled fork, null if no future forks scheduled
+      oneOf:
+        - $ref: '#/components/schemas/ConfigObject'
+        - type: 'null'
+    last:
+      title: Last configuration
+      description: Configuration for the last configured fork, null if no future forks scheduled
+      oneOf:
+        - $ref: '#/components/schemas/ConfigObject'
+        - type: 'null'
+  required:
+    - current
+    - next
+    - last
+ConfigObject:
+  title: Configuration object
+  description: Represents a specific fork configuration
+  type: object
+  additionalProperties: false
+  properties:
+    activationTime:
+      title: Activation time
+      description: Unix timestamp when this configuration becomes active
+      type: number
+    blobSchedule:
+      title: Blob schedule
+      description: Configuration for blob fee schedule
+      $ref: '#/components/schemas/BlobSchedule'
+    chainId:
+      title: Chain ID
+      description: The chain ID for this configuration
+      $ref: '#/components/schemas/uint'
+    forkId:
+      title: Fork ID
+      description: The FORK_HASH value as specified in EIP-6122 of the specific fork
+      $ref: '#/components/schemas/bytes4'
+    precompiles:
+      title: Precompiles
+      description: Mapping of precompile names to their addresses
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/address'
+    systemContracts:
+      title: System contracts
+      description: Mapping of system contract names to their addresses
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/address'
+  required:
+    - activationTime
+    - blobSchedule
+    - chainId
+    - forkId
+    - precompiles
+    - systemContracts
+BlobSchedule:
+  title: Blob schedule
+  description: Configuration parameters for blob fee scheduling
+  type: object
+  additionalProperties: false
+  properties:
+    baseFeeUpdateFraction:
+      title: Base fee update fraction
+      description: Fraction used for updating blob base fees
+      type: integer
+      minimum: 0
+    max:
+      title: Maximum blobs
+      description: Maximum number of blobs per block
+      type: integer
+      minimum: 0
+    target:
+      title: Target blobs
+      description: Target number of blobs per block
+      type: integer
+      minimum: 0
+  required:
+    - baseFeeUpdateFraction
+    - max
+    - target
