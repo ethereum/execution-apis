@@ -66,6 +66,7 @@ KiB
 kzg
 mempool
 merkle
+merkleization
 MiB
 multicallV
 natively
@@ -85,6 +86,7 @@ RLP's
 rpc
 schemas
 secp
+SFI
 sha
 SHOULDs
 simulateV
