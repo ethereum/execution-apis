@@ -124,13 +124,11 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 1. Client software **MUST** provide, based on its local view of the mempool, a list of transactions for the inclusion list satisfying the following conditions:
 
-    1. The transaction list **MUST** contain at least one transaction.
+    1. Every transaction **MUST** have non-zero length (at least 1 byte).
 
-    2. Every transaction **MUST** have non-zero length (at least 1 byte).
+    2. The transaction list **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction).
 
-    3. The transaction list **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction).
-
-    4. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
+    3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
 2. The strategy for selecting transactions is implementation dependent.
 
