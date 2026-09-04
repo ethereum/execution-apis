@@ -112,9 +112,8 @@ var AllMethods = []MethodTests{
 	TxpoolContent,
 	TxpoolContentFrom,
 
-	// -- gas price tests are disabled because of non-determinism
-	// EthGasPrice,
-	// EthMaxPriorityFeePerGas,
+	EthGasPrice,
+	EthMaxPriorityFeePerGas,
 
 	// -- uncle APIs are not required anymore after the merge
 	// EthGetUncleByBlockNumberAndIndex,
@@ -1920,8 +1919,9 @@ var EthGasPrice = MethodTests{
 	"eth_gasPrice",
 	[]Test{
 		{
-			Name:  "get-current-gas-price",
-			About: "gets the current gas price in wei",
+			Name:     "get-current-gas-price",
+			About:    "gets the current gas price in wei",
+			SpecOnly: true, // Gas price suggestions are not required to be identical across clients.
 			Run: func(ctx context.Context, t *T) error {
 				if _, err := t.eth.SuggestGasPrice(ctx); err != nil {
 					return err
@@ -1937,8 +1937,9 @@ var EthMaxPriorityFeePerGas = MethodTests{
 	"eth_maxPriorityFeePerGas",
 	[]Test{
 		{
-			Name:  "get-current-tip",
-			About: "gets the current maxPriorityFeePerGas in wei",
+			Name:     "get-current-tip",
+			About:    "gets the current maxPriorityFeePerGas in wei",
+			SpecOnly: true, // Priority fee suggestions are not required to be identical across clients.
 			Run: func(ctx context.Context, t *T) error {
 				if _, err := t.eth.SuggestGasTipCap(ctx); err != nil {
 					return err
