@@ -133,7 +133,8 @@ BlockOverrides:
       title: Gas limit
       $ref: '#/components/schemas/uint64'
     feeRecipient:
-      title: Fee Recipient (also known as coinbase)
+      title: Fee recipient
+      description: Address set by the proposer/builder to receive priority fees. Often matches the block header `feeRecipient` field but is not the COINBASE EVM opcode.
       $ref: '#/components/schemas/address'
     baseFeePerGas:
       title: Base fee per unit of gas
