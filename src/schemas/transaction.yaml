@@ -546,6 +546,10 @@ GenericTransaction:
     input:
       title: input data
       $ref: '#/components/schemas/bytes'
+    data:
+      title: data
+      description: Alias of `input`. Prefer `input`. If both are present and differ, clients should reject.
+      $ref: '#/components/schemas/bytes'
     gasPrice:
       title: gas price
       description: The gas price willing to be paid by the sender in wei
