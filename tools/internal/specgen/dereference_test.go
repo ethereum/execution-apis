@@ -106,10 +106,64 @@ func TestDereference_UnknownRef(t *testing.T) {
 
 // verfies that a $ref with an unsupported format returns an error
 func TestDereference_BadRefFormat(t *testing.T) {
-	schema := object{"$ref": "http://example.com/schema"}
+	schema := object{"$ref": "#/components/schema/Typo"}
 	_, err := dereference(schema, schemaRepository{})
 	if err == nil {
 		t.Fatal("expected error for bad $ref format, got nil")
+	}
+}
+
+// verifies that an absolute-URI $ref matching no embedded $id fails the build
+func TestDereference_AbsoluteURIRefUnknownID(t *testing.T) {
+	repository := schemaRepository{
+		"CallFrame": {
+			"$id":  "https://example.org/callframe",
+			"type": "object",
+		},
+		"Broken": {
+			"type":  "array",
+			"items": object{"$ref": "https://example.org/callFrame"},
+		},
+	}
+	schema := object{"$ref": "#/components/schemas/Broken"}
+
+	_, err := dereference(schema, repository)
+	if err == nil {
+		t.Fatal("expected error for absolute $ref with no matching $id, got nil")
+	}
+	if !strings.Contains(err.Error(), "matching $id") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+// verifies that absolute-URI $refs (targeting an embedded $id, as used by
+// recursive schemas) pass through dereference unchanged
+func TestDereference_AbsoluteURIRefPassThrough(t *testing.T) {
+	const uri = "https://ethereum.github.io/execution-apis/schemas/callframe"
+	repository := schemaRepository{
+		"CallFrame": {
+			"$id":  uri,
+			"type": "object",
+			"properties": object{
+				"calls": object{
+					"type":  "array",
+					"items": object{"$ref": uri},
+				},
+			},
+		},
+	}
+	schema := object{"$ref": "#/components/schemas/CallFrame"}
+
+	got, err := dereference(schema, repository)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got["$id"] != uri {
+		t.Errorf("$id: want %q, got %v", uri, got["$id"])
+	}
+	items := got["properties"].(object)["calls"].(object)["items"].(object)
+	if items["$ref"] != uri {
+		t.Errorf("items.$ref: want %q, got %v", uri, items["$ref"])
 	}
 }
 

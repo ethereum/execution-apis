@@ -25,6 +25,8 @@ import (
 var (
 	emitContract = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
 	nonAccount   = common.HexToAddress("0xc1cadaffffffffffffffffffffffffffffffffff")
+
+	ethTransferLogAddress = params.SystemAddress
 )
 
 type T struct {
@@ -93,6 +95,7 @@ var AllMethods = []MethodTests{
 	DebugTraceTransaction,
 	DebugTraceBlockByNumber,
 	DebugTraceBlockByHash,
+	DebugTraceCall,
 	EthBaseFee,
 	EthBlobBaseFee,
 	EthConfig,
@@ -865,8 +868,10 @@ var EthEstimateGas = MethodTests{
 				if err != nil {
 					return err
 				}
-				if got != params.TxGas {
-					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				// post-Amsterdam (EIP-2780), a zero-value transfer to an existing account costs 15000
+				want := uint64(15000)
+				if got != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
@@ -889,7 +894,7 @@ var EthEstimateGas = MethodTests{
 				if err != nil {
 					return err
 				}
-				want := uint64(21270)
+				want := uint64(15288)
 				if got != want {
 					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
@@ -2766,6 +2771,10 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+				}
+
 				// Use sender index 2 so nonce matches geth state: index 0 (and 3) are used by
 				// eth_sendRawTransaction tests which call IncNonce, so they diverge from geth when run in full suite.
 				sender, nonce := t.chain.GetSender(2)
@@ -2855,6 +2864,10 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+				}
+
 				extraData := hexutil.Encode([]byte{})
 				var result map[string]interface{}
 				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
@@ -2907,6 +2920,10 @@ var TestingBuildBlockV1 = MethodTests{
 				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
 				}
 
 				// Add a transaction to the mempool first
@@ -2991,6 +3008,10 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+				}
+
 				// Use an invalid nonce (e.g. 999) so the tx cannot be applied; client MUST fail.
 				sender, _ := t.chain.GetSender(2)
 				basefee := parentBlock.BaseFee()
@@ -3063,6 +3084,9 @@ func commitBlockV1PayloadAttrs(t *T, parentBlock *types.Block, salt string) map[
 	if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 		beaconRoot := common.HexToHash("0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822")
 		attrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+	}
+	if slot := parentBlock.SlotNumber(); slot != nil {
+		attrs["slotNumber"] = hexutil.Uint64(*slot + 1)
 	}
 	_ = salt
 	return attrs
@@ -4628,8 +4652,8 @@ var EthSimulateV1 = MethodTests{
 				if len(res) != len(params.BlockStateCalls) {
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
-				if len(res[0].Calls[0].Logs) != 1 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				if len(res[0].Calls[0].Logs) != 2 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, simulated plus the EIP-7708 transfer log)", len(res[0].Calls[0].Logs), 2)
 				}
 				if res[0].Calls[0].Logs[0].Address.String() != "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" {
 					return fmt.Errorf("unexpected log address (have: %s, want: %s)", res[0].Calls[0].Logs[0].Address.String(), "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
@@ -4777,8 +4801,8 @@ var EthSimulateV1 = MethodTests{
 				if len(res) != len(params.BlockStateCalls) {
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
-				if len(res[0].Calls[0].Logs) != 2 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
+				if len(res[0].Calls[0].Logs) != 4 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, two hops each with a simulated and an EIP-7708 transfer log)", len(res[0].Calls[0].Logs), 4)
 				}
 				return nil
 			},
@@ -4818,7 +4842,7 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name:  "ethSimulate-eth-send-should-not-produce-logs-by-default",
-			About: "when sending eth we should not get ETH logs by default",
+			About: "when sending eth we should not get simulated ETH transfer logs by default",
 			Run: func(ctx context.Context, t *T) error {
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
@@ -4839,8 +4863,11 @@ var EthSimulateV1 = MethodTests{
 				if len(res) != len(params.BlockStateCalls) {
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
-				if len(res[0].Calls[0].Logs) != 0 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 0)
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, the EIP-7708 transfer log)", len(res[0].Calls[0].Logs), 1)
+				}
+				if got := res[0].Calls[0].Logs[0].Address; got != ethTransferLogAddress {
+					return fmt.Errorf("unexpected log address (have: %s, want: %s, simulated transfer logs must be off by default)", got, ethTransferLogAddress)
 				}
 				return nil
 			},
@@ -5508,6 +5535,8 @@ var EthSimulateV1 = MethodTests{
 						StateOverrides: &StateOverride{
 							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(900001000)},
 							common.Address{0xc1}: OverrideAccount{Balance: newRPCBalance(900002000)},
+							// post-Amsterdam, creating 0xc2... would cost state gas beyond the 21000 limit
+							common.Address{0xc2}: OverrideAccount{Balance: newRPCBalance(900003000)},
 						},
 						Calls: []TransactionArgs{
 							{
@@ -6343,8 +6372,8 @@ var EthSimulateV1 = MethodTests{
 				if res[0].Calls[0].Status != 1 {
 					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
 				}
-				if len(res[0].Calls[0].Logs) != 1 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				if len(res[0].Calls[0].Logs) != 2 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
 				}
 				return nil
 			},
@@ -6383,8 +6412,8 @@ var EthSimulateV1 = MethodTests{
 				if res[0].Calls[0].Status != 1 {
 					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
 				}
-				if len(res[0].Calls[0].Logs) != 1 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				if len(res[0].Calls[0].Logs) != 2 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
 				}
 				return nil
 			},
@@ -6420,8 +6449,8 @@ var EthSimulateV1 = MethodTests{
 				if res[0].Calls[0].Status != 1 {
 					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
 				}
-				if len(res[0].Calls[0].Logs) != 1 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+				if len(res[0].Calls[0].Logs) != 2 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
 				}
 				return nil
 			},
