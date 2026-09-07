@@ -1,0 +1,208 @@
+CallFrame:
+  title: Call frame
+  description: >-
+    A single call frame produced by the callTracer. The root frame represents
+    the transaction's top-level call or create; nested frames appear in the
+    calls array in execution order.
+
+    Field presence rules: absent fields MUST be omitted entirely, never
+    serialized as null or as an empty placeholder. The input field MUST always
+    be present ("0x" when empty). Calls to precompiled contracts MUST be
+    reported as frames like any other call, unless onlyTopCall is set.
+
+    Gas semantics: on the root frame, gas MUST be the transaction gas limit and
+    gasUsed MUST equal the receipt gasUsed (including intrinsic gas and
+    refunds). On nested frames, gas is the gas available to that frame and
+    gasUsed is the gas consumed by it.
+
+    The calls array references this schema through its $id. The $id URI is an
+    identifier, not a network location: per JSON Schema, the self-reference
+    resolves against the embedded $id within the containing document, and no
+    schema document is published at that URL.
+  $id: 'https://ethereum.github.io/execution-apis/schemas/calltracer/callframe'
+  type: object
+  required:
+    - type
+    - from
+    - gas
+    - gasUsed
+    - input
+  properties:
+    type:
+      title: call type
+      description: >-
+        The frame's opcode mnemonic. The root frame is CALL for a message call
+        transaction or CREATE for a deployment transaction.
+      type: string
+      enum:
+        - CALL
+        - CALLCODE
+        - DELEGATECALL
+        - STATICCALL
+        - CREATE
+        - CREATE2
+        - SELFDESTRUCT
+    from:
+      title: sender
+      description: >-
+        The address the frame executes on behalf of. For DELEGATECALL and
+        CALLCODE frames this is the calling frame's context address, including
+        in nested delegatecall chains.
+      $ref: '#/components/schemas/address'
+    to:
+      title: recipient
+      description: >-
+        The call target, created contract address (CREATE/CREATE2), or refund
+        beneficiary (SELFDESTRUCT). MUST be present on all frames except
+        CREATE and CREATE2 frames that failed, where it MUST be omitted since
+        no contract was created.
+      $ref: '#/components/schemas/address'
+    value:
+      title: transferred value
+      description: >-
+        The value transferred by this frame in wei. MUST be present, including
+        when zero, for all frame types except STATICCALL, where it MUST be
+        omitted. For DELEGATECALL frames this is the value of the calling
+        context (delegatecall transfers no value itself).
+      $ref: '#/components/schemas/uint256'
+    gas:
+      title: gas provided
+      $ref: '#/components/schemas/uint'
+    gasUsed:
+      title: gas used
+      $ref: '#/components/schemas/uint'
+    input:
+      title: call data
+      description: >-
+        The call data, or the initcode for CREATE/CREATE2 frames. Always
+        present; "0x" when empty.
+      $ref: '#/components/schemas/bytes'
+    output:
+      title: return data
+      description: >-
+        The data returned by the frame, or the deployed runtime code for
+        successful CREATE/CREATE2 frames. On a reverted frame this is the raw
+        revert data. MUST be omitted when empty.
+      $ref: '#/components/schemas/bytes'
+    error:
+      title: execution error
+      description: >-
+        The error that halted the frame. MUST be omitted on success. MUST be
+        exactly "execution reverted" when the frame halted due to REVERT;
+        other failure messages are client-specific free text, but SHOULD
+        identify the failure class (e.g. out of gas, write protection).
+      type: string
+    revertReason:
+      title: decoded revert reason
+      description: >-
+        The human-readable revert reason, present only when the frame reverted
+        and its revert data decodes as the standard Error(string) ABI encoding.
+      type: string
+    calls:
+      title: nested calls
+      description: >-
+        Frames created by this frame, in execution order. MUST be omitted (not
+        an empty array) when there are none, and always when onlyTopCall is
+        set.
+      type: array
+      items:
+        $ref: 'https://ethereum.github.io/execution-apis/schemas/calltracer/callframe'
+    logs:
+      title: emitted logs
+      description: >-
+        Logs emitted by this frame. Only present when the withLog tracer
+        option is set. MUST be omitted when the frame emitted no logs, and
+        MUST be omitted from reverted frames and their descendants, whose logs
+        never take effect.
+      type: array
+      items:
+        $ref: '#/components/schemas/CallLog'
+
+CallLog:
+  title: Call frame log
+  description: >-
+    A log emitted by a call frame, reported when the withLog tracer option is
+    set.
+  type: object
+  required:
+    - address
+    - topics
+    - data
+    - position
+  properties:
+    address:
+      title: log emitter
+      $ref: '#/components/schemas/address'
+    topics:
+      title: log topics
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes32'
+    data:
+      title: log data
+      $ref: '#/components/schemas/bytes'
+    position:
+      title: position among subcalls
+      description: >-
+        The number of subcalls the containing frame had created when this log
+        was emitted; i.e. the log's position relative to the frame's calls
+        array, allowing the interleaving of logs and subcalls to be
+        reconstructed.
+      $ref: '#/components/schemas/uint'
+    index:
+      title: log index
+      description: >-
+        An optional log index. Current implementations disagree on its meaning
+        (transaction-local vs. block-global numbering, and its interaction
+        with onlyTopCall and cleared failed-frame logs); its semantics are not
+        yet defined by this specification and it SHOULD NOT be relied upon.
+      $ref: '#/components/schemas/uint'
+
+CallTracerConfig:
+  title: callTracer configuration
+  description: >-
+    The tracerConfig object accepted when tracer is "callTracer". Clients MUST
+    honor both options. Clients MAY accept additional tracer-specific
+    configuration fields (e.g. go-ethereum accepts none beyond these, Erigon
+    accepts includePrecompiles); such extensions are outside the scope of this
+    specification and MUST NOT change the behavior specified here when absent.
+  type: object
+  properties:
+    onlyTopCall:
+      title: only top call
+      description: >-
+        When true, only the root frame is reported; the calls array is omitted
+        everywhere and no subcall frames are collected. Defaults to false.
+      type: boolean
+    withLog:
+      title: collect logs
+      description: >-
+        When true, logs emitted by each frame are collected into its logs
+        array. Defaults to false.
+      type: boolean
+
+CallTracerBlockEntry:
+  title: Call tracer block entry
+  description: >-
+    A per-transaction entry in a block trace produced with the callTracer.
+    Either result (the transaction's root call frame) or error (the reason
+    this transaction could not be traced) is present.
+  type: object
+  required:
+    - txHash
+  anyOf:
+    - required:
+        - result
+    - required:
+        - error
+  properties:
+    txHash:
+      title: transaction hash
+      $ref: '#/components/schemas/hash32'
+    result:
+      title: transaction call trace
+      $ref: '#/components/schemas/CallFrame'
+    error:
+      title: trace failure
+      description: The error that prevented tracing this transaction.
+      type: string

@@ -2,6 +2,7 @@
 **/.cache
 build/
 openrpc.json
+openrpc-docs.json
 refs-openrpc.json
 data.json
 schema.json
