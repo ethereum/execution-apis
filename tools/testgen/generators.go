@@ -545,6 +545,54 @@ var EthGetBalance = MethodTests{
 			},
 		},
 		{
+			Name:  "get-balance-block-number-object",
+			About: "retrieves an account balance at a block number given as an EIP-1898 object",
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlock(int(t.chain.Head().NumberU64()) - 10)
+				var got hexutil.Big
+				ref := map[string]any{"blockNumber": hexutil.Uint64(block.NumberU64())}
+				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", emitContract, ref); err != nil {
+					return err
+				}
+				if got.ToInt().Sign() <= 0 {
+					return errors.New("invalid historical balance, should be > zero")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-balance-block-hash-object",
+			About: "retrieves an account balance at a block hash given as an EIP-1898 object",
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlock(int(t.chain.Head().NumberU64()) - 10)
+				var got hexutil.Big
+				ref := map[string]any{"blockHash": block.Hash()}
+				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", emitContract, ref); err != nil {
+					return err
+				}
+				if got.ToInt().Sign() <= 0 {
+					return errors.New("invalid historical balance, should be > zero")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-balance-block-hash-object-require-canonical",
+			About: "retrieves an account balance at a canonical block hash with requireCanonical set",
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlock(int(t.chain.Head().NumberU64()) - 10)
+				var got hexutil.Big
+				ref := map[string]any{"blockHash": block.Hash(), "requireCanonical": true}
+				if err := t.rpc.CallContext(ctx, &got, "eth_getBalance", emitContract, ref); err != nil {
+					return err
+				}
+				if got.ToInt().Sign() <= 0 {
+					return errors.New("invalid historical balance, should be > zero")
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "get-balance-default-block",
 			About: "retrieves an account balance with the block parameter omitted, which defaults to latest",
 			Run: func(ctx context.Context, t *T) error {
@@ -734,6 +782,25 @@ var EthCall = MethodTests{
 				want := []byte{0xff, 0xee}
 				if !bytes.Equal(result, want) {
 					return fmt.Errorf("unexpected return value (got: %#x, want: %#x)", result, want)
+				}
+				return nil
+			},
+		},
+		{
+			Name: "call-block-hash-object",
+			About: `Performs a call at a block hash given as an EIP-1898 object.
+Calls the callenv contract, whose echoed block number makes the result differ per
+block, so a client that ignored the block parameter would not match.`,
+			Run: func(ctx context.Context, t *T) error {
+				block := t.chain.GetBlock(int(t.chain.Head().NumberU64()) - 10)
+				msg := map[string]any{"to": t.chain.txinfo.CallEnvContract.Addr}
+				var result hexutil.Bytes
+				ref := map[string]any{"blockHash": block.Hash()}
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, ref); err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("empty call result")
 				}
 				return nil
 			},
@@ -2148,6 +2215,28 @@ var EthGetProof = MethodTests{
 				}
 				if result.Balance.ToInt().Sign() == 0 {
 					return fmt.Errorf("balance is zero, does the account exist?")
+				}
+				return nil
+			},
+		},
+		{
+			Name: "get-account-proof-block-hash-object",
+			About: `Gets proof at a block hash given as an EIP-1898 object.
+Targets the head block rather than a historical one: this case covers the object
+form in the third parameter position, and clients legitimately bound how far back
+they serve proofs.`,
+			Run: func(ctx context.Context, t *T) error {
+				type accountResult struct {
+					Balance *hexutil.Big `json:"balance"`
+				}
+				var result accountResult
+				ref := map[string]any{"blockHash": t.chain.Head().Hash()}
+				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, []string{}, ref); err != nil {
+					return err
+				}
+				balance := t.chain.Balance(emitContract)
+				if result.Balance.ToInt().Cmp(balance) != 0 {
+					return fmt.Errorf("unexpected balance (got: %s, want: %s)", result.Balance, balance)
 				}
 				return nil
 			},
