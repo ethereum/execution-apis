@@ -1,0 +1,77 @@
+StateGasTrace:
+  title: State gas trace
+  description: >-
+    Output of the "stateGasTracer" named tracer: the per-transaction
+    two-dimensional gas summary introduced by EIP-8037 (Amsterdam). The
+    reported values are the ones every client already computes for block-level
+    gas accounting; this tracer exposes them per transaction without
+    re-deriving anything from opcode-level data. Clients supporting the
+    Amsterdam fork SHOULD implement this tracer under the name
+    "stateGasTracer". It accepts no tracerConfig options.
+
+    regularGasUsed and stateGasUsed are the gross (pre-refund) block
+    contributions of EIP-7778: summing each over a block's transactions
+    reconstructs block_regular_gas_used and block_state_gas_used exactly, and
+    the block header gasUsed equals the maximum of the two sums. Only
+    transactions contribute to the block gas counters (system-contract calls
+    and withdrawals are unmetered).
+
+    The fields satisfy regularGasUsed + stateGasUsed == gasUsed + gasRefund,
+    except when the EIP-7976 calldata floor binds, in which case gasUsed ==
+    max(regularGasUsed + stateGasUsed - gasRefund, floor). The floor case is
+    why the dimensions are reported explicitly: a floor-bound gasUsed makes
+    regularGasUsed unrecoverable from the receipt alone.
+  type: object
+  required:
+    - gasUsed
+    - regularGasUsed
+    - stateGasUsed
+    - gasRefund
+  properties:
+    gasUsed:
+      title: gas used
+      description: >-
+        The gas used by the transaction as reported in its receipt
+        (post-refund, and post-floor when the EIP-7976 calldata floor binds).
+      $ref: '#/components/schemas/uint'
+    regularGasUsed:
+      title: regular gas used (gross)
+      description: >-
+        The gross (pre-refund) regular gas used by the transaction - its
+        contribution to block_regular_gas_used (EIP-7778). Before the
+        Amsterdam fork this equals the full pre-refund gas used.
+      $ref: '#/components/schemas/uint'
+    stateGasUsed:
+      title: state gas used (gross)
+      description: >-
+        The gross (pre-refund) state gas used by the transaction - gas charged
+        for state creation (an SSTORE into a new slot, account creation, code
+        deposit, or an EIP-7702 authorization to a new account), net of
+        EIP-8037 source-based state-gas refunds - its contribution to
+        block_state_gas_used. Zero before the Amsterdam fork.
+      $ref: '#/components/schemas/uint'
+    gasRefund:
+      title: gas refund
+      description: >-
+        The EIP-3529 gas refund applied to this transaction (capped at one
+        fifth of the pre-refund gas). Under EIP-7778 the refund lowers the
+        receipt gas but not the block gas counters.
+      $ref: '#/components/schemas/uint'
+StateGasBlockTrace:
+  title: State gas block trace entry
+  description: >-
+    A single transaction's stateGasTracer result within a
+    debug_traceBlockByNumber or debug_traceBlockByHash response.
+  type: object
+  required:
+    - txHash
+    - result
+  properties:
+    txHash:
+      title: transaction hash
+      description: The hash of the transaction this trace entry corresponds to.
+      $ref: '#/components/schemas/hash32'
+    result:
+      title: state gas trace
+      description: The state gas trace for this transaction.
+      $ref: '#/components/schemas/StateGasTrace'
