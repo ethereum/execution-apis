@@ -11,6 +11,7 @@ EthSimulatePayload:
       title: Trace ETH Transfers
       description: |-
         Adds ETH transfers as ERC20 transfer events to the logs. These transfers have emitter contract parameter set as address(0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee).
+        In blocks where EIP-7708 is active, no synthetic transfer events are added. The protocol transfer logs emitted from address(0xfffffffffffffffffffffffffffffffffffffffe) cover the same transfers with the same topics and data, and the flag has no effect.
         Default: false.
       type: boolean
     validation:
@@ -151,6 +152,8 @@ EthSimulateResult:
     $ref: '#/components/schemas/EthSimulateBlockResultSingleSuccess'
 EthSimulateBlockResultSingleSuccess:
   title: Result of eth_simulate block-level, with array of calls
+  description: |-
+    A simulated block carries every header field that a real block carries at the fork active for that block, including blockAccessListHash and slotNumber after Amsterdam. Header fields that the simulation cannot derive take the default values documented in the eth_simulateV1 notes.
   type: object
   allOf:
     - $ref: '#/components/schemas/Block'
