@@ -29,6 +29,20 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | withdrawalsRoot | Calculated normally |
 | gasUsed | Calculated normally |
 | stateRoot | Calculated normally |
+| slotNumber | Previous block's `slotNumber` + 1. Omitted when the previous block has no `slotNumber` |
+| blockAccessListHash | Calculated normally, see [Block access list](#block-access-list) |
+
+## Block access list
+After Amsterdam (EIP-7928) every block header carries a `blockAccessListHash`. A simulated block computes this hash from a block access list built with the EIP-7928 rules over the execution that the simulation performs. The following rules apply to the parts of a simulation that a real block does not have:
+
+- State overrides (`nonce`, `balance`, `code`, `state`, `stateDiff`) are applied to the pre-state before the pre-execution system calls run. They are not recorded in the block access list at any index. They are reflected in `stateRoot`.
+- `movePrecompileToAddress` changes no state and is not recorded. A call to the address that received the precompile records that address like any other call target.
+- Pre-execution system calls (EIP-4788, EIP-2935) record at block access index `0`. Each call records at index `i + 1`. Post-execution system calls (EIP-7002, EIP-7251, EIP-8282) and the `withdrawals` from `blockOverrides` record at index `n + 1`, where `n` is the number of calls. This matches a real block.
+- Each call executes as a transaction with the gas price and blob gas price fields that the simulation uses. With `validation` disabled these are zero by default. A zero fee produces no balance change. The coinbase is accessed during fee accounting and is therefore included, with a balance change only when the fee is not zero.
+- The sender nonce is incremented and recorded as a nonce change whether or not `validation` is enabled. Disabled validation skips the nonce check, not the increment.
+- Blocks that the simulation inserts to fill a gap in block numbers are processed like every other block. Their block access list contains the system calls only.
+
+Everything else follows EIP-7928 without change.
 
 ## Default values for transactions
 As eth_simulate is an extension to `eth_call` we want to enable the nice user experience that the user does not need to provide all required values for a transaction. We are assuming following defaults if the variable is not provided by the user:
@@ -170,6 +184,11 @@ But not following ones:
  - eth_simulates eth balance override  
 
 ETH logs are not part of the calculation for logs bloom filter. Also, similar to normal logs, if the transaction sends ETH but the execution reverts, no log gets issued.
+
+### EIP-7708
+After Amsterdam the protocol emits a transfer log for every non-zero ETH transfer (EIP-7708). The log has the same topics and data as the `traceTransfers` log, but the emitting address is `0xfffffffffffffffffffffffffffffffffffffffe`. In blocks where EIP-7708 is active, `traceTransfers` adds no logs from `0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`, and the flag has no effect. Blocks before Amsterdam in the same simulation still get the `0xeeee...` logs. A consumer that wants all ETH transfers filters on the `Transfer(address,address,uint256)` topic and accepts both emitting addresses.
+
+Unlike the `traceTransfers` logs, the EIP-7708 logs are part of the receipts, so they count in `logsBloom` and `receiptsRoot`.
 
 ## Validation Mode
 The `eth_simulate` includes a feature to enable or disable validation using the `Validation` setting. By default, validation is off, and `eth_simulate` behaves similarly to `eth_call`. When validation is enabled, the simulation closely approximates real EVM block creation, except it skips transaction signature checks and allows direct transactions from contracts.
