@@ -1,0 +1,3 @@
+// sends a transaction with value exceeding sender balance
+>> {"jsonrpc":"2.0","id":1,"method":"eth_sendRawTransaction","params":["0xf879048405763d658261a894aa000000000000000000000000000000000000008fc097ce7bc90715b34b9f1000000002808718e5bb3abd109fa0a93b7157208ee6941f4ba0f5b306d2d1a4ee1ee1cf8fb9b3a820e66844c87fefa07b737cb54c1fc62a577ebcef3ae345c666ef077933407854841ff25f8696f226"]}
+<< {"jsonrpc":"2.0","id":1,"error":{"code":809,"message":"insufficient funds for gas * price + value: balance 1000000000000000000000000000000000001, tx cost 1000000000000000000000002290876125002, overshot 2290876125001"}}

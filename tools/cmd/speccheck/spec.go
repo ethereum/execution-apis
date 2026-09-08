@@ -14,12 +14,18 @@ type ContentDescriptor struct {
 	schema   openrpc.JSONSchemaObject
 }
 
+type specError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 // methodSchema stores all the schemas neccessary to validate a request or
 // response corresponding to the method.
 type methodSchema struct {
 	name   string
 	params []*ContentDescriptor
 	result *ContentDescriptor
+	errors []specError
 }
 
 // parseSpec reads an OpenRPC specification and parses out each
@@ -28,6 +34,12 @@ func parseSpec(filename string) (map[string]*methodSchema, error) {
 	doc, err := readSpec(filename)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read spec: %v", err)
+	}
+
+	// Re-parse raw JSON for errors — the meta-schema library doesn't expose them.
+	methodErrors, err := parseMethodErrors(filename)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse method errors: %v", err)
 	}
 
 	// Iterate over each method in the OpenRPC spec and pull out the parameter
@@ -79,10 +91,39 @@ func parseSpec(filename string) (map[string]*methodSchema, error) {
 			required: required,
 			schema:   *obj.Schema.JSONSchemaObject,
 		}
+
+		ms.errors = methodErrors[string(*method.Name)]
 		parsed[string(*method.Name)] = &ms
 	}
 
 	return parsed, nil
+}
+
+type rawMethod struct {
+	Name   string      `json:"name"`
+	Errors []specError `json:"errors"`
+}
+
+type rawSpec struct {
+	Methods []rawMethod `json:"methods"`
+}
+
+func parseMethodErrors(filename string) (map[string][]specError, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	var spec rawSpec
+	if err := json.Unmarshal(data, &spec); err != nil {
+		return nil, err
+	}
+	result := make(map[string][]specError)
+	for _, m := range spec.Methods {
+		if len(m.Errors) > 0 {
+			result[m.Name] = m.Errors
+		}
+	}
+	return result, nil
 }
 
 // parseParamValues parses each parameter out of the raw json value in its own byte
