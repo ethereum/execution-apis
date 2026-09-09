@@ -3,6 +3,7 @@ package testgen
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -64,6 +65,8 @@ var AllMethods = []MethodTests{
 	EthBlockNumber,
 	EthGetBlockByNumber,
 	EthGetBlockByHash,
+	EthGetHeaderByNumber,
+	EthGetHeaderByHash,
 	EthGetProof,
 	EthChainID,
 	EthGetBalance,
@@ -489,6 +492,72 @@ var EthGetBlockByHash = MethodTests{
 	},
 }
 
+// EthGetHeaderByHash stores a list of all tests against the method.
+var EthGetHeaderByHash = MethodTests{
+	"eth_getHeaderByHash",
+	[]Test{
+		{
+			Name:  "get-header-by-hash",
+			About: "gets header of block 1",
+			Run: func(ctx context.Context, t *T) error {
+				want := t.chain.GetBlock(1).Header()
+				var raw json.RawMessage
+				if err := t.rpc.CallContext(ctx, &raw, "eth_getHeaderByHash", want.Hash()); err != nil {
+					return err
+				}
+				if string(raw) == "null" {
+					return errors.New("header not found")
+				}
+				var got types.Header
+				if err := json.Unmarshal(raw, &got); err != nil {
+					return err
+				}
+				if got.Hash() != want.Hash() {
+					return fmt.Errorf("unexpected header (got: %s, want: %s)", got.Hash(), want.Hash())
+				}
+				var wire struct {
+					Hash common.Hash `json:"hash"`
+				}
+				if err := json.Unmarshal(raw, &wire); err != nil {
+					return err
+				}
+				if wire.Hash != want.Hash() {
+					return fmt.Errorf("hash field mismatch (got: %s, want: %s)", wire.Hash, want.Hash())
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-by-empty-hash",
+			About: "gets header for the zero hash",
+			Run: func(ctx context.Context, t *T) error {
+				var got *types.Header
+				if err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByHash", common.Hash{}); err != nil {
+					return err
+				}
+				if got != nil {
+					return errors.New("expected null response")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-by-notfound-hash",
+			About: "gets header for a hash that does not exist",
+			Run: func(ctx context.Context, t *T) error {
+				var got *types.Header
+				if err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByHash", common.HexToHash("deadbeef")); err != nil {
+					return err
+				}
+				if got != nil {
+					return errors.New("expected null response")
+				}
+				return nil
+			},
+		},
+	},
+}
+
 // EthChainID stores a list of all tests against the method.
 var EthGetBalance = MethodTests{
 	"eth_getBalance",
@@ -710,6 +779,170 @@ var EthGetBlockByNumber = MethodTests{
 			},
 		},
 	},
+}
+
+// EthGetHeaderByNumber stores a list of all tests against the method.
+var EthGetHeaderByNumber = MethodTests{
+	"eth_getHeaderByNumber",
+	[]Test{
+		{
+			Name:  "get-genesis",
+			About: "gets header of block number zero",
+			Run: func(ctx context.Context, t *T) error {
+				got, err := getHeaderByNumber(ctx, t, hexutil.Uint64(0))
+				if err != nil {
+					return err
+				}
+				if n := got.Number.Uint64(); n != 0 {
+					return fmt.Errorf("expected header 0, got header %d", n)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-latest",
+			About: "gets the header with tag \"latest\"",
+			Run: func(ctx context.Context, t *T) error {
+				got, err := getHeaderByNumber(ctx, t, "latest")
+				if err != nil {
+					return err
+				}
+				head := t.chain.Head().NumberU64()
+				if n := got.Number.Uint64(); n != head {
+					return fmt.Errorf("expected header %d, got header %d", head, n)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-safe",
+			About: "get the header with tag \"safe\"",
+			Run: func(ctx context.Context, t *T) error {
+				got, err := getHeaderByNumber(ctx, t, "safe")
+				if err != nil {
+					return err
+				}
+				head := t.chain.Head().NumberU64()
+				if n := got.Number.Uint64(); n != head {
+					return fmt.Errorf("expected header %d, got header %d", head, n)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-finalized",
+			About: "get the header with tag \"finalized\"",
+			Run: func(ctx context.Context, t *T) error {
+				got, err := getHeaderByNumber(ctx, t, "finalized")
+				if err != nil {
+					return err
+				}
+				head := t.chain.Head().NumberU64()
+				if n := got.Number.Uint64(); n != head {
+					return fmt.Errorf("expected header %d, got header %d", head, n)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-london-fork",
+			About: "requests a header at the London fork",
+			Run: func(ctx context.Context, t *T) error {
+				got, err := getHeaderByNumber(ctx, t, (*hexutil.Big)(t.chain.config.LondonBlock))
+				if err != nil {
+					return err
+				}
+				if got.BaseFee == nil {
+					return fmt.Errorf("missing basefee in header")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-merge-fork",
+			About: "requests a header at the merge (Paris) fork",
+			Run: func(ctx context.Context, t *T) error {
+				got, err := getHeaderByNumber(ctx, t, (*hexutil.Big)(t.chain.config.MergeNetsplitBlock))
+				if err != nil {
+					return err
+				}
+				if got.Difficulty.Sign() > 0 {
+					return fmt.Errorf("header difficulty > 0")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-shanghai-fork",
+			About: "requests a header at the Shanghai fork",
+			Run: func(ctx context.Context, t *T) error {
+				blocknum := t.chain.BlockAtTime(*t.chain.config.ShanghaiTime).Number()
+				got, err := getHeaderByNumber(ctx, t, (*hexutil.Big)(blocknum))
+				if err != nil {
+					return err
+				}
+				if got.WithdrawalsHash == nil {
+					return fmt.Errorf("header has no withdrawalsHash")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-cancun-fork",
+			About: "requests a header at the Cancun fork",
+			Run: func(ctx context.Context, t *T) error {
+				blocknum := t.chain.BlockAtTime(*t.chain.config.CancunTime).Number()
+				got, err := getHeaderByNumber(ctx, t, (*hexutil.Big)(blocknum))
+				if err != nil {
+					return err
+				}
+				if got.BlobGasUsed == nil {
+					return fmt.Errorf("header has no blobGasUsed")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-prague-fork",
+			About: "requests a header at the Prague fork",
+			Run: func(ctx context.Context, t *T) error {
+				blocknum := t.chain.txinfo.EIP7002.Block
+				got, err := getHeaderByNumber(ctx, t, hexutil.Uint64(blocknum))
+				if err != nil {
+					return err
+				}
+				if got.RequestsHash == nil || *got.RequestsHash == types.EmptyRequestsHash {
+					return fmt.Errorf("header hash empty or missing requestsHash")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "get-header-notfound",
+			About: "requests a header number that does not exist",
+			Run: func(ctx context.Context, t *T) error {
+				var got *types.Header
+				if err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByNumber", hexutil.Uint64(1000)); err != nil {
+					return err
+				}
+				if got != nil {
+					return errors.New("expected null response")
+				}
+				return nil
+			},
+		},
+	},
+}
+
+func getHeaderByNumber(ctx context.Context, t *T, block any) (*types.Header, error) {
+	var got *types.Header
+	if err := t.rpc.CallContext(ctx, &got, "eth_getHeaderByNumber", block); err != nil {
+		return nil, err
+	}
+	if got == nil {
+		return nil, errors.New("header not found")
+	}
+	return got, nil
 }
 
 // EthCall stores a list of all tests against the method.
