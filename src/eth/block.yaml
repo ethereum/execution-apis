@@ -177,8 +177,6 @@
     Returns the execution header of the given block. Header fields introduced
     by a fork MUST be omitted for headers that predate that fork. The result
     is `null` if the block is unknown or if the `pending` tag is requested.
-    When the `safe` or `finalized` tag cannot be resolved to a block, the
-    result MUST be `null`.
   params:
     - name: Block
       required: true
