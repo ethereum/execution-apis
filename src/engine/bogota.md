@@ -112,7 +112,8 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 #### Request
 
 * method: `engine_getInclusionListV1`
-* params: []
+* params:
+  1. `parentBlockHash`: `DATA|null`, 32 Bytes - hash of the block the inclusion list must be appendable to, or `null` to use the client's current head.
 * timeout: 1s
 
 #### Response
@@ -122,7 +123,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 #### Specification
 
-1. Client software **MUST** provide, based on its local view of the mempool, a list of transactions for the inclusion list satisfying the following conditions:
+1. Client software **MUST** provide, based on its local view of the mempool, a list of transactions valid for inclusion in a block built on top of the block identified by `parentBlockHash` (or the current head, if `null`), satisfying the following conditions:
 
     1. Every transaction **MUST** have non-zero length (at least 1 byte).
 
@@ -131,6 +132,8 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
     3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
 2. The strategy for selecting transactions is implementation dependent.
+
+3. If `parentBlockHash` is not `null` and does not identify a known block, client software **MUST** return `-32602: Invalid params`.
 
 ### engine_forkchoiceUpdatedV5
 
