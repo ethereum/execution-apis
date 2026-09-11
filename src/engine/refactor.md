@@ -63,7 +63,7 @@ All hot-path endpoints select the fork via the
 | Old method | New endpoint | Notes |
 | - | - | - |
 | `engine_newPayloadV{1..5}` | `POST /payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
-| `engine_newPayloadV{1..5}` + `debug_executionWitness` (two calls) | `POST /payloads/witness` | **optional**, Amsterdam+; same request as `/payloads`, response also carries the stateless `ExecutionWitness` so provers / stateless validators get the witness in one round-trip |
+| `engine_newPayloadV{1..5}` + `debug_executionWitness` (two calls) | `POST /payloads/witness` | **optional**, Amsterdam+; same request as `/payloads`, response also carries the stateless `ExecutionWitness` and transaction public keys so provers / stateless validators get both in one round-trip |
 | `engine_forkchoiceUpdatedV{1..4}` | `POST /forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
 | `engine_getPayloadV{1..6}` | `GET /payloads/{id}` | poll-style, same semantics as today |
 | `engine_getPayloadBodiesByHashV{1,2}` | `POST /bodies/hash` | header selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
@@ -87,7 +87,7 @@ endpoints ignore it.
 | Resource | Endpoint | Purpose |
 | - | - | - |
 | Payload | `POST /engine/v1/payloads` | Submit a payload received from the CL gossip network for the EL to validate / import. Replaces `engine_newPayload`. Fork-scoped via `Eth-Execution-Version`. |
-| Payload | `POST /engine/v1/payloads/witness` | **Optional (Amsterdam+).** Same as `POST /payloads`, but the response also returns the stateless execution witness. Folds the legacy `engine_newPayload` + `debug_executionWitness` two-call flow into one. Fork-scoped via `Eth-Execution-Version`. |
+| Payload | `POST /engine/v1/payloads/witness` | **Optional (Amsterdam+).** Same as `POST /payloads`, but the response also returns the stateless execution witness and transaction public keys. Folds the legacy `engine_newPayload` + `debug_executionWitness` two-call flow into one. Fork-scoped via `Eth-Execution-Version`. |
 | Payload | `GET /engine/v1/payloads/{payloadId}` | Retrieve a built payload by id. Replaces `engine_getPayload`. Fork-scoped via `Eth-Execution-Version`. CL polls when it wants a fresher snapshot. |
 | Forkchoice | `POST /engine/v1/forkchoice` | Atomic forkchoice update: update head/safe/finalized, optionally start a payload build, optionally update custody set. Replaces `engine_forkchoiceUpdated`. Fork-scoped via `Eth-Execution-Version`. |
 | Bodies | `POST /engine/v1/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. `Eth-Execution-Version` selects both the response schema *and* the era of returned blocks; out-of-era blocks come back as `available=false`. |
@@ -145,9 +145,10 @@ Replaces `engine_newPayloadV{1..5}`.
 
 **Optional.** Same request as `POST /payloads`; the response is a
 superset of `PayloadStatus` that additionally carries the **stateless
-execution witness** gathered while validating the block. It folds the
-legacy two-call flow (`engine_newPayload`, then `debug_executionWitness`)
-into a single round-trip.
+execution witness** and **transaction public keys** gathered while
+validating the block. It folds the legacy two-call flow
+(`engine_newPayload`, then `debug_executionWitness`) into a single
+round-trip.
 
 The motivation is latency for zkVM provers and stateless validators.
 Today they submit the payload, wait for `newPayload`, then issue a
@@ -155,6 +156,8 @@ second JSON-RPC call for the witness and decode a ~500 MB hex-JSON
 blob — which forces them to follow the chain one block behind.
 Returning the witness SSZ-encoded over the same connection, in the same
 call, removes both the extra round-trip and the hex re-encode.
+Returning transaction public keys also lets proving hosts populate
+`StatelessInput.public_keys` without recovering the keys themselves.
 
 This endpoint is **available from Amsterdam onward** (the fork at which
 stateless witnesses are specified); an `Eth-Execution-Version` below
@@ -170,13 +173,16 @@ doesn't find it there falls back to the `/payloads` +
 
 - **Response body:** SSZ-encoded
   [`PayloadStatusWithWitness`](./refactor-ssz.md#post-payloadswitness),
-  containing `payload_status` and `witness`. Every response with
-  `payload_status.status == VALID` MUST contain exactly one complete
+  containing `payload_status`, `witness`, and `public_keys`. Every
+  response with `payload_status.status == VALID` MUST contain exactly one complete
   `ExecutionWitness` for the submitted payload, including when the
   payload was already known to be valid. For every other status
-  (`INVALID`, `SYNCING`, `ACCEPTED`), `witness` MUST be the empty list
-  (`[]`). The optional type represents absence for those statuses; it
-  does not make witness delivery optional for `VALID` responses.
+  (`INVALID`, `SYNCING`, `ACCEPTED`), both `witness` and `public_keys`
+  MUST be the empty list (`[]`). The optional type represents absence
+  for those statuses; it does not make witness delivery optional for
+  `VALID` responses.
+
+  The `witness` fields are:
 
   | Field | Contents |
   | - | - |
@@ -200,6 +206,29 @@ doesn't find it there falls back to the `/payloads` +
   See
   [refactor-ssz.md § `ExecutionWitness`](./refactor-ssz.md#executionwitness)
   for the container and its `MAX_*` bounds.
+
+  `public_keys` is a sibling of `witness`, matching the separation in
+  `StatelessInput`. For every `VALID` response, it MUST contain exactly
+  one transaction sender public key per entry in `payload.transactions`,
+  in the same order, including when the payload was already known to be
+  valid. Duplicate keys MUST be preserved. An empty transaction list
+  therefore requires an empty `public_keys` list. Each key MUST be the
+  canonical 65-byte uncompressed SEC1 secp256k1 encoding
+  (`0x04 || x || y`, with each coordinate encoded as 32 big-endian bytes)
+  recovered from the corresponding transaction's signature. The list
+  does not include keys for authorization tuples or EVM `ECRECOVER` calls.
+
+  Supplied keys are untrusted inputs to stateless validation. The guest
+  MUST verify that each key validates the corresponding transaction's
+  signature and is consistent with its recovery ID / y-parity, retaining
+  all transaction signature validity checks. Signature verification alone
+  is insufficient because another recovery candidate may derive a
+  different sender. See the
+  [execution-specs public-key verification semantics at tests-zkevm@v0.8.4](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/transactions.py#L895).
+
+  EL implementations may retain public keys during sender recovery or
+  recover them when serving this endpoint; a cached sender address alone
+  is insufficient to construct this field.
 
 - **HTTP status:** `200 OK` for all validation outcomes, exactly as
   `/payloads`. Validation results are response data, not transport
