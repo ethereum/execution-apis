@@ -168,21 +168,36 @@ doesn't find it there falls back to the `/payloads` +
   `ExecutionPayloadEnvelope{Fork}`. The `Eth-Execution-Version` header
   selects the envelope shape exactly as for `/payloads`.
 
-- **Response body:** SSZ-encoded `PayloadStatusWithWitness`:
+- **Response body:** SSZ-encoded
+  [`PayloadStatusWithWitness`](./refactor-ssz.md#post-payloadswitness),
+  containing `payload_status` and `witness`. Every response with
+  `payload_status.status == VALID` MUST contain exactly one complete
+  `ExecutionWitness` for the submitted payload, including when the
+  payload was already known to be valid. For every other status
+  (`INVALID`, `SYNCING`, `ACCEPTED`), `witness` MUST be the empty list
+  (`[]`). The optional type represents absence for those statuses; it
+  does not make witness delivery optional for `VALID` responses.
 
-  ```
-  PayloadStatusWithWitness {
-      payload_status: PayloadStatus               # same container as /payloads
-      witness:        Optional[ExecutionWitness]  # present iff status == VALID
-  }
-  ```
+  | Field | Contents |
+  | - | - |
+  | `state` | RLP-encoded account and storage trie nodes needed during execution and state-root recomputation |
+  | `codes` | Contract bytecode fetched from the pre-state during execution |
+  | `headers` | RLP-encoded ancestor block headers needed to establish the pre-state and verify `BLOCKHASH` results |
 
-  `witness` is the SSZ `Optional` (`List[T, 1]`): it holds an
-  `ExecutionWitness` only when `payload_status.status == VALID`, and is
-  the empty list (`[]`) for every other status (`INVALID`, `SYNCING`,
-  `ACCEPTED`) or when the EL produced no witness. The witness contains
-  the raw trie nodes, contract bytecodes, and headers needed to
-  statelessly re-execute the block. See
+  `state` and `codes` may be empty only when no material of that category
+  is required for execution or state-root recomputation.
+
+  For Amsterdam, `headers` MUST contain between 1 and 256 headers in
+  oldest-to-newest order, forming a contiguous chain that ends at the
+  payload's parent. Each header after the first MUST reference the hash
+  of the preceding header through its `parent_hash`. The parent header
+  supplies the pre-state root and MUST be included even for an empty
+  block or when execution makes no `BLOCKHASH` queries. Older headers
+  extend that chain as needed to verify `BLOCKHASH` results.
+
+  Field semantics and the exact bytes of each item follow the
+  [execution-specs stateless witness at tests-zkevm@v0.8.4](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py).
+  See
   [refactor-ssz.md § `ExecutionWitness`](./refactor-ssz.md#executionwitness)
   for the container and its `MAX_*` bounds.
 

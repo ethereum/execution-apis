@@ -279,8 +279,7 @@ source of the divergence.
 ### `ExecutionWitness`
 
 Used by `PayloadStatusWithWitness`, the response of
-[`POST /payloads/witness`](#post-payloadswitness). It carries
-the raw state required to statelessly re-execute and verify the block.
+[`POST /payloads/witness`](#post-payloadswitness).
 The container is **fork-invariant in shape** (like `PayloadStatus`);
 only the endpoint that returns it is fork-scoped.
 
@@ -292,18 +291,11 @@ ExecutionWitness {
 }
 ```
 
-| Field | Contents |
-| - | - |
-| `state` | Merkle trie nodes (account + storage) accessed during execution |
-| `codes` | contract bytecodes touched during execution |
-| `headers` | block headers needed to resolve `BLOCKHASH` |
-
 Each item is opaque bytes; the EL does **not** re-encode them as
 structured SSZ — they travel as `ByteList`s, the same way `transactions`
-and `block_access_list` do. An empty list (`[]`) for any field means no
-data of that category was accessed. Field semantics and the exact bytes
-of each item follow the
-[execution-specs stateless witness](https://github.com/ethereum/execution-specs/blob/master/src/ethereum/forks/amsterdam/stateless.py).
+and `block_access_list` do. Field contents and completeness requirements
+are defined in
+[refactor.md § Payload submission with witness](./refactor.md#payload-submission-with-witness).
 
 ---
 
@@ -720,33 +712,25 @@ from `payload.transactions`).
 
 ### `POST /payloads/witness`
 
-Optional, Amsterdam+. Same request as
-[`POST /payloads`](#post-payloads); the response is a
-superset of `PayloadStatus` that also carries the stateless
-[`ExecutionWitness`](#executionwitness). See
+See
 [refactor.md § Payload submission with witness](./refactor.md#payload-submission-with-witness)
-for the endpoint semantics.
+for endpoint availability and witness requirements.
 
 #### Request (Amsterdam)
 
-Identical to `POST /payloads` — `ExecutionPayloadEnvelopeAmsterdam`
-(and the matching `ExecutionPayloadEnvelope{Fork}` for every Amsterdam+
-fork, selected by the `Eth-Execution-Version` header).
+`ExecutionPayloadEnvelopeAmsterdam`, as defined for
+[`POST /payloads`](#post-payloads).
 
 #### Response
 
 ```
 PayloadStatusWithWitness {
-    payload_status: PayloadStatus               # same container, full enum 0/1/2/3
-    witness:        Optional[ExecutionWitness]  # present iff payload_status.status == VALID
+    payload_status: PayloadStatus
+    witness:        Optional[ExecutionWitness]
 }
 ```
 
-`witness` resolves to `List[ExecutionWitness, 1]`: a length-1 list
-holding the witness when `payload_status.status == VALID`, and the empty
-list (`[]`) for `INVALID` / `SYNCING` / `ACCEPTED` or when no witness was
-produced. The endpoint never returns a witness alongside a non-`VALID`
-status. Because `PayloadStatus` and `ExecutionWitness` are both
+Because `PayloadStatus` and `ExecutionWitness` are both
 variable-size, `PayloadStatusWithWitness` is a two-offset container
 (`payload_status`, then `witness`).
 
