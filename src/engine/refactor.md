@@ -20,6 +20,7 @@
 - [Resource model (overview)](#resource-model-overview)
 - [Endpoints](#endpoints)
   - [Payload submission](#payload-submission)
+  - [Payload submission with witness](#payload-submission-with-witness)
   - [Forkchoice update](#forkchoice-update)
   - [Payload retrieval](#payload-retrieval)
   - [Historical bodies](#historical-bodies)
@@ -62,6 +63,7 @@ All hot-path endpoints select the fork via the
 | Old method | New endpoint | Notes |
 | - | - | - |
 | `engine_newPayloadV{1..5}` | `POST /payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
+| `engine_newPayloadV{1..5}` + `debug_executionWitness` (two calls) | `POST /payloads/witness` | **optional**, Amsterdam+; same request as `/payloads`, response also carries the stateless `ExecutionWitness` so provers / stateless validators get the witness in one round-trip |
 | `engine_forkchoiceUpdatedV{1..4}` | `POST /forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
 | `engine_getPayloadV{1..6}` | `GET /payloads/{id}` | poll-style, same semantics as today |
 | `engine_getPayloadBodiesByHashV{1,2}` | `POST /bodies/hash` | header selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
@@ -85,6 +87,7 @@ endpoints ignore it.
 | Resource | Endpoint | Purpose |
 | - | - | - |
 | Payload | `POST /engine/v1/payloads` | Submit a payload received from the CL gossip network for the EL to validate / import. Replaces `engine_newPayload`. Fork-scoped via `Eth-Execution-Version`. |
+| Payload | `POST /engine/v1/payloads/witness` | **Optional (Amsterdam+).** Same as `POST /payloads`, but the response also returns the stateless execution witness. Folds the legacy `engine_newPayload` + `debug_executionWitness` two-call flow into one. Fork-scoped via `Eth-Execution-Version`. |
 | Payload | `GET /engine/v1/payloads/{payloadId}` | Retrieve a built payload by id. Replaces `engine_getPayload`. Fork-scoped via `Eth-Execution-Version`. CL polls when it wants a fresher snapshot. |
 | Forkchoice | `POST /engine/v1/forkchoice` | Atomic forkchoice update: update head/safe/finalized, optionally start a payload build, optionally update custody set. Replaces `engine_forkchoiceUpdated`. Fork-scoped via `Eth-Execution-Version`. |
 | Bodies | `POST /engine/v1/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. `Eth-Execution-Version` selects both the response schema *and* the era of returned blocks; out-of-era blocks come back as `available=false`. |
@@ -135,6 +138,58 @@ Replaces `engine_newPayloadV{1..5}`.
 
 - **HTTP status:** `200 OK` for any of the four validation outcomes.
   Validation results are not transport errors.
+
+### Payload submission with witness
+
+#### `POST /engine/v1/payloads/witness`
+
+**Optional.** Same request as `POST /payloads`; the response is a
+superset of `PayloadStatus` that additionally carries the **stateless
+execution witness** gathered while validating the block. It folds the
+legacy two-call flow (`engine_newPayload`, then `debug_executionWitness`)
+into a single round-trip.
+
+The motivation is latency for zkVM provers and stateless validators.
+Today they submit the payload, wait for `newPayload`, then issue a
+second JSON-RPC call for the witness and decode a ~500 MB hex-JSON
+blob — which forces them to follow the chain one block behind.
+Returning the witness SSZ-encoded over the same connection, in the same
+call, removes both the extra round-trip and the hex re-encode.
+
+This endpoint is **available from Amsterdam onward** (the fork at which
+stateless witnesses are specified); an `Eth-Execution-Version` below
+Amsterdam returns `400 /engine-api/errors/unsupported-fork`. It is
+optional: ELs that implement it advertise `payloads/witness` in the
+`fork_scoped_endpoints` list of `GET /capabilities`, and a CL that
+doesn't find it there falls back to the `/payloads` +
+`debug_executionWitness` flow.
+
+- **Request body:** identical to `POST /payloads` — SSZ-encoded
+  `ExecutionPayloadEnvelope{Fork}`. The `Eth-Execution-Version` header
+  selects the envelope shape exactly as for `/payloads`.
+
+- **Response body:** SSZ-encoded `PayloadStatusWithWitness`:
+
+  ```
+  PayloadStatusWithWitness {
+      payload_status: PayloadStatus               # same container as /payloads
+      witness:        Optional[ExecutionWitness]  # present iff status == VALID
+  }
+  ```
+
+  `witness` is the SSZ `Optional` (`List[T, 1]`): it holds an
+  `ExecutionWitness` only when `payload_status.status == VALID`, and is
+  the empty list (`[]`) for every other status (`INVALID`, `SYNCING`,
+  `ACCEPTED`) or when the EL produced no witness. The witness contains
+  the raw trie nodes, contract bytecodes, and headers needed to
+  statelessly re-execute the block. See
+  [refactor-ssz.md § `ExecutionWitness`](./refactor-ssz.md#executionwitness)
+  for the container and its `MAX_*` bounds.
+
+- **HTTP status:** `200 OK` for all validation outcomes, exactly as
+  `/payloads`. Validation results are response data, not transport
+  errors; the [error model](#error-model) is otherwise identical to
+  `/payloads`.
 
 ### Forkchoice update
 

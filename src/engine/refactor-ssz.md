@@ -27,6 +27,7 @@
   - [`PayloadAttributes` (Amsterdam)](#payloadattributes-amsterdam)
   - [`ForkchoiceState`](#forkchoicestate)
   - [`PayloadStatus`](#payloadstatus)
+  - [`ExecutionWitness`](#executionwitness)
 - [Per-fork container catalogue](#per-fork-container-catalogue)
   - [`ExecutionPayload` per fork](#executionpayload-per-fork)
   - [`PayloadAttributes` per fork](#payloadattributes-per-fork)
@@ -39,6 +40,7 @@
   - [Identification & capabilities](#identification--capabilities)
 - [Endpoint containers](#endpoint-containers)
   - [`POST /payloads`](#post-payloads)
+  - [`POST /payloads/witness`](#post-payloadswitness)
   - [`POST /forkchoice`](#post-forkchoice)
   - [`GET /payloads/{payloadId}`](#get-payloadspayloadid)
   - [`POST /bodies/hash` and `GET /bodies?...`](#post-bodieshash-and-get-bodies)
@@ -89,6 +91,8 @@
 | `MAX_BLOBS_REQUEST` | `MAX_VERSIONED_HASHES_PER_REQUEST` (128) | derived |
 | `MAX_BODIES_REQUEST` | `2**5` (32) | [Shanghai](./shanghai.md#engine_getpayloadbodiesbyhashv1) |
 | `MAX_REQUEST_BODY_SIZE` | `2**26` (67,108,864) | this spec (64 MiB; advertised as `limits.payload.max_bytes`) |
+| `MAX_WITNESS_ITEMS` | `2**20` (1,048,576) | this spec (max items per `ExecutionWitness` field) |
+| `MAX_WITNESS_ITEM_BYTES` | `2**20` (1,048,576) | this spec (max byte length of a single witness item) |
 | `MAX_ERROR_BYTES` | `1024` | this spec |
 | `MAX_CLIENT_CODE_LENGTH` | `2` | this spec |
 | `MAX_CLIENT_NAME_LENGTH` | `64` | this spec |
@@ -271,6 +275,35 @@ emitted) pointing at the start of the 14-byte text. Total =
 precedes the text whenever the error is present — this is exactly the
 byte that a plain `List[byte, 1024]` implementation omits, and the
 source of the divergence.
+
+### `ExecutionWitness`
+
+Used by `PayloadStatusWithWitness`, the response of
+[`POST /payloads/witness`](#post-payloadswitness). It carries
+the raw state required to statelessly re-execute and verify the block.
+The container is **fork-invariant in shape** (like `PayloadStatus`);
+only the endpoint that returns it is fork-scoped.
+
+```
+ExecutionWitness {
+    state:   List[ByteList[MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]
+    codes:   List[ByteList[MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]
+    headers: List[ByteList[MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]
+}
+```
+
+| Field | Contents |
+| - | - |
+| `state` | Merkle trie nodes (account + storage) accessed during execution |
+| `codes` | contract bytecodes touched during execution |
+| `headers` | block headers needed to resolve `BLOCKHASH` |
+
+Each item is opaque bytes; the EL does **not** re-encode them as
+structured SSZ — they travel as `ByteList`s, the same way `transactions`
+and `block_access_list` do. An empty list (`[]`) for any field means no
+data of that category was accessed. Field semantics and the exact bytes
+of each item follow the
+[execution-specs stateless witness](https://github.com/ethereum/execution-specs/blob/master/src/ethereum/forks/amsterdam/stateless.py).
 
 ---
 
@@ -684,6 +717,38 @@ from `payload.transactions`).
 #### Response
 
 `PayloadStatus` (full enum, `0`/`1`/`2`/`3`).
+
+### `POST /payloads/witness`
+
+Optional, Amsterdam+. Same request as
+[`POST /payloads`](#post-payloads); the response is a
+superset of `PayloadStatus` that also carries the stateless
+[`ExecutionWitness`](#executionwitness). See
+[refactor.md § Payload submission with witness](./refactor.md#payload-submission-with-witness)
+for the endpoint semantics.
+
+#### Request (Amsterdam)
+
+Identical to `POST /payloads` — `ExecutionPayloadEnvelopeAmsterdam`
+(and the matching `ExecutionPayloadEnvelope{Fork}` for every Amsterdam+
+fork, selected by the `Eth-Execution-Version` header).
+
+#### Response
+
+```
+PayloadStatusWithWitness {
+    payload_status: PayloadStatus               # same container, full enum 0/1/2/3
+    witness:        Optional[ExecutionWitness]  # present iff payload_status.status == VALID
+}
+```
+
+`witness` resolves to `List[ExecutionWitness, 1]`: a length-1 list
+holding the witness when `payload_status.status == VALID`, and the empty
+list (`[]`) for `INVALID` / `SYNCING` / `ACCEPTED` or when no witness was
+produced. The endpoint never returns a witness alongside a non-`VALID`
+status. Because `PayloadStatus` and `ExecutionWitness` are both
+variable-size, `PayloadStatusWithWitness` is a two-offset container
+(`payload_status`, then `witness`).
 
 ### `POST /forkchoice`
 
