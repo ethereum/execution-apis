@@ -42,7 +42,7 @@
     - name: Block
       required: false
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Gas used
     schema:
@@ -75,7 +75,7 @@
     - name: Block
       required: false
       schema:
-        $ref: '#/components/schemas/BlockNumberOrTag'
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
     name: Gas used
     schema:
