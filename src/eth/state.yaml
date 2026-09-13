@@ -7,7 +7,7 @@
         $ref: '#/components/schemas/address'
     - name: Block
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -39,7 +39,7 @@
         $ref: '#/components/schemas/bytesMax32'
     - name: Block
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -73,7 +73,7 @@
             $ref: '#/components/schemas/bytesMax32'
     - name: Block
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -115,7 +115,7 @@
         $ref: '#/components/schemas/address'
     - name: Block
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -141,7 +141,7 @@
         $ref: '#/components/schemas/address'
     - name: Block
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -174,7 +174,7 @@
           $ref: '#/components/schemas/bytesMax32'
     - name: Block
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
