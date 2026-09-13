@@ -871,6 +871,24 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
+			Name:  "estimate-blockhash",
+			About: "estimates a simple transfer at a specific block hash",
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0x01},
+				}
+				var got hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg, t.chain.Head().Hash()); err != nil {
+					return err
+				}
+				if uint64(got) != params.TxGas {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				}
+				return nil
+			},
+		},
+		{
 			Name:     "estimate-successful-call",
 			About:    "estimates a successful contract call",
 			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
@@ -1027,6 +1045,21 @@ var EthCreateAccessList = MethodTests{
 					return err
 				}
 				return nil
+			},
+		},
+		{
+			Name:  "create-al-blockhash",
+			About: "creates an access list for a simple transfer at a specific block hash",
+			Run: func(ctx context.Context, t *T) error {
+				sender, nonce := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":  sender,
+					"to":    common.Address{0x01},
+					"value": hexutil.Uint64(10),
+					"nonce": hexutil.Uint64(nonce),
+				}
+				result := make(map[string]any)
+				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, t.chain.Head().Hash())
 			},
 		},
 		{
