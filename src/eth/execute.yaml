@@ -7,6 +7,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -41,6 +42,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
@@ -74,6 +76,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTag'
   result:
@@ -119,7 +122,7 @@
         $ref: '#/components/schemas/EthSimulatePayload'
     - name: Block tag
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
