@@ -7,3 +7,5 @@ TxPoolErrors:
       message: "Already known transaction"
     - code: 1001
       message: "Invalid sender"
+    - code: 1002
+      message: "Replacement transaction underpriced"
