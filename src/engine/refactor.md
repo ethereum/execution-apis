@@ -596,7 +596,7 @@ Content-Length: 41
 <41 bytes: SSZ(PayloadStatus)>
 ```
 
-The 41 bytes break down as: `status` (1 byte = `0x01`, `VALID`) +
+The 41 bytes break down as: `status` (1 byte = `0x00`, `VALID`) +
 `latest_valid_hash` (4-byte offset + 32-byte hash = 36 bytes)
 + `validation_error` (4-byte offset + 0 bytes empty list).
 
@@ -622,6 +622,52 @@ curl http://localhost:8551/engine/v1/payloads/0x1234567890abcdef \
 
 Response carries `Cache-Control: no-store`; intermediaries MUST NOT
 cache. See [Payload retrieval](#payload-retrieval).
+
+### Example: submit a payload and get its witness
+
+```bash
+curl -X POST http://localhost:8551/engine/v1/payloads/witness \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Eth-Execution-Version: amsterdam" \
+  -H "Content-Type: application/octet-stream" \
+  -H "Accept: application/octet-stream" \
+  -H "X-Engine-Client-Version: LH/v6.2.1" \
+  --data-binary @new_payload.ssz \
+  -o payload_status_with_witness.ssz
+```
+
+Request (same body as [`POST /payloads`](#example-submit-a-payload)):
+
+```
+POST /engine/v1/payloads/witness HTTP/2
+Host: localhost:8551
+Authorization: Bearer <JWT>
+Eth-Execution-Version: amsterdam
+Content-Type: application/octet-stream
+Content-Length: 584
+
+<584 bytes: SSZ(ExecutionPayloadEnvelope)>
+```
+
+Successful response (`payload_status.status = VALID`), for a block
+with two transactions:
+
+```
+HTTP/2 200
+Content-Type: application/octet-stream
+
+<2807 bytes: SSZ(PayloadStatusWithWitness)>
+```
+
+Error response (`Eth-Execution-Version` names a fork before Amsterdam):
+
+```
+HTTP/2 400
+Content-Type: application/problem+json
+Content-Length: 49
+
+{ "type": "/engine-api/errors/unsupported-fork" }
+```
 
 ### Examples: every fork
 
