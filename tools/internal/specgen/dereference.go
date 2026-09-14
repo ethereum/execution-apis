@@ -7,16 +7,18 @@ import (
 	"github.com/mattn/go-jsonpointer"
 )
 
-// dereference recursively expands all '$ref' entries in schema, resolving each
-// reference against repository. Every '$ref' value must have the form
-// "#/components/schemas/<Name>".
+// dereference recursively expands all fragment '$ref' entries in schema,
+// resolving each reference against repository. Fragment '$ref' values must
+// have the form "#/components/schemas/<Name>"; absolute-URI refs are kept
+// verbatim (see object).
 //
-// The input schema is not modified; a fully dereferenced deep copy is returned.
+// The input schema is not modified; a dereferenced deep copy is returned.
 // Cycles are detected and reported as errors.
 func dereference(schema object, repository schemaRepository) (object, error) {
 	d := &dereferencer{
 		repository: repository,
 		visiting:   make(map[string]bool),
+		ids:        collectIDs(repository),
 	}
 	return d.object(schema)
 }
@@ -25,6 +27,34 @@ func dereference(schema object, repository schemaRepository) (object, error) {
 type dereferencer struct {
 	repository schemaRepository
 	visiting   map[string]bool
+	ids        map[string]bool
+}
+
+// collectIDs gathers every embedded $id in the repository. These are the only
+// valid targets for absolute-URI $refs, so typo'd refs fail the build instead
+// of shipping as dangling links.
+func collectIDs(repository schemaRepository) map[string]bool {
+	ids := make(map[string]bool)
+	var walk func(v any)
+	walk = func(v any) {
+		switch val := v.(type) {
+		case object:
+			if id, ok := val["$id"].(string); ok {
+				ids[id] = true
+			}
+			for _, item := range val {
+				walk(item)
+			}
+		case []any:
+			for _, item := range val {
+				walk(item)
+			}
+		}
+	}
+	for _, schema := range repository {
+		walk(schema)
+	}
+	return ids
 }
 
 func (d *dereferencer) value(v any) (any, error) {
@@ -73,6 +103,17 @@ func (d *dereferencer) object(obj object) (object, error) {
 	}
 
 	if hasRef {
+		// Absolute-URI refs target an embedded $id (used for recursive schemas
+		// like CallFrame) and are kept verbatim; they resolve at validation
+		// time via JSON Schema $id semantics. Both ref kinds fail the build
+		// when the target does not exist.
+		if !strings.HasPrefix(ref, "#") {
+			if !d.ids[ref] {
+				return nil, fmt.Errorf("$ref %q: no schema with a matching $id", ref)
+			}
+			out["$ref"] = ref
+			return out, nil
+		}
 		// Resolve the reference and use it as the base, letting local siblings
 		// (already in out) take precedence over the resolved fields.
 		base, err := d.resolveRef(ref)
