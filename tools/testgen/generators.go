@@ -56,6 +56,10 @@ type Test struct {
 	// checked for spec validity only.
 	SpecOnly bool
 
+	// ValidationScript is JavaScript code that validates the response from the server.
+	ValidationScript string
+
+	// Run performs the method invocations.
 	Run func(context.Context, *T) error
 }
 
