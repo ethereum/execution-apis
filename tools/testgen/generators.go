@@ -1932,6 +1932,10 @@ var EthGasPrice = MethodTests{
 				}
 				return nil
 			},
+			ValidationScript: `
+				if (BigInt(messages[1].response.result) <= 0) {
+					throw new Error("gasprice too low");
+				}`,
 		},
 	},
 }
