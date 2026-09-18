@@ -34,7 +34,7 @@ The test format also supports comments using a `//` line prefix.
 To declare that a test's responses are not to be checked against the server's
 responses literally, a comment starting with `speconly:` is used.
 
-```
+```javascript
 // This test checks gas estimation.
 // speconly: client response is only checked for schema validity.
 >> {"jsonrpc":"2.0","id":1,"method":"eth_estimateGas","params":{"data":"0xaabbcc"}}
