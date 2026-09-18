@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
@@ -19,17 +20,34 @@ type scriptMessage struct {
 	Response json.RawMessage `json:"response,omitempty"`
 }
 
+// ScriptConfig holds settings for validation script execution.
+type ScriptConfig struct {
+	Log     TestLogger
+	Timeout time.Duration
+}
+
+func (cfg ScriptConfig) withDefaults() ScriptConfig {
+	if cfg.Log == nil {
+		cfg.Log = StdoutLogger
+	}
+	if cfg.Timeout == 0 {
+		cfg.Timeout = 20 * time.Second
+	}
+	return cfg
+}
+
 // RunScript runs the test's validation script.
 //
 // `responses` are the response messages from the server.
 // There must be one response for each receive (<<) line in the test.
-func (t *Test) RunScript(log TestLogger, responses []json.RawMessage) error {
+func (t *Test) RunScript(config ScriptConfig, responses []json.RawMessage) error {
 	if n := len(t.Receives()); len(responses) != n {
 		panic(fmt.Errorf("%d server responses given, but test has %d receive lines", len(responses), n))
 	}
 	if t.Script == "" {
 		return nil
 	}
+	config = config.withDefaults()
 
 	// Serialize input messages.
 	scriptmsg := make([]scriptMessage, len(t.Messages))
@@ -51,7 +69,7 @@ func (t *Test) RunScript(log TestLogger, responses []json.RawMessage) error {
 	// Pad the script with newlines so the line numbers reported for
 	// goja errors match the .io file.
 	source := strings.Repeat("\n", t.scriptStartLine) + t.Script
-	return runValidationScript(t.Name, source, scriptmsgJSON, log)
+	return runValidationScript(t.Name, source, scriptmsgJSON, config)
 }
 
 // Receives returns the data of all receive (<<) lines.
@@ -64,16 +82,15 @@ func (t *Test) Receives() (m []json.RawMessage) {
 	return m
 }
 
-func runValidationScript(sourceFile string, source string, jsonMessages []byte, log TestLogger) error {
+var errExecutionTimeout = errors.New("script execution timeout reached")
+
+func runValidationScript(sourceFile string, source string, jsonMessages []byte, config ScriptConfig) error {
 	vm := goja.New()
 
 	// Enable console output to w.
-	if log == nil {
-		log = StdoutLogger
-	}
 	reg := new(require.Registry)
 	reg.Enable(vm)
-	reg.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(scriptPrinter{log}))
+	reg.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(scriptPrinter{config.Log}))
 	console.Enable(vm)
 
 	// Parse messages into goja object.
@@ -88,7 +105,18 @@ func runValidationScript(sourceFile string, source string, jsonMessages []byte, 
 	}
 	vm.Set("messages", v)
 
+	// Set up interrupt timeout.
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-time.After(config.Timeout):
+			vm.Interrupt(errExecutionTimeout)
+		case <-done:
+		}
+	}()
+
 	_, err = vm.RunScript(sourceFile, source)
+	close(done)
 	if gerr, ok := err.(*goja.Exception); ok {
 		// Using String() to get multi-line stack.
 		return errors.New(gerr.String())
@@ -105,7 +133,7 @@ type Logger struct {
 }
 
 func (l Logger) Logf(format string, args ...any) {
-	fmt.Fprintf(l.Writer, format, args...)
+	fmt.Fprintf(l.Writer, format+"\n", args...)
 }
 
 type scriptPrinter struct {
