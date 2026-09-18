@@ -54,6 +54,9 @@ type TestMessage struct {
 	Send bool `json:"send"`
 }
 
+// This is maximum length of a single test file line.
+const maxLineLength = 50 * 1024 * 1024
+
 // Load reads a test file.
 func Load(name string, r io.Reader) (Test, error) {
 	var (
@@ -64,7 +67,7 @@ func Load(name string, r io.Reader) (Test, error) {
 		test       = Test{Name: name}
 		lineNumber = 0
 	)
-	scan.Buffer(buf, 50*1024*1024)
+	scan.Buffer(buf, maxLineLength)
 	for scan.Scan() {
 		lineNumber++
 		line := strings.TrimSpace(scan.Text())
