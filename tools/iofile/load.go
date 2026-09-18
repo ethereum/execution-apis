@@ -54,6 +54,16 @@ type TestMessage struct {
 	Send bool `json:"send"`
 }
 
+// Receives returns the data of all receive (<<) lines.
+func (t *Test) Receives() (m []json.RawMessage) {
+	for _, msg := range t.Messages {
+		if !msg.Send {
+			m = append(m, msg.Data)
+		}
+	}
+	return m
+}
+
 // This is maximum length of a single test file line.
 const maxLineLength = 50 * 1024 * 1024
 
