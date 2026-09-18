@@ -18,17 +18,43 @@ the `tests/` directory into the simulator container. By default it fetches the
 version tag once versioned releases are available). Test results are published
 at [hive.ethpandaops.io][hivetests] under the `rpc-compat` tag.
 
-## Format
+## Fixture Format (.io files)
 
-Tests are written to describe the round-trip of a single request-response
-cycle. A test starts with `>>` followed by a space, denoting the request portion.
-It is delimited by `\n` and then `<<` followed by a space denotes the response.
-All together, it looks something like this:
+The test fixtures use a line-delimited format. 
+
+- Lines starting with `>>` denote a message sent to the server
+- `<<` starts a response receive, and declares the expected response.
 
 ```javascript
 >> {"jsonrpc":"2.0","id":1,"method":"eth_blockNumber"}
 << {"jsonrpc":"2.0","id":1,"result":"0x3"}
 ```
+
+The test format also supports comments using a `//` line prefix.
+To declare that a test's responses are not to be checked against the server's
+responses literally, a comment starting with `speconly:` is used.
+
+```
+// This test checks gas estimation.
+// speconly: client response is only checked for schema validity.
+>> {"jsonrpc":"2.0","id":1,"method":"eth_estimateGas","params":{"data":"0xaabbcc"}}
+<< {"jsonrpc":"2.0","id":1,"result":"0xff"}
+```
+
+Test files can optionally contain a 'validation script' section at the end. The script
+section is introduced by a line containing `--` and nothing else. All remaining text in
+the file is JavaScript code.
+
+The test harness executes the validation script after message exchanges with the server.
+If the script throws an exception, the test is considered to have failed. Within the
+script, the `messages` variable contains an array of message objects. Each element of
+`messages` is an object where
+
+  - `messages[i].send` is set to the RPC request for send (>>) lines.
+  - `messages[i].expected` is the expected message for receive (<<) lines.
+  - `messages[i].response` is the message received from the server
+
+Note the `console` module is available for use in validation scripts.
 
 For organizational purposes, tests are stored at a path following the template
 `tests/{method-name}/{test-name}.io`. The path does not affect the validity of
