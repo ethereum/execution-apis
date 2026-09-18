@@ -58,7 +58,8 @@ func (l *ethclientHandler) WriteValidationScript(text string) (output []byte, er
 	test := l.testW.Test()
 	test.Name = l.testFile.Name()
 	var buf bytes.Buffer
-	err = test.RunScript(iofile.Logger{Writer: &buf}, test.Receives())
+	config := iofile.ScriptConfig{Log: iofile.Logger{Writer: &buf}}
+	err = test.RunScript(config, test.Receives())
 	return buf.Bytes(), err
 }
 
