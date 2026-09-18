@@ -79,7 +79,7 @@ jsonschema.validate(openrpc, messages[0].send.key2);
 `
 	test, err := Load("schema.io", strings.NewReader(testFile))
 	if err != nil {
-		t.Fatal("load failed: ", test)
+		t.Fatal("load failed: ", test, err)
 	}
 
 	schema := json.RawMessage(`{

@@ -95,10 +95,11 @@ func runValidationScript(sourceFile string, source string, jsonMessages []byte, 
 	reg := new(require.Registry)
 	reg.Enable(vm)
 	reg.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(scriptPrinter{config.Log}))
+	reg.RegisterNativeModule(jsonschemaModuleName, requireJSONSchemaModule)
 	console.Enable(vm)
-
-	// Enable JSON schema module and store the RPC schema into a global.
 	enableJSONSchemaModule(vm)
+
+	// Store the RPC schema into a global if configured.
 	if len(config.OpenRPCSchema) > 0 {
 		schema, err := parse(jsonObj, vm.ToValue(string(config.OpenRPCSchema)))
 		if err != nil {
@@ -157,10 +158,6 @@ func (p scriptPrinter) Error(msg string) {
 }
 
 // -- JSON-Schema Module
-
-func init() {
-	require.RegisterCoreModule(jsonschemaModuleName, requireJSONSchemaModule)
-}
 
 const jsonschemaModuleName = "jsonschema"
 
