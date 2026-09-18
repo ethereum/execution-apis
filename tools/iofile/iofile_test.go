@@ -69,3 +69,35 @@ func TestValidationScriptTimeout(t *testing.T) {
 		t.Error("script error is not timeout")
 	}
 }
+
+func TestValidationScriptSchema(t *testing.T) {
+	testFile := `
+>> {"key": {"a": "x", "b": 2}, "key2": {"a": "x", "b": "y"}}
+--
+jsonschema.validate(openrpc, messages[0].send.key);
+jsonschema.validate(openrpc, messages[0].send.key2);
+`
+	test, err := Load("schema.io", strings.NewReader(testFile))
+	if err != nil {
+		t.Fatal("load failed: ", test)
+	}
+
+	schema := json.RawMessage(`{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "a": { "type": "string" },
+    "b": { "type": "integer" }
+  },
+  "required": ["a", "b"],
+  "additionalProperties": false
+}`)
+	config := ScriptConfig{OpenRPCSchema: schema}
+	err = test.RunScript(config, nil)
+	if err == nil {
+		t.Fatal("no error from script")
+	}
+	if !strings.Contains(err.Error(), "jsonschema: '/b' does not validate with") {
+		t.Fatalf("wrong error from schema validation: %v", err)
+	}
+}
