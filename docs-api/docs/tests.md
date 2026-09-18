@@ -25,7 +25,7 @@ The test fixtures use a line-delimited format.
 - Lines starting with `>>` denote a message sent to the server
 - `<<` starts a response receive, and declares the expected response.
 
-```javascript
+```text
 >> {"jsonrpc":"2.0","id":1,"method":"eth_blockNumber"}
 << {"jsonrpc":"2.0","id":1,"result":"0x3"}
 ```
@@ -34,7 +34,7 @@ The test format also supports comments using a `//` line prefix.
 To declare that a test's responses are not to be checked against the server's
 responses literally, a comment starting with `speconly:` is used.
 
-```javascript
+```text
 // This test checks gas estimation.
 // speconly: client response is only checked for schema validity.
 >> {"jsonrpc":"2.0","id":1,"method":"eth_estimateGas","params":{"data":"0xaabbcc"}}
