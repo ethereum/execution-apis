@@ -37,8 +37,8 @@ responses literally, a comment starting with `speconly:` is used.
 ```text
 // This test checks gas estimation.
 // speconly: client response is only checked for schema validity.
->> {"jsonrpc":"2.0","id":1,"method":"eth_estimateGas","params":{"data":"0xaabbcc"}}
-<< {"jsonrpc":"2.0","id":1,"result":"0xff"}
+>> {"jsonrpc":"2.0","id":1,"method":"eth_estimateGas","params":{"data":"0x00"}}
+<< {"jsonrpc":"2.0","id":1,"result":"0x200044"}
 ```
 
 Test files can optionally contain a 'validation script' section at the end. The script
