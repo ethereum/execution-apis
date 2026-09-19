@@ -25,7 +25,7 @@ The test fixtures use a line-delimited format.
 - Lines starting with `>>` denote a message sent to the server
 - `<<` starts a response receive, and declares the expected response.
 
-```text
+```javascript
 >> {"jsonrpc":"2.0","id":1,"method":"eth_blockNumber"}
 << {"jsonrpc":"2.0","id":1,"result":"0x3"}
 ```
@@ -34,7 +34,7 @@ The test format also supports comments using a `//` line prefix.
 To declare that a test's responses are not to be checked against the server's
 responses literally, a comment starting with `speconly:` is used.
 
-```text
+```javascript
 // This test checks gas estimation.
 // speconly: client response is only checked for schema validity.
 >> {"jsonrpc":"2.0","id":1,"method":"eth_estimateGas","params":{"data":"0x00"}}
@@ -50,8 +50,8 @@ If the script throws an exception, the test is considered to have failed. Within
 script, the `messages` variable contains an array of message objects. Each element of
 `messages` is an object where
 
-  - `messages[i].send` is set to the RPC request for send (>>) lines.
-  - `messages[i].expected` is the expected message for receive (<<) lines.
+  - `messages[i].send` is set to the RPC request for send (`>>`) lines.
+  - `messages[i].expected` is the expected message for receive (`<<`) lines.
   - `messages[i].response` is the message received from the server
 
 Note the `console` module is available for use in validation scripts.
