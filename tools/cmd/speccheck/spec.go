@@ -24,12 +24,7 @@ type methodSchema struct {
 
 // parseSpec reads an OpenRPC specification and parses out each
 // method's schemas.
-func parseSpec(filename string) (map[string]*methodSchema, error) {
-	doc, err := readSpec(filename)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read spec: %v", err)
-	}
-
+func parseSpec(doc *openrpc.OpenrpcDocument) (map[string]*methodSchema, error) {
 	// Iterate over each method in the OpenRPC spec and pull out the parameter
 	// schema and result schema.
 	parsed := make(map[string]*methodSchema)

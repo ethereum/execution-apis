@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/alexflint/go-arg"
+	"github.com/ethereum/execution-apis/tools/iofile"
 )
 
 type Args struct {
@@ -30,18 +31,22 @@ func run(args *Args) error {
 	}
 
 	// Read all method schemas (params+result) from the OpenRPC spec.
-	methods, err := parseSpec(args.SpecPath)
+	specdoc, err := readSpec(args.SpecPath)
+	if err != nil {
+		return err
+	}
+	methods, err := parseSpec(specdoc)
 	if err != nil {
 		return err
 	}
 
 	// Read all tests and parse out roundtrip HTTP exchanges so they can be validated.
-	rts, err := readRtts(args.TestsRoot, re)
+	tests, err := iofile.LoadDirectory(iofile.StdoutLogger, args.TestsRoot, re)
 	if err != nil {
 		return err
 	}
 
-	return checkSpec(methods, rts, re)
+	return checkSpec(specdoc, methods, tests, re)
 }
 
 func exit(err error) {
