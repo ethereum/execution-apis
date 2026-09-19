@@ -10,18 +10,11 @@ import (
 // Writer creates a test file.
 type Writer struct {
 	output io.StringWriter
-	test   Test
 	script bool // true after script was written
-	line   int
 }
 
 func NewWriter(output io.StringWriter) *Writer {
 	return &Writer{output: output}
-}
-
-// Test returns the test that was written.
-func (w *Writer) Test() Test {
-	return w.test
 }
 
 // Send writes a send operation (>>).
@@ -47,8 +40,6 @@ func (w *Writer) writeMessage(send bool, text string) error {
 	if !json.Valid(data) {
 		return errors.New("invalid JSON message")
 	}
-	w.line++
-	w.test.Messages = append(w.test.Messages, TestMessage{Data: data, Send: send})
 
 	op := "<<"
 	if send {
@@ -67,16 +58,11 @@ func (w *Writer) Comment(text string) error {
 	for line := range strings.Lines(text) {
 		b.WriteString("//")
 		line = strings.TrimSpace(line)
-		w.test.Comment += line + "\n"
-		if strings.HasPrefix(line, "speconly:") {
-			w.test.SpecOnly = true
-		}
 		if len(line) > 0 {
 			b.WriteString(" ")
 			b.WriteString(line)
 		}
 		b.WriteString("\n")
-		w.line++
 	}
 	_, err := w.output.WriteString(b.String())
 	return err
@@ -89,10 +75,7 @@ func (w *Writer) Script(text string) error {
 	if _, err := w.output.WriteString("--\n"); err != nil {
 		return err
 	}
-	w.line++
-	w.test.Script = unindent(text)
-	w.test.scriptStartLine = w.line
-	_, err := w.output.WriteString(w.test.Script)
+	_, err := w.output.WriteString(unindent(text))
 	return err
 }
 
