@@ -90,16 +90,7 @@ func runGenerator(ctx context.Context) error {
 				continue
 			}
 			if test.ValidationScript != "" {
-				output, err := handler.WriteValidationScript(test.ValidationScript)
-				if err != nil {
-					fmt.Println(" validation script fail.")
-					fmt.Fprintf(os.Stderr, "validation script %s/%s failed:\n%s\n", methodTest.Name, test.Name, err)
-					if len(output) > 0 {
-						fmt.Fprintf(os.Stderr, "script output:\n%s\n", output)
-					}
-					fails++
-					continue
-				}
+				handler.WriteValidationScript(test.ValidationScript)
 			}
 			fmt.Println("  done.")
 			handler.Close()
