@@ -82,7 +82,7 @@ func runGenerator(ctx context.Context) error {
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
 
-			err = test.Run(ctx, testgen.NewT(handler.rpc, chain))
+			err = test.Run(ctx, testgen.NewT(&test, handler.rpc, chain))
 			if err != nil {
 				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.Name, test.Name, err)
