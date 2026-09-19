@@ -2072,7 +2072,7 @@ var EthFeeHistory = MethodTests{
 					}
 					return false
 				})
-				got, err := t.eth.FeeHistory(ctx, 1, block.Number(), []float64{95, 99})
+				_, err := t.eth.FeeHistory(ctx, 1, block.Number(), []float64{95, 99})
 				if err != nil {
 					return err
 				}
@@ -2081,12 +2081,13 @@ var EthFeeHistory = MethodTests{
 					return fmt.Errorf("unable to get effective tip: %w", err)
 				}
 
-				if len(got.Reward) != 1 {
-					return fmt.Errorf("mismatch number of rewards (got: %d, want: 1", len(got.Reward))
-				}
-				if got.Reward[0][0].Cmp(tip) != 0 {
-					return fmt.Errorf("mismatch reward value (got: %d, want: %d)", got.Reward[0][0], tip)
-				}
+				t.SetValidationScript(fmt.Sprintf(`
+					let r = messages[1].response.result;
+					if (r.reward.length != 1)
+						throw new Error("expected exactly one reward");
+					if (r.reward[0][0] !== "%#x")
+                        throw new Error("wrong reward value in response");
+				`, tip))
 				return nil
 			},
 		},
