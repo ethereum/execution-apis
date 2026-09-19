@@ -13,7 +13,12 @@ import (
 
 // checkSpec reads the schemas from the spec and test files, then validates
 // them against each other.
-func checkSpec(methods map[string]*methodSchema, tests []iofile.Test, re *regexp.Regexp) error {
+func checkSpec(doc *openrpc.OpenrpcDocument, methods map[string]*methodSchema, tests []iofile.Test, re *regexp.Regexp) error {
+	schemaJSON, err := json.Marshal(doc)
+	if err != nil {
+		panic("openrpc schema marshaling failed: " + err.Error())
+	}
+
 	for _, test := range tests {
 		calls, err := testCalls(test)
 		if err != nil {
@@ -23,6 +28,12 @@ func checkSpec(methods map[string]*methodSchema, tests []iofile.Test, re *regexp
 			if err := checkCall(methods, call, re); err != nil {
 				return fmt.Errorf("%s: %v", test.Name, err)
 			}
+		}
+		// Run validation script.
+		config := iofile.ScriptConfig{OpenRPCSchema: schemaJSON}
+		responses := test.Receives()
+		if err := test.RunScript(config, responses); err != nil {
+			return fmt.Errorf("%s: %v", test.Name, err)
 		}
 	}
 	fmt.Println("all passing.")

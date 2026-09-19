@@ -31,7 +31,11 @@ func run(args *Args) error {
 	}
 
 	// Read all method schemas (params+result) from the OpenRPC spec.
-	methods, err := parseSpec(args.SpecPath)
+	specdoc, err := readSpec(args.SpecPath)
+	if err != nil {
+		return err
+	}
+	methods, err := parseSpec(specdoc)
 	if err != nil {
 		return err
 	}
@@ -42,7 +46,7 @@ func run(args *Args) error {
 		return err
 	}
 
-	return checkSpec(methods, tests, re)
+	return checkSpec(specdoc, methods, tests, re)
 }
 
 func exit(err error) {

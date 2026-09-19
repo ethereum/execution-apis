@@ -47,23 +47,12 @@ func (l *ethclientHandler) NewTest(filename string) error {
 	return nil
 }
 
-// WriteValidationScript writes the script to the test file, and also
-// runs the script to ensure it is correct.
-//
-// `output` is the script console output.
-func (l *ethclientHandler) WriteValidationScript(text string) (output []byte, err error) {
-	if err := l.testW.Script(text); err != nil {
-		return nil, err
-	}
-	test := l.testW.Test()
-	test.Name = l.testFile.Name()
-	var buf bytes.Buffer
-	config := iofile.ScriptConfig{Log: iofile.Logger{Writer: &buf}}
-	err = test.RunScript(config, test.Receives())
-	return buf.Bytes(), err
+// WriteValidationScript appends a script section to the test file.
+func (l *ethclientHandler) WriteValidationScript(text string) error {
+	return l.testW.Script(text)
 }
 
-// WriteComment adds the given text as a comment to the current log file.
+// WriteComment adds the given text as a comment to the test file.
 func (l *ethclientHandler) WriteComment(text string) error {
 	return l.testW.Comment(text)
 }
