@@ -32,12 +32,22 @@ type T struct {
 	geth  *gethclient.Client
 	rpc   *rpc.Client
 	chain *Chain
+	test  *Test
 }
 
-func NewT(client *rpc.Client, chain *Chain) *T {
+func NewT(test *Test, client *rpc.Client, chain *Chain) *T {
 	eth := ethclient.NewClient(client)
 	geth := gethclient.New(client)
-	return &T{eth, geth, client, chain}
+	return &T{eth, geth, client, chain, test}
+}
+
+// SetValidationScript adds a script into the current test.
+//
+// While it is possible to set a script statically when declaring a Test
+// struct, some tests want to interpolate chain-related values into the
+// script, hence this method.
+func (t *T) SetValidationScript(source string) {
+	t.test.ValidationScript = source
 }
 
 // MethodTests is a collection of tests for a certain JSON-RPC method.
@@ -57,6 +67,9 @@ type Test struct {
 	SpecOnly bool
 
 	// ValidationScript is JavaScript code that validates the response from the server.
+	// This is useful for SpecOnly tests where the schema alone cannot fully verify that
+	// the response matches the input. There is no need for a script on regular
+	// (SpecOnly==false) tests since their responses are compared literally.
 	ValidationScript string
 
 	// Run performs the method invocations.
