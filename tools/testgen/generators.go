@@ -2039,15 +2039,17 @@ var EthCapabilities = MethodTests{
 				if err := t.rpc.CallContext(ctx, &result, "eth_capabilities"); err != nil {
 					return err
 				}
+
 				// The head must reflect the current chain head; number and hash
 				// are derived from the same header and must be consistent.
 				head := t.chain.Head()
-				if uint64(result.Head.Number) != head.NumberU64() {
-					return fmt.Errorf("unexpected head number (got: %d, want: %d)", uint64(result.Head.Number), head.NumberU64())
-				}
-				if result.Head.Hash != head.Hash() {
-					return fmt.Errorf("unexpected head hash (got: %s, want: %s)", result.Head.Hash, head.Hash())
-				}
+				t.SetValidationScript(fmt.Sprintf(`
+					let r = messages[1].response.result;
+					if (r.head.number !== "%#x")
+						throw new Error("incorrect head.number in response (want %#x)");
+					if (r.head.hash !== "%#x")
+						throw new Error("incorrect head.hash in response (want %#x)");
+                `, head.NumberU64(), head.NumberU64(), head.Hash(), head.Hash()))
 				return nil
 			},
 		},
