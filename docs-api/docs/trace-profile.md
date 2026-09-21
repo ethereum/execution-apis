@@ -261,3 +261,10 @@ that bounded self-reference while still rejecting cyclic component expansion.
 
 **Review:** Minimize the historical-state boundary discrepancy and investigate Erigon history indexing separately from the Parity schema.
 
+
+## Recursive schema rendering
+
+`openrpc.json` retains the recursive `vmTrace` schema and is the validation artifact.
+The documentation renderer currently cannot expand recursive schemas. Its generated
+`docs-openrpc.json` display input replaces resource-local self references with labeled
+recursive object descriptions; it must not be used for conformance validation.
