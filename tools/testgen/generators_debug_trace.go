@@ -2,6 +2,7 @@ package testgen
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -9,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -583,6 +585,53 @@ var DebugTraceTransaction = MethodTests{
 					return fmt.Errorf("calls must be absent with onlyTopCall")
 				}
 				return nil
+			},
+		},
+		{
+			Name:  "calltracer-only-top-call-with-log",
+			About: "traces a calltree contract invocation with onlyTopCall and withLog; the root log keeps its receipt logIndex although the nested logs that precede it are not reported",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true, "withLog": true})
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, cfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{onlyTopCall: true, withLog: true}); err != nil {
+					return err
+				}
+				logs, _ := result["logs"].([]interface{})
+				if len(logs) != 1 {
+					return fmt.Errorf("root frame has %d logs, want 1", len(logs))
+				}
+				rootLog, _ := logs[0].(map[string]interface{})
+				var receipt struct {
+					Logs []struct {
+						Address  common.Address `json:"address"`
+						Topics   []common.Hash  `json:"topics"`
+						Data     hexutil.Bytes  `json:"data"`
+						LogIndex hexutil.Uint64 `json:"logIndex"`
+					} `json:"logs"`
+				}
+				if err := t.rpc.CallContext(ctx, &receipt, "eth_getTransactionReceipt", info.TxHash); err != nil {
+					return err
+				}
+				for i, l := range receipt.Logs {
+					wantTopics, _ := json.Marshal(l.Topics)
+					gotTopics, _ := json.Marshal(rootLog["topics"])
+					addr, _ := rootLog["address"].(string)
+					if l.Address != common.HexToAddress(addr) || string(wantTopics) != string(gotTopics) || l.Data.String() != rootLog["data"] {
+						continue
+					}
+					if i == 0 {
+						return fmt.Errorf("root log must not be the first log of its transaction")
+					}
+					if got, want := rootLog["index"], l.LogIndex.String(); got != want {
+						return fmt.Errorf("root log index = %v, want receipt logIndex %s", got, want)
+					}
+					return nil
+				}
+				return fmt.Errorf("root log not found in receipt")
 			},
 		},
 		{
