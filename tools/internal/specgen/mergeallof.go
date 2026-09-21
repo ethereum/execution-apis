@@ -15,7 +15,8 @@ import (
 //   - required:   concatenated and deduplicated.
 //   - all other fields: parent object wins.
 //
-// The input must not contain any $ref entries; if one is found mergeAllOf panics.
+// Component references must already be expanded. Resource-local self-references
+// validated by dereference are preserved.
 func mergeAllOf(schema object) object {
 	return mergeObject(schema)
 }
@@ -40,7 +41,7 @@ func mergeSlice(arr []any) []any {
 }
 
 func mergeObject(obj object) object {
-	if ref, ok := obj["$ref"].(string); ok {
+	if ref, ok := obj["$ref"].(string); ok && ref != "#" {
 		panic(fmt.Sprintf("mergeObject: unexpected $ref %q (dereference input first)", ref))
 	}
 

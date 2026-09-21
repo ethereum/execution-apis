@@ -1,0 +1,331 @@
+- name: trace_call
+  summary: Executes an unsigned call and returns selected traces.
+  description: Execute against the state at the end of the selected block, default latest, preserving
+    its fork rules and block environment. Explicit zero fees are permitted without rewriting BASEFEE.
+    Simulated changes are discarded. EVM failure is trace output; invalid parameters or unavailable state
+    are RPC errors (H08,H11,H15,H28). This is a provisional trace profile; see docs-api/docs/trace-profile.md
+    and its H01-H28 decision references.
+  params:
+  - name: Call
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceCall'
+  - &id002
+    name: TraceTypes
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceTypes'
+  - &id001
+    name: Block
+    required: false
+    schema:
+      $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceExecution'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_call result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Call
+      value:
+        from: '0x1111111111111111111111111111111111111111'
+        to: '0x2222222222222222222222222222222222222222'
+        gas: '0x5208'
+    - name: TraceTypes
+      value: &id003 []
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value: &id004
+        output: 0x
+        trace: []
+        stateDiff: null
+        vmTrace: null
+- name: trace_callMany
+  summary: Executes dependent unsigned calls in order.
+  description: Each [call, traceTypes] pair executes against the preceding simulated post-state. Reverted
+    writes roll back; subsequent calls continue. Return one envelope per input in order. The sequence
+    never changes canonical state. Empty input returns [] (H15,H16). This is a provisional trace profile;
+    see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+  params:
+  - name: Calls
+    required: true
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/TraceCallManyEntry'
+  - *id001
+  result:
+    name: Result
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/TraceExecution'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_callMany result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Calls
+      value: []
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value: []
+- name: trace_rawTransaction
+  summary: Simulates a signed transaction at latest state.
+  description: Decode and validate the signed transaction, including chain identity, nonce, funds and
+    intrinsic gas. Preserve its signed fields; do not replace the nonce. The baseline has exactly two
+    parameters. A block-selector extension requires separate agreement. Validation failure returns a complete
+    JSON-RPC error, not a partially serialized result (H12-H14,H25). This is a provisional trace profile;
+    see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+  params:
+  - name: Transaction
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceData'
+  - *id002
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceExecution'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_rawTransaction result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Transaction
+      value: '0xf86a80847735940082520894000000000000000000000000000000000000123401808718e5bb3abd10a0a04c833abdb116ad76fc98610ae0e626d7e35154f1fba38ce6bfdaf69a31eec42ca035ecfb996cc68a2a03df0e1087194e25180b01bf0469f69b4f1d330eea9d027a'
+    - name: TraceTypes
+      value: *id003
+    result:
+      name: Result
+      value: *id004
+- name: trace_replayTransaction
+  summary: Replays a mined transaction with selected traces.
+  description: Reconstruct the state immediately before this transaction, including preceding transactions
+    and applicable system operations. Return null for an unknown transaction; error for unavailable history.
+    Use the transaction block fork rules and report its actual committed state transition (H06,H07,H16,H18,H28).
+    This is a provisional trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+  params:
+  - &id005
+    name: TransactionHash
+    required: true
+    schema:
+      $ref: '#/components/schemas/hash32'
+  - *id002
+  result:
+    name: Result
+    schema:
+      anyOf:
+      - $ref: '#/components/schemas/TraceReplay'
+      - type: 'null'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_replayTransaction result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: TransactionHash
+      value: '0x1111111111111111111111111111111111111111111111111111111111111111'
+    - name: TraceTypes
+      value: *id003
+    result:
+      name: Result
+      value: null
+- name: trace_replayBlockTransactions
+  summary: Replays every transaction in a block.
+  description: 'Default block is not implicit: Block is required. Return envelopes in transaction order,
+    each with its transactionHash. Empty blocks return []. Unknown blocks and unavailable history are
+    errors. Do not attribute the next block system operations to this block (H07,H16,H28). This is a provisional
+    trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.'
+  params:
+  - name: Block
+    required: true
+    schema:
+      $ref: '#/components/schemas/BlockNumberOrTag'
+  - *id002
+  result:
+    name: Result
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/TraceReplay'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_replayBlockTransactions result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Block
+      value: latest
+    - name: TraceTypes
+      value: *id003
+    result:
+      name: Result
+      value: []
+- name: trace_block
+  summary: Returns localized call traces for a block.
+  description: Return transaction traces in transaction-index order, each in preorder. Historical PoW
+    block and uncle rewards follow transaction records. Do not emit synthetic zero PoW rewards after the
+    Merge; withdrawals are outside this call-trace profile. Unknown blocks and unavailable history are
+    errors (H05,H27). This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
+    H01-H28 decision references.
+  params:
+  - name: Block
+    required: true
+    schema:
+      $ref: '#/components/schemas/BlockNumberOrTag'
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceLocalizedFrames'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_block result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value: []
+- name: trace_transaction
+  summary: Returns localized call traces for a mined transaction.
+  description: Return a flat preorder tree, including the root. Unknown transactions return null; unavailable
+    state is an error. traceAddress is a path, not a flat list index (H02,H06). This is a provisional
+    trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+  params:
+  - *id005
+  result:
+    name: Result
+    schema:
+      anyOf:
+      - $ref: '#/components/schemas/TraceLocalizedFrames'
+      - type: 'null'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_transaction result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: TransactionHash
+      value: '0x1111111111111111111111111111111111111111111111111111111111111111'
+    result:
+      name: Result
+      value: null
+- name: trace_get
+  summary: Returns the trace at one tree path.
+  description: 'Position selects one traceAddress path: [] is root, ["0x0"] first child, ["0x6","0x0"]
+    the first child of child six. Return one localized object or null if the transaction/path does not
+    exist. Unavailable state is an error (H02,H06). This is a provisional trace profile; see docs-api/docs/trace-profile.md
+    and its H01-H28 decision references.'
+  params:
+  - *id005
+  - name: Position
+    required: true
+    schema:
+      $ref: '#/components/schemas/TracePosition'
+  result:
+    name: Result
+    schema:
+      anyOf:
+      - $ref: '#/components/schemas/TraceLocalizedFrame'
+      - type: 'null'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_get result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: TransactionHash
+      value: '0x1111111111111111111111111111111111111111111111111111111111111111'
+    - name: Position
+      value: []
+    result:
+      name: Result
+      value: null
+- name: trace_filter
+  summary: Returns localized traces matching an address filter.
+  description: Apply OR within each address list and AND between the lists; omitted/empty lists are unrestricted.
+    Match CALL sender/recipient, CREATE creator/created address, SELFDESTRUCT destroyed account/refund
+    beneficiary. Failed CREATE has no created-address match. Reward author matches toAddress and has no
+    fromAddress. Sort by block, transaction, preorder, then rewards; paginate after matching. Capture
+    one canonical snapshot for the request and error if required history is unavailable (H03-H06,H23,H27).
+    This is a provisional trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+  params:
+  - name: Filter
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceFilter'
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceLocalizedFrames'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_filter result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Filter
+      value:
+        fromBlock: '0x1'
+        toBlock: '0x1'
+    result:
+      name: Result
+      value: []
