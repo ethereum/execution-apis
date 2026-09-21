@@ -1,0 +1,558 @@
+TraceData:
+  title: Trace byte string
+  type: string
+  pattern: ^0x([0-9a-f]{2})*$
+TraceTypes:
+  title: Requested trace outputs
+  type: array
+  uniqueItems: true
+  items:
+    type: string
+    enum:
+    - trace
+    - stateDiff
+    - vmTrace
+  description: An empty array is valid and requests execution output only (H11).
+TraceCall:
+  type: object
+  required: []
+  properties:
+    from: &id001
+      $ref: '#/components/schemas/address'
+    to:
+      anyOf:
+      - *id001
+      - type: 'null'
+    gas: &id002
+      $ref: '#/components/schemas/uint256'
+    gasPrice: *id002
+    maxFeePerGas: *id002
+    maxPriorityFeePerGas: *id002
+    value: *id002
+    data: &id003
+      $ref: '#/components/schemas/TraceData'
+    input: *id003
+    nonce:
+      $ref: '#/components/schemas/uint64'
+    type:
+      $ref: '#/components/schemas/byte'
+    accessList:
+      $ref: '#/components/schemas/AccessList'
+  additionalProperties: false
+  description: 'Unsigned simulation. Omitted or null to creates a contract. Defaults: from zero address,
+    value zero, input empty, nonce from selected state, fees zero. Omitted gas uses the client execution
+    cap. data is a compatibility alias for input; when both are present they MUST agree. Legacy gasPrice
+    and dynamic fee fields MUST NOT be combined. Blob and authorization overrides remain outside this
+    first profile.'
+  title: TraceCall
+TraceCallManyEntry:
+  type: array
+  minItems: 2
+  maxItems: 2
+  items:
+  - $ref: '#/components/schemas/TraceCall'
+  - $ref: '#/components/schemas/TraceTypes'
+  title: TraceCallManyEntry
+TraceAddress:
+  type: array
+  items: &id004
+    type: integer
+    minimum: 0
+  title: TraceAddress
+TracePosition:
+  type: array
+  items:
+    $ref: '#/components/schemas/uint64'
+  description: 'One path into the call tree: [] selects the root, ["0x0"] its first child (H02). Output
+    traceAddress uses JSON integers; the input path uses hex quantities.'
+  title: TracePosition
+TraceFilter:
+  type: object
+  required: []
+  properties:
+    fromBlock:
+      $ref: '#/components/schemas/BlockNumberOrTag'
+    toBlock:
+      $ref: '#/components/schemas/BlockNumberOrTag'
+    fromAddress:
+      type: array
+      items: *id001
+    toAddress:
+      type: array
+      items: *id001
+    after: *id004
+    count: *id004
+  additionalProperties: false
+  description: Inclusive block range; defaults fromBlock earliest, toBlock latest, after 0, count unlimited
+    subject to an explicit server limit. OR within each address list; AND between lists. Missing or empty
+    lists are unrestricted; null is invalid. mode is outside this baseline. Resolve tags once per request.
+    Apply filtering before pagination; count 0 returns []. Return an error rather than silently truncate
+    when a server limit is exceeded (H03,H04,H23,H27).
+  title: TraceFilter
+TraceCallAction:
+  type: object
+  required:
+  - callType
+  - from
+  - to
+  - gas
+  - input
+  - value
+  properties:
+    callType:
+      type: string
+      enum:
+      - call
+      - callcode
+      - delegatecall
+      - staticcall
+    from: *id001
+    to: *id001
+    gas: *id002
+    input: *id003
+    value: *id002
+  title: TraceCallAction
+TraceCreateAction:
+  type: object
+  required:
+  - from
+  - gas
+  - init
+  - value
+  properties:
+    from: *id001
+    gas: *id002
+    init: *id003
+    value: *id002
+  title: TraceCreateAction
+TraceSuicideAction:
+  type: object
+  required:
+  - address
+  - refundAddress
+  - balance
+  properties:
+    address: *id001
+    refundAddress: *id001
+    balance: *id002
+  title: TraceSuicideAction
+TraceRewardAction:
+  type: object
+  required:
+  - author
+  - value
+  - rewardType
+  properties:
+    author: *id001
+    value: *id002
+    rewardType:
+      type: string
+      enum:
+      - block
+      - uncle
+  title: TraceRewardAction
+TraceCallResult:
+  type: object
+  required:
+  - gasUsed
+  - output
+  properties:
+    gasUsed: *id002
+    output: *id003
+  title: TraceCallResult
+TraceCreateResult:
+  type: object
+  required:
+  - gasUsed
+  - address
+  - code
+  properties:
+    gasUsed: *id002
+    address: *id001
+    code: *id003
+  title: TraceCreateResult
+TraceFrame:
+  title: Flat call trace record
+  description: Preorder traversal. traceAddress gives child ordinals and subtraces counts direct children.
+    Localization fields are required on historical records; null transaction fields are allowed only for
+    protocol reward records. Simulation records omit localization. Failed frames require error and result,
+    retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind
+    vocabulary is an open decision (H05,H09,H10,H24).
+  oneOf:
+  - type: object
+    required:
+    - type
+    - action
+    - subtraces
+    - traceAddress
+    properties:
+      subtraces: *id004
+      traceAddress: &id005
+        $ref: '#/components/schemas/TraceAddress'
+      type:
+        const: call
+      action:
+        $ref: '#/components/schemas/TraceCallAction'
+      blockHash: &id006
+        anyOf:
+        - $ref: '#/components/schemas/hash32'
+        - type: 'null'
+      blockNumber: &id007
+        anyOf:
+        - *id004
+        - type: 'null'
+      transactionHash: &id008
+        anyOf:
+        - $ref: '#/components/schemas/hash32'
+        - type: 'null'
+      transactionPosition: &id009
+        anyOf:
+        - *id004
+        - type: 'null'
+      result:
+        anyOf:
+        - $ref: '#/components/schemas/TraceCallResult'
+        - type: 'null'
+      error:
+        type: string
+      revertReason:
+        type: string
+    oneOf:
+    - required:
+      - result
+      not:
+        required:
+        - error
+      properties:
+        result:
+          $ref: '#/components/schemas/TraceCallResult'
+    - required:
+      - error
+      - result
+  - type: object
+    required:
+    - type
+    - action
+    - subtraces
+    - traceAddress
+    properties:
+      subtraces: *id004
+      traceAddress: *id005
+      type:
+        const: create
+      action:
+        $ref: '#/components/schemas/TraceCreateAction'
+      blockHash: *id006
+      blockNumber: *id007
+      transactionHash: *id008
+      transactionPosition: *id009
+      result:
+        anyOf:
+        - $ref: '#/components/schemas/TraceCreateResult'
+        - $ref: '#/components/schemas/TraceCallResult'
+        - type: 'null'
+      error:
+        type: string
+      revertReason:
+        type: string
+    oneOf:
+    - required:
+      - result
+      not:
+        required:
+        - error
+      properties:
+        result:
+          $ref: '#/components/schemas/TraceCreateResult'
+    - required:
+      - error
+      - result
+  - type: object
+    required:
+    - type
+    - action
+    - subtraces
+    - traceAddress
+    properties:
+      subtraces: *id004
+      traceAddress: *id005
+      type:
+        const: suicide
+      action:
+        $ref: '#/components/schemas/TraceSuicideAction'
+      blockHash: *id006
+      blockNumber: *id007
+      transactionHash: *id008
+      transactionPosition: *id009
+      result:
+        type: 'null'
+  - type: object
+    required:
+    - type
+    - action
+    - subtraces
+    - traceAddress
+    properties:
+      subtraces: *id004
+      traceAddress: *id005
+      type:
+        const: reward
+      action:
+        $ref: '#/components/schemas/TraceRewardAction'
+      blockHash: *id006
+      blockNumber: *id007
+      transactionHash: *id008
+      transactionPosition: *id009
+      result:
+        type: 'null'
+TraceFrames:
+  type: array
+  items:
+    $ref: '#/components/schemas/TraceFrame'
+  title: TraceFrames
+TraceLocalizedFrames:
+  type: array
+  items:
+    $ref: '#/components/schemas/TraceLocalizedFrame'
+  title: TraceLocalizedFrames
+TraceLocalizedFrame:
+  allOf:
+  - $ref: '#/components/schemas/TraceFrame'
+  - type: object
+    required:
+    - blockHash
+    - blockNumber
+    - transactionHash
+    - transactionPosition
+  title: TraceLocalizedFrame
+TraceQuantityChange:
+  oneOf:
+  - const: '='
+  - type: object
+    required:
+    - +
+    properties:
+      +: *id002
+    additionalProperties: false
+  - type: object
+    required:
+    - '-'
+    properties:
+      '-': *id002
+    additionalProperties: false
+  - type: object
+    required:
+    - '*'
+    properties:
+      '*':
+        type: object
+        required:
+        - from
+        - to
+        properties:
+          from: *id002
+          to: *id002
+        additionalProperties: false
+    additionalProperties: false
+  title: TraceQuantityChange
+TraceCodeChange:
+  oneOf:
+  - const: '='
+  - type: object
+    required:
+    - +
+    properties:
+      +: *id003
+    additionalProperties: false
+  - type: object
+    required:
+    - '-'
+    properties:
+      '-': *id003
+    additionalProperties: false
+  - type: object
+    required:
+    - '*'
+    properties:
+      '*':
+        type: object
+        required:
+        - from
+        - to
+        properties:
+          from: *id003
+          to: *id003
+        additionalProperties: false
+    additionalProperties: false
+  title: TraceCodeChange
+TraceStorageChange:
+  oneOf:
+  - const: '='
+  - type: object
+    required:
+    - +
+    properties:
+      +: &id010
+        $ref: '#/components/schemas/bytes32'
+    additionalProperties: false
+  - type: object
+    required:
+    - '-'
+    properties:
+      '-': *id010
+    additionalProperties: false
+  - type: object
+    required:
+    - '*'
+    properties:
+      '*':
+        type: object
+        required:
+        - from
+        - to
+        properties:
+          from: *id010
+          to: *id010
+        additionalProperties: false
+    additionalProperties: false
+  title: TraceStorageChange
+TraceAccountDiff:
+  type: object
+  required:
+  - balance
+  - nonce
+  - code
+  - storage
+  properties:
+    balance:
+      $ref: '#/components/schemas/TraceQuantityChange'
+    nonce:
+      $ref: '#/components/schemas/TraceQuantityChange'
+    code:
+      $ref: '#/components/schemas/TraceCodeChange'
+    storage:
+      type: object
+      patternProperties:
+        ^0x[0-9a-f]{64}$:
+          $ref: '#/components/schemas/TraceStorageChange'
+      additionalProperties: false
+  title: TraceAccountDiff
+TraceStateDiff:
+  type: object
+  patternProperties:
+    ^0x[0-9a-f]{40}$:
+      $ref: '#/components/schemas/TraceAccountDiff'
+  additionalProperties: false
+  description: Net committed state changes for this execution. + means created, - deleted, * changed,
+    = unchanged. New accounts include zero nonce and empty code creation markers. Reverted EVM writes
+    are absent; surviving transaction-level changes remain. callMany diffs are relative to each preceding
+    post-state (H16-H18,H26).
+  title: TraceStateDiff
+TraceVm:
+  $id: https://ethereum.github.io/execution-apis/schemas/trace-vm.json
+  title: Recursive VM execution trace
+  type: object
+  required:
+  - code
+  - ops
+  properties:
+    code: *id003
+    ops:
+      type: array
+      items:
+        type: object
+        required:
+        - pc
+        - cost
+        - ex
+        - sub
+        properties:
+          pc: *id004
+          cost: *id004
+          ex:
+            anyOf:
+            - type: object
+              required:
+              - used
+              - push
+              - mem
+              - store
+              properties:
+                used: *id004
+                push:
+                  type: array
+                  items: *id002
+                mem:
+                  anyOf:
+                  - type: object
+                    required:
+                    - 'off'
+                    - data
+                    properties:
+                      'off': *id004
+                      data: *id003
+                  - type: 'null'
+                store:
+                  anyOf:
+                  - type: object
+                    required:
+                    - key
+                    - val
+                    properties:
+                      key: *id002
+                      val: *id002
+                  - type: 'null'
+            - type: 'null'
+          sub:
+            anyOf:
+            - $ref: '#'
+            - type: 'null'
+          op:
+            type: string
+          idx:
+            type: string
+  description: code is the actually executed bytecode, including initcode and resolved delegated code.
+    ex records same-step effects; used is gas remaining after the operation. push contains replacement
+    stack suffix words as minimal quantities; mem contains bytes written at off; store records the storage
+    write. sub recursively describes the child execution caused by this opcode. op and idx are optional
+    annotations. Exact nested-call stipend/refund accounting and failed-op ex conventions remain provisional
+    (H19-H21).
+TraceExecution:
+  type: object
+  required:
+  - output
+  - trace
+  - stateDiff
+  - vmTrace
+  properties:
+    output: *id003
+    trace: &id011
+      $ref: '#/components/schemas/TraceFrames'
+    stateDiff: &id012
+      anyOf:
+      - $ref: '#/components/schemas/TraceStateDiff'
+      - type: 'null'
+    vmTrace: &id013
+      anyOf:
+      - $ref: '#/components/schemas/TraceVm'
+      - type: 'null'
+  description: output always contains actual return bytes, including when only stateDiff is selected.
+    Unrequested trace is [], stateDiff and vmTrace are null (H08).
+  title: TraceExecution
+TraceReplay:
+  type: object
+  required:
+  - output
+  - trace
+  - stateDiff
+  - vmTrace
+  - transactionHash
+  properties:
+    output: *id003
+    trace: *id011
+    stateDiff: *id012
+    vmTrace: *id013
+    transactionHash:
+      $ref: '#/components/schemas/hash32'
+  description: Execution envelope with the replayed transaction hash (H07).
+  title: TraceReplay
