@@ -177,7 +177,7 @@ func validateCallFrameAt(path string, frame map[string]interface{}, opts callTra
 }
 
 func validateCallLog(prefix string, log map[string]interface{}, me *multiError) {
-	for _, key := range []string{"address", "topics", "data", "position"} {
+	for _, key := range []string{"address", "topics", "data", "position", "index"} {
 		if _, ok := log[key]; !ok {
 			me.add("%s: missing required field %q", prefix, key)
 		}
