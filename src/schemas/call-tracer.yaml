@@ -148,7 +148,8 @@ CallLog:
         The number of subcalls the containing frame had created when this log
         was emitted; i.e. the log's position relative to the frame's calls
         array, allowing the interleaving of logs and subcalls to be
-        reconstructed.
+        reconstructed. When onlyTopCall is set, no subcall frames are collected
+        and position is 0 for every log.
       $ref: '#/components/schemas/uint'
     index:
       title: log index
