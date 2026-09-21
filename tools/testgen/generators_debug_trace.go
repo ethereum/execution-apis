@@ -529,6 +529,43 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
+			Name:  "calltracer-with-log-index",
+			About: "traces a log-emitting transaction preceded by another log-emitting transaction in the same block, with withLog; each log index MUST equal the logIndex in the receipt",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.DynamicFeeEmit[0]
+				cfg := callTracerCfgWith(map[string]interface{}{"withLog": true})
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, cfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{withLog: true}); err != nil {
+					return err
+				}
+				var receipt struct {
+					Logs []struct {
+						LogIndex hexutil.Uint64 `json:"logIndex"`
+					} `json:"logs"`
+				}
+				if err := t.rpc.CallContext(ctx, &receipt, "eth_getTransactionReceipt", info.TxHash); err != nil {
+					return err
+				}
+				logs, _ := result["logs"].([]interface{})
+				if len(logs) == 0 || len(logs) != len(receipt.Logs) {
+					return fmt.Errorf("root frame has %d logs, receipt has %d", len(logs), len(receipt.Logs))
+				}
+				if receipt.Logs[0].LogIndex == 0 {
+					return fmt.Errorf("test transaction must not emit the first log of its block")
+				}
+				for i, l := range logs {
+					got, _ := l.(map[string]interface{})["index"].(string)
+					if want := receipt.Logs[i].LogIndex.String(); got != want {
+						return fmt.Errorf("logs[%d].index = %q, want receipt logIndex %q", i, got, want)
+					}
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "calltracer-only-top-call",
 			About: "traces a calltree contract invocation with onlyTopCall; only the root frame is returned",
 			Run: func(ctx context.Context, t *T) error {

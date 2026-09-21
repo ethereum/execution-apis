@@ -129,6 +129,7 @@ CallLog:
     - topics
     - data
     - position
+    - index
   properties:
     address:
       title: log emitter
@@ -152,10 +153,13 @@ CallLog:
     index:
       title: log index
       description: >-
-        An optional log index. Current implementations disagree on its meaning
-        (transaction-local vs. block-global numbering, and its interaction
-        with onlyTopCall and cleared failed-frame logs); its semantics are not
-        yet defined by this specification and it SHOULD NOT be relied upon.
+        The log's index within the block: the number of logs that took effect
+        in the block before this one, counting the logs of all preceding
+        transactions. It MUST equal the logIndex of the same log in the
+        transaction receipt. Logs of reverted frames never take effect and do
+        not consume an index, and onlyTopCall does not change the numbering.
+        For debug_traceCall, where no receipt exists, numbering starts at zero
+        for the traced call.
       $ref: '#/components/schemas/uint'
 
 CallTracerConfig:
