@@ -4,7 +4,7 @@
     its fork rules and block environment. Explicit zero fees are permitted without rewriting BASEFEE.
     Simulated changes are discarded. EVM failure is trace output; invalid parameters or unavailable state
     are RPC errors (H08,H11,H15,H28). This is a provisional trace profile; see docs-api/docs/trace-profile.md
-    and its H01-H28 decision references.
+    and its H01-H29 decision references.
   params:
   - name: Call
     required: true
@@ -56,7 +56,7 @@
   description: Each [call, traceTypes] pair executes against the preceding simulated post-state. Reverted
     writes roll back; subsequent calls continue. Return one envelope per input in order. The sequence
     never changes canonical state. Empty input returns [] (H15,H16). This is a provisional trace profile;
-    see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+    see docs-api/docs/trace-profile.md and its H01-H29 decision references.
   params:
   - name: Calls
     required: true
@@ -91,11 +91,13 @@
       value: []
 - name: trace_rawTransaction
   summary: Simulates a signed transaction at latest state.
-  description: Decode and validate the signed transaction, including chain identity, nonce, funds and
-    intrinsic gas. Preserve its signed fields; do not replace the nonce. The baseline has exactly two
-    parameters. A block-selector extension requires separate agreement. Validation failure returns a complete
+  description: The proposed admission policy validates the signed transaction, including chain identity, nonce,
+    funds and intrinsic gas, without replacing signed fields. Nonce-mismatch rejection remains a client
+    agreement question (H13). The portable baseline defines two parameters and latest state. An explicitly
+    supplied block-selector extension is outside this baseline; accepting it is not a baseline failure.
+    Extension semantics require separate agreement. Validation failure returns a complete
     JSON-RPC error, not a partially serialized result (H12-H14,H25). This is a provisional trace profile;
-    see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+    see docs-api/docs/trace-profile.md and its H01-H29 decision references.
   params:
   - name: Transaction
     required: true
@@ -129,7 +131,7 @@
   description: Reconstruct the state immediately before this transaction, including preceding transactions
     and applicable system operations. Return null for an unknown transaction; error for unavailable history.
     Use the transaction block fork rules and report its actual committed state transition (H06,H07,H16,H18,H28).
-    This is a provisional trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+    This is a provisional trace profile; see docs-api/docs/trace-profile.md and its H01-H29 decision references.
   params:
   - &id005
     name: TransactionHash
@@ -166,7 +168,7 @@
   description: 'Default block is not implicit: Block is required. Return envelopes in transaction order,
     each with its transactionHash. Empty blocks return []. Unknown blocks and unavailable history are
     errors. Do not attribute the next block system operations to this block (H07,H16,H28). This is a provisional
-    trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.'
+    trace profile; see docs-api/docs/trace-profile.md and its H01-H29 decision references.'
   params:
   - name: Block
     required: true
@@ -203,7 +205,7 @@
     block and uncle rewards follow transaction records. Do not emit synthetic zero PoW rewards after the
     Merge; withdrawals are outside this call-trace profile. Unknown blocks and unavailable history are
     errors (H05,H27). This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
-    H01-H28 decision references.
+    H01-H29 decision references.
   params:
   - name: Block
     required: true
@@ -233,7 +235,7 @@
   summary: Returns localized call traces for a mined transaction.
   description: Return a flat preorder tree, including the root. Unknown transactions return null; unavailable
     state is an error. traceAddress is a path, not a flat list index (H02,H06). This is a provisional
-    trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+    trace profile; see docs-api/docs/trace-profile.md and its H01-H29 decision references.
   params:
   - *id005
   result:
@@ -263,7 +265,7 @@
   description: 'Position selects one traceAddress path: [] is root, ["0x0"] first child, ["0x6","0x0"]
     the first child of child six. Return one localized object or null if the transaction/path does not
     exist. Unavailable state is an error (H02,H06). This is a provisional trace profile; see docs-api/docs/trace-profile.md
-    and its H01-H28 decision references.'
+    and its H01-H29 decision references.'
   params:
   - *id005
   - name: Position
@@ -301,7 +303,7 @@
     beneficiary. Failed CREATE has no created-address match. Reward author matches toAddress and has no
     fromAddress. Sort by block, transaction, preorder, then rewards; paginate after matching. Capture
     one canonical snapshot for the request and error if required history is unavailable (H03-H06,H23,H27).
-    This is a provisional trace profile; see docs-api/docs/trace-profile.md and its H01-H28 decision references.
+    This is a provisional trace profile; see docs-api/docs/trace-profile.md and its H01-H29 decision references.
   params:
   - name: Filter
     required: true

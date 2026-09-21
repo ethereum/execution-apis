@@ -173,7 +173,11 @@ TraceCreateResult:
   title: TraceCreateResult
 TraceFrame:
   title: Flat call trace record
-  description: Preorder traversal. traceAddress gives child ordinals and subtraces counts direct children.
+  description: Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile
+    frames with zero value; retain nested frames with nonzero transferred or inherited value, whether
+    successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the
+    emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM
+    return-memory effects.
     Localization fields are required on historical records; null transaction fields are allowed only for
     protocol reward records. Simulation records omit localization. Failed frames require error and result,
     retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind
