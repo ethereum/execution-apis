@@ -1,0 +1,89 @@
+FrameSimulationResult:
+  title: Frame transaction simulation result
+  type: object
+  required:
+    - valid
+    - maxCost
+  additionalProperties: false
+  properties:
+    valid:
+      title: Validation prefix passed
+      description: |-
+        Whether the EIP-8141 validation prefix passed. Necessary but not
+        sufficient for acceptance: gates that are not frame-specific are not all
+        re-evaluated here. False is authoritative, because this is the same
+        prefix simulation the mempool applies.
+      type: boolean
+    prefixShape:
+      title: Validation prefix shape
+      description: |-
+        The recognized shape of the validation prefix. Absent when the prefix is
+        structurally invalid.
+      type: string
+    payer:
+      title: Payer
+      description: |-
+        The account the prefix established as payer, which may be the sender
+        itself or a separate paymaster. Absent when the prefix established none.
+      $ref: '#/components/schemas/address'
+    maxCost:
+      title: Maximum cost
+      description: |-
+        The largest amount the payer may be charged, in wei. A pure function of
+        the transaction's fields, so it is always present even when the
+        transaction is invalid.
+      $ref: '#/components/schemas/uint'
+    violation:
+      title: Violation
+      description: |-
+        Why the transaction is invalid. Absent when valid is true.
+      type: string
+    gasUsed:
+      title: Gas used
+      description: |-
+        Total gas the transaction would account for, which under EIP-8037 is the
+        larger of the execution and state totals rather than their sum. Absent
+        when the frames were not executed.
+      $ref: '#/components/schemas/uint'
+    executionStatus:
+      title: Execution status
+      description: |-
+        Whether every frame succeeded. Absent when the frames were not executed.
+      type: string
+      enum:
+        - success
+        - reverted
+    executionError:
+      title: Execution error
+      description: |-
+        Why the frames could not be executed, when the prefix passed but
+        execution did not complete. Absent otherwise.
+      type: string
+    frames:
+      title: Per-frame results
+      description: |-
+        One entry per frame, in order. Absent when the frames were not executed.
+      type: array
+      items:
+        $ref: '#/components/schemas/FrameSimulationFrameResult'
+FrameSimulationFrameResult:
+  title: Per-frame simulation result
+  type: object
+  required:
+    - executionGas
+    - stateGas
+    - succeeded
+  additionalProperties: false
+  properties:
+    executionGas:
+      title: Execution gas used
+      description: Gas this frame used in the execution dimension.
+      $ref: '#/components/schemas/uint'
+    stateGas:
+      title: State gas used
+      description: Gas this frame used in the state dimension.
+      $ref: '#/components/schemas/uint'
+    succeeded:
+      title: Succeeded
+      description: Whether this frame completed without reverting, halting or being skipped.
+      type: boolean
