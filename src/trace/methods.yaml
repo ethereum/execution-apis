@@ -133,12 +133,16 @@
       value: []
 - name: trace_rawTransaction
   summary: Simulates a signed transaction at latest state.
-  description: Decode the signed transaction and simulate it at latest state. Under the proposed nonce policy,
-    a mismatch between the signed nonce and the sender's state nonce does not by itself reject simulation
-    (H13). This does not waive other validation, including signature, chain identity, funds, intrinsic gas
-    and fee checks, or establish that the transaction is admissible for inclusion in a block. Nonce effects
-    on contract creation require separate agreement; successful transfer simulation alone does not establish
-    them. The portable baseline defines two parameters and latest state. An explicitly
+  description: Decode the signed transaction and validate it for execution against latest state before
+    simulating it (H13). Apply the transaction validity rules of the selected fork, including signature,
+    chain identity, nonce equality, sufficient balance for value and upfront gas, intrinsic gas, fees and
+    sender-code restrictions (including permitted EIP-7702 delegation). Reject both low and high nonces;
+    do not replace signed fields, override the sender nonce or top up its balance. This is execution
+    validation, not transaction-pool admission; do not impose local replacement, already-known or minimum-tip
+    policies. For a decodable transaction that fails validation, the proposed error is -32003
+    (Transaction rejected); malformed encodings or request parameters use -32602. A valid transaction that
+    REVERTs or exceptionally halts returns an execution trace, not a validation error. The portable
+    baseline defines two parameters and latest state. An explicitly
     supplied block-selector extension is outside this baseline; accepting it is not a baseline failure.
     Extension semantics require separate agreement. Validation failure returns a complete
     JSON-RPC error, not a partially serialized result (H12-H14,H25). This is a provisional trace profile;
@@ -158,6 +162,8 @@
     message: Method not found
   - code: -32602
     message: Invalid params
+  - code: -32003
+    message: Transaction rejected
   - code: 4444
     message: Pruned history unavailable
   examples:
