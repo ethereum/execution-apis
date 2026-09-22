@@ -67,6 +67,18 @@ test('actual generated trace pages retain array, variant fields and localization
   const call = pages.find(page => page.methodName === 'trace_call').markdown;
   assert.match(call, /Recursive instance of \[?https:\/\/ethereum.github.io\/execution-apis\/schemas\/trace-vm.json/);
   assert.doesNotMatch(call, /\*\*blockHash\*\*/);
+  for (const field of ['chainId', 'authorizationList', 'blobVersionedHashes', 'maxFeePerBlobGas']) {
+    assert.ok(call.includes(`**${field}**`), `standard call field ${field} must be visible`);
+  }
+  assert.match(call, /Unknown fields MUST be ignored/);
+  const filter = pages.find(page => page.methodName === 'trace_filter').markdown;
+  for (const field of ['fromAddress', 'toAddress']) {
+    assert.ok(filter.includes(`**${field}**`), `nullable filter field ${field} must be visible`);
+  }
+  assert.match(filter, /Missing, null or empty/);
+  assert.match(filter, /-32001/);
+  assert.match(get, /Integer path entries are invalid params/);
+
   assert.equal(JSON.stringify(input), before);
 });
 
