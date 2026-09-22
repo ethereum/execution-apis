@@ -38,8 +38,12 @@ records available to `trace_filter`. An omitted frame must not suppress its call
 VM return-memory effects. Errors belong to the frame that failed; a handled precompile
 failure does not make its successful caller fail.
 
-This is the proposed common rule, subject to client review. JSON Schema alone cannot
-enforce it; the companion precompile fixtures check inclusion and path numbering.
+This is a compatibility choice, subject to client review. Parity's trace database
+[omitted nested built-ins to avoid denial-of-service from trace volume](https://github.com/openethereum/parity-ethereum/blob/66477a9476200aaf7e933a52dc64676154adfb2b/ethcore/src/executive.rs#L266),
+then [retained actual value transfers](https://github.com/openethereum/parity-ethereum/blob/4255d4c46436d2740c4afb521b773cb95072c7cc/ethcore/src/executive.rs#L431) while citing heavy `IDENTITY` use. The inherited-value
+case above follows [current client behavior](https://github.com/banteg/trace-interop/blob/main/reports/decisions/H29.md), not Parity's original
+transfer-only rationale. JSON Schema alone cannot enforce this rule; the companion
+precompile fixtures check inclusion and path numbering.
 
 ## Open details requiring focused review
 
