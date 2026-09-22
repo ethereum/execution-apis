@@ -89,6 +89,14 @@ func runGenerator(ctx context.Context) error {
 				fails++
 				continue
 			}
+			if test.ExpectErrorCode != 0 {
+				if err := handler.RewriteLastErrorCode(test.ExpectErrorCode); err != nil {
+					fmt.Println(" fail.")
+					fmt.Fprintf(os.Stderr, "failed to rewrite error code in %s/%s: %s\n", methodTest.Name, test.Name, err)
+					fails++
+					continue
+				}
+			}
 			fmt.Println("  done.")
 			handler.Close()
 		}
