@@ -352,7 +352,8 @@
       value: null
 - name: trace_filter
   summary: Returns localized traces matching an address filter.
-  description: Apply OR within each address list and AND between the lists; omitted/null/empty lists are unrestricted; compare address bytes independently of hex letter case.
+  description: Apply OR within each address list and AND between the lists by default, as eth_getLogs composes topic positions;
+    mode union matches either populated list; omitted/null/empty lists are unrestricted; compare address bytes independently of hex letter case.
     Match CALL sender/recipient, CREATE creator/created address, SELFDESTRUCT destroyed account/refund
     beneficiary. Failed CREATE has no created-address match. Reward author matches toAddress and has no
     fromAddress. Sort by block, transaction, preorder, then rewards; paginate after matching. Capture

@@ -101,14 +101,22 @@ TraceFilter:
       - type: array
         items: *id001
       - type: 'null'
+    mode:
+      type: string
+      enum:
+      - intersection
+      - union
+      description: intersection (default) requires every populated address list to match; union requires
+        any populated list to match. Unknown values are invalid parameters (-32602).
     after: *id004
     count: *id004
   additionalProperties: false
   description: Inclusive block range; defaults fromBlock earliest, toBlock latest, after 0, count unlimited
-    subject to an explicit server limit. OR within each address list; AND between lists. Missing, null or empty
-    lists are unrestricted. Compare address bytes independently of hex letter case. mode is outside this baseline. Resolve tags once per request.
-    Apply filtering before pagination; count 0 returns []. Return an error rather than silently truncate
-    when a server limit is exceeded (H03,H04,H23,H27).
+    subject to an explicit server limit. OR within each address list; AND between lists by default, as
+    eth_getLogs composes topic positions. Missing, null or empty lists are unrestricted. mode union
+    matches either populated list instead. Compare address bytes independently of hex letter case.
+    Resolve tags once per request. Apply filtering before pagination; count 0 returns []. Return an
+    error rather than silently truncate when a server limit is exceeded (H03,H04,H23,H27).
   title: TraceFilter
 TraceCallAction:
   type: object
