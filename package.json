@@ -27,7 +27,8 @@
     "prestart": "npm run docs:spec",
     "docs:spec": "node scripts/docs-spec.cjs",
     "docs:refresh": "npm run build:spec && npm run docs:spec && npm run docs:copy",
-    "test:docs": "node --test scripts/docs-spec.test.cjs"
+    "test:docs": "node --test scripts/docs-spec.test.cjs",
+    "postinstall": "patch-package --error-on-fail"
   },
   "repository": {
     "type": "git",
@@ -60,5 +61,8 @@
     "remark-gfm": "~4.0.1",
     "semver": "7.8.1",
     "typescript": "~5.6.2"
+  },
+  "devDependencies": {
+    "patch-package": "8.0.1"
   }
 }

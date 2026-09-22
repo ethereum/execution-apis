@@ -28,7 +28,28 @@ test('actual generated trace pages retain array, variant fields and localization
   const display = documentForDisplay(input);
   display.methods = display.methods.filter(method => method.name.startsWith('trace_'));
   const pages = await renderMethodsToMarkdown(display, identitySchemaEdits, identityEdits);
-  for (const page of pages) assert.doesNotMatch(page.markdown, /`unknown(?: or|`)/);
+  for (const page of pages) {
+    assert.doesNotMatch(page.markdown, /`unknown(?: or|`)/);
+    const method = input.methods.find(method => method.name === page.methodName);
+    const parameters = page.markdown.split('## Parameters (by position)')[1].split('## Result')[0];
+    for (const param of method.params) {
+      const line = parameters.split('\n').find(line => line.startsWith(`**${param.name}** `));
+      assert.ok(line, `${method.name} must render parameter ${param.name}`);
+      assert.equal(line.includes('*required*'), Boolean(param.required), `${method.name}.${param.name} required status`);
+    }
+  }
+  const many = pages.find(page => page.methodName === 'trace_callMany').markdown;
+  assert.match(many, /\*\*Calls\*\* `array<\[object, array<string>\]>` \*required\*/);
+  assert.match(many, /\*\*Position 0\*\* `object` \*required\*/);
+  assert.match(many, /\*\*Position 1\*\* `array<string>` \*required\*/);
+  assert.match(many, /`trace` `stateDiff` `vmTrace`/);
+  assert.match(many, /\*\*Items\*\* `\[object, array<string>\]`[\s\S]*?`exactly 2 items`/);
+  assert.doesNotMatch(many.split('**Items**')[0], /exactly 2 items/);
+  assert.ok(many.indexOf('**Position 0**') < many.indexOf('**Position 1**'));
+  assert.ok(many.indexOf('**Calls**') < many.indexOf('**Block**'));
+  const example = input.methods.find(method => method.name === 'trace_callMany').examples[0];
+  assert.ok(example.params[0].value.length > 0, 'render a nonempty Calls example');
+  for (const entry of example.params[0].value) assert.equal(entry.length, 2);
   const block = pages.find(page => page.methodName === 'trace_block').markdown;
   assert.match(block, /\*\*Result\*\* `array<object>/);
   assert.match(block, /different variants may occur in the same array/);
