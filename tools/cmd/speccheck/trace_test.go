@@ -316,3 +316,30 @@ func TestTraceVmResource(t *testing.T) {
 		}
 	}
 }
+
+func TestTraceExamples(t *testing.T) {
+	_, document, methods := traceDocuments(t)
+	for _, entry := range document["methods"].([]any) {
+		method := entry.(traceObject)
+		name := method["name"].(string)
+		for _, entry := range method["examples"].([]any) {
+			example := entry.(traceObject)
+			t.Run(name+"/"+example["name"].(string), func(t *testing.T) {
+				for i, entry := range example["params"].([]any) {
+					param := entry.(traceObject)
+					descriptor := methods[name].params[i]
+					if param["name"] != descriptor.name {
+						t.Fatalf("example parameter %d has wrong name", i)
+					}
+					if err := validate(descriptor.schema, traceJSON(t, param["value"]), "https://example.test/parameter.json"); err != nil {
+						t.Fatal(err)
+					}
+				}
+				result := example["result"].(traceObject)
+				if err := validate(methods[name].result.schema, traceJSON(t, result["value"]), "https://example.test/result.json"); err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+	}
+}

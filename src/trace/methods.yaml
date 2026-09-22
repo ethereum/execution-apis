@@ -79,6 +79,40 @@
   - code: 4444
     message: Pruned history unavailable
   examples:
+  - name: Fund an account then spend its simulated balance
+    description: >-
+      Illustrative sequence assuming the first sender has at least one wei, the second sender
+      initially has zero balance, and both recipients have no code. Each call selects no trace
+      families and uses zero fees. The second call spends the wei received from the first call;
+      canonical state is unchanged.
+    params:
+    - name: Calls
+      value:
+      - - from: '0x1111111111111111111111111111111111111111'
+          to: '0x2222222222222222222222222222222222222222'
+          value: '0x1'
+          gas: '0x5208'
+          gasPrice: '0x0'
+        - []
+      - - from: '0x2222222222222222222222222222222222222222'
+          to: '0x3333333333333333333333333333333333333333'
+          value: '0x1'
+          gas: '0x5208'
+          gasPrice: '0x0'
+        - []
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value:
+      - output: 0x
+        trace: []
+        stateDiff: null
+        vmTrace: null
+      - output: 0x
+        trace: []
+        stateDiff: null
+        vmTrace: null
   - name: trace_callMany result shape
     description: Illustrative response shape; exact execution depends on chain state.
     params:
