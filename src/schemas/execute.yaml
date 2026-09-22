@@ -201,7 +201,7 @@ CallResultFailure:
             const: 3
           message:
             type: string
-            pattern: "^execution reverted.*"
+            description: Suggested message prefix is "execution reverted".
         required: [code, message]
       - type: object
         properties:
@@ -209,7 +209,8 @@ CallResultFailure:
             const: -32015
           message:
             type: string
-            pattern: "^vm execution error.*"
+            description: Suggested message prefix is "vm execution error".
+        required: [code, message]
 CallResultSuccess:
   title: Result of call success
   type: object

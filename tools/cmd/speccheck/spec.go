@@ -4,17 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-
-	openrpc "github.com/open-rpc/spec-types/generated/packages/go/v1_4"
 )
 
 type ContentDescriptor struct {
 	name     string
 	required bool
-	schema   openrpc.JSONSchemaObject
+	schema   json.RawMessage
 }
 
-// methodSchema stores all the schemas neccessary to validate a request or
+// methodSchema stores all the schemas necessary to validate a request or
 // response corresponding to the method.
 type methodSchema struct {
 	name   string
@@ -22,67 +20,75 @@ type methodSchema struct {
 	result *ContentDescriptor
 }
 
-// parseSpec reads an OpenRPC specification and parses out each
-// method's schemas.
-func parseSpec(filename string) (map[string]*methodSchema, error) {
-	doc, err := readSpec(filename)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read spec: %v", err)
-	}
+// Keep schemas as raw JSON. The generated OpenRPC union types change `items`
+// (both homogeneous arrays and tuples) when marshaled back to JSON.
+type specDescriptor struct {
+	Name     *string         `json:"name"`
+	Required bool            `json:"required"`
+	Schema   json.RawMessage `json:"schema"`
+	Ref      *string         `json:"$ref"`
+}
 
-	// Iterate over each method in the OpenRPC spec and pull out the parameter
-	// schema and result schema.
+// parseSpec reads method descriptors without reserializing their schemas.
+func parseSpec(filename string) (map[string]*methodSchema, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read spec: %w", err)
+	}
+	var doc struct {
+		Methods []struct {
+			Name   *string           `json:"name"`
+			Ref    *string           `json:"$ref"`
+			Params []*specDescriptor `json:"params"`
+			Result *specDescriptor   `json:"result"`
+		} `json:"methods"`
+	}
+	if err := json.Unmarshal(data, &doc); err != nil {
+		return nil, fmt.Errorf("unable to read spec: %w", err)
+	}
 	parsed := make(map[string]*methodSchema)
-	for _, method := range *doc.Methods {
-		if method.ReferenceObject != nil {
-			return nil, fmt.Errorf("reference object not supported, %s", *method.ReferenceObject.Ref)
+	for _, method := range doc.Methods {
+		if method.Ref != nil {
+			return nil, fmt.Errorf("reference object not supported, %s", *method.Ref)
 		}
-		var (
-			method = method.MethodObject
-			ms     = methodSchema{name: string(*method.Name)}
-		)
-		// Add parameter schemas.
-		for i, param := range *method.Params {
-			if err := checkCDOR(param); err != nil {
-				return nil, fmt.Errorf("%s, parameter %d: %v", *method.Name, i, err)
-			}
-			required := false
-			if param.ContentDescriptorObject.Required != nil && *param.ContentDescriptorObject.Required {
-				required = true
-			}
-			cd := &ContentDescriptor{
-				name:     string(*param.ContentDescriptorObject.Name),
-				required: required,
-				schema:   *param.ContentDescriptorObject.Schema.JSONSchemaObject,
+		if method.Name == nil {
+			return nil, fmt.Errorf("missing method name")
+		}
+		ms := &methodSchema{name: *method.Name}
+		for i, param := range method.Params {
+			cd, err := parseDescriptor(param)
+			if err != nil {
+				return nil, fmt.Errorf("%s, parameter %d: %w", ms.name, i, err)
 			}
 			ms.params = append(ms.params, cd)
 		}
-
-		// Add result schema.
 		if method.Result == nil {
-			return nil, fmt.Errorf("%s: missing result", *method.Name)
+			return nil, fmt.Errorf("%s: missing result", ms.name)
 		}
-		cdor := openrpc.ContentDescriptorOrReference{
-			ContentDescriptorObject: method.Result.ContentDescriptorObject,
-			ReferenceObject:         method.Result.ReferenceObject,
+		ms.result, err = parseDescriptor(method.Result)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", ms.name, err)
 		}
-		if err := checkCDOR(cdor); err != nil {
-			return nil, fmt.Errorf("%s: %v", *method.Name, err)
-		}
-		obj := method.Result.ContentDescriptorObject
-		required := false
-		if obj.Required != nil && *obj.Required {
-			required = true
-		}
-		ms.result = &ContentDescriptor{
-			name:     string(*obj.Name),
-			required: required,
-			schema:   *obj.Schema.JSONSchemaObject,
-		}
-		parsed[string(*method.Name)] = &ms
+		parsed[ms.name] = ms
 	}
-
 	return parsed, nil
+}
+
+func parseDescriptor(cd *specDescriptor) (*ContentDescriptor, error) {
+	if cd == nil {
+		return nil, fmt.Errorf("missing content descriptor")
+	}
+	if cd.Ref != nil {
+		return nil, fmt.Errorf("references not supported")
+	}
+	if cd.Name == nil {
+		return nil, fmt.Errorf("missing name")
+	}
+	var schema map[string]json.RawMessage
+	if err := json.Unmarshal(cd.Schema, &schema); err != nil || schema == nil {
+		return nil, fmt.Errorf("missing or invalid schema object")
+	}
+	return &ContentDescriptor{name: *cd.Name, required: cd.Required, schema: cd.Schema}, nil
 }
 
 // parseParamValues parses each parameter out of the raw json value in its own byte
@@ -106,33 +112,4 @@ func parseParamValues(raw json.RawMessage) ([][]byte, error) {
 		out = append(out, buf)
 	}
 	return out, nil
-}
-
-func checkCDOR(obj openrpc.ContentDescriptorOrReference) error {
-	if obj.ReferenceObject != nil {
-		return fmt.Errorf("references not supported")
-	}
-	if obj.ContentDescriptorObject == nil {
-		return fmt.Errorf("missing content descriptor")
-	}
-	cd := obj.ContentDescriptorObject
-	if cd.Name == nil {
-		return fmt.Errorf("missing name")
-	}
-	if cd.Schema == nil || cd.Schema.JSONSchemaObject == nil {
-		return fmt.Errorf("missing schema")
-	}
-	return nil
-}
-
-func readSpec(path string) (*openrpc.OpenrpcDocument, error) {
-	spec, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	var doc openrpc.OpenrpcDocument
-	if err := json.Unmarshal(spec, &doc); err != nil {
-		return nil, err
-	}
-	return &doc, nil
 }
