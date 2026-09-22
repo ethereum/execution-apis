@@ -93,17 +93,25 @@ import { useState } from 'react';
 
                       #### `^0x[0-9a-f]{40}$` fields
 
-                      * **balance** `unknown or object or object or object` *required*
+                      * **balance** `string or object or object or object` *required*
 
                         ***
 
                         <div>
                           <details>
                             <summary>
-                              Show Option 1 `TraceQuantityChange`&#x20;
+                              Show Option 1 `TraceQuantityChange` string
                             </summary>
 
                             #### `TraceQuantityChange` fields
+
+                            **balance** `string` *required*
+
+                            TraceQuantityChange
+
+                            *Must be:* `"="`
+
+                            ***
                           </details>
                         </div>
 
@@ -116,6 +124,8 @@ import { useState } from 'react';
                             #### `TraceQuantityChange` fields
 
                             **balance** `object` *required*
+
+                            TraceQuantityChange
 
                             ***
 
@@ -153,6 +163,8 @@ import { useState } from 'react';
 
                             **balance** `object` *required*
 
+                            TraceQuantityChange
+
                             ***
 
                             <div>
@@ -188,6 +200,8 @@ import { useState } from 'react';
                             #### `TraceQuantityChange` fields
 
                             **balance** `object` *required*
+
+                            TraceQuantityChange
 
                             ***
 
@@ -241,17 +255,25 @@ import { useState } from 'react';
                           </details>
                         </div>
 
-                      * **code** `unknown or object or object or object` *required*
+                      * **code** `string or object or object or object` *required*
 
                         ***
 
                         <div>
                           <details>
                             <summary>
-                              Show Option 1 `TraceCodeChange`&#x20;
+                              Show Option 1 `TraceCodeChange` string
                             </summary>
 
                             #### `TraceCodeChange` fields
+
+                            **code** `string` *required*
+
+                            TraceCodeChange
+
+                            *Must be:* `"="`
+
+                            ***
                           </details>
                         </div>
 
@@ -264,6 +286,8 @@ import { useState } from 'react';
                             #### `TraceCodeChange` fields
 
                             **code** `object` *required*
+
+                            TraceCodeChange
 
                             ***
 
@@ -301,6 +325,8 @@ import { useState } from 'react';
 
                             **code** `object` *required*
 
+                            TraceCodeChange
+
                             ***
 
                             <div>
@@ -336,6 +362,8 @@ import { useState } from 'react';
                             #### `TraceCodeChange` fields
 
                             **code** `object` *required*
+
+                            TraceCodeChange
 
                             ***
 
@@ -389,17 +417,25 @@ import { useState } from 'react';
                           </details>
                         </div>
 
-                      * **nonce** `unknown or object or object or object` *required*
+                      * **nonce** `string or object or object or object` *required*
 
                         ***
 
                         <div>
                           <details>
                             <summary>
-                              Show Option 1 `TraceQuantityChange`&#x20;
+                              Show Option 1 `TraceQuantityChange` string
                             </summary>
 
                             #### `TraceQuantityChange` fields
+
+                            **nonce** `string` *required*
+
+                            TraceQuantityChange
+
+                            *Must be:* `"="`
+
+                            ***
                           </details>
                         </div>
 
@@ -412,6 +448,8 @@ import { useState } from 'react';
                             #### `TraceQuantityChange` fields
 
                             **nonce** `object` *required*
+
+                            TraceQuantityChange
 
                             ***
 
@@ -449,6 +487,8 @@ import { useState } from 'react';
 
                             **nonce** `object` *required*
 
+                            TraceQuantityChange
+
                             ***
 
                             <div>
@@ -484,6 +524,8 @@ import { useState } from 'react';
                             #### `TraceQuantityChange` fields
 
                             **nonce** `object` *required*
+
+                            TraceQuantityChange
 
                             ***
 
@@ -549,17 +591,25 @@ import { useState } from 'react';
 
                             #### `storage` fields
 
-                            * **^0x\[0-9a-f]\{64}$** `unknown or object or object or object`
+                            * **^0x\[0-9a-f]\{64}$** `string or object or object or object`
 
                               ***
 
                               <div>
                                 <details>
                                   <summary>
-                                    Show Option 1 `TraceStorageChange`&#x20;
+                                    Show Option 1 `TraceStorageChange` string
                                   </summary>
 
                                   #### `TraceStorageChange` fields
+
+                                  **^0x\[0-9a-f]\{64}$** `string`
+
+                                  TraceStorageChange
+
+                                  *Must be:* `"="`
+
+                                  ***
                                 </details>
                               </div>
 
@@ -572,6 +622,8 @@ import { useState } from 'react';
                                   #### `TraceStorageChange` fields
 
                                   **^0x\[0-9a-f]\{64}$** `object`
+
+                                  TraceStorageChange
 
                                   ***
 
@@ -609,6 +661,8 @@ import { useState } from 'react';
 
                                   **^0x\[0-9a-f]\{64}$** `object`
 
+                                  TraceStorageChange
+
                                   ***
 
                                   <div>
@@ -644,6 +698,8 @@ import { useState } from 'react';
                                   #### `TraceStorageChange` fields
 
                                   **^0x\[0-9a-f]\{64}$** `object`
+
+                                  TraceStorageChange
 
                                   ***
 
@@ -723,87 +779,25 @@ import { useState } from 'react';
           </details>
         </div>
 
-      * **trace** `object or object or object or object` *required*
+      * **trace** `array<object> or array<object> or array<object> or array<object> or array<object>` *required*
+
+        Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
 
         ***
 
         <div>
           <details>
             <summary>
-              Show Option 1 `Flat call trace record` object
+              Show Option 1 `Successful CALL` array
             </summary>
 
-            #### `Flat call trace record` fields
+            #### `Successful CALL` fields
 
-            **trace** `unknown or unknown` *required*
-
-            ***
-
-            <div>
-              <details>
-                <summary>
-                  Show Option 1 `trace`&#x20;
-                </summary>
-
-                #### `trace` fields
-              </details>
-            </div>
-
-            <div>
-              <details>
-                <summary>
-                  Show Option 2 `trace`&#x20;
-                </summary>
-
-                #### `trace` fields
-              </details>
-            </div>
-          </details>
-        </div>
-
-        <div>
-          <details>
-            <summary>
-              Show Option 2 `Flat call trace record` object
-            </summary>
-
-            #### `Flat call trace record` fields
-
-            **trace** `unknown or unknown` *required*
-
-            ***
-
-            <div>
-              <details>
-                <summary>
-                  Show Option 1 `trace`&#x20;
-                </summary>
-
-                #### `trace` fields
-              </details>
-            </div>
-
-            <div>
-              <details>
-                <summary>
-                  Show Option 2 `trace`&#x20;
-                </summary>
-
-                #### `trace` fields
-              </details>
-            </div>
-          </details>
-        </div>
-
-        <div>
-          <details>
-            <summary>
-              Show Option 3 `Flat call trace record` object
-            </summary>
-
-            #### `Flat call trace record` fields
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
 
             **trace** `array<object>` *required*
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
 
             ***
 
@@ -814,6 +808,830 @@ import { useState } from 'react';
                 </summary>
 
                 #### `trace` fields
+
+                Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+                * **type** `string` *required*
+
+                  *Allowed values:* `call` `create` `suicide`
+
+                  *Must be:* `"call"`
+
+                  ***
+
+                * **action** `object` *required*
+
+                  TraceCallAction
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show `action` object
+                      </summary>
+
+                      #### `action` fields
+
+                      * **callType** `string` *required*
+
+                        *Allowed values:* `call` `callcode` `delegatecall` `staticcall`
+
+                        ***
+
+                      * **from** `string` *required*
+
+                        hex encoded address
+
+                        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                        ***
+
+                      * **gas** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **input** `string` *required*
+
+                        Trace byte string
+
+                        *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                        ***
+
+                      * **to** `string` *required*
+
+                        hex encoded address
+
+                        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                        ***
+
+                      * **value** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **additionalProperties** `true`
+
+                        ***
+                    </details>
+                  </div>
+
+                * **result** `object` *required*
+
+                  TraceCallResult
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show `result` object
+                      </summary>
+
+                      #### `result` fields
+
+                      * **gasUsed** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **output** `string` *required*
+
+                        Trace byte string
+
+                        *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                        ***
+
+                      * **additionalProperties** `true`
+
+                        ***
+                    </details>
+                  </div>
+
+                * **revertReason** `string`
+
+                  ***
+
+                * **subtraces** `integer` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **traceAddress** `array<integer>` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 2 `Failed CALL` array
+            </summary>
+
+            #### `Failed CALL` fields
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            **trace** `array<object>` *required*
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `trace` object
+                </summary>
+
+                #### `trace` fields
+
+                Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+                * **type** `string` *required*
+
+                  *Allowed values:* `call` `create` `suicide`
+
+                  *Must be:* `"call"`
+
+                  ***
+
+                * **action** `object` *required*
+
+                  TraceCallAction
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show `action` object
+                      </summary>
+
+                      #### `action` fields
+
+                      * **callType** `string` *required*
+
+                        *Allowed values:* `call` `callcode` `delegatecall` `staticcall`
+
+                        ***
+
+                      * **from** `string` *required*
+
+                        hex encoded address
+
+                        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                        ***
+
+                      * **gas** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **input** `string` *required*
+
+                        Trace byte string
+
+                        *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                        ***
+
+                      * **to** `string` *required*
+
+                        hex encoded address
+
+                        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                        ***
+
+                      * **value** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **additionalProperties** `true`
+
+                        ***
+                    </details>
+                  </div>
+
+                * **error** `string` *required*
+
+                  ***
+
+                * **result** `object or null` *required*
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show Option 1 `TraceCallResult` object
+                      </summary>
+
+                      #### `TraceCallResult` fields
+
+                      **result** `object` *required*
+
+                      TraceCallResult
+
+                      ***
+
+                      <div>
+                        <details>
+                          <summary>
+                            Show `result` object
+                          </summary>
+
+                          #### `result` fields
+
+                          * **gasUsed** `string` *required*
+
+                            hex encoded 256 bit unsigned integer
+
+                            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                            ***
+
+                          * **output** `string` *required*
+
+                            Trace byte string
+
+                            *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                            ***
+
+                          * **additionalProperties** `true`
+
+                            ***
+                        </details>
+                      </div>
+                    </details>
+                  </div>
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show Option 2 `result` null
+                      </summary>
+
+                      #### `result` fields
+
+                      **result** `null` *required*
+
+                      ***
+                    </details>
+                  </div>
+
+                * **revertReason** `string`
+
+                  ***
+
+                * **subtraces** `integer` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **traceAddress** `array<integer>` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 3 `Successful CREATE` array
+            </summary>
+
+            #### `Successful CREATE` fields
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            **trace** `array<object>` *required*
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `trace` object
+                </summary>
+
+                #### `trace` fields
+
+                Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+                * **type** `string` *required*
+
+                  *Allowed values:* `call` `create` `suicide`
+
+                  *Must be:* `"create"`
+
+                  ***
+
+                * **action** `object` *required*
+
+                  TraceCreateAction
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show `action` object
+                      </summary>
+
+                      #### `action` fields
+
+                      * **from** `string` *required*
+
+                        hex encoded address
+
+                        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                        ***
+
+                      * **gas** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **init** `string` *required*
+
+                        Trace byte string
+
+                        *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                        ***
+
+                      * **value** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **additionalProperties** `true`
+
+                        ***
+                    </details>
+                  </div>
+
+                * **result** `object or object` *required*
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show Option 1 `TraceCreateResult` object
+                      </summary>
+
+                      #### `TraceCreateResult` fields
+
+                      **result** `object` *required*
+
+                      TraceCreateResult
+
+                      ***
+
+                      <div>
+                        <details>
+                          <summary>
+                            Show `result` object
+                          </summary>
+
+                          #### `result` fields
+
+                          * **address** `string` *required*
+
+                            hex encoded address
+
+                            *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                            ***
+
+                          * **code** `string` *required*
+
+                            Trace byte string
+
+                            *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                            ***
+
+                          * **gasUsed** `string` *required*
+
+                            hex encoded 256 bit unsigned integer
+
+                            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                            ***
+
+                          * **additionalProperties** `true`
+
+                            ***
+                        </details>
+                      </div>
+                    </details>
+                  </div>
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show Option 2 `TraceCallResult` object
+                      </summary>
+
+                      #### `TraceCallResult` fields
+
+                      **result** `object` *required*
+
+                      TraceCallResult
+
+                      ***
+
+                      <div>
+                        <details>
+                          <summary>
+                            Show `result` object
+                          </summary>
+
+                          #### `result` fields
+
+                          * **address** `string` *required*
+
+                            hex encoded address
+
+                            *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                            ***
+
+                          * **code** `string` *required*
+
+                            Trace byte string
+
+                            *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                            ***
+
+                          * **gasUsed** `string` *required*
+
+                            hex encoded 256 bit unsigned integer
+
+                            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                            ***
+
+                          * **output** `string` *required*
+
+                            Trace byte string
+
+                            *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                            ***
+
+                          * **additionalProperties** `true`
+
+                            ***
+                        </details>
+                      </div>
+                    </details>
+                  </div>
+
+                * **revertReason** `string`
+
+                  ***
+
+                * **subtraces** `integer` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **traceAddress** `array<integer>` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 4 `Failed CREATE` array
+            </summary>
+
+            #### `Failed CREATE` fields
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            **trace** `array<object>` *required*
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `trace` object
+                </summary>
+
+                #### `trace` fields
+
+                Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+                * **type** `string` *required*
+
+                  *Allowed values:* `call` `create` `suicide`
+
+                  *Must be:* `"create"`
+
+                  ***
+
+                * **action** `object` *required*
+
+                  TraceCreateAction
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show `action` object
+                      </summary>
+
+                      #### `action` fields
+
+                      * **from** `string` *required*
+
+                        hex encoded address
+
+                        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                        ***
+
+                      * **gas** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **init** `string` *required*
+
+                        Trace byte string
+
+                        *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                        ***
+
+                      * **value** `string` *required*
+
+                        hex encoded 256 bit unsigned integer
+
+                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                        ***
+
+                      * **additionalProperties** `true`
+
+                        ***
+                    </details>
+                  </div>
+
+                * **error** `string` *required*
+
+                  ***
+
+                * **result** `object or object or null` *required*
+
+                  ***
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show Option 1 `TraceCreateResult` object
+                      </summary>
+
+                      #### `TraceCreateResult` fields
+
+                      **result** `object` *required*
+
+                      TraceCreateResult
+
+                      ***
+
+                      <div>
+                        <details>
+                          <summary>
+                            Show `result` object
+                          </summary>
+
+                          #### `result` fields
+
+                          * **address** `string` *required*
+
+                            hex encoded address
+
+                            *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                            ***
+
+                          * **code** `string` *required*
+
+                            Trace byte string
+
+                            *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                            ***
+
+                          * **gasUsed** `string` *required*
+
+                            hex encoded 256 bit unsigned integer
+
+                            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                            ***
+
+                          * **additionalProperties** `true`
+
+                            ***
+                        </details>
+                      </div>
+                    </details>
+                  </div>
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show Option 2 `TraceCallResult` object
+                      </summary>
+
+                      #### `TraceCallResult` fields
+
+                      **result** `object` *required*
+
+                      TraceCallResult
+
+                      ***
+
+                      <div>
+                        <details>
+                          <summary>
+                            Show `result` object
+                          </summary>
+
+                          #### `result` fields
+
+                          * **gasUsed** `string` *required*
+
+                            hex encoded 256 bit unsigned integer
+
+                            *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                            ***
+
+                          * **output** `string` *required*
+
+                            Trace byte string
+
+                            *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                            ***
+
+                          * **additionalProperties** `true`
+
+                            ***
+                        </details>
+                      </div>
+                    </details>
+                  </div>
+
+                  <div>
+                    <details>
+                      <summary>
+                        Show Option 3 `result` null
+                      </summary>
+
+                      #### `result` fields
+
+                      **result** `null` *required*
+
+                      ***
+                    </details>
+                  </div>
+
+                * **revertReason** `string`
+
+                  ***
+
+                * **subtraces** `integer` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **traceAddress** `array<integer>` *required*
+
+                  Range: `>= 0`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 5 `Call trace record inside an execution envelope` array
+            </summary>
+
+            #### `Call trace record inside an execution envelope` fields
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            **trace** `array<object>` *required*
+
+            Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `trace` object
+                </summary>
+
+                #### `trace` fields
+
+                Array result. Each item independently matches one of the following variants; different variants may occur in the same array.
+
+                * **type** `string` *required*
+
+                  *Allowed values:* `call` `create` `suicide`
+
+                  *Must be:* `"suicide"`
+
+                  ***
 
                 * **action** `object` *required*
 
@@ -859,76 +1677,6 @@ import { useState } from 'react';
                     </details>
                   </div>
 
-                * **blockHash** `string or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `32 byte hex value` string
-                      </summary>
-
-                      #### `32 byte hex value` fields
-
-                      **blockHash** `string`
-
-                      32 byte hex value
-
-                      *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `blockHash` null
-                      </summary>
-
-                      #### `blockHash` fields
-
-                      **blockHash** `null`
-
-                      ***
-                    </details>
-                  </div>
-
-                * **blockNumber** `integer or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `blockNumber` integer
-                      </summary>
-
-                      #### `blockNumber` fields
-
-                      **blockNumber** `integer`
-
-                      Range: `>= 0`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `blockNumber` null
-                      </summary>
-
-                      #### `blockNumber` fields
-
-                      **blockNumber** `null`
-
-                      ***
-                    </details>
-                  </div>
-
                 * **result** `null`
 
                   ***
@@ -944,306 +1692,6 @@ import { useState } from 'react';
                   Range: `>= 0`
 
                   ***
-
-                * **transactionHash** `string or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `32 byte hex value` string
-                      </summary>
-
-                      #### `32 byte hex value` fields
-
-                      **transactionHash** `string`
-
-                      32 byte hex value
-
-                      *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `transactionHash` null
-                      </summary>
-
-                      #### `transactionHash` fields
-
-                      **transactionHash** `null`
-
-                      ***
-                    </details>
-                  </div>
-
-                * **transactionPosition** `integer or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `transactionPosition` integer
-                      </summary>
-
-                      #### `transactionPosition` fields
-
-                      **transactionPosition** `integer`
-
-                      Range: `>= 0`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `transactionPosition` null
-                      </summary>
-
-                      #### `transactionPosition` fields
-
-                      **transactionPosition** `null`
-
-                      ***
-                    </details>
-                  </div>
-
-                *
-
-                * **additionalProperties** `true`
-
-                  ***
-              </details>
-            </div>
-          </details>
-        </div>
-
-        <div>
-          <details>
-            <summary>
-              Show Option 4 `Flat call trace record` object
-            </summary>
-
-            #### `Flat call trace record` fields
-
-            **trace** `array<object>` *required*
-
-            ***
-
-            <div>
-              <details>
-                <summary>
-                  Show `trace` object
-                </summary>
-
-                #### `trace` fields
-
-                * **action** `object` *required*
-
-                  TraceRewardAction
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show `action` object
-                      </summary>
-
-                      #### `action` fields
-
-                      * **author** `string` *required*
-
-                        hex encoded address
-
-                        *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-                        ***
-
-                      * **rewardType** `string` *required*
-
-                        *Allowed values:* `block` `uncle`
-
-                        ***
-
-                      * **value** `string` *required*
-
-                        hex encoded 256 bit unsigned integer
-
-                        *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-                        ***
-
-                      * **additionalProperties** `true`
-
-                        ***
-                    </details>
-                  </div>
-
-                * **blockHash** `string or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `32 byte hex value` string
-                      </summary>
-
-                      #### `32 byte hex value` fields
-
-                      **blockHash** `string`
-
-                      32 byte hex value
-
-                      *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `blockHash` null
-                      </summary>
-
-                      #### `blockHash` fields
-
-                      **blockHash** `null`
-
-                      ***
-                    </details>
-                  </div>
-
-                * **blockNumber** `integer or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `blockNumber` integer
-                      </summary>
-
-                      #### `blockNumber` fields
-
-                      **blockNumber** `integer`
-
-                      Range: `>= 0`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `blockNumber` null
-                      </summary>
-
-                      #### `blockNumber` fields
-
-                      **blockNumber** `null`
-
-                      ***
-                    </details>
-                  </div>
-
-                * **result** `null`
-
-                  ***
-
-                * **subtraces** `integer` *required*
-
-                  Range: `>= 0`
-
-                  ***
-
-                * **traceAddress** `array<integer>` *required*
-
-                  Range: `>= 0`
-
-                  ***
-
-                * **transactionHash** `string or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `32 byte hex value` string
-                      </summary>
-
-                      #### `32 byte hex value` fields
-
-                      **transactionHash** `string`
-
-                      32 byte hex value
-
-                      *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `transactionHash` null
-                      </summary>
-
-                      #### `transactionHash` fields
-
-                      **transactionHash** `null`
-
-                      ***
-                    </details>
-                  </div>
-
-                * **transactionPosition** `integer or null`
-
-                  ***
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 1 `transactionPosition` integer
-                      </summary>
-
-                      #### `transactionPosition` fields
-
-                      **transactionPosition** `integer`
-
-                      Range: `>= 0`
-
-                      ***
-                    </details>
-                  </div>
-
-                  <div>
-                    <details>
-                      <summary>
-                        Show Option 2 `transactionPosition` null
-                      </summary>
-
-                      #### `transactionPosition` fields
-
-                      **transactionPosition** `null`
-
-                      ***
-                    </details>
-                  </div>
-
-                *
 
                 * **additionalProperties** `true`
 
