@@ -11,9 +11,11 @@ Observed agreement is not a correctness oracle. Recommendations below are propos
 
 ## Explicit choices in this draft
 
-- Query path inputs use hex quantities; traceAddress outputs retain JSON integers.
-- Address filters compose with AND between lists. Empty lists are unrestricted;
-  null and the mode extension are rejected by this baseline.
+- Query path inputs use hex quantities for caller compatibility; traceAddress outputs retain JSON
+  integers. Convert each output integer to a minimal hex quantity before passing it to trace_get.
+  Integer path entries return -32602, rather than null.
+- Address filters compose with AND between lists. Missing, null and empty lists are unrestricted.
+  Addresses compare by bytes, irrespective of hex letter case. The mode extension is rejected by this baseline.
 - Standalone historical records (`trace_block`, `trace_filter`, `trace_transaction`,
   `trace_get`) require non-null block localization. Mined transaction frames also require
   non-null transaction hash/index; protocol rewards require null transaction hash/index
@@ -24,14 +26,18 @@ Observed agreement is not a correctness oracle. Recommendations below are propos
   parameters. Accepting an explicitly supplied block-selector extension is outside this
   baseline, not a conformance failure. Unsigned zero-fee calls preserve the block environment.
 - Empty trace selection is valid. The envelope always preserves output.
-- The existing upstream pruned-history error 4444 is reused as the draft proposal;
-  other transaction/execution error codes need agreement.
+- Unknown selected blocks and range endpoints return -32001 (Resource not found). Unknown
+  transactions and valid but absent tree paths return null. Known blocks with pruned required state
+  return the existing upstream error 4444. Other transaction/execution error codes need agreement.
 
 ## Precompile frames (H29)
 
 All methods that return call frames use the same inclusion rule: retain root precompile
 calls regardless of value. Omit nested precompile frames with zero value, and retain
 those with nonzero transferred or inherited value, whether successful or failed.
+For CALL and CALLCODE, use the explicit value operand, not the parent transaction value.
+For DELEGATECALL, use the inherited call value; STATICCALL has zero value. The inherited
+value exception preserves action context even though DELEGATECALL transfers no funds.
 `traceAddress` and `subtraces` describe the emitted tree, so omitted frames do not
 consume child ordinals. This also determines the paths used by `trace_get` and the
 records available to `trace_filter`. An omitted frame must not suppress its caller's
@@ -54,8 +60,10 @@ The localized schemas describe mined records; they do not define pending localiz
 Signed raw-transaction nonce admission (H13) is also a proposed contract choice; malformed
 JSON on rejection is independently a reporting defect. The two-argument baseline does
 not require clients to remove an explicitly selected third-argument extension (H12).
-The call schema intentionally excludes blob/authorization override extensions in this
-first profile. These are scope gaps, not statements that clients must remove extensions.
+Call objects accept standard eth_call transaction fields, including blob and authorization
+fields with their usual semantics at the selected fork. Unknown object fields are ignored
+for forward compatibility; accepting an unknown field does not establish extension support.
+Additional positional state and block overrides remain outside this profile.
 Full semantic conformance cannot be inferred from schema validity.
 
 The VM schema has its own JSON Schema resource identity and a local self-reference,

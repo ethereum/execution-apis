@@ -182,6 +182,17 @@ func TestTraceContracts(t *testing.T) {
 	for _, value := range []any{traceObject{}, traceObject{"gasPrice": "0x0"}, traceObject{"maxFeePerGas": "0x1", "maxPriorityFeePerGas": "0x0"}} {
 		add("valid fees", "trace_call", 0, value, true)
 	}
+	add("future call field", "trace_call", 0, traceObject{"futureField": traceObject{"x": 1}}, true)
+	add("standard call fields", "trace_call", 0, traceObject{"chainId": "0x1", "maxFeePerBlobGas": "0x1", "blobVersionedHashes": []any{hash}, "authorizationList": []any{}}, true)
+	add("invalid chain id", "trace_call", 0, traceObject{"chainId": 1}, false)
+	add("invalid blob hash", "trace_call", 0, traceObject{"blobVersionedHashes": []any{"0x01"}}, false)
+	for _, value := range []any{nil, []any{}, []any{address}} {
+		add("unrestricted or address filter", "trace_filter", 0, traceObject{"fromAddress": value, "toAddress": value}, true)
+	}
+	add("scalar address filter", "trace_filter", 0, traceObject{"fromAddress": address}, false)
+	add("negative count", "trace_filter", 0, traceObject{"count": -1}, false)
+	add("hex path", "trace_get", 1, []any{"0x0", "0xa"}, true)
+	add("integer path", "trace_get", 1, []any{0, 10}, false)
 	for _, field := range []string{"maxFeePerGas", "maxPriorityFeePerGas"} {
 		add("conflicting "+field, "trace_call", 0, traceObject{"gasPrice": "0x0", field: "0x1"}, false)
 	}

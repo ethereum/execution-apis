@@ -5,6 +5,8 @@
     Simulated changes are discarded. EVM failure is trace output; invalid parameters or unavailable state
     are RPC errors (H08,H11,H15,H28). This is a provisional trace profile; see docs-api/docs/trace-profile.md
     and its H01-H29 decision references.
+    An unknown selected block or range endpoint returns -32001 (Resource not found);
+    a known block whose required state is pruned returns 4444.
   params:
   - name: Call
     required: true
@@ -29,6 +31,8 @@
     message: Method not found
   - code: -32602
     message: Invalid params
+  - code: -32001
+    message: Resource not found
   - code: 4444
     message: Pruned history unavailable
   examples:
@@ -57,6 +61,8 @@
     writes roll back; subsequent calls continue. Return one envelope per input in order. The sequence
     never changes canonical state. Empty input returns [] (H15,H16). This is a provisional trace profile;
     see docs-api/docs/trace-profile.md and its H01-H29 decision references.
+    An unknown selected block or range endpoint returns -32001 (Resource not found);
+    a known block whose required state is pruned returns 4444.
   params:
   - name: Calls
     required: true
@@ -76,6 +82,8 @@
     message: Method not found
   - code: -32602
     message: Invalid params
+  - code: -32001
+    message: Resource not found
   - code: 4444
     message: Pruned history unavailable
   examples:
@@ -202,7 +210,9 @@
   description: 'Default block is not implicit: Block is required. Return envelopes in transaction order,
     each with its transactionHash. Empty blocks return []. Unknown blocks and unavailable history are
     errors. Do not attribute the next block system operations to this block (H07,H16,H28). This is a provisional
-    trace profile; see docs-api/docs/trace-profile.md and its H01-H29 decision references.'
+    trace profile; see docs-api/docs/trace-profile.md and its H01-H29 decision references.
+    An unknown selected block returns -32001 (Resource not found); a known block whose required
+    state is pruned returns 4444.'
   params:
   - name: Block
     required: true
@@ -220,6 +230,8 @@
     message: Method not found
   - code: -32602
     message: Invalid params
+  - code: -32001
+    message: Resource not found
   - code: 4444
     message: Pruned history unavailable
   examples:
@@ -240,6 +252,8 @@
     Merge; withdrawals are outside this call-trace profile. Unknown blocks and unavailable history are
     errors (H05,H27). This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
     H01-H29 decision references.
+    An unknown selected block or range endpoint returns -32001 (Resource not found);
+    a known block whose required state is pruned returns 4444.
   params:
   - name: Block
     required: true
@@ -254,6 +268,8 @@
     message: Method not found
   - code: -32602
     message: Invalid params
+  - code: -32001
+    message: Resource not found
   - code: 4444
     message: Pruned history unavailable
   examples:
@@ -298,7 +314,8 @@
   summary: Returns the trace at one tree path.
   description: 'Position selects one traceAddress path: [] is root, ["0x0"] first child, ["0x6","0x0"]
     the first child of child six. Return one localized object or null if the transaction/path does not
-    exist. Unavailable state is an error (H02,H06). This is a provisional trace profile; see docs-api/docs/trace-profile.md
+    exist. Integer path entries are invalid params (-32602); convert traceAddress integers to hex quantities.
+    Unavailable state is an error (H02,H06). This is a provisional trace profile; see docs-api/docs/trace-profile.md
     and its H01-H29 decision references.'
   params:
   - *id005
@@ -332,12 +349,14 @@
       value: null
 - name: trace_filter
   summary: Returns localized traces matching an address filter.
-  description: Apply OR within each address list and AND between the lists; omitted/empty lists are unrestricted.
+  description: Apply OR within each address list and AND between the lists; omitted/null/empty lists are unrestricted; compare address bytes independently of hex letter case.
     Match CALL sender/recipient, CREATE creator/created address, SELFDESTRUCT destroyed account/refund
     beneficiary. Failed CREATE has no created-address match. Reward author matches toAddress and has no
     fromAddress. Sort by block, transaction, preorder, then rewards; paginate after matching. Capture
     one canonical snapshot for the request and error if required history is unavailable (H03-H06,H23,H27).
     This is a provisional trace profile; see docs-api/docs/trace-profile.md and its H01-H29 decision references.
+    An unknown selected block or range endpoint returns -32001 (Resource not found);
+    a known block whose required state is pruned returns 4444.
   params:
   - name: Filter
     required: true
@@ -352,6 +371,8 @@
     message: Method not found
   - code: -32602
     message: Invalid params
+  - code: -32001
+    message: Resource not found
   - code: 4444
     message: Pruned history unavailable
   examples:
