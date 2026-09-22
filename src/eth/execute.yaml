@@ -244,17 +244,34 @@
     mempool or block building.
     `valid` reports the frame-specific admission check only. It is necessary but
     not sufficient for acceptance, because gates that are not frame-specific are
-    not all re-evaluated here; a `valid` of false is authoritative, since this is
-    the same prefix simulation the mempool applies.
+    not all re-evaluated here. It always carries a decided verdict: when the node
+    cannot decide, because the state for the requested block has been pruned or
+    the simulation timed out, clients MUST return an error rather than report
+    `valid` false, so a caller can tell a rejected transaction from an
+    unanswerable question. A `valid` of false is authoritative against `latest`,
+    where this is the same prefix simulation the mempool applies; against an
+    earlier block the sender's nonce and code may differ, so the verdict is
+    informational.
     Callers use the per-frame figures to size the `[execution, state]` limits
     each frame declares. `gasUsed` is the figure the block accounts for, which
     under [EIP-8037](https://eips.ethereum.org/EIPS/eip-8037) is the larger of
     the two totals rather than their sum.
+    `maxCost` is the same quantity a node reserves against the payer on
+    admission, the `TXPARAM(0x06)` value EIP-8141's mempool section adds to
+    `reserved_pending_cost`, so a wallet can show exactly what will be held. It
+    prices blobs at the declared `maxFeePerBlobGas` rather than the including
+    block's `blobBaseFee`, which is not knowable ahead of inclusion, so it is an
+    upper bound on what execution finally charges.
     For blocks that predate the fork activating EIP-8141 clients MUST return the
-    `-32001: Resource not found` error. Clients SHOULD bound the execution by the
-    per-transaction gas cap they apply to `eth_estimateGas`, because the frames'
-    gas limits are chosen by the caller and would otherwise be unbounded work on
-    a public endpoint.
+    `-32001: Resource not found` error.
+    Two different bounds apply to the work, and conflating them breaks the
+    property callers rely on. The validation prefix MUST be bounded by the same
+    `MAX_VERIFY_GAS` the node applies on mempool admission, so that a transaction
+    which passes here is not rejected on submission for exceeding a budget this
+    endpoint was more generous about. The frames after the prefix are not part of
+    admission, and clients SHOULD bound those by the per-transaction gas cap they
+    apply to `eth_estimateGas`, because their limits are chosen by the caller and
+    would otherwise be unbounded work on a public endpoint.
   params:
     - name: Frame transaction
       required: true

@@ -18,8 +18,14 @@ FrameSimulationResult:
       title: Validation prefix shape
       description: |-
         The recognized shape of the validation prefix. Absent when the prefix is
-        structurally invalid.
+        structurally invalid. Fixed so that clients name the same envelope the
+        same way.
       type: string
+      enum:
+        - SelfVerify
+        - DeploySelfVerify
+        - OnlyVerifyPay
+        - DeployOnlyVerifyPay
     payer:
       title: Payer
       description: |-
