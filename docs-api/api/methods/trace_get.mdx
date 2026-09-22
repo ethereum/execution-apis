@@ -31,125 +31,549 @@ import { useState } from 'react';
 
   ## Result
 
-  **Result** `object or null`
+  **Result** `object or object or object or object or object or null`
 
   ***
 
   <div>
     <details>
       <summary>
-        Show Option 1 `TraceLocalizedFrame` object
+        Show Option 1 `Successful CALL` object
       </summary>
 
-      #### `TraceLocalizedFrame` fields
+      #### `Successful CALL` fields
 
-      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Localization fields are required on historical records; null transaction fields are allowed only for protocol reward records. Simulation records omit localization. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
 
-      **Result** `object or object or object or object`
+      Successful frame; result is required and error must be absent.
+
+      **Result** `object`
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      Successful frame; result is required and error must be absent.
 
       ***
 
       <div>
         <details>
           <summary>
-            Show Option 1 `TraceLocalizedFrame` object
+            Show `Result` object
           </summary>
 
-          #### `TraceLocalizedFrame` fields
+          #### `Result` fields
 
-          **Result** `unknown or unknown`
+          * **blockHash** `string` *required*
 
-          ***
+            32 byte hex value
 
-          <div>
-            <details>
-              <summary>
-                Show Option 1 `Result`&#x20;
-              </summary>
+            *Match pattern:* `^0x[0-9a-f]{64}$`
 
-              #### `Result` fields
-            </details>
-          </div>
+            ***
 
-          <div>
-            <details>
-              <summary>
-                Show Option 2 `Result`&#x20;
-              </summary>
+          * **blockNumber** `integer` *required*
 
-              #### `Result` fields
-            </details>
-          </div>
+            Range: `>= 0`
+
+            ***
+
+          * **type** `string` *required*
+
+            *Allowed values:* `call` `create` `suicide`
+
+            *Must be:* `"call"`
+
+            ***
+
+          * **action** `object` *required*
+
+            TraceCallAction
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `action` object
+                </summary>
+
+                #### `action` fields
+
+                * **callType** `string` *required*
+
+                  *Allowed values:* `call` `callcode` `delegatecall` `staticcall`
+
+                  ***
+
+                * **from** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **gas** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **input** `string` *required*
+
+                  Trace byte string
+
+                  *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **to** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **value** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+
+          * **result** `object` *required*
+
+            TraceCallResult
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `result` object
+                </summary>
+
+                #### `result` fields
+
+                * **gasUsed** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **output** `string` *required*
+
+                  Trace byte string
+
+                  *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+
+          * **revertReason** `string`
+
+            ***
+
+          * **subtraces** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **traceAddress** `array<integer>` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **transactionHash** `string` *required*
+
+            32 byte hex value
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **transactionPosition** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **additionalProperties** `true`
+
+            ***
         </details>
       </div>
+    </details>
+  </div>
+
+  <div>
+    <details>
+      <summary>
+        Show Option 2 `Failed CALL` object
+      </summary>
+
+      #### `Failed CALL` fields
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      Failed frame; error and result are required. Preserve revert bytes and measured gas when available; otherwise result is null.
+
+      **Result** `object`
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      Failed frame; error and result are required. Preserve revert bytes and measured gas when available; otherwise result is null.
+
+      ***
 
       <div>
         <details>
           <summary>
-            Show Option 2 `TraceLocalizedFrame` object
+            Show `Result` object
           </summary>
 
-          #### `TraceLocalizedFrame` fields
+          #### `Result` fields
 
-          **Result** `unknown or unknown`
+          * **blockHash** `string` *required*
 
-          ***
+            32 byte hex value
 
-          <div>
-            <details>
-              <summary>
-                Show Option 1 `Result`&#x20;
-              </summary>
+            *Match pattern:* `^0x[0-9a-f]{64}$`
 
-              #### `Result` fields
-            </details>
-          </div>
+            ***
 
-          <div>
-            <details>
-              <summary>
-                Show Option 2 `Result`&#x20;
-              </summary>
+          * **blockNumber** `integer` *required*
 
-              #### `Result` fields
-            </details>
-          </div>
-        </details>
-      </div>
+            Range: `>= 0`
 
-      <div>
-        <details>
-          <summary>
-            Show Option 3 `TraceLocalizedFrame` object
-          </summary>
+            ***
 
-          #### `TraceLocalizedFrame` fields
+          * **type** `string` *required*
 
-          **Result** `object`
+            *Allowed values:* `call` `create` `suicide`
 
-          ***
+            *Must be:* `"call"`
 
-          <div>
-            <details>
-              <summary>
-                Show `Result` object
-              </summary>
+            ***
 
-              #### `Result` fields
+          * **action** `object` *required*
 
-              * **action** `object` *required*
+            TraceCallAction
 
-                TraceSuicideAction
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `action` object
+                </summary>
+
+                #### `action` fields
+
+                * **callType** `string` *required*
+
+                  *Allowed values:* `call` `callcode` `delegatecall` `staticcall`
+
+                  ***
+
+                * **from** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **gas** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **input** `string` *required*
+
+                  Trace byte string
+
+                  *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **to** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **value** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+
+          * **error** `string` *required*
+
+            ***
+
+          * **result** `object or null` *required*
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 1 `TraceCallResult` object
+                </summary>
+
+                #### `TraceCallResult` fields
+
+                **result** `object` *required*
+
+                TraceCallResult
 
                 ***
 
                 <div>
                   <details>
                     <summary>
-                      Show `action` object
+                      Show `result` object
                     </summary>
 
-                    #### `action` fields
+                    #### `result` fields
+
+                    * **gasUsed** `string` *required*
+
+                      hex encoded 256 bit unsigned integer
+
+                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                      ***
+
+                    * **output** `string` *required*
+
+                      Trace byte string
+
+                      *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                      ***
+
+                    * **additionalProperties** `true`
+
+                      ***
+                  </details>
+                </div>
+              </details>
+            </div>
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 2 `result` null
+                </summary>
+
+                #### `result` fields
+
+                **result** `null` *required*
+
+                ***
+              </details>
+            </div>
+
+          * **revertReason** `string`
+
+            ***
+
+          * **subtraces** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **traceAddress** `array<integer>` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **transactionHash** `string` *required*
+
+            32 byte hex value
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **transactionPosition** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **additionalProperties** `true`
+
+            ***
+        </details>
+      </div>
+    </details>
+  </div>
+
+  <div>
+    <details>
+      <summary>
+        Show Option 3 `Successful CREATE` object
+      </summary>
+
+      #### `Successful CREATE` fields
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      Successful frame; result is required and error must be absent.
+
+      **Result** `object`
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      Successful frame; result is required and error must be absent.
+
+      ***
+
+      <div>
+        <details>
+          <summary>
+            Show `Result` object
+          </summary>
+
+          #### `Result` fields
+
+          * **blockHash** `string` *required*
+
+            32 byte hex value
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **blockNumber** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **type** `string` *required*
+
+            *Allowed values:* `call` `create` `suicide`
+
+            *Must be:* `"create"`
+
+            ***
+
+          * **action** `object` *required*
+
+            TraceCreateAction
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `action` object
+                </summary>
+
+                #### `action` fields
+
+                * **from** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **gas** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **init** `string` *required*
+
+                  Trace byte string
+
+                  *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **value** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+
+          * **result** `object or object` *required*
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 1 `TraceCreateResult` object
+                </summary>
+
+                #### `TraceCreateResult` fields
+
+                **result** `object` *required*
+
+                TraceCreateResult
+
+                ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show `result` object
+                    </summary>
+
+                    #### `result` fields
 
                     * **address** `string` *required*
 
@@ -159,243 +583,15 @@ import { useState } from 'react';
 
                       ***
 
-                    * **balance** `string` *required*
+                    * **code** `string` *required*
 
-                      hex encoded 256 bit unsigned integer
+                      Trace byte string
 
-                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-                      ***
-
-                    * **refundAddress** `string` *required*
-
-                      hex encoded address
-
-                      *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+                      *Match pattern:* `^0x([0-9a-f]{2})*$`
 
                       ***
 
-                    * **additionalProperties** `true`
-
-                      ***
-                  </details>
-                </div>
-
-              * **blockHash** `string or null`
-
-                ***
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 1 `32 byte hex value` string
-                    </summary>
-
-                    #### `32 byte hex value` fields
-
-                    **blockHash** `string`
-
-                    32 byte hex value
-
-                    *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                    ***
-                  </details>
-                </div>
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `blockHash` null
-                    </summary>
-
-                    #### `blockHash` fields
-
-                    **blockHash** `null`
-
-                    ***
-                  </details>
-                </div>
-
-              * **blockNumber** `integer or null`
-
-                ***
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 1 `blockNumber` integer
-                    </summary>
-
-                    #### `blockNumber` fields
-
-                    **blockNumber** `integer`
-
-                    Range: `>= 0`
-
-                    ***
-                  </details>
-                </div>
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `blockNumber` null
-                    </summary>
-
-                    #### `blockNumber` fields
-
-                    **blockNumber** `null`
-
-                    ***
-                  </details>
-                </div>
-
-              * **result** `null`
-
-                ***
-
-              * **subtraces** `integer` *required*
-
-                Range: `>= 0`
-
-                ***
-
-              * **traceAddress** `array<integer>` *required*
-
-                Range: `>= 0`
-
-                ***
-
-              * **transactionHash** `string or null`
-
-                ***
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 1 `32 byte hex value` string
-                    </summary>
-
-                    #### `32 byte hex value` fields
-
-                    **transactionHash** `string`
-
-                    32 byte hex value
-
-                    *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                    ***
-                  </details>
-                </div>
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `transactionHash` null
-                    </summary>
-
-                    #### `transactionHash` fields
-
-                    **transactionHash** `null`
-
-                    ***
-                  </details>
-                </div>
-
-              * **transactionPosition** `integer or null`
-
-                ***
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 1 `transactionPosition` integer
-                    </summary>
-
-                    #### `transactionPosition` fields
-
-                    **transactionPosition** `integer`
-
-                    Range: `>= 0`
-
-                    ***
-                  </details>
-                </div>
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `transactionPosition` null
-                    </summary>
-
-                    #### `transactionPosition` fields
-
-                    **transactionPosition** `null`
-
-                    ***
-                  </details>
-                </div>
-
-              *
-
-              * **additionalProperties** `true`
-
-                ***
-            </details>
-          </div>
-        </details>
-      </div>
-
-      <div>
-        <details>
-          <summary>
-            Show Option 4 `TraceLocalizedFrame` object
-          </summary>
-
-          #### `TraceLocalizedFrame` fields
-
-          **Result** `object`
-
-          ***
-
-          <div>
-            <details>
-              <summary>
-                Show `Result` object
-              </summary>
-
-              #### `Result` fields
-
-              * **action** `object` *required*
-
-                TraceRewardAction
-
-                ***
-
-                <div>
-                  <details>
-                    <summary>
-                      Show `action` object
-                    </summary>
-
-                    #### `action` fields
-
-                    * **author** `string` *required*
-
-                      hex encoded address
-
-                      *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-                      ***
-
-                    * **rewardType** `string` *required*
-
-                      *Allowed values:* `block` `uncle`
-
-                      ***
-
-                    * **value** `string` *required*
+                    * **gasUsed** `string` *required*
 
                       hex encoded 256 bit unsigned integer
 
@@ -408,170 +604,104 @@ import { useState } from 'react';
                       ***
                   </details>
                 </div>
+              </details>
+            </div>
 
-              * **blockHash** `string or null`
+            <div>
+              <details>
+                <summary>
+                  Show Option 2 `TraceCallResult` object
+                </summary>
 
-                ***
+                #### `TraceCallResult` fields
 
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 1 `32 byte hex value` string
-                    </summary>
+                **result** `object` *required*
 
-                    #### `32 byte hex value` fields
-
-                    **blockHash** `string`
-
-                    32 byte hex value
-
-                    *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                    ***
-                  </details>
-                </div>
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `blockHash` null
-                    </summary>
-
-                    #### `blockHash` fields
-
-                    **blockHash** `null`
-
-                    ***
-                  </details>
-                </div>
-
-              * **blockNumber** `integer or null`
+                TraceCallResult
 
                 ***
 
                 <div>
                   <details>
                     <summary>
-                      Show Option 1 `blockNumber` integer
+                      Show `result` object
                     </summary>
 
-                    #### `blockNumber` fields
+                    #### `result` fields
 
-                    **blockNumber** `integer`
+                    * **address** `string` *required*
 
-                    Range: `>= 0`
+                      hex encoded address
 
-                    ***
+                      *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                      ***
+
+                    * **code** `string` *required*
+
+                      Trace byte string
+
+                      *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                      ***
+
+                    * **gasUsed** `string` *required*
+
+                      hex encoded 256 bit unsigned integer
+
+                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                      ***
+
+                    * **output** `string` *required*
+
+                      Trace byte string
+
+                      *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                      ***
+
+                    * **additionalProperties** `true`
+
+                      ***
                   </details>
                 </div>
+              </details>
+            </div>
 
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `blockNumber` null
-                    </summary>
+          * **revertReason** `string`
 
-                    #### `blockNumber` fields
+            ***
 
-                    **blockNumber** `null`
+          * **subtraces** `integer` *required*
 
-                    ***
-                  </details>
-                </div>
+            Range: `>= 0`
 
-              * **result** `null`
+            ***
 
-                ***
+          * **traceAddress** `array<integer>` *required*
 
-              * **subtraces** `integer` *required*
+            Range: `>= 0`
 
-                Range: `>= 0`
+            ***
 
-                ***
+          * **transactionHash** `string` *required*
 
-              * **traceAddress** `array<integer>` *required*
+            32 byte hex value
 
-                Range: `>= 0`
+            *Match pattern:* `^0x[0-9a-f]{64}$`
 
-                ***
+            ***
 
-              * **transactionHash** `string or null`
+          * **transactionPosition** `integer` *required*
 
-                ***
+            Range: `>= 0`
 
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 1 `32 byte hex value` string
-                    </summary>
+            ***
 
-                    #### `32 byte hex value` fields
+          * **additionalProperties** `true`
 
-                    **transactionHash** `string`
-
-                    32 byte hex value
-
-                    *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                    ***
-                  </details>
-                </div>
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `transactionHash` null
-                    </summary>
-
-                    #### `transactionHash` fields
-
-                    **transactionHash** `null`
-
-                    ***
-                  </details>
-                </div>
-
-              * **transactionPosition** `integer or null`
-
-                ***
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 1 `transactionPosition` integer
-                    </summary>
-
-                    #### `transactionPosition` fields
-
-                    **transactionPosition** `integer`
-
-                    Range: `>= 0`
-
-                    ***
-                  </details>
-                </div>
-
-                <div>
-                  <details>
-                    <summary>
-                      Show Option 2 `transactionPosition` null
-                    </summary>
-
-                    #### `transactionPosition` fields
-
-                    **transactionPosition** `null`
-
-                    ***
-                  </details>
-                </div>
-
-              *
-
-              * **additionalProperties** `true`
-
-                ***
-            </details>
-          </div>
+            ***
         </details>
       </div>
     </details>
@@ -580,7 +710,397 @@ import { useState } from 'react';
   <div>
     <details>
       <summary>
-        Show Option 2 `Result` null
+        Show Option 4 `Failed CREATE` object
+      </summary>
+
+      #### `Failed CREATE` fields
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      Failed frame; error and result are required. Preserve revert bytes and measured gas when available; otherwise result is null.
+
+      **Result** `object`
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      Failed frame; error and result are required. Preserve revert bytes and measured gas when available; otherwise result is null.
+
+      ***
+
+      <div>
+        <details>
+          <summary>
+            Show `Result` object
+          </summary>
+
+          #### `Result` fields
+
+          * **blockHash** `string` *required*
+
+            32 byte hex value
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **blockNumber** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **type** `string` *required*
+
+            *Allowed values:* `call` `create` `suicide`
+
+            *Must be:* `"create"`
+
+            ***
+
+          * **action** `object` *required*
+
+            TraceCreateAction
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `action` object
+                </summary>
+
+                #### `action` fields
+
+                * **from** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **gas** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **init** `string` *required*
+
+                  Trace byte string
+
+                  *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **value** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+
+          * **error** `string` *required*
+
+            ***
+
+          * **result** `object or object or null` *required*
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 1 `TraceCreateResult` object
+                </summary>
+
+                #### `TraceCreateResult` fields
+
+                **result** `object` *required*
+
+                TraceCreateResult
+
+                ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show `result` object
+                    </summary>
+
+                    #### `result` fields
+
+                    * **address** `string` *required*
+
+                      hex encoded address
+
+                      *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                      ***
+
+                    * **code** `string` *required*
+
+                      Trace byte string
+
+                      *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                      ***
+
+                    * **gasUsed** `string` *required*
+
+                      hex encoded 256 bit unsigned integer
+
+                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                      ***
+
+                    * **additionalProperties** `true`
+
+                      ***
+                  </details>
+                </div>
+              </details>
+            </div>
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 2 `TraceCallResult` object
+                </summary>
+
+                #### `TraceCallResult` fields
+
+                **result** `object` *required*
+
+                TraceCallResult
+
+                ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show `result` object
+                    </summary>
+
+                    #### `result` fields
+
+                    * **gasUsed** `string` *required*
+
+                      hex encoded 256 bit unsigned integer
+
+                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                      ***
+
+                    * **output** `string` *required*
+
+                      Trace byte string
+
+                      *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                      ***
+
+                    * **additionalProperties** `true`
+
+                      ***
+                  </details>
+                </div>
+              </details>
+            </div>
+
+            <div>
+              <details>
+                <summary>
+                  Show Option 3 `result` null
+                </summary>
+
+                #### `result` fields
+
+                **result** `null` *required*
+
+                ***
+              </details>
+            </div>
+
+          * **revertReason** `string`
+
+            ***
+
+          * **subtraces** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **traceAddress** `array<integer>` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **transactionHash** `string` *required*
+
+            32 byte hex value
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **transactionPosition** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **additionalProperties** `true`
+
+            ***
+        </details>
+      </div>
+    </details>
+  </div>
+
+  <div>
+    <details>
+      <summary>
+        Show Option 5 `Historical transaction call trace record` object
+      </summary>
+
+      #### `Historical transaction call trace record` fields
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      **Result** `object`
+
+      Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile frames with zero value; retain nested frames with nonzero transferred or inherited value, whether successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM return-memory effects. Standalone historical records require localization; only protocol rewards have null transaction fields. Frames inside simulation and replay envelopes omit localization and protocol rewards. Failed frames require error and result, retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind vocabulary is an open decision (H05,H09,H10,H24).
+
+      ***
+
+      <div>
+        <details>
+          <summary>
+            Show `Result` object
+          </summary>
+
+          #### `Result` fields
+
+          * **blockHash** `string` *required*
+
+            32 byte hex value
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **blockNumber** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **type** `string` *required*
+
+            *Allowed values:* `call` `create` `suicide`
+
+            *Must be:* `"suicide"`
+
+            ***
+
+          * **action** `object` *required*
+
+            TraceSuicideAction
+
+            ***
+
+            <div>
+              <details>
+                <summary>
+                  Show `action` object
+                </summary>
+
+                #### `action` fields
+
+                * **address** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **balance** `string` *required*
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
+                * **refundAddress** `string` *required*
+
+                  hex encoded address
+
+                  *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                  ***
+
+                * **additionalProperties** `true`
+
+                  ***
+              </details>
+            </div>
+
+          * **result** `null`
+
+            ***
+
+          * **subtraces** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **traceAddress** `array<integer>` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **transactionHash** `string` *required*
+
+            32 byte hex value
+
+            *Match pattern:* `^0x[0-9a-f]{64}$`
+
+            ***
+
+          * **transactionPosition** `integer` *required*
+
+            Range: `>= 0`
+
+            ***
+
+          * **additionalProperties** `true`
+
+            ***
+        </details>
+      </div>
+    </details>
+  </div>
+
+  <div>
+    <details>
+      <summary>
+        Show Option 6 `Result` null
       </summary>
 
       #### `Result` fields

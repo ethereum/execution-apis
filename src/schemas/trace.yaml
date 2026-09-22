@@ -38,6 +38,11 @@ TraceCall:
       $ref: '#/components/schemas/byte'
     accessList:
       $ref: '#/components/schemas/AccessList'
+  not:
+    required: [gasPrice]
+    anyOf:
+    - required: [maxFeePerGas]
+    - required: [maxPriorityFeePerGas]
   additionalProperties: false
   description: 'Unsigned simulation. Omitted or null to creates a contract. Defaults: from zero address,
     value zero, input empty, nonce from selected state, fees zero. Omitted gas uses the client execution
@@ -178,8 +183,9 @@ TraceFrame:
     successful or failed. traceAddress gives child ordinals and subtraces counts direct children in the
     emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM
     return-memory effects.
-    Localization fields are required on historical records; null transaction fields are allowed only for
-    protocol reward records. Simulation records omit localization. Failed frames require error and result,
+    Standalone historical records require localization; only protocol rewards have null transaction
+    fields. Frames inside simulation and replay envelopes omit localization and protocol rewards.
+    Failed frames require error and result,
     retaining revert bytes and measured gas when available, otherwise result is null. Stable error-kind
     vocabulary is an open decision (H05,H09,H10,H24).
   oneOf:
@@ -197,22 +203,6 @@ TraceFrame:
         const: call
       action:
         $ref: '#/components/schemas/TraceCallAction'
-      blockHash: &id006
-        anyOf:
-        - $ref: '#/components/schemas/hash32'
-        - type: 'null'
-      blockNumber: &id007
-        anyOf:
-        - *id004
-        - type: 'null'
-      transactionHash: &id008
-        anyOf:
-        - $ref: '#/components/schemas/hash32'
-        - type: 'null'
-      transactionPosition: &id009
-        anyOf:
-        - *id004
-        - type: 'null'
       result:
         anyOf:
         - $ref: '#/components/schemas/TraceCallResult'
@@ -222,7 +212,9 @@ TraceFrame:
       revertReason:
         type: string
     oneOf:
-    - required:
+    - title: Successful CALL
+      description: Successful frame; result is required and error must be absent.
+      required:
       - result
       not:
         required:
@@ -230,7 +222,10 @@ TraceFrame:
       properties:
         result:
           $ref: '#/components/schemas/TraceCallResult'
-    - required:
+    - title: Failed CALL
+      description: Failed frame; error and result are required. Preserve revert bytes and measured gas
+        when available; otherwise result is null.
+      required:
       - error
       - result
   - type: object
@@ -246,10 +241,6 @@ TraceFrame:
         const: create
       action:
         $ref: '#/components/schemas/TraceCreateAction'
-      blockHash: *id006
-      blockNumber: *id007
-      transactionHash: *id008
-      transactionPosition: *id009
       result:
         anyOf:
         - $ref: '#/components/schemas/TraceCreateResult'
@@ -260,7 +251,9 @@ TraceFrame:
       revertReason:
         type: string
     oneOf:
-    - required:
+    - title: Successful CREATE
+      description: Successful frame; result is required and error must be absent.
+      required:
       - result
       not:
         required:
@@ -268,7 +261,10 @@ TraceFrame:
       properties:
         result:
           $ref: '#/components/schemas/TraceCreateResult'
-    - required:
+    - title: Failed CREATE
+      description: Failed frame; error and result are required. Preserve revert bytes and measured gas
+        when available; otherwise result is null.
+      required:
       - error
       - result
   - type: object
@@ -284,10 +280,6 @@ TraceFrame:
         const: suicide
       action:
         $ref: '#/components/schemas/TraceSuicideAction'
-      blockHash: *id006
-      blockNumber: *id007
-      transactionHash: *id008
-      transactionPosition: *id009
       result:
         type: 'null'
   - type: object
@@ -303,16 +295,32 @@ TraceFrame:
         const: reward
       action:
         $ref: '#/components/schemas/TraceRewardAction'
-      blockHash: *id006
-      blockNumber: *id007
-      transactionHash: *id008
-      transactionPosition: *id009
       result:
         type: 'null'
+# Context constraints are separate from the shared action/result union. Keep
+# their keywords disjoint so the generator's limited allOf merger preserves them.
+TraceTransactionFrame:
+  title: Transaction call trace record
+  allOf:
+  - $ref: '#/components/schemas/TraceFrame'
+  - type: object
+    properties:
+      type:
+        enum: [call, create, suicide]
+TraceUnlocalizedFrame:
+  title: Call trace record inside an execution envelope
+  allOf:
+  - $ref: '#/components/schemas/TraceTransactionFrame'
+  - not:
+      anyOf:
+      - required: [blockHash]
+      - required: [blockNumber]
+      - required: [transactionHash]
+      - required: [transactionPosition]
 TraceFrames:
   type: array
   items:
-    $ref: '#/components/schemas/TraceFrame'
+    $ref: '#/components/schemas/TraceUnlocalizedFrame'
   title: TraceFrames
 TraceLocalizedFrames:
   type: array
@@ -320,15 +328,44 @@ TraceLocalizedFrames:
     $ref: '#/components/schemas/TraceLocalizedFrame'
   title: TraceLocalizedFrames
 TraceLocalizedFrame:
+  title: Historical call trace record or protocol reward
   allOf:
   - $ref: '#/components/schemas/TraceFrame'
   - type: object
-    required:
-    - blockHash
-    - blockNumber
-    - transactionHash
-    - transactionPosition
-  title: TraceLocalizedFrame
+    required: [blockHash, blockNumber, transactionHash, transactionPosition]
+    properties:
+      blockHash:
+        $ref: '#/components/schemas/hash32'
+      blockNumber: *id004
+    if:
+      properties:
+        type:
+          const: reward
+      required: [type]
+    then:
+      properties:
+        transactionHash:
+          type: 'null'
+        transactionPosition:
+          type: 'null'
+    else:
+      properties:
+        transactionHash:
+          $ref: '#/components/schemas/hash32'
+        transactionPosition: *id004
+TraceLocalizedTransactionFrame:
+  title: Historical transaction call trace record
+  allOf:
+  - $ref: '#/components/schemas/TraceLocalizedFrame'
+  - type: object
+    properties:
+      type:
+        enum: [call, create, suicide]
+TraceLocalizedTransactionFrames:
+  title: Historical transaction call traces
+  type: array
+  items:
+    $ref: '#/components/schemas/TraceLocalizedTransactionFrame'
 TraceQuantityChange:
   oneOf:
   - const: '='
@@ -460,7 +497,12 @@ TraceVm:
   - code
   - ops
   properties:
-    code: *id003
+    # This resource has its own base URI. Primitive definitions must be local;
+    # component pointers would resolve inside TraceVm, not the OpenRPC document.
+    code: &vmData
+      title: Trace byte string
+      type: string
+      pattern: ^0x([0-9a-f]{2})*$
     ops:
       type: array
       items:
@@ -485,7 +527,10 @@ TraceVm:
                 used: *id004
                 push:
                   type: array
-                  items: *id002
+                  items: &vmQuantity
+                    title: hex encoded 256 bit unsigned integer
+                    type: string
+                    pattern: ^0x(0|[1-9a-f][0-9a-f]{0,63})$
                 mem:
                   anyOf:
                   - type: object
@@ -494,7 +539,7 @@ TraceVm:
                     - data
                     properties:
                       'off': *id004
-                      data: *id003
+                      data: *vmData
                   - type: 'null'
                 store:
                   anyOf:
@@ -503,8 +548,8 @@ TraceVm:
                     - key
                     - val
                     properties:
-                      key: *id002
-                      val: *id002
+                      key: *vmQuantity
+                      val: *vmQuantity
                   - type: 'null'
             - type: 'null'
           sub:

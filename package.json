@@ -21,10 +21,13 @@
     "start": "docusaurus start",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
-    "watch": "nodemon --watch src --watch docs-api/docs --watch README.md --ignore docs-api/docs/quickstart.md --ext yaml,md,json --exec \"npm run build:spec && npm run docs:copy\"",
+    "watch": "nodemon --watch src --watch docs-api/docs --watch README.md --ignore docs-api/docs/quickstart.md --ext yaml,md,json --exec \"npm run docs:refresh\"",
     "docs:copy": "cp README.md ./docs-api/docs/quickstart.md",
-    "prebuild:docusaurus": "node scripts/docs-spec.cjs",
-    "prestart": "node scripts/docs-spec.cjs"
+    "prebuild:docusaurus": "npm run docs:spec",
+    "prestart": "npm run docs:spec",
+    "docs:spec": "node scripts/docs-spec.cjs",
+    "docs:refresh": "npm run build:spec && npm run docs:spec && npm run docs:copy",
+    "test:docs": "node --test scripts/docs-spec.test.cjs"
   },
   "repository": {
     "type": "git",

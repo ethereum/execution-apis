@@ -14,8 +14,12 @@ Observed agreement is not a correctness oracle. Recommendations below are propos
 - Query path inputs use hex quantities; traceAddress outputs retain JSON integers.
 - Address filters compose with AND between lists. Empty lists are unrestricted;
   null and the mode extension are rejected by this baseline.
-- Historical records include localization fields; protocol rewards have null transaction
-  hash/index. Synthetic PoS rewards and withdrawals are not call traces.
+- Standalone historical records (`trace_block`, `trace_filter`, `trace_transaction`,
+  `trace_get`) require non-null block localization. Mined transaction frames also require
+  non-null transaction hash/index; protocol rewards require null transaction hash/index
+  and occur only in block/filter results. Frames inside simulation and replay envelopes
+  omit localization and rewards; replay envelopes carry the transaction hash.
+  Synthetic PoS rewards and withdrawals are not call traces.
 - Trace calls default to latest post-state. Raw signed simulation uses latest and two
   parameters. Accepting an explicitly supplied block-selector extension is outside this
   baseline, not a conformance failure. Unsigned zero-fee calls preserve the block environment.
@@ -42,6 +46,7 @@ enforce it; the companion precompile fixtures check inclusion and path numbering
 Stable frame error kinds; failed-operation ex conventions; nested CALL stipend/refund
 gas accounting; client execution caps; protocol reward ordering; optional method
 discovery; pending-state behavior and simulation extensions need further agreement.
+The localized schemas describe mined records; they do not define pending localization.
 Signed raw-transaction nonce admission (H13) is also a proposed contract choice; malformed
 JSON on rejection is independently a reporting defect. The two-argument baseline does
 not require clients to remove an explicitly selected third-argument extension (H12).
@@ -65,4 +70,18 @@ show the changes required by each tested build, with individual requests and res
 `openrpc.json` retains the recursive `vmTrace` schema and is the validation artifact.
 The documentation renderer currently cannot expand recursive schemas. Its generated
 `docs-openrpc.json` display input replaces resource-local self references with labeled
-recursive object descriptions; it must not be used for conformance validation.
+recursive object descriptions. It also materializes shared object fields in union
+branches and labels array-item variants for the renderer. Different item variants may
+coexist in one array; the display wrappers are not an equivalent validation schema.
+This artifact must not be used for conformance validation.
+
+`npm run docs:refresh` rebuilds the spec, refreshes this display projection, and copies
+the introductory page. The watcher uses the same chain. Startup and production-build
+hooks only refresh the projection so an already prepared release spec is preserved.
+`npm run test:docs` tests rendered method output and the refresh chain after `make build`.
+
+The Go trace schema tests build the real YAML and validate positive and negative cases
+against reference-preserving and expanded schemas (Draft 7 and Draft 2019-09), and the
+actual speccheck parsing/validation path. They include recursive VM resources, fee
+conflicts, contextual frame restrictions and nonempty callMany tuples. These are schema
+tests, not execution fixtures or evidence of client semantic conformance.

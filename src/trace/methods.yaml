@@ -242,7 +242,7 @@
     name: Result
     schema:
       anyOf:
-      - $ref: '#/components/schemas/TraceLocalizedFrames'
+      - $ref: '#/components/schemas/TraceLocalizedTransactionFrames'
       - type: 'null'
   errors:
   - code: -32601
@@ -276,7 +276,7 @@
     name: Result
     schema:
       anyOf:
-      - $ref: '#/components/schemas/TraceLocalizedFrame'
+      - $ref: '#/components/schemas/TraceLocalizedTransactionFrame'
       - type: 'null'
   errors:
   - code: -32601

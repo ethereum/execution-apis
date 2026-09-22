@@ -14,3 +14,75 @@ test('unscoped recursion fails and ordinary references are preserved', () => {
   assert.throws(() => forDisplay({$ref: '#'}), /Unscoped/);
   assert.deepEqual(forDisplay({$ref: '#/components/schemas/Value'}), {$ref: '#/components/schemas/Value'});
 });
+
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const {execFileSync} = require('node:child_process');
+const {documentForDisplay} = require('./docs-spec.cjs');
+
+test('actual generated trace pages retain array, variant fields and localization', async () => {
+  const {renderMethodsToMarkdown, identityEdits, identitySchemaEdits} = await import('@open-rpc/markdown-generator');
+  const input = JSON.parse(fs.readFileSync(path.join(__dirname, '../openrpc.json')));
+  const before = JSON.stringify(input);
+  const display = documentForDisplay(input);
+  display.methods = display.methods.filter(method => method.name.startsWith('trace_'));
+  const pages = await renderMethodsToMarkdown(display, identitySchemaEdits, identityEdits);
+  for (const page of pages) assert.doesNotMatch(page.markdown, /`unknown(?: or|`)/);
+  const block = pages.find(page => page.methodName === 'trace_block').markdown;
+  assert.match(block, /\*\*Result\*\* `array<object>/);
+  assert.match(block, /different variants may occur in the same array/);
+  assert.doesNotMatch(block, /unknown or unknown/);
+  for (const field of ['blockHash', 'blockNumber', 'transactionHash', 'transactionPosition', 'action', 'result', 'callType', 'init', 'gasUsed', 'output', 'code']) {
+    assert.match(block, new RegExp(`\\*\\*${field}\\*\\* [^\\n]+\\*required\\*`));
+  }
+  assert.match(block, /Successful CALL/);
+  assert.match(block, /Failed CREATE/);
+  assert.match(block, /error must be absent/);
+  assert.match(block, /error and result are required/);
+  assert.match(block, /\*\*transactionHash\*\* `null` \*required\*/);
+  const get = pages.find(page => page.methodName === 'trace_get').markdown;
+  assert.doesNotMatch(get, /TraceRewardAction/);
+  const call = pages.find(page => page.methodName === 'trace_call').markdown;
+  assert.match(call, /Recursive instance of \[?https:\/\/ethereum.github.io\/execution-apis\/schemas\/trace-vm.json/);
+  assert.doesNotMatch(call, /\*\*blockHash\*\*/);
+  assert.equal(JSON.stringify(input), before);
+});
+
+test('projection preserves examples as data', () => {
+  const example = {oneOf: [{$ref: '#'}], type: 'array', items: {const: 'value'}};
+  const doc = {methods: [{params: [], result: {schema: {type: 'object'}}, examples: [example]}]};
+  assert.deepEqual(documentForDisplay(doc).methods[0].examples, [example]);
+});
+
+test('watched rebuild refreshes the projection; startup/release hooks preserve prepared specs', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'docs-refresh-'));
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json')));
+    assert.match(pkg.scripts.watch, /--exec "npm run docs:refresh"/);
+    // Substitute only the expensive Go build with a deterministic source copy.
+    // Run the real npm command chain, projection and copy in a scratch site.
+    pkg.scripts['build:spec'] = 'node build.cjs';
+    fs.mkdirSync(path.join(dir, 'scripts'));
+    fs.mkdirSync(path.join(dir, 'docs-api/docs'), {recursive: true});
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(pkg));
+    fs.copyFileSync(path.join(__dirname, 'docs-spec.cjs'), path.join(dir, 'scripts/docs-spec.cjs'));
+    fs.writeFileSync(path.join(dir, 'README.md'), 'Watch test');
+    fs.writeFileSync(path.join(dir, 'build.cjs'), "require('fs').copyFileSync('source.json','openrpc.json')");
+    const run = script => execFileSync('npm', ['run', script], {cwd: dir, stdio: 'pipe'});
+    for (const description of ['before edit', 'after edit']) {
+      fs.writeFileSync(path.join(dir, 'source.json'), JSON.stringify({methods: [{params: [], result: {schema: {type: 'string', description}}}]}));
+      run('docs:refresh');
+      const projected = JSON.parse(fs.readFileSync(path.join(dir, 'docs-openrpc.json')));
+      assert.equal(projected.methods[0].result.schema.description, description);
+    }
+    assert.equal(fs.readFileSync(path.join(dir, 'docs-api/docs/quickstart.md'), 'utf8'), 'Watch test');
+    // A prepared release must not be rebuilt by either lifecycle hook.
+    fs.writeFileSync(path.join(dir, 'build.cjs'), 'process.exit(99)');
+    for (const hook of ['prestart', 'prebuild:docusaurus']) {
+      fs.rmSync(path.join(dir, 'docs-openrpc.json'));
+      run(hook);
+      assert.ok(fs.existsSync(path.join(dir, 'docs-openrpc.json')));
+    }
+  } finally { fs.rmSync(dir, {recursive: true, force: true}); }
+});

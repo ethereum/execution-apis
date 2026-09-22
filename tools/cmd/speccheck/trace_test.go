@@ -1,0 +1,318 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/ethereum/execution-apis/tools/internal/specgen"
+	schema5 "github.com/santhosh-tekuri/jsonschema/v5"
+	schema6 "github.com/santhosh-tekuri/jsonschema/v6"
+)
+
+type traceObject = map[string]any
+
+// Build from the real YAML, so tests also run on a clean checkout without make.
+func traceDocuments(t *testing.T) (traceObject, traceObject, map[string]*methodSchema) {
+	t.Helper()
+	g := specgen.New()
+	paths, err := filepath.Glob("../../../src/schemas/*.yaml")
+	if err != nil || len(paths) == 0 {
+		t.Fatalf("schema files: %v", err)
+	}
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := g.AddSchemas(data); err != nil {
+			t.Fatal(err)
+		}
+	}
+	data, err := os.ReadFile("../../../src/trace/methods.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddMethods(data); err != nil {
+		t.Fatal(err)
+	}
+	read := func() (traceObject, []byte) {
+		t.Helper()
+		data, err := g.JSON()
+		if err != nil {
+			t.Fatal(err)
+		}
+		var doc traceObject
+		if err := json.Unmarshal(data, &doc); err != nil {
+			t.Fatal(err)
+		}
+		return doc, data
+	}
+	refs, _ := read()
+	if err := g.Dereference(); err != nil {
+		t.Fatal(err)
+	}
+	expanded, data := read()
+	path := filepath.Join(t.TempDir(), "openrpc.json")
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := parseSpec(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return refs, expanded, parsed
+}
+
+func traceJSON(t *testing.T, value any) []byte {
+	t.Helper()
+	data, err := json.Marshal(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return data
+}
+func traceCopy(t *testing.T, value traceObject) traceObject {
+	t.Helper()
+	var copy traceObject
+	if err := json.Unmarshal(traceJSON(t, value), &copy); err != nil {
+		t.Fatal(err)
+	}
+	return copy
+}
+
+func TestTraceContracts(t *testing.T) {
+	refs, expanded, parsed := traceDocuments(t)
+	address := "0x" + strings.Repeat("1", 40)
+	hash := "0x" + strings.Repeat("2", 64)
+	call := traceObject{"type": "call", "action": traceObject{"callType": "call", "from": address, "to": address, "gas": "0x100", "input": "0x", "value": "0x0"}, "subtraces": 0, "traceAddress": []any{}, "result": traceObject{"gasUsed": "0x0", "output": "0x"}}
+	create := traceCopy(t, call)
+	create["type"] = "create"
+	create["action"] = traceObject{"from": address, "gas": "0x100", "init": "0x00", "value": "0x0"}
+	create["result"] = traceObject{"gasUsed": "0x0", "address": address, "code": "0x"}
+	suicide := traceObject{"type": "suicide", "action": traceObject{"address": address, "refundAddress": address, "balance": "0x0"}, "subtraces": 0, "traceAddress": []any{}}
+	reward := traceObject{"type": "reward", "action": traceObject{"author": address, "rewardType": "block", "value": "0x1"}, "subtraces": 0, "traceAddress": []any{}}
+	local := func(frame traceObject) traceObject {
+		x := traceCopy(t, frame)
+		x["blockHash"] = hash
+		x["blockNumber"] = 1
+		x["transactionHash"] = hash
+		x["transactionPosition"] = 0
+		return x
+	}
+	historicalReward := local(reward)
+	historicalReward["transactionHash"] = nil
+	historicalReward["transactionPosition"] = nil
+	envelope := func(frame any) traceObject {
+		return traceObject{"output": "0x", "trace": []any{frame}, "stateDiff": nil, "vmTrace": nil}
+	}
+	type probe struct {
+		name, method string
+		param        int
+		value        any
+		valid        bool
+	}
+	var probes []probe
+	add := func(name, method string, param int, value any, valid bool) {
+		probes = append(probes, probe{name, method, param, value, valid})
+	}
+	for _, frame := range []traceObject{call, create, suicide} {
+		kind := frame["type"].(string)
+		for _, method := range []string{"trace_block", "trace_filter", "trace_transaction"} {
+			add(kind+" mined", method, -1, []any{local(frame)}, true)
+			add(kind+" unlocalized", method, -1, []any{frame}, false)
+			for _, field := range []string{"blockHash", "blockNumber", "transactionHash", "transactionPosition"} {
+				bad := local(frame)
+				bad[field] = nil
+				add(kind+" null "+field, method, -1, []any{bad}, false)
+				bad = local(frame)
+				delete(bad, field)
+				add(kind+" missing "+field, method, -1, []any{bad}, false)
+			}
+		}
+		add(kind+" lookup", "trace_get", -1, local(frame), true)
+		for _, method := range []string{"trace_call", "trace_rawTransaction"} {
+			add(kind+" simulation", method, -1, envelope(frame), true)
+			for _, field := range []string{"blockHash", "blockNumber", "transactionHash", "transactionPosition"} {
+				bad := traceCopy(t, frame)
+				bad[field] = nil
+				add(kind+" simulation has "+field, method, -1, envelope(bad), false)
+			}
+			add(kind+" simulation localized", method, -1, envelope(local(frame)), false)
+		}
+	}
+	for _, method := range []string{"trace_block", "trace_filter"} {
+		add("protocol reward", method, -1, []any{historicalReward}, true)
+		add("reward with transaction", method, -1, []any{local(reward)}, false)
+		for _, field := range []string{"blockHash", "blockNumber"} {
+			bad := traceCopy(t, historicalReward)
+			bad[field] = nil
+			add("reward null "+field, method, -1, []any{bad}, false)
+		}
+		for _, field := range []string{"transactionHash", "transactionPosition"} {
+			bad := traceCopy(t, historicalReward)
+			bad[field] = local(reward)[field]
+			add("reward non-null "+field, method, -1, []any{bad}, false)
+		}
+	}
+	add("reward excluded", "trace_transaction", -1, []any{historicalReward}, false)
+	add("reward excluded", "trace_get", -1, historicalReward, false)
+	for _, method := range []string{"trace_call", "trace_rawTransaction"} {
+		add("reward excluded", method, -1, envelope(reward), false)
+	}
+	for _, frame := range []traceObject{call, create} {
+		failed := traceCopy(t, frame)
+		failed["error"] = "Reverted"
+		failed["result"] = traceObject{"gasUsed": "0x1", "output": "0xdead"}
+		add("revert bytes "+frame["type"].(string), "trace_call", -1, envelope(failed), true)
+		failed = traceCopy(t, frame)
+		failed["result"] = nil
+		add("null result without error "+frame["type"].(string), "trace_call", -1, envelope(failed), false)
+		failed = traceCopy(t, failed)
+		failed["error"] = "Out of gas"
+		add("failed null result "+frame["type"].(string), "trace_call", -1, envelope(failed), true)
+		failed = traceCopy(t, failed)
+		delete(failed, "result")
+		add("failure missing result "+frame["type"].(string), "trace_call", -1, envelope(failed), false)
+	}
+	for _, value := range []any{traceObject{}, traceObject{"gasPrice": "0x0"}, traceObject{"maxFeePerGas": "0x1", "maxPriorityFeePerGas": "0x0"}} {
+		add("valid fees", "trace_call", 0, value, true)
+	}
+	for _, field := range []string{"maxFeePerGas", "maxPriorityFeePerGas"} {
+		add("conflicting "+field, "trace_call", 0, traceObject{"gasPrice": "0x0", field: "0x1"}, false)
+	}
+	add("nonempty tuples", "trace_callMany", 0, []any{[]any{traceObject{"to": address}, []any{"trace"}}, []any{traceObject{}, []any{"stateDiff", "vmTrace"}}}, true)
+	add("invalid second envelope", "trace_callMany", -1, []any{envelope(call), envelope(reward)}, false)
+	add("invalid second tuple", "trace_callMany", 0, []any{[]any{traceObject{}, []any{}}, []any{traceObject{}, []any{"bad"}}}, false)
+	add("invalid second selection", "trace_call", 1, []any{"trace", "bad"}, false)
+	add("short tuple", "trace_callMany", 0, []any{[]any{traceObject{}}}, false)
+	add("long tuple", "trace_callMany", 0, []any{[]any{traceObject{}, []any{}, 0}}, false)
+	add("reversed tuple", "trace_callMany", 0, []any{[]any{[]any{}, traceObject{}}}, false)
+	add("duplicate selections", "trace_callMany", 0, []any{[]any{traceObject{}, []any{"trace", "trace"}}}, false)
+	add("nonempty envelopes", "trace_callMany", -1, []any{envelope(call), envelope(create)}, true)
+	add("reward in sequence", "trace_callMany", -1, []any{envelope(reward)}, false)
+	diff := envelope(call)
+	diff["stateDiff"] = traceObject{address: traceObject{"balance": "=", "nonce": "=", "code": "=", "storage": traceObject{hash: traceObject{"*": traceObject{"from": hash, "to": hash}}}}}
+	add("state change", "trace_call", -1, diff, true)
+	for _, frame := range []traceObject{call, reward, local(call)} {
+		replay := envelope(frame)
+		replay["transactionHash"] = hash
+		add("replay "+frame["type"].(string), "trace_replayTransaction", -1, replay, frame["type"] == "call" && frame["blockHash"] == nil)
+		add("block replay "+frame["type"].(string), "trace_replayBlockTransactions", -1, []any{replay}, frame["type"] == "call" && frame["blockHash"] == nil)
+	}
+	for _, method := range []string{"trace_get", "trace_transaction", "trace_replayTransaction"} {
+		add("missing transaction", method, -1, nil, true)
+	}
+	// A deeply malformed child must fail through the actual speccheck serialization path.
+	vm := traceObject{"code": "0x00", "ops": []any{}}
+	for range 5 {
+		vm = traceObject{"code": "0x00", "ops": []any{traceObject{"pc": 0, "cost": 0, "ex": nil, "sub": vm}}}
+	}
+	e := envelope(call)
+	e["vmTrace"] = vm
+	add("nested VM", "trace_call", -1, e, true)
+	badVM := traceCopy(t, vm)
+	leaf := badVM
+	for range 5 {
+		leaf = leaf["ops"].([]any)[0].(traceObject)["sub"].(traceObject)
+	}
+	leaf["code"] = "not hex"
+	e = envelope(call)
+	e["vmTrace"] = badVM
+	add("malformed deep VM", "trace_call", -1, e, false)
+
+	for _, tc := range probes {
+		t.Run(tc.method+"/"+tc.name, func(t *testing.T) {
+			for _, artifact := range []struct {
+				name string
+				doc  traceObject
+			}{{"refs", refs}, {"expanded", expanded}} {
+				t.Run(artifact.name, func(t *testing.T) {
+					var schema traceObject
+					for _, m := range artifact.doc["methods"].([]any) {
+						method := m.(traceObject)
+						if method["name"] != tc.method {
+							continue
+						}
+						if tc.param < 0 {
+							schema = method["result"].(traceObject)["schema"].(traceObject)
+						} else {
+							schema = method["params"].([]any)[tc.param].(traceObject)["schema"].(traceObject)
+						}
+					}
+					root := traceCopy(t, schema)
+					root["components"] = artifact.doc["components"]
+					for _, draft := range []*schema5.Draft{schema5.Draft7, schema5.Draft2019} {
+						compiler := schema5.NewCompiler()
+						compiler.Draft = draft
+						if err := compiler.AddResource("https://example.test/trace.json", bytes.NewReader(traceJSON(t, root))); err != nil {
+							t.Fatal(err)
+						}
+						compiled, err := compiler.Compile("https://example.test/trace.json")
+						if err != nil {
+							t.Fatal(err)
+						}
+						err = compiled.Validate(tc.value)
+						if (err == nil) != tc.valid {
+							t.Fatalf("valid=%v: %v", tc.valid, err)
+						}
+					}
+				})
+			}
+			t.Run("speccheck", func(t *testing.T) {
+				cd := parsed[tc.method].result
+				if tc.param >= 0 {
+					cd = parsed[tc.method].params[tc.param]
+				}
+				err := validate(cd.schema, traceJSON(t, tc.value), "https://example.test/speccheck.json")
+				var validationErr *schema5.ValidationError
+				if err != nil && !errors.As(err, &validationErr) {
+					t.Fatalf("compile/serialization error: %v", err)
+				}
+				if (err == nil) != tc.valid {
+					t.Fatalf("valid=%v: %v", tc.valid, err)
+				}
+			})
+		})
+	}
+}
+
+func TestTraceVmResource(t *testing.T) {
+	refs, _, _ := traceDocuments(t)
+	vm := refs["components"].(traceObject)["schemas"].(traceObject)["TraceVm"].(traceObject)
+	// Compile at its own declared identity, with no surrounding components to hide a scope defect.
+	for _, draft := range []*schema6.Draft{schema6.Draft7, schema6.Draft2019} {
+		compiler := schema6.NewCompiler()
+		compiler.DefaultDraft(draft)
+		id := vm["$id"].(string)
+		if err := compiler.AddResource(id, vm); err != nil {
+			t.Fatal(err)
+		}
+		compiled, err := compiler.Compile(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, tc := range []struct {
+			input string
+			valid bool
+		}{
+			{`{"code":"0x","ops":[]}`, true},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":{"used":0,"push":["0x1"],"mem":{"off":0,"data":"0x00"},"store":{"key":"0x0","val":"0x1"}},"sub":{"code":"0x","ops":[]}}]}`, true},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":null,"sub":{"code":"bad","ops":[]}}]}`, false},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":{"used":0,"push":["0x00"],"mem":null,"store":null},"sub":null}]}`, false},
+		} {
+			var input any
+			if err := json.Unmarshal([]byte(tc.input), &input); err != nil {
+				t.Fatal(err)
+			}
+			err := compiled.Validate(input)
+			if (err == nil) != tc.valid {
+				t.Fatalf("valid=%v: %v", tc.valid, err)
+			}
+		}
+	}
+}
