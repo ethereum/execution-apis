@@ -36,17 +36,19 @@ type Chain struct {
 
 // ChainTxInfo is the structure of txinfo.json from hivechain.
 type ChainTxInfo struct {
-	LegacyTransfers     []TxInfo      `json:"tx-transfer-legacy"`
-	AccessListTransfers []TxInfo      `json:"tx-transfer-eip2930"`
-	DynamicFeeTransfers []TxInfo      `json:"tx-transfer-eip1559"`
-	LegacyEmit          []TxInfo      `json:"tx-emit-legacy"`
-	AccessListEmit      []TxInfo      `json:"tx-emit-eip2930"`
-	DynamicFeeEmit      []TxInfo      `json:"tx-emit-eip1559"`
-	CallMeContract      *ContractInfo `json:"deploy-callme"`
-	CallEnvContract     *ContractInfo `json:"deploy-callenv"`
-	CallRevertContract  *ContractInfo `json:"deploy-callrevert"`
-	EIP7702             *EIP7702Info  `json:"tx-eip7702"`
-	EIP7002             *EIP7002Info  `json:"tx-request-eip7002"`
+	LegacyTransfers     []TxInfo         `json:"tx-transfer-legacy"`
+	AccessListTransfers []TxInfo         `json:"tx-transfer-eip2930"`
+	DynamicFeeTransfers []TxInfo         `json:"tx-transfer-eip1559"`
+	LegacyEmit          []TxInfo         `json:"tx-emit-legacy"`
+	AccessListEmit      []TxInfo         `json:"tx-emit-eip2930"`
+	DynamicFeeEmit      []TxInfo         `json:"tx-emit-eip1559"`
+	CallMeContract      *ContractInfo    `json:"deploy-callme"`
+	CallEnvContract     *ContractInfo    `json:"deploy-callenv"`
+	CallRevertContract  *ContractInfo    `json:"deploy-callrevert"`
+	EIP7702             *EIP7702Info     `json:"tx-eip7702"`
+	EIP7002             *EIP7002Info     `json:"tx-request-eip7002"`
+	CallTreeTxs         []CallTreeTxInfo `json:"tx-calltree"`
+	CallRevertTxs       []CallTreeTxInfo `json:"tx-callrevert"`
 }
 
 // TxInfo is a transaction record created by hivechain.
@@ -64,6 +66,14 @@ type TxInfo struct {
 type ContractInfo struct {
 	Addr  common.Address `json:"contract"`
 	Block hexutil.Uint64 `json:"block"`
+}
+
+// CallTreeTxInfo is a calltree/callrevert invocation record created by hivechain.
+type CallTreeTxInfo struct {
+	TxHash common.Hash    `json:"txhash"`
+	Sender common.Address `json:"sender"`
+	Block  hexutil.Uint64 `json:"block"`
+	Index  int            `json:"indexInBlock"`
 }
 
 type EIP7702Info struct {
