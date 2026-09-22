@@ -92,11 +92,15 @@ TraceFilter:
     toBlock:
       $ref: '#/components/schemas/BlockNumberOrTag'
     fromAddress:
-      type: [array, "null"]
-      items: *id001
+      anyOf:
+      - type: array
+        items: *id001
+      - type: 'null'
     toAddress:
-      type: [array, "null"]
-      items: *id001
+      anyOf:
+      - type: array
+        items: *id001
+      - type: 'null'
     after: *id004
     count: *id004
   additionalProperties: false
