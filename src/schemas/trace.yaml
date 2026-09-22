@@ -38,17 +38,27 @@ TraceCall:
       $ref: '#/components/schemas/byte'
     accessList:
       $ref: '#/components/schemas/AccessList'
+    chainId: *id002
+    maxFeePerBlobGas: *id002
+    blobVersionedHashes:
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
+    authorizationList:
+      $ref: '#/components/schemas/AuthorizationList'
   not:
     required: [gasPrice]
     anyOf:
     - required: [maxFeePerGas]
     - required: [maxPriorityFeePerGas]
-  additionalProperties: false
+  additionalProperties: true
   description: 'Unsigned simulation. Omitted or null to creates a contract. Defaults: from zero address,
     value zero, input empty, nonce from selected state, fees zero. Omitted gas uses the client execution
     cap. data is a compatibility alias for input; when both are present they MUST agree. Legacy gasPrice
-    and dynamic fee fields MUST NOT be combined. Blob and authorization overrides remain outside this
-    first profile.'
+    and dynamic fee fields MUST NOT be combined. Standard eth_call transaction fields retain their
+    eth_call meaning, including blob context and authorization lists when supported by the selected fork.
+    Unknown fields MUST be ignored for forward compatibility; acceptance alone does not establish
+    support for an extension. Additional positional state or block overrides remain outside this profile.'
   title: TraceCall
 TraceCallManyEntry:
   type: array
@@ -69,7 +79,9 @@ TracePosition:
   items:
     $ref: '#/components/schemas/uint64'
   description: 'One path into the call tree: [] selects the root, ["0x0"] its first child (H02). Output
-    traceAddress uses JSON integers; the input path uses hex quantities.'
+    traceAddress uses JSON integers; the input path uses hex quantities for compatibility with existing
+    callers. Convert each output integer to a minimal hex quantity before querying. Integer path entries
+    are invalid parameters (-32602), not missing paths.'
   title: TracePosition
 TraceFilter:
   type: object
@@ -80,17 +92,17 @@ TraceFilter:
     toBlock:
       $ref: '#/components/schemas/BlockNumberOrTag'
     fromAddress:
-      type: array
+      type: [array, "null"]
       items: *id001
     toAddress:
-      type: array
+      type: [array, "null"]
       items: *id001
     after: *id004
     count: *id004
   additionalProperties: false
   description: Inclusive block range; defaults fromBlock earliest, toBlock latest, after 0, count unlimited
-    subject to an explicit server limit. OR within each address list; AND between lists. Missing or empty
-    lists are unrestricted; null is invalid. mode is outside this baseline. Resolve tags once per request.
+    subject to an explicit server limit. OR within each address list; AND between lists. Missing, null or empty
+    lists are unrestricted. Compare address bytes independently of hex letter case. mode is outside this baseline. Resolve tags once per request.
     Apply filtering before pagination; count 0 returns []. Return an error rather than silently truncate
     when a server limit is exceeded (H03,H04,H23,H27).
   title: TraceFilter
