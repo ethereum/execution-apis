@@ -57,8 +57,14 @@ Stable frame error kinds; failed-operation ex conventions; nested CALL stipend/r
 gas accounting; client execution caps; protocol reward ordering; optional method
 discovery; pending-state behavior and simulation extensions need further agreement.
 The localized schemas describe mined records; they do not define pending localization.
-Signed raw-transaction nonce admission (H13) is also a proposed contract choice; malformed
-JSON on rejection is independently a reporting defect. The two-argument baseline does
+The proposed nonce policy permits signed raw-transaction simulation despite a mismatch
+between the signed nonce and the sender's state nonce (H13). This follows the observed
+transfer behavior in Besu, Erigon and Nethermind; acceptance does not demonstrate that
+they rewrite the signed nonce. It does not relax signature, chain identity, funds,
+intrinsic gas or fee checks, whose policies require separate review. Nonce effects on
+CREATE addresses still need a discriminating fixture and agreement. Simulation success
+does not establish block-inclusion validity. Malformed JSON on rejection is independently
+a reporting defect. The two-argument baseline does
 not require clients to remove an explicitly selected third-argument extension (H12).
 Call objects accept standard eth_call transaction fields, including blob and authorization
 fields with their usual semantics at the selected fork. Unknown object fields are ignored

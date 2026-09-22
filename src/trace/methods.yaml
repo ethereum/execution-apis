@@ -133,9 +133,12 @@
       value: []
 - name: trace_rawTransaction
   summary: Simulates a signed transaction at latest state.
-  description: The proposed admission policy validates the signed transaction, including chain identity, nonce,
-    funds and intrinsic gas, without replacing signed fields. Nonce-mismatch rejection remains a client
-    agreement question (H13). The portable baseline defines two parameters and latest state. An explicitly
+  description: Decode the signed transaction and simulate it at latest state. Under the proposed nonce policy,
+    a mismatch between the signed nonce and the sender's state nonce does not by itself reject simulation
+    (H13). This does not waive other validation, including signature, chain identity, funds, intrinsic gas
+    and fee checks, or establish that the transaction is admissible for inclusion in a block. Nonce effects
+    on contract creation require separate agreement; successful transfer simulation alone does not establish
+    them. The portable baseline defines two parameters and latest state. An explicitly
     supplied block-selector extension is outside this baseline; accepting it is not a baseline failure.
     Extension semantics require separate agreement. Validation failure returns a complete
     JSON-RPC error, not a partially serialized result (H12-H14,H25). This is a provisional trace profile;
