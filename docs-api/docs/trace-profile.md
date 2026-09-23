@@ -39,11 +39,13 @@ costs but do not decide it. Intentional departures are called out below.
   rather than claiming a definitive not-found result. This extends the pruned-history code
   adopted for eth/debug methods in [#636](https://github.com/ethereum/execution-apis/pull/636)
   to trace methods and execution state; that extension remains a proposal.
-- Omitted filter bounds mean genesis (`earliest`) through `latest`, resolved once against the
-  request’s chain view. Retention must not silently raise the lower bound. This intentionally
-  changes Parity’s latest/latest default to make omission a historical search. Required history
-  that is unavailable produces 4444; query limits produce an explicit error, never an incomplete
-  success. `count` limits returned records, not scan or replay work.
+- Omitted filter bounds both mean `latest`, resolved against the same canonical head for the
+  request. A `toBlock` earlier than the omitted `fromBlock` gives a reversed-range error;
+  callers searching history must state `fromBlock`. This follows Parity’s original
+  `trace_filter` default and the `eth_getLogs` convention. Explicit historical bounds retain
+  their meaning: required history that is unavailable produces 4444, and query limits
+  produce an explicit error, never an incomplete success. `count` limits returned records,
+  not scan or replay work. [H30](https://github.com/banteg/trace-interop/blob/main/reports/decisions/H30.md)
 
 ## Execution results and state changes
 

@@ -111,13 +111,14 @@ TraceFilter:
     after: *id004
     count: *id004
   additionalProperties: false
-  description: Inclusive block range; defaults fromBlock genesis (earliest), toBlock latest, after 0, count unlimited
-    subject to an explicit server limit. OR within each address list; AND between lists by default, as
+  description: Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head,
+    after 0, count unlimited subject to an explicit server limit. An explicit toBlock before an omitted
+    latest start produces a range error. OR within each address list; AND between lists by default, as
     eth_getLogs composes topic positions. Missing, null or empty lists are unrestricted. mode union
     matches either populated list instead. Compare address bytes independently of hex letter case.
     Resolve tags once per request. Apply filtering before pagination; count 0 returns []. Return an
-    error rather than silently truncate when a server limit is exceeded. Never replace genesis or an
-    explicit endpoint with a retention boundary; return 4444 if required history is unavailable.
+    error rather than silently truncate when a server limit is exceeded. Never replace an explicit
+    endpoint with a retention boundary; return 4444 if required history is unavailable.
     count limits results, not scan or replay work (H03,H04,H23,H27,H30).
   title: TraceFilter
 TraceCallAction:
