@@ -179,6 +179,11 @@ func TestTraceContracts(t *testing.T) {
 		delete(failed, "result")
 		add("failure missing result "+frame["type"].(string), "trace_call", -1, envelope(failed), false)
 	}
+	failedCreate := traceCopy(t, create)
+	failedCreate["error"] = "Out of gas"
+	add("failed create successful result", "trace_call", -1, envelope(failedCreate), false)
+	failedCreate["result"] = traceObject{"gasUsed": "0x1", "output": "0xdead", "address": address, "code": "0x"}
+	add("failed create mixed result", "trace_call", -1, envelope(failedCreate), false)
 	for _, value := range []any{traceObject{}, traceObject{"gasPrice": "0x0"}, traceObject{"maxFeePerGas": "0x1", "maxPriorityFeePerGas": "0x0"}} {
 		add("valid fees", "trace_call", 0, value, true)
 	}
