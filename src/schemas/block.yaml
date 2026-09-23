@@ -155,6 +155,28 @@ BlockNumberOrTagOrHash:
       $ref: '#/components/schemas/BlockTag'
     - title: Block hash
       $ref: '#/components/schemas/hash32'
+    - title: EIP-1898 block number object
+      type: object
+      additionalProperties: false
+      required:
+        - blockNumber
+      properties:
+        blockNumber:
+          title: Block number
+          $ref: '#/components/schemas/uint'
+    - title: EIP-1898 block hash object
+      type: object
+      additionalProperties: false
+      required:
+        - blockHash
+      properties:
+        blockHash:
+          title: Block hash
+          $ref: '#/components/schemas/hash32'
+        requireCanonical:
+          title: Require canonical
+          description: 'Whether the block hash must belong to a canonical block, defaulting to `false`. When `true` and the referenced block is not canonical, EIP-1898 recommends `-32000: Invalid input`. A block that cannot be found takes precedence and is reported as `-32001: Resource not found`.'
+          type: boolean
 BadBlock:
   title: Bad block
   type: object
