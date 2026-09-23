@@ -1,0 +1,77 @@
+CallFrame:
+  title: Call frame (gas properties)
+  description: >-
+    Partial schema for the output of the "callTracer" named tracer: the tree
+    of EVM call frames executed by a transaction. Only the gas-related
+    properties are defined here. The remaining callTracer properties (type,
+    from, to, value, input, output, error, revertReason, logs, calls) are
+    established client practice whose exact shapes differ between
+    implementations and are outside the scope of this specification; child
+    frames nested under calls repeat this same shape.
+
+    Amsterdam (EIP-8037) adds the two-dimensional gas breakdown -
+    regularGasUsed and stateGasUsed - together with the applied EIP-3529
+    refund (gasRefund) on the top-level frame. These are the same three
+    values returned by the stateGasTracer, which clients not implementing
+    the callTracer can support instead.
+  type: object
+  additionalProperties: true
+  properties:
+    gas:
+      title: gas provided
+      description: The amount of gas provided to this frame.
+      $ref: '#/components/schemas/uint'
+    gasUsed:
+      title: gas used
+      description: >-
+        The gas used by this frame. For the top-level frame this equals the
+        transaction receipt gasUsed (post-refund, and post-floor when the
+        EIP-7976 calldata floor binds). Sub-frame attribution is not defined
+        by this specification.
+      $ref: '#/components/schemas/uint'
+    regularGasUsed:
+      title: regular gas used (gross)
+      description: >-
+        EIP-8037: the gross (pre-refund) regular gas used by the transaction -
+        its contribution to block_regular_gas_used (EIP-7778). Together with
+        stateGasUsed it satisfies regularGasUsed + stateGasUsed == gasUsed +
+        gasRefund unless the EIP-7976 calldata floor binds. Clients that
+        implement the callTracer SHOULD include this field on the top-level
+        frame for blocks at or after the Amsterdam fork and MUST NOT include
+        it before the fork. Sub-frame attribution is not defined by this
+        specification; clients SHOULD omit this field on sub-frames.
+      $ref: '#/components/schemas/uint'
+    stateGasUsed:
+      title: state gas used (gross)
+      description: >-
+        EIP-8037: the gross (pre-refund) state gas used by the transaction -
+        gas charged for state creation (an SSTORE into a new slot, account
+        creation, code deposit, or an EIP-7702 authorization to a new
+        account), net of source-based state-gas refunds - its contribution to
+        block_state_gas_used. Clients that implement the callTracer SHOULD
+        include this field on the top-level frame for Amsterdam+ blocks and
+        MUST NOT include it before the fork. Sub-frame attribution is not
+        defined by this specification; clients SHOULD omit this field on
+        sub-frames.
+      $ref: '#/components/schemas/uint'
+    gasRefund:
+      title: gas refund
+      description: >-
+        The EIP-3529 gas refund applied to this transaction (capped at one
+        fifth of the pre-refund gas). Under EIP-7778 the refund lowers the
+        receipt gas but not the block gas counters. Clients that implement
+        the callTracer SHOULD include this field on the top-level frame for
+        Amsterdam+ blocks, MUST NOT include it before the fork, and MUST NOT
+        include it on sub-frames (refunds resolve at the transaction
+        boundary).
+      $ref: '#/components/schemas/uint'
+    stateGasRefund:
+      title: state gas refund
+      description: >-
+        The total state gas refunded within this transaction (for example the
+        account-creation charge returned when a CREATE reverts or halts, or
+        an EIP-7702 authorization refund), already netted out of
+        stateGasUsed. Clients MAY include this field on the top-level frame
+        for Amsterdam+ blocks; it makes state-gas refund handling directly
+        observable when diagnosing cross-client attribution differences.
+      $ref: '#/components/schemas/uint'
