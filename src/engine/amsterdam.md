@@ -88,7 +88,7 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
-- `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
+- `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload. The entire unsigned 64-bit range is valid at decoding time. Values that cannot be reached in the next block are still processed as targets by the normal gas-limit adjustment rules and **MUST NOT** be rejected solely because they exceed a signed 64-bit representation.
 
 ### BlobCellsAndProofsV1
 
