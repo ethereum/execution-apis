@@ -341,6 +341,46 @@
           gasUsed: '0x1a49e'
           input: '0x'
           output: '0x'
+    - name: debug_traceTransaction example (callTracer, Amsterdam, value transfer creating an account)
+      params:
+        - name: Transaction hash
+          value: '0x5c1f0e8e9a2b7d3c4f6a8b0c2d4e6f8a1b3c5d7e9f0a2b4c6d8e0f1a3b5c7d9e'
+        - name: TraceConfig
+          value:
+            tracer: callTracer
+      result:
+        name: Transaction trace (callTracer, Amsterdam)
+        value:
+          type: CALL
+          from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+          to: '0x00000000000000000000000000000000000c0ffe'
+          value: '0x1'
+          gas: '0x40000'
+          gasUsed: '0x31f38'
+          executionGasUsed: '0x5208'
+          stateGasUsed: '0x2cd30'
+          gasRefund: '0x0'
+          input: '0x'
+    - name: debug_traceTransaction example (callTracer, Amsterdam, calldata floor binding the execution dimension)
+      params:
+        - name: Transaction hash
+          value: '0x8e2d4f6a8c0e1b3d5f7a9c1e3b5d7f9a0c2e4b6d8f1a3c5e7b9d0f2a4c6e8b1d'
+        - name: TraceConfig
+          value:
+            tracer: callTracer
+      result:
+        name: Transaction trace (callTracer, Amsterdam, floor)
+        value:
+          type: CALL
+          from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+          to: '0x00000000000000000000000000000000000c0ffe'
+          value: '0x1'
+          gas: '0x40000'
+          gasUsed: '0x32338'
+          executionGasUsed: '0x6208'
+          stateGasUsed: '0x2cd30'
+          gasRefund: '0x0'
+          input: '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
 - name: debug_traceCall
   summary: Executes a call and returns its trace.

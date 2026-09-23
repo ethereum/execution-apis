@@ -15,6 +15,28 @@ CallFrame:
     refunds). On nested frames, gas is the gas available to that frame and
     gasUsed is the gas consumed by it.
 
+    Two-dimensional gas (EIP-8037, Amsterdam and later): execution gas and
+    state gas are metered separately. State gas is drawn from a state-gas
+    reservoir first and from the frame's remaining gas (gas_left) once the
+    reservoir is exhausted. gas and gasUsed keep their meaning as amounts of
+    gas_left and are not split by dimension. The root frame additionally
+    reports the transaction's contribution to each block gas counter
+    (executionGasUsed, stateGasUsed) and its refund (gasRefund); any frame may
+    report stateGasUsed and stateGasReservoir. None of these fields are
+    present for transactions before the Amsterdam fork. For debug_traceCall
+    they are computed as if the call were included as a transaction.
+
+    Root frame invariants (Amsterdam and later): with before_refund the gas
+    used by the transaction before refunds, and floor the calldata floor
+    (calldata_floor_gas_cost of EIP-8037, per EIP-7623 as amended by EIP-7976
+    and EIP-2780), gasUsed == max(before_refund - gasRefund, floor) and
+    executionGasUsed == max(before_refund - stateGasUsed, floor). Hence
+    executionGasUsed + stateGasUsed == gasUsed + gasRefund whenever floor does
+    not exceed before_refund - max(gasRefund, stateGasUsed). Because the floor
+    is applied to each quantity separately, it can bind for executionGasUsed
+    but not for gasUsed, in which case executionGasUsed + stateGasUsed exceeds
+    gasUsed + gasRefund.
+
     The calls array references this schema through its $id. The $id URI is an
     identifier, not a network location: per JSON Schema, the self-reference
     resolves against the embedded $id within the containing document, and no
@@ -67,9 +89,87 @@ CallFrame:
       $ref: '#/components/schemas/uint256'
     gas:
       title: gas provided
+      description: >-
+        The gas available to this frame. On the root frame this is the
+        transaction gas limit. On nested frames it is the gas forwarded to the
+        frame; from the Amsterdam fork (EIP-8037) this excludes the state-gas
+        reservoir, which is reported separately as stateGasReservoir.
       $ref: '#/components/schemas/uint'
     gasUsed:
       title: gas used
+      description: >-
+        The gas consumed by this frame. On the root frame this equals the
+        transaction receipt gasUsed. On nested frames it is gas minus the
+        gas_left the frame returns to the calling frame on exit, after the
+        frame's state-gas rollback if it reverted; a frame that halts
+        exceptionally returns nothing, so its gasUsed equals gas. From the
+        Amsterdam fork (EIP-8037) it therefore includes state gas the frame
+        drew from gas_left after the reservoir was exhausted and did not credit
+        back, and excludes state gas funded from the reservoir. It is not a
+        per-dimension quantity; stateGasUsed reports the state dimension.
+      $ref: '#/components/schemas/uint'
+    executionGasUsed:
+      title: execution gas used (block contribution)
+      description: >-
+        EIP-8037 (Amsterdam and later), root frame only. The transaction's
+        contribution to the block's execution-gas counter
+        (block_execution_gas_used): max(before_refund - stateGasUsed, floor),
+        as defined in the CallFrame description. It is not reduced by the
+        refund (EIP-7778), and summing it over a block's transactions yields
+        block_execution_gas_used. MUST be present on the root frame of
+        Amsterdam and later transactions, and MUST be omitted on nested frames
+        and before the Amsterdam fork. Earlier drafts of EIP-8037 called this
+        dimension regular gas; clients MUST use the name executionGasUsed.
+      $ref: '#/components/schemas/uint'
+    stateGasUsed:
+      title: state gas used
+      description: >-
+        EIP-8037 (Amsterdam and later). On the root frame, the transaction's
+        contribution to the block's state-gas counter (block_state_gas_used),
+        i.e. evm_state_gas_used at the end of the transaction. It includes the
+        state gas charged in the pre-execution phase of EIP-2780 (new accounts
+        and delegation indicators of EIP-7702 authorizations, and the
+        new-account charge for the transaction's recipient or deployment
+        address), is net of state-gas refills, and is never negative. It MUST
+        be present on the root frame of Amsterdam and later transactions.
+
+        On nested frames, clients MAY include it: the net change in
+        evm_state_gas_used between the frame's entry and its exit, after the
+        frame's own rollback. It covers state gas charged and refilled within
+        the frame and its descendants, including the code-deposit charge of a
+        CREATE or CREATE2 frame, but not the charge the calling frame applies
+        for the operation that created the frame (the new-account charge of a
+        value-bearing CALL, or of a CREATE or CREATE2 to a non-existent
+        address). It is zero for frames that reverted or halted, and negative
+        for a frame that refills more than it charges, for example one that
+        clears a storage slot that was zero at transaction start and was
+        allocated by an earlier frame. MUST be omitted before the Amsterdam
+        fork.
+      $ref: '#/components/schemas/int'
+    gasRefund:
+      title: gas refund
+      description: >-
+        EIP-8037 (Amsterdam and later), root frame only. The refund applied to
+        the transaction before the calldata floor: min(before_refund / 5,
+        refund counter at the end of the transaction), using integer division
+        (tx_gas_refund of EIP-8037). It is reported unchanged when the calldata
+        floor absorbs part or all of it, in which case gasUsed exceeds
+        before_refund - gasRefund. MUST be present on the root frame of
+        Amsterdam and later transactions, and MUST be omitted on nested frames
+        and before the Amsterdam fork.
+      $ref: '#/components/schemas/uint'
+    stateGasReservoir:
+      title: state-gas reservoir at entry
+      description: >-
+        EIP-8037 (Amsterdam and later). The state-gas reservoir available to
+        this frame when it is entered. On the root frame this is the reservoir
+        after the pre-execution phase. A calling frame passes its entire
+        reservoir to a child frame (the 63/64 rule applies to gas_left only),
+        so on nested frames this is the calling frame's reservoir at the call,
+        after any state gas the call itself was charged. The reservoir starts
+        non-zero only when the transaction gas limit exceeds the EIP-7825
+        transaction gas limit cap, but refills can add to it. Clients MAY
+        include this field. MUST be omitted before the Amsterdam fork.
       $ref: '#/components/schemas/uint'
     input:
       title: call data
