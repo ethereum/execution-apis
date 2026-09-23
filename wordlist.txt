@@ -44,6 +44,7 @@ EOA
 EOA's
 ERC
 erigon
+Erigon's
 eth
 ethereum
 ethereumjs
@@ -64,6 +65,7 @@ graphql
 greppable
 gwei
 https
+idx
 interop
 ipc
 js
@@ -71,10 +73,12 @@ json
 JWT
 KiB
 kzg
+mem
 mempool
 merkle
 merkleization
 MiB
+MLOAD
 MSM
 MUL
 multicallV
