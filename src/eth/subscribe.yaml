@@ -16,7 +16,12 @@
       accepted by `eth_getLogs`). Removed logs (due to chain reorgs) are pushed with
       `removed: true`.
     - `newPendingTransactions`: a transaction hash by default, or a full transaction
-      object if the optional boolean second parameter is `true`.
+      object if the optional boolean second parameter is `true`. Notifications use
+      the `NewPendingTransactionsNotification` schema. Full objects use
+      `PendingTransactionInfo`, including type-0x6 frame transactions with complete
+      signature entries. The `from` and `nonce` fields identify the transaction
+      sender, including when another account pays the fees. Block metadata is
+      null when present. Hash-only notifications have the same shape for all types.
     - `transactionReceipts`: an array of receipt objects (same shape as
       `eth_getTransactionReceipt`) for transactions included in the latest imported
       block. If the optional `{ transactionHashes: [...] }` filter is provided,
@@ -84,6 +89,15 @@
           value: 'newPendingTransactions'
         - name: arg
           value: false
+      result:
+        name: Subscription ID
+        value: '0xc3b33aa549fb9a60e95d21862596617c'
+    - name: eth_subscribe full newPendingTransactions example
+      params:
+        - name: kind
+          value: 'newPendingTransactions'
+        - name: arg
+          value: true
       result:
         name: Subscription ID
         value: '0xc3b33aa549fb9a60e95d21862596617c'

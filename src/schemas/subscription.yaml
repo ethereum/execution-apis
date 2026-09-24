@@ -1,0 +1,34 @@
+NewPendingTransactionsNotification:
+  title: Pending transaction notification
+  description: Notification for newPendingTransactions. The result is a transaction hash by default, or a PendingTransactionInfo object when the full-transaction flag is true.
+  type: object
+  additionalProperties: false
+  required:
+    - jsonrpc
+    - method
+    - params
+  properties:
+    jsonrpc:
+      title: JSON-RPC version
+      type: string
+      pattern: ^2\.0$
+    method:
+      title: notification method
+      type: string
+      pattern: ^eth_subscription$
+    params:
+      title: notification parameters
+      type: object
+      additionalProperties: false
+      required:
+        - subscription
+        - result
+      properties:
+        subscription:
+          title: subscription ID
+          $ref: '#/components/schemas/uint'
+        result:
+          title: pending transaction
+          oneOf:
+            - $ref: '#/components/schemas/hash32'
+            - $ref: '#/components/schemas/PendingTransactionInfo'
