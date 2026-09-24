@@ -100,7 +100,6 @@ FrameSignaturePlaceholder:
     - scheme
     - signer
     - msg
-    - signature
   properties:
     scheme:
       $ref: '#/components/schemas/FrameSignature/properties/scheme'
@@ -108,11 +107,6 @@ FrameSignaturePlaceholder:
       $ref: '#/components/schemas/FrameSignature/properties/signer'
     msg:
       $ref: '#/components/schemas/FrameSignature/properties/msg'
-    signature:
-      title: signature
-      description: Empty signature bytes to be supplied before submission when required by the signature scheme.
-      type: string
-      pattern: ^0x$
   if:
     properties:
       scheme:
@@ -162,7 +156,7 @@ Transaction8141:
       description: List of signatures or signature placeholders in transaction order. May be empty.
       type: array
       items:
-        anyOf:
+        oneOf:
           - $ref: '#/components/schemas/FrameSignature'
           - $ref: '#/components/schemas/FrameSignaturePlaceholder'
     maxPriorityFeePerGas:

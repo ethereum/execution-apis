@@ -114,7 +114,7 @@ func TestFrameComponents(t *testing.T) {
 		} {
 			entry := strings.ReplaceAll(input, "0xabcd", variant.raw)
 			tests = append(tests, testCase{"signature " + scheme.id + " " + variant.name, "FrameSignature", entry, variant.valid})
-			tests = append(tests, testCase{"envelope signature " + scheme.id + " " + variant.name, "Transaction8141", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), variant.valid || variant.name == "empty"})
+			tests = append(tests, testCase{"envelope signature " + scheme.id + " " + variant.name, "Transaction8141", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), variant.valid})
 		}
 
 	}
@@ -122,21 +122,22 @@ func TestFrameComponents(t *testing.T) {
 		name, input string
 		valid       bool
 	}{
-		{"secp256k1", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x"}`, true},
-		{"p256", `{"scheme":"0x2","signer":"0x1111111111111111111111111111111111111111","msg":"0x","signature":"0x"}`, true},
-		{"arbitrary", `{"scheme":"0x0","signer":"0x","msg":"0x","signature":"0x"}`, true},
-		{"arbitrary signer", `{"scheme":"0x0","signer":"0x1111111111111111111111111111111111111111","msg":"0x","signature":"0x"}`, false},
-		{"unknown scheme", `{"scheme":"0x3","signer":"0x","msg":"0x","signature":"0x"}`, false},
+		{"secp256k1", `{"scheme":"0x1","signer":"0x","msg":"0x"}`, true},
+		{"p256", `{"scheme":"0x2","signer":"0x1111111111111111111111111111111111111111","msg":"0x"}`, true},
+		{"arbitrary", `{"scheme":"0x0","signer":"0x","msg":"0x"}`, true},
+		{"arbitrary signer", `{"scheme":"0x0","signer":"0x1111111111111111111111111111111111111111","msg":"0x"}`, false},
+		{"unknown scheme", `{"scheme":"0x3","signer":"0x","msg":"0x"}`, false},
 		{"nonempty bytes", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x01"}`, false},
 		{"null bytes", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":null}`, false},
-		{"short signer", `{"scheme":"0x1","signer":"0x01","msg":"0x","signature":"0x"}`, false},
-		{"zero digest", `{"scheme":"0x1","signer":"0x","msg":"0x` + strings.Repeat("0", 64) + `","signature":"0x"}`, false},
-		{"explicit digest", `{"scheme":"0x1","signer":"0x","msg":"0x` + strings.Repeat("1", 64) + `","signature":"0x"}`, true},
+		{"short signer", `{"scheme":"0x1","signer":"0x01","msg":"0x"}`, false},
+		{"zero digest", `{"scheme":"0x1","signer":"0x","msg":"0x` + strings.Repeat("0", 64) + `"}`, false},
+		{"explicit digest", `{"scheme":"0x1","signer":"0x","msg":"0x` + strings.Repeat("1", 64) + `"}`, true},
+		{"empty bytes", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x"}`, false},
 	} {
 		tests = append(tests, testCase{"placeholder " + tc.name, "FrameSignaturePlaceholder", tc.input, tc.valid})
 		tests = append(tests, testCase{"envelope placeholder " + tc.name, "Transaction8141", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+tc.input+`]`), tc.valid})
 	}
-	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"FrameSignaturePlaceholder", strings.ReplaceAll(signature, "0xabcd", "0x")}, {"Transaction8141", envelope}} {
+	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"FrameSignaturePlaceholder", strings.ReplaceAll(signature, `,"signature":"0xabcd"`, "")}, {"Transaction8141", envelope}} {
 		var fields map[string]json.RawMessage
 		if err := json.Unmarshal([]byte(component.input), &fields); err != nil {
 			t.Fatal(err)
