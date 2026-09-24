@@ -12,7 +12,7 @@ import (
 
 func TestFrameComponents(t *testing.T) {
 	generator := New()
-	for _, file := range []string{"base-types.yaml", "frame.yaml"} {
+	for _, file := range []string{"base-types.yaml", "transaction.yaml"} {
 		content, err := os.ReadFile("../../../src/schemas/" + file)
 		if err != nil {
 			t.Fatal(err)
