@@ -708,6 +708,124 @@ TransactionInfo:
           title: transaction index
           $ref: '#/components/schemas/uint'
     - $ref: '#/components/schemas/TransactionSigned'
+FrameRequest:
+  title: EIP-8141 frame request
+  description: A frame with explicit gas limits. Omitted flags and value default to zero, target to null, and data to empty bytes. Explicit zero limits remain zero.
+  type: object
+  additionalProperties: false
+  required:
+    - mode
+    - executionGas
+    - stateGas
+  properties:
+    mode:
+      $ref: '#/components/schemas/Frame/properties/mode'
+    flags:
+      $ref: '#/components/schemas/Frame/properties/flags'
+    target:
+      $ref: '#/components/schemas/Frame/properties/target'
+    executionGas:
+      $ref: '#/components/schemas/Frame/properties/executionGas'
+    stateGas:
+      $ref: '#/components/schemas/Frame/properties/stateGas'
+    value:
+      $ref: '#/components/schemas/Frame/properties/value'
+    data:
+      $ref: '#/components/schemas/Frame/properties/data'
+FrameCallSignaturePlaceholder:
+  title: EIP-8141 call signature placeholder
+  description: A protocol signature slot whose cryptographic verification is bypassed during a call. The signer must be an explicit address; custom verification code still runs.
+  allOf:
+    - $ref: '#/components/schemas/FrameSignaturePlaceholder'
+  properties:
+    scheme:
+      title: scheme
+      type: string
+      enum: ['0x1', '0x2']
+    signer:
+      title: signer
+      $ref: '#/components/schemas/address'
+FrameTransactionRequest:
+  title: EIP-8141 transaction request
+  description: |
+    Frame call request. Omitted chainId and nonce use the selected chain and sender
+    state. Signatures and blobVersionedHashes default to empty arrays. Frame order
+    is preserved.
+
+    Omitted maxPriorityFeePerGas defaults to zero and maxFeePerGas to the selected
+    block base fee. Omitted maxFeePerBlobGas uses the block blob base fee when blobs
+    are present, otherwise zero. Defaults use the context after overrides.
+  type: object
+  additionalProperties: false
+  required:
+    - type
+    - from
+    - frames
+  properties:
+    type:
+      $ref: '#/components/schemas/Transaction8141/properties/type'
+    chainId:
+      $ref: '#/components/schemas/Transaction8141/properties/chainId'
+    nonce:
+      $ref: '#/components/schemas/Transaction8141/properties/nonce'
+    from:
+      $ref: '#/components/schemas/Transaction8141/properties/from'
+    maxPriorityFeePerGas:
+      $ref: '#/components/schemas/Transaction8141/properties/maxPriorityFeePerGas'
+    maxFeePerGas:
+      $ref: '#/components/schemas/Transaction8141/properties/maxFeePerGas'
+    maxFeePerBlobGas:
+      $ref: '#/components/schemas/Transaction8141/properties/maxFeePerBlobGas'
+    blobVersionedHashes:
+      $ref: '#/components/schemas/Transaction8141/properties/blobVersionedHashes'
+    frames:
+      title: frames
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/FrameRequest'
+    signatures:
+      title: signatures
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/FrameSignature'
+          - $ref: '#/components/schemas/FrameCallSignaturePlaceholder'
+  if:
+    required:
+      - signatures
+    properties:
+      signatures:
+        contains:
+          required:
+            - signature
+          properties:
+            scheme:
+              enum: ['0x1', '0x2']
+  then:
+    required:
+      - chainId
+      - nonce
+      - maxPriorityFeePerGas
+      - maxFeePerGas
+      - maxFeePerBlobGas
+      - blobVersionedHashes
+    properties:
+      frames:
+        items:
+          $ref: '#/components/schemas/Frame'
+CallTransaction:
+  title: Call transaction
+  oneOf:
+    - allOf:
+        - $ref: '#/components/schemas/GenericTransaction'
+      not:
+        required:
+          - type
+        properties:
+          type:
+            enum: ['0x6']
+    - $ref: '#/components/schemas/FrameTransactionRequest'
 GenericTransaction:
   type: object
   title: Transaction object generic to all types
