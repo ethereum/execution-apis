@@ -1,3 +1,65 @@
+- name: eth_getLogsV2
+  summary: Returns logs matching the filter, with a block-level cursor for pagination and reorg detection.
+  description: >-
+    Returns all logs that match the given filter, scanning forward from `fromBlockHash`
+    up to `toBlock` inclusive. The response always includes a `cursorBlock` identifying
+    the last block scanned and a `headBlock` identifying the canonical head at query time.
+
+
+    To paginate, repeat the request with `fromBlockHash` set to `cursorBlock.hash` until
+    `cursorBlock.number` equals the resolved `toBlock` number.
+
+
+    To detect a reorg between pages, compare `fromBlockHash` in the new request against
+    `cursorBlock.hash` from the previous response: a mismatch means the chain has been
+    reorganized and the client must re-anchor.
+  params:
+    - name: Filter
+      schema:
+        $ref: '#/components/schemas/LogsV2Filter'
+      required: true
+  errors:
+    - code: -32001
+      message: fromBlockHash not on canonical chain
+    - code: -32005
+      message: Scan limit exceeded
+  result:
+    name: Logs V2 result
+    schema:
+      $ref: '#/components/schemas/LogsV2Result'
+  examples:
+    - name: eth_getLogsV2 example
+      params:
+        - name: Filter
+          value:
+            fromBlockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
+            toBlock: '0x238'
+            address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
+            topics: []
+      result:
+        name: Logs V2 result
+        value:
+          logs:
+            - logIndex: '0x0'
+              removed: false
+              blockNumber: '0x233'
+              blockTimestamp: '0x11'
+              blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
+              transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
+              transactionIndex: '0x0'
+              address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
+              data: '0x0000000000000000000000000000000000000000000000000000000000000004'
+              topics:
+                - '0x04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3'
+          cursorBlock:
+            number: '0x238'
+            hash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
+            parentHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
+          headBlock:
+            number: '0x238'
+            hash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
+            parentHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
+
 - name: eth_newFilter
   summary: Install a log filter in the server, allowing for later polling. Registers client interest in logs matching the filter, and returns an identifier.
   params:
