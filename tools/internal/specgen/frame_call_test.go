@@ -43,8 +43,9 @@ func TestFrameCallAPIs(t *testing.T) {
 		value        any
 		valid        bool
 	}
+	// Field compatibility and signed-envelope completeness are validated by clients.
 	var tests []testCase
-	for _, variant := range []string{"defaults", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "missing execution limit", "missing state limit", "empty frames", "outer input", "wrong type"} {
+	for _, variant := range []string{"defaults", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "missing execution limit", "missing state limit", "empty frames", "outer input", "other type with frames"} {
 		frame := object{"mode": "0x1", "executionGas": "0x10000", "stateGas": "0x10000"}
 		request := object{"type": "0x6", "from": "0x1111111111111111111111111111111111111111", "frames": []any{frame}}
 		placeholder := object{"scheme": "0x1", "signer": request["from"], "msg": "0x"}
@@ -81,11 +82,9 @@ func TestFrameCallAPIs(t *testing.T) {
 			frame["flags"], frame["target"], frame["value"], frame["data"] = "0x3", nil, "0x0", "0x"
 			if variant == "signed incomplete envelope" {
 				delete(request, "nonce")
-				valid = false
 			}
 			if variant == "signed incomplete frame" {
 				delete(frame, "data")
-				valid = false
 			}
 		case "missing execution limit":
 			delete(frame, "executionGas")
@@ -98,10 +97,8 @@ func TestFrameCallAPIs(t *testing.T) {
 			valid = false
 		case "outer input":
 			request["input"] = "0x"
-			valid = false
-		case "wrong type":
+		case "other type with frames":
 			request["type"] = "0x2"
-			valid = false
 		}
 		tests = append(tests, testCase{variant, "eth_call", request, valid})
 		for _, method := range []string{"eth_estimateGas", "eth_createAccessList", "eth_fillTransaction", "eth_signTransaction", "eth_sendTransaction"} {
@@ -120,7 +117,7 @@ func TestFrameCallAPIs(t *testing.T) {
 			tests = append(tests, testCase{"complete envelope with placeholder", "eth_call", unsigned, true}, testCase{"placeholder is not signed", "Transaction8141Signed", unsigned, false})
 		}
 	}
-	tests = append(tests, testCase{"frame type without frames", "eth_call", object{"type": "0x6"}, false})
+	tests = append(tests, testCase{"frame type without frames", "eth_call", object{"type": "0x6"}, true})
 	for _, method := range []string{"eth_call", "eth_estimateGas", "eth_createAccessList", "eth_fillTransaction", "eth_signTransaction", "eth_sendTransaction"} {
 		tests = append(tests, testCase{"legacy request", method, object{"to": "0x1111111111111111111111111111111111111111", "input": "0x"}, true})
 	}
