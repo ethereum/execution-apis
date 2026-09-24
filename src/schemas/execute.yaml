@@ -18,6 +18,7 @@ EthSimulatePayload:
       title: Validation
       description: |-
         When true, the eth_simulateV1 does all validations that a normal EVM would do, except contract sender and signature checks. When false, eth_simulateV1 behaves like eth_call.
+        Frame VERIFY code and approval checks execute in both modes.
         Default: false.
       type: boolean
     returnFullTransactions:
@@ -48,7 +49,9 @@ BlockStateCalls:
         type: array
         title: calls
         description: |-
-          List of transactions to execute at this block/state.
+          List of transactions to execute in order at this block/state. Each frame
+          transaction occupies one entry; its frames execute together before the
+          next entry, sharing state subject to frame and atomic-batch rollback.
           Default: []
         items:
           $ref: '#/components/schemas/GenericCallTransaction'
@@ -196,6 +199,16 @@ CallResultFailure:
     - gasUsed
     - error
   properties:
+    payer:
+      $ref: '#/components/schemas/ReceiptInfo/properties/payer'
+    frameResults:
+      title: Frame results
+      description: Results in frame order, present for frame transactions. Aggregate status is 1 only if every frame succeeds; logs contain only surviving frame logs. Aggregate returnData is the final frame output on success, or the first failed frame output on failure.
+      type: array
+      items:
+        $ref: '#/components/schemas/FrameResult'
+    logs:
+      $ref: '#/components/schemas/ReceiptInfo/properties/logs'
     status:
       title: Call Status Failure
       type: string
@@ -210,22 +223,7 @@ CallResultFailure:
       title: Maximum gas used during execution before refunds
       $ref: '#/components/schemas/uint64'
     error:
-      oneOf:
-      - type: object
-        properties:
-          code:
-            const: 3
-          message:
-            type: string
-            pattern: "^execution reverted.*"
-        required: [code, message]
-      - type: object
-        properties:
-          code:
-            const: -32015
-          message:
-            type: string
-            pattern: "^vm execution error.*"
+      $ref: '#/components/schemas/FrameResult/properties/error'
 CallResultSuccess:
   title: Result of call success
   type: object
@@ -235,6 +233,10 @@ CallResultSuccess:
     - gasUsed
     - logs
   properties:
+    payer:
+      $ref: '#/components/schemas/ReceiptInfo/properties/payer'
+    frameResults:
+      $ref: '#/components/schemas/CallResultFailure/properties/frameResults'
     status:
       title: Call Status Success
       type: string
@@ -330,3 +332,51 @@ GenericCallTransaction:
       type: array
       items:
         $ref: '#/components/schemas/bytes32'
+    chainId:
+      $ref: '#/components/schemas/GenericTransaction/properties/chainId'
+    frames:
+      $ref: '#/components/schemas/GenericTransaction/properties/frames'
+    signatures:
+      $ref: '#/components/schemas/GenericTransaction/properties/signatures'
+FrameResult:
+  title: Frame simulation result
+  type: object
+  required:
+    - status
+    - gasUsed
+    - executionGasUsed
+    - stateGasUsed
+    - logs
+    - returnData
+  properties:
+    status:
+      $ref: '#/components/schemas/FrameReceipt/properties/status'
+    gasUsed:
+      $ref: '#/components/schemas/FrameReceipt/properties/gasUsed'
+    executionGasUsed:
+      $ref: '#/components/schemas/FrameReceipt/properties/executionGasUsed'
+    stateGasUsed:
+      $ref: '#/components/schemas/FrameReceipt/properties/stateGasUsed'
+    logs:
+      $ref: '#/components/schemas/FrameReceipt/properties/logs'
+    returnData:
+      title: Return data
+      description: Frame output or revert bytes. Empty for skipped frames or failures without return data.
+      $ref: '#/components/schemas/bytes'
+    error:
+      oneOf:
+      - type: object
+        properties:
+          code:
+            const: 3
+          message:
+            type: string
+            pattern: "^execution reverted.*"
+        required: [code, message]
+      - type: object
+        properties:
+          code:
+            const: -32015
+          message:
+            type: string
+            pattern: "^vm execution error.*"
