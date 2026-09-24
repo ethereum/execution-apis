@@ -9,3 +9,52 @@
     name: Transaction result
     schema:
       $ref: '#/components/schemas/FillTransactionResult'
+  examples:
+    - name: Frame transaction fill schema example
+      description: Illustrative request and filled envelope, not a recorded client response.
+      params:
+        - name: Transaction
+          value:
+            type: '0x6'
+            from: '0x1111111111111111111111111111111111111111'
+            frames:
+              - mode: '0x1'
+                flags: '0x3'
+              - mode: '0x2'
+                target: '0x2222222222222222222222222222222222222222'
+                stateGas: '0x0'
+            signatures:
+              - scheme: '0x1'
+                signer: '0x1111111111111111111111111111111111111111'
+                msg: '0x'
+      result:
+        name: Transaction result
+        value:
+          tx:
+            type: '0x6'
+            chainId: '0x1'
+            nonce: '0x0'
+            from: '0x1111111111111111111111111111111111111111'
+            frames:
+              - mode: '0x1'
+                flags: '0x3'
+                target: null
+                executionGas: '0x10000'
+                stateGas: '0x10000'
+                value: '0x0'
+                data: '0x'
+              - mode: '0x2'
+                flags: '0x0'
+                target: '0x2222222222222222222222222222222222222222'
+                executionGas: '0x10000'
+                stateGas: '0x0'
+                value: '0x0'
+                data: '0x'
+            signatures:
+              - scheme: '0x1'
+                signer: '0x1111111111111111111111111111111111111111'
+                msg: '0x'
+            maxPriorityFeePerGas: '0x1'
+            maxFeePerGas: '0x2'
+            maxFeePerBlobGas: '0x0'
+            blobVersionedHashes: []
