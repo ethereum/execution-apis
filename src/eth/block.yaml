@@ -251,6 +251,7 @@
         value: '0x8'
 - name: eth_getBlockReceipts
   summary: Returns the receipts of a block by number or hash.
+  description: Frame transaction receipts include the payer and ordered frameReceipts, with per-frame total, execution, and state gas usage. Transaction status is 1 only if every frame succeeds.
   params:
     - name: Block
       required: true

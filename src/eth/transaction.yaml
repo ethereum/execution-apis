@@ -197,6 +197,7 @@
           s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
+  description: Frame transaction receipts include the payer and ordered frameReceipts, with per-frame total, execution, and state gas usage. Transaction status is 1 only if every frame succeeds.
   params:
     - name: Transaction hash
       required: true
