@@ -23,7 +23,7 @@ func TestFrameComponents(t *testing.T) {
 	}
 	frame := `{"mode":"0x1","flags":"0x3","target":null,"limits":{"execution":"0x10000","state":"0x0"},"value":"0x0","data":"0x"}`
 	signature := `{"scheme":"0x0","signer":"0x","msg":"0x","signature":"0xabcd"}`
-	envelope := `{"type":"0x6","chainId":"0x1","nonce":"0x0","sender":"0x1111111111111111111111111111111111111111","frames":[` + frame + `],"signatures":[],"fees":{"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"},"blobVersionedHashes":[]}`
+	envelope := `{"type":"0x6","chainId":"0x1","nonce":"0x0","sender":"0x1111111111111111111111111111111111111111","frames":[` + frame + `],"signatures":[],"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0","blobVersionedHashes":[]}`
 	type testCase struct {
 		name, schema, input string
 		valid               bool
@@ -63,6 +63,7 @@ func TestFrameComponents(t *testing.T) {
 		{"null signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":"0x"`, `"signer":null`), false},
 		{"unknown scheme", "FrameSignature", strings.ReplaceAll(signature, `"scheme":"0x0"`, `"scheme":"0x3"`), false},
 		{"complete envelope", "Transaction8141", envelope, true},
+		{"nested fees", "Transaction8141", strings.ReplaceAll(envelope, `"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"`, `"fees":{"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"}`), false},
 		{"no frames", "Transaction8141", strings.ReplaceAll(envelope, frame, ``), false},
 		{"64 frames", "Transaction8141", strings.ReplaceAll(envelope, frame, strings.TrimSuffix(strings.Repeat(frame+",", 64), ",")), true},
 		{"65 frames", "Transaction8141", strings.ReplaceAll(envelope, frame, strings.TrimSuffix(strings.Repeat(frame+",", 65), ",")), false},
@@ -79,11 +80,7 @@ func TestFrameComponents(t *testing.T) {
 		}
 		input["blobVersionedHashes"] = []string{"0x01" + strings.Repeat("0", 62)}
 		for _, width := range []int{64, 65} {
-			if field == "chainId" {
-				input[field] = "0x" + strings.Repeat("f", width)
-			} else {
-				input["fees"].(map[string]any)[field] = "0x" + strings.Repeat("f", width)
-			}
+			input[field] = "0x" + strings.Repeat("f", width)
 			data, err := json.Marshal(input)
 			if err != nil {
 				t.Fatal(err)
@@ -112,7 +109,7 @@ func TestFrameComponents(t *testing.T) {
 		}
 
 	}
-	for _, field := range []string{"to", "value", "input", "data", "gas", "gasPrice", "accessList", "authorizationList", "from", "maxPriorityFeePerGas", "maxFeePerGas", "maxFeePerBlobGas", "r", "s", "v", "yParity"} {
+	for _, field := range []string{"to", "value", "input", "data", "gas", "gasPrice", "accessList", "authorizationList", "from", "fees", "r", "s", "v", "yParity"} {
 		tests = append(tests, testCase{"outer " + field, "Transaction8141", strings.Replace(envelope, `{`, `{"`+field+`":null,`, 1), false})
 	}
 	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"Transaction8141", envelope}} {
@@ -132,7 +129,6 @@ func TestFrameComponents(t *testing.T) {
 	}
 	for _, tc := range []struct{ name, schema, input, key string }{
 		{"limits", "Frame", frame, "limits"},
-		{"fees", "Transaction8141", envelope, "fees"},
 	} {
 		var input map[string]any
 		if err := json.Unmarshal([]byte(tc.input), &input); err != nil {

@@ -127,7 +127,9 @@ Transaction8141:
     - sender
     - frames
     - signatures
-    - fees
+    - maxPriorityFeePerGas
+    - maxFeePerGas
+    - maxFeePerBlobGas
     - blobVersionedHashes
   properties:
     type:
@@ -159,27 +161,18 @@ Transaction8141:
       type: array
       items:
         $ref: '#/components/schemas/FrameSignature'
-    fees:
-      title: fees
-      type: object
-      additionalProperties: false
-      required:
-        - maxPriorityFeePerGas
-        - maxFeePerGas
-        - maxFeePerBlobGas
-      properties:
-        maxPriorityFeePerGas:
-          title: max priority fee per gas
-          description: Maximum priority fee per gas in wei.
-          $ref: '#/components/schemas/uint256'
-        maxFeePerGas:
-          title: max fee per gas
-          description: Maximum total fee per gas in wei, including the base fee and priority fee.
-          $ref: '#/components/schemas/uint256'
-        maxFeePerBlobGas:
-          title: max fee per blob gas
-          description: Maximum fee in wei per blob gas. Must be zero when blobVersionedHashes is empty.
-          $ref: '#/components/schemas/uint256'
+    maxPriorityFeePerGas:
+      title: max priority fee per gas
+      description: Maximum priority fee per gas in wei.
+      $ref: '#/components/schemas/uint256'
+    maxFeePerGas:
+      title: max fee per gas
+      description: Maximum total fee per gas in wei, including the base fee and priority fee.
+      $ref: '#/components/schemas/uint256'
+    maxFeePerBlobGas:
+      title: max fee per blob gas
+      description: Maximum fee in wei per blob gas. Must be zero when blobVersionedHashes is empty.
+      $ref: '#/components/schemas/uint256'
     blobVersionedHashes:
       title: blobVersionedHashes
       description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
@@ -194,10 +187,8 @@ Transaction8141:
         maxItems: 0
   then:
     properties:
-      fees:
-        properties:
-          maxFeePerBlobGas:
-            enum: ['0x0']
+      maxFeePerBlobGas:
+        enum: ['0x0']
 Transaction7702Unsigned:
   type: object
   title: EIP-7702 transaction
