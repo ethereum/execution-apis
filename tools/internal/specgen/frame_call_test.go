@@ -105,7 +105,7 @@ func TestFrameCallAPIs(t *testing.T) {
 		}
 		tests = append(tests, testCase{variant, "eth_call", request, valid})
 		for _, method := range []string{"eth_estimateGas", "eth_createAccessList", "eth_fillTransaction", "eth_signTransaction", "eth_sendTransaction"} {
-			tests = append(tests, testCase{variant, method, request, false})
+			tests = append(tests, testCase{variant, method, request, valid})
 		}
 		if variant == "complete signature" {
 			data, err := json.Marshal(request)

@@ -40,7 +40,7 @@
     - name: Transaction
       required: true
       schema:
-        $ref: '#/components/schemas/CallTransaction'
+        $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
       schema:

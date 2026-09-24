@@ -748,7 +748,7 @@ FrameCallSignaturePlaceholder:
 FrameTransactionRequest:
   title: EIP-8141 transaction request
   description: |
-    Frame call request. Omitted chainId and nonce use the selected chain and sender
+    Frame transaction request. For eth_call, omitted chainId and nonce use the selected chain and sender
     state. Signatures and blobVersionedHashes default to empty arrays. Frame order
     is preserved.
 
@@ -814,11 +814,89 @@ FrameTransactionRequest:
       frames:
         items:
           $ref: '#/components/schemas/Frame'
-CallTransaction:
-  title: Call transaction
+GenericTransaction:
+  title: Transaction object generic to all types
   oneOf:
-    - allOf:
-        - $ref: '#/components/schemas/GenericTransaction'
+    - type: object
+      additionalProperties: false
+      properties:
+        type:
+          title: type
+          $ref: '#/components/schemas/byte'
+        nonce:
+          title: nonce
+          $ref: '#/components/schemas/uint'
+        to:
+          title: to address
+          oneOf:
+            - title: Contract Creation (null)
+              type: 'null'
+            - title: Address
+              $ref: '#/components/schemas/address'
+        from:
+          title: from address
+          $ref: '#/components/schemas/address'
+        gas:
+          title: gas limit
+          $ref: '#/components/schemas/uint'
+        value:
+          title: value
+          $ref: '#/components/schemas/uint'
+        input:
+          title: input data
+          $ref: '#/components/schemas/bytes'
+        gasPrice:
+          title: gas price
+          description: The gas price willing to be paid by the sender in wei
+          $ref: '#/components/schemas/uint'
+        maxPriorityFeePerGas:
+          title: max priority fee per gas
+          description: Maximum fee per gas the sender is willing to pay to miners in wei
+          $ref: '#/components/schemas/uint'
+        maxFeePerGas:
+          title: max fee per gas
+          description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
+          $ref: '#/components/schemas/uint'
+        maxFeePerBlobGas:
+          title: max fee per blob gas
+          description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
+          $ref: '#/components/schemas/uint'
+        accessList:
+          title: accessList
+          description: EIP-2930 access list
+          $ref: '#/components/schemas/AccessList'
+        blobVersionedHashes:
+          title: blobVersionedHashes
+          description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+          type: array
+          items:
+            $ref: '#/components/schemas/hash32'
+        blobs:
+          title: blobs
+          description: Raw blob data.
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
+        commitments:
+          title: commitments
+          description: List of blob commitments as per EIP-4844.
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
+        proofs:
+          title: proofs
+          description: List of blob proofs. Pre-PeerDAS this contains one KZG proof per blob (length == len(blobs)). Post-PeerDAS this contains cell proofs with length == 128 * len(blobs).
+          type: array
+          items:
+            $ref: '#/components/schemas/bytes'
+        chainId:
+          title: chainId
+          description: Chain ID that this transaction is valid on.
+          $ref: '#/components/schemas/uint'
+        authorizationList:
+          title: authorizationList
+          description: EIP-7702 authorization list
+          $ref: '#/components/schemas/AuthorizationList'
       not:
         required:
           - type
@@ -826,88 +904,6 @@ CallTransaction:
           type:
             enum: ['0x6']
     - $ref: '#/components/schemas/FrameTransactionRequest'
-GenericTransaction:
-  type: object
-  title: Transaction object generic to all types
-  additionalProperties: false
-  properties:
-    type:
-      title: type
-      $ref: '#/components/schemas/byte'
-    nonce:
-      title: nonce
-      $ref: '#/components/schemas/uint'
-    to:
-      title: to address
-      oneOf:
-        - title: Contract Creation (null)
-          type: 'null'
-        - title: Address
-          $ref: '#/components/schemas/address'
-    from:
-      title: from address
-      $ref: '#/components/schemas/address'
-    gas:
-      title: gas limit
-      $ref: '#/components/schemas/uint'
-    value:
-      title: value
-      $ref: '#/components/schemas/uint'
-    input:
-      title: input data
-      $ref: '#/components/schemas/bytes'
-    gasPrice:
-      title: gas price
-      description: The gas price willing to be paid by the sender in wei
-      $ref: '#/components/schemas/uint'
-    maxPriorityFeePerGas:
-      title: max priority fee per gas
-      description: Maximum fee per gas the sender is willing to pay to miners in wei
-      $ref: '#/components/schemas/uint'
-    maxFeePerGas:
-      title: max fee per gas
-      description: The maximum total fee per gas the sender is willing to pay (includes the network / base fee and miner / priority fee) in wei
-      $ref: '#/components/schemas/uint'
-    maxFeePerBlobGas:
-      title: max fee per blob gas
-      description: The maximum total fee per gas the sender is willing to pay for blob gas in wei
-      $ref: '#/components/schemas/uint'
-    accessList:
-      title: accessList
-      description: EIP-2930 access list
-      $ref: '#/components/schemas/AccessList'
-    blobVersionedHashes:
-      title: blobVersionedHashes
-      description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
-      type: array
-      items:
-        $ref: '#/components/schemas/hash32'
-    blobs:
-      title: blobs
-      description: Raw blob data.
-      type: array
-      items:
-        $ref: '#/components/schemas/bytes'
-    commitments:
-      title: commitments
-      description: List of blob commitments as per EIP-4844.
-      type: array
-      items:
-        $ref: '#/components/schemas/bytes'
-    proofs:
-      title: proofs
-      description: List of blob proofs. Pre-PeerDAS this contains one KZG proof per blob (length == len(blobs)). Post-PeerDAS this contains cell proofs with length == 128 * len(blobs).
-      type: array
-      items:
-        $ref: '#/components/schemas/bytes'
-    chainId:
-      title: chainId
-      description: Chain ID that this transaction is valid on.
-      $ref: '#/components/schemas/uint'
-    authorizationList:
-      title: authorizationList
-      description: EIP-7702 authorization list
-      $ref: '#/components/schemas/AuthorizationList'
 SignTransactionResult:
   type: object
   title: Encoded and raw signed transaction object.
