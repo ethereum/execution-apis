@@ -802,7 +802,7 @@ GenericTransaction:
       items:
         oneOf:
           - $ref: '#/components/schemas/FrameSignature'
-          - $ref: '#/components/schemas/FrameCallSignaturePlaceholder'
+          - $ref: '#/components/schemas/FrameSignaturePlaceholder'
 FrameRequest:
   title: EIP-8141 frame request
   description: A frame with explicit gas limits. Omitted flags and value default to zero, target to null, and data to empty bytes. Explicit zero limits remain zero.
@@ -827,19 +827,6 @@ FrameRequest:
       $ref: '#/components/schemas/Frame/properties/value'
     data:
       $ref: '#/components/schemas/Frame/properties/data'
-FrameCallSignaturePlaceholder:
-  title: EIP-8141 call signature placeholder
-  description: A protocol signature slot whose cryptographic verification is bypassed during a call. The signer must be an explicit address; custom verification code still runs.
-  allOf:
-    - $ref: '#/components/schemas/FrameSignaturePlaceholder'
-  properties:
-    scheme:
-      title: scheme
-      type: string
-      enum: ['0x1', '0x2']
-    signer:
-      title: signer
-      $ref: '#/components/schemas/address'
 SignTransactionResult:
   type: object
   title: Encoded and raw signed transaction object.

@@ -43,7 +43,7 @@ func TestFrameCallAPIs(t *testing.T) {
 		value        any
 		valid        bool
 	}
-	// Field compatibility and signed-envelope completeness are validated by clients.
+	// Clients validate method-specific signature rules, field compatibility, and signed-envelope completeness.
 	var tests []testCase
 	for _, variant := range []string{"defaults", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "missing execution limit", "missing state limit", "empty frames", "outer input", "other type with frames"} {
 		frame := object{"mode": "0x1", "executionGas": "0x10000", "stateGas": "0x10000"}
@@ -60,11 +60,9 @@ func TestFrameCallAPIs(t *testing.T) {
 			}
 			if variant == "empty signer" {
 				placeholder["signer"] = "0x"
-				valid = false
 			}
 			if variant == "arbitrary placeholder" {
 				placeholder["scheme"], placeholder["signer"] = "0x0", "0x"
-				valid = false
 			}
 			if variant == "empty protocol signature" {
 				placeholder["signature"] = "0x"
