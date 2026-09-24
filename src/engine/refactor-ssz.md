@@ -91,8 +91,11 @@
 | `MAX_BLOBS_REQUEST` | `MAX_VERSIONED_HASHES_PER_REQUEST` (128) | derived |
 | `MAX_BODIES_REQUEST` | `2**5` (32) | [Shanghai](./shanghai.md#engine_getpayloadbodiesbyhashv1) |
 | `MAX_REQUEST_BODY_SIZE` | `2**26` (67,108,864) | this spec (64 MiB; advertised as `limits.payload.max_bytes`) |
-| `MAX_WITNESS_ITEMS` | `2**20` (1,048,576) | this spec (max items per `ExecutionWitness` field) |
-| `MAX_WITNESS_ITEM_BYTES` | `2**20` (1,048,576) | this spec (max byte length of a single witness item) |
+| `MAX_WITNESS_ITEMS` | `2**20` (1,048,576) | this spec (max items in each of `ExecutionWitness.state` and `ExecutionWitness.codes`) |
+| `MAX_BYTES_PER_WITNESS_NODE` | `2**10` (1,024) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
+| `MAX_BYTES_PER_CODE` | `2**16` (65,536) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
+| `MAX_BYTES_PER_HEADER` | `2**10` (1,024) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
+| `MAX_WITNESS_HEADERS` | `2**8` (256) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
 | `MAX_ERROR_BYTES` | `1024` | this spec |
 | `MAX_CLIENT_CODE_LENGTH` | `2` | this spec |
 | `MAX_CLIENT_NAME_LENGTH` | `64` | this spec |
@@ -285,9 +288,9 @@ only the endpoint that returns it is fork-scoped.
 
 ```
 ExecutionWitness {
-    state:   List[ByteList[MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]
-    codes:   List[ByteList[MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]
-    headers: List[ByteList[MAX_WITNESS_ITEM_BYTES], MAX_WITNESS_ITEMS]
+    state:   List[ByteList[MAX_BYTES_PER_WITNESS_NODE], MAX_WITNESS_ITEMS]
+    codes:   List[ByteList[MAX_BYTES_PER_CODE], MAX_WITNESS_ITEMS]
+    headers: List[ByteList[MAX_BYTES_PER_HEADER], MAX_WITNESS_HEADERS]
 }
 ```
 
