@@ -97,19 +97,24 @@ In `trace_callMany` every item is a separate transaction: EIP-2200 and EIP-3529 
 values, EIP-2929 access sets, EIP-1153 transient storage, the refund counter and EIP-6780’s
 same-transaction scope start afresh. All items share one block environment, so NUMBER and TIMESTAMP
 do not advance. The first item runs against the same state and environment as `trace_call` at the
-selected block, and each diff is relative to the preceding item’s post-state. If any item fails
-validation, the request returns one error whose `error.data.index` is the zero-based item index, and
-no partial results. Servers may cap items or total gas with an explicit -38026 error, never by
+selected block, and each diff is relative to the preceding item’s post-state. If any decoded item
+fails validation, the request returns one error whose `error.data.index` is the zero-based item index,
+and no partial results. A malformed item is invalid params (-32602) without an index. Servers may cap items or total gas with an explicit -38026 error, never by
 truncating.
 
-Validation rejections of `trace_call` and `trace_callMany` use the `eth_simulateV1` codes: -38010
-nonce too low, -38011 nonce too high, -38012 base fee too low, -38013 intrinsic gas, -38014
-insufficient funds, -38015 block gas limit, -38024 sender not an EOA, -38025 init-code size and
--38026 client limit. A priority fee above the fee cap is -32602, as Geth reports it for `eth_simulateV1`.
+Validation rejections of `trace_call` and `trace_callMany` use the `eth_simulateV1` codes: -38012
+base fee too low, -38013 intrinsic gas, -38014 insufficient funds, -38025 init-code size and -38026
+client limit. A priority fee above the fee cap, and any other validation failure without a listed
+code, is -32602. A supplied nonce is not validated and unsigned calls skip the EIP-3607 sender-code
+check, as `eth_call` does, so the nonce and sender-not-EOA codes do not apply. Omitted gas, and
+supplied gas above the server's execution cap, run with that cap, as `eth_call` does; the cap is
+server policy, not a truncated result.
 `trace_rawTransaction` uses the `eth_sendRawTransaction` error groups
 ([#650](https://github.com/ethereum/execution-apis/pull/650)): 1 nonce too low, 2 nonce too high,
 800 intrinsic gas, 804 priority fee above fee cap, 806 fee cap below base fee and 809 insufficient
-funds, with -32003 (Transaction rejected) as the generic fallback. Malformed input is -32602.
+funds, with -32003 (Transaction rejected) as the generic fallback. A signed gas limit above the
+server's execution cap is not reduced, because that would change the transaction: it is rejected
+with -38026. Malformed input is -32602.
 
 ## Execution results and state changes
 
@@ -132,7 +137,10 @@ failed-CREATE shape, which must not report the would-be address. Failure labels 
 `Out of gas`, `Bad instruction`, `Bad jump destination`, `Stack underflow`, `Out of stack`,
 `Mutable Call In Static Context`, `Built-in failed` and `Out of bounds`, plus the post-Parity
 `Contract address collision`, `Code size limit exceeded`, `Invalid code prefix 0xEF` and
-`Nonce overflow`. Other strings are extensions that consumers treat as generic failure.
+`Nonce overflow`. EIP-3860 oversized initcode aborts the creating frame with `Out of gas`, as the
+EIP specifies. The designated invalid instruction 0xFE is an undefined opcode: it is omitted from
+`vmTrace` ops and its frame fails with `Bad instruction`. Other strings are extensions that
+consumers treat as generic failure.
 `revertReason`, if present, is decoded `Error(string)` text; raw revert bytes live in
 `result.output`. The execution envelope carries root output, which cannot substitute for a nested
 frame’s revert bytes. A locally successful child remains successful even if an ancestor later
@@ -235,7 +243,7 @@ approval. Malformed JSON on rejection is independently a reporting defect.
 
 ## Open details requiring focused review
 
-Optional method discovery; client execution caps for omitted gas; `pending` for simulations
+Optional method discovery; the value of client execution caps; `pending` for simulations
 and its localization; the shared semantics of a raw-transaction block selector (H12); and
 simulation extensions beyond the reserved override positions need further agreement. Clients
 must declare supported extensions rather than relying on a successful response as feature

@@ -60,7 +60,7 @@ TraceCall:
     (-32602, or the selected fork''s validity error, such as authorizationList before Prague); a client
     MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting
     them does not establish extension support (H14). Omitted or null to creates a contract. Defaults: from
-    zero address, value zero, input empty; omitted gas uses the client execution cap. Omitted gasPrice,
+    zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice,
     maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas
     defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST
     NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including
@@ -269,7 +269,9 @@ TraceFrame:
     are "Reverted", "Out of gas", "Bad instruction", "Bad jump destination", "Stack underflow",
     "Out of stack", "Mutable Call In Static Context", "Built-in failed", "Out of bounds", and after
     Parity "Contract address collision", "Code size limit exceeded", "Invalid code prefix 0xEF" and
-    "Nonce overflow". Any other error string is an extension that consumers treat as a generic failure.
+    "Nonce overflow". EIP-3860 oversized initcode aborts the creating frame with "Out of gas". The
+    designated invalid instruction 0xFE is an undefined opcode, so its frame fails with "Bad instruction".
+    Any other error string is an extension that consumers treat as a generic failure.
     revertReason, if present, is the decoded Error(string) text; raw revert bytes live in result.output.
     A suicide frame records the SELFDESTRUCT opcode and its transfer, not account deletion
     (H05,H09,H10,H24).'
@@ -739,7 +741,7 @@ TraceVm:
               type: 'null'
   description: 'code is the actually executed bytecode, including initcode and resolved delegated code.
     ops lists every operation that began executing; operations rejected before execution (undefined
-    opcode, stack underflow or overflow) are omitted, and there is no synthetic STOP, so every pc lies
+    opcodes including the designated invalid 0xFE, stack underflow or overflow) are omitted, and there is no synthetic STOP, so every pc lies
     inside code. cost is the total gas deducted from the caller when the operation starts, including gas
     made available to a child frame: the 63/64-capped forwarded gas for the CALL family, excluding the
     value stipend, and all but 1/64 for the CREATE family. ex records same-step effects; ex.used is the
