@@ -24,9 +24,17 @@
 
     Explicit executionGas and stateGas are required for every frame. Zero is a
     real limit. Requests exceeding the node's RPC gas cap fail; the node must not
-    silently clamp signed limits. Other omitted fields use FrameTransactionRequest
-    and FrameRequest defaults. Transaction validity and approval rules still apply,
+    silently clamp signed limits. Omitted frame fields use FrameRequest defaults.
+    Transaction validity and approval rules still apply,
     except for the explicit signature-placeholder relaxation.
+
+    For frame calls, omitted chainId and nonce use the selected chain and sender
+    state. Signatures and blobVersionedHashes default to empty arrays. Frame order
+    is preserved.
+
+    Omitted maxPriorityFeePerGas defaults to zero and maxFeePerGas to the selected
+    block base fee. Omitted maxFeePerBlobGas uses the block blob base fee when blobs
+    are present, otherwise zero. Defaults use the context after overrides.
 
     If a VERIFY frame fails, the call fails immediately with error code 3 and
     its revert bytes, or empty bytes when unavailable. Otherwise execution
