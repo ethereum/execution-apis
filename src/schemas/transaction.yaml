@@ -656,8 +656,21 @@ TransactionLegacySigned:
         s:
           title: s
           $ref: '#/components/schemas/uint'
+Transaction8141Signed:
+  title: Signed 8141 Transaction
+  type: object
+  allOf:
+    - $ref: '#/components/schemas/Transaction8141'
+  properties:
+    signatures:
+      title: signatures
+      description: List of complete signature entries in transaction order. Signature placeholders are not returned for submitted transactions.
+      type: array
+      items:
+        $ref: '#/components/schemas/FrameSignature'
 TransactionSigned:
   oneOf:
+    - $ref: '#/components/schemas/Transaction8141Signed'
     - $ref: '#/components/schemas/Transaction7702Signed'
     - $ref: '#/components/schemas/Transaction4844Signed'
     - $ref: '#/components/schemas/Transaction1559Signed'
