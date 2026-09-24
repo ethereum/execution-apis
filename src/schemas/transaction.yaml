@@ -92,6 +92,35 @@ FrameSignature:
           enum: ['0x2']
         signature:
           pattern: ^0x[0-9a-f]{256}$
+FrameSignaturePlaceholder:
+  title: EIP-8141 signature placeholder
+  type: object
+  additionalProperties: false
+  required:
+    - scheme
+    - signer
+    - msg
+    - signature
+  properties:
+    scheme:
+      $ref: '#/components/schemas/FrameSignature/properties/scheme'
+    signer:
+      $ref: '#/components/schemas/FrameSignature/properties/signer'
+    msg:
+      $ref: '#/components/schemas/FrameSignature/properties/msg'
+    signature:
+      title: signature
+      description: Empty signature bytes to be supplied before submission when required by the signature scheme.
+      type: string
+      pattern: ^0x$
+  if:
+    properties:
+      scheme:
+        enum: ['0x0']
+  then:
+    properties:
+      signer:
+        enum: ['0x']
 Transaction8141:
   title: EIP-8141 transaction
   type: object
@@ -130,10 +159,12 @@ Transaction8141:
         $ref: '#/components/schemas/Frame'
     signatures:
       title: signatures
-      description: List of signature entries in transaction order. May be empty.
+      description: List of signatures or signature placeholders in transaction order. May be empty.
       type: array
       items:
-        $ref: '#/components/schemas/FrameSignature'
+        anyOf:
+          - $ref: '#/components/schemas/FrameSignature'
+          - $ref: '#/components/schemas/FrameSignaturePlaceholder'
     maxPriorityFeePerGas:
       title: max priority fee per gas
       description: Maximum priority fee per gas in wei.
