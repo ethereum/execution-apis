@@ -66,6 +66,7 @@ uint32:
   pattern: ^0x(0|[1-9a-f][0-9a-f]{0,7})$
 uint64:
   title: hex encoded 64 bit unsigned integer
+  description: The entire unsigned 64-bit range is valid at decoding time.
   type: string
   pattern: ^0x(0|[1-9a-f][0-9a-f]{0,15})$
 uint256:
