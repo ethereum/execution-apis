@@ -29,27 +29,29 @@ BlockStateCalls:
   title: Array of block state calls to be executed at specific, optional block/state.
   description: "The size of this array may be limited depending on the client as a DOS protection. 256 is a common/recommended limit as it is the same limit used by BLOCKHASH opcode."
   type: array
-  properties:
-    blockOverrides:
-      title: Block overrides
-      description: |-
-        Block overrides can be used to replace fields in a block.
-        default: no block override.
-      $ref: '#/components/schemas/BlockOverrides'
-    stateOverrides:
-      title: State overrides
-      description: |-
-        State overrides can be used to replace existing blockchain state with new state.
-        Default: no state overrides
-      $ref: '#/components/schemas/StateOverrides'
-    calls:
-      type: array
-      title: calls
-      description: |-
-        List of transactions to execute at this block/state.
-        Default: []
-      items:
-        $ref: '#/components/schemas/GenericCallTransaction'
+  items:
+    type: object
+    properties:
+      blockOverrides:
+        title: Block overrides
+        description: |-
+          Block overrides can be used to replace fields in a block.
+          default: no block override.
+        $ref: '#/components/schemas/BlockOverrides'
+      stateOverrides:
+        title: State overrides
+        description: |-
+          State overrides can be used to replace existing blockchain state with new state.
+          Default: no state overrides
+        $ref: '#/components/schemas/StateOverrides'
+      calls:
+        type: array
+        title: calls
+        description: |-
+          List of transactions to execute at this block/state.
+          Default: []
+        items:
+          $ref: '#/components/schemas/GenericCallTransaction'
 StateOverrides:
   title: Dictionary of addresses in the state to be overridden
   type: object
@@ -63,6 +65,19 @@ AccountOverride:
   oneOf:
     - $ref: '#/components/schemas/AccountOverrideState'
     - $ref: '#/components/schemas/AccountOverrideStateDiff'
+    - not:
+        anyOf:
+          - required: [state]
+          - required: [stateDiff]
+      properties:
+        nonce:
+          $ref: '#/components/schemas/AccountOverrideState/properties/nonce'
+        balance:
+          $ref: '#/components/schemas/AccountOverrideState/properties/balance'
+        code:
+          $ref: '#/components/schemas/AccountOverrideState/properties/code'
+        movePrecompileToAddress:
+          $ref: '#/components/schemas/AccountOverrideState/properties/movePrecompileToAddress'
 AccountOverrideState:
   title: Account override with whole storage replacement
   description: It is possible to override any kind of address (EOA's, contracts and precompiles)
@@ -125,7 +140,7 @@ BlockOverrides:
       description: When overriding block numbers across multiple blocks, block number need to be increasing. Skipping over blocks numbers is possible. If block number is not specified, it's incremented by one for each block.
     prevRandao:
       title: The Previous value of randomness beacon
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/bytes32'
     time:
       title: Time
       $ref: '#/components/schemas/uint64'
@@ -312,4 +327,6 @@ GenericCallTransaction:
       description: |-
         EIP-4844 versioned hashes
         Default: []
-      $ref: '#/components/schemas/bytes32'
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes32'
