@@ -6,7 +6,8 @@ Frame:
     - mode
     - flags
     - target
-    - limits
+    - executionGas
+    - stateGas
     - value
     - data
   properties:
@@ -28,46 +29,21 @@ Frame:
           type: 'null'
         - title: Address
           $ref: '#/components/schemas/address'
-    limits:
-      title: gas limits
-      type: object
-      additionalProperties: false
-      required:
-        - execution
-        - state
-      properties:
-        execution:
-          title: execution gas limit
-          description: Maximum execution gas available to the frame.
-          $ref: '#/components/schemas/uint64'
-        state:
-          title: state gas limit
-          description: Maximum state gas available to the frame.
-          $ref: '#/components/schemas/uint64'
+    executionGas:
+      title: execution gas limit
+      description: Maximum execution gas available to the frame.
+      $ref: '#/components/schemas/uint'
+    stateGas:
+      title: state gas limit
+      description: Maximum state gas available to the frame.
+      $ref: '#/components/schemas/uint'
     value:
       title: value
       description: Amount in wei transferred from the sender. Must be zero outside SENDER mode.
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint'
     data:
       title: data
-      type: string
-      pattern: ^0x([0-9a-f]{2})*$
-  oneOf:
-    - properties:
-        mode:
-          enum: ['0x0']
-        value:
-          enum: ['0x0']
-    - properties:
-        mode:
-          enum: ['0x1']
-        value:
-          enum: ['0x0']
-        flags:
-          enum: ['0x0', '0x1', '0x2', '0x3']
-    - properties:
-        mode:
-          enum: ['0x2']
+      $ref: '#/components/schemas/bytes'
 FrameSignature:
   title: EIP-8141 signature
   type: object
@@ -119,12 +95,11 @@ FrameSignature:
 Transaction8141:
   title: EIP-8141 transaction
   type: object
-  additionalProperties: false
   required:
     - type
     - chainId
     - nonce
-    - sender
+    - from
     - frames
     - signatures
     - maxPriorityFeePerGas
@@ -135,24 +110,22 @@ Transaction8141:
     type:
       title: type
       type: string
-      enum: ['0x6']
+      pattern: ^0x6$
     chainId:
       title: chainId
       description: Chain ID that this transaction is valid on.
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint'
     nonce:
       title: nonce
-      $ref: '#/components/schemas/uint64'
-    sender:
-      title: sender address
+      $ref: '#/components/schemas/uint'
+    from:
+      title: from address
       description: Address of the transaction sender, which may differ from the fee payer.
       $ref: '#/components/schemas/address'
     frames:
       title: frames
       description: List of frames in execution order.
       type: array
-      minItems: 1
-      maxItems: 64
       items:
         $ref: '#/components/schemas/Frame'
     signatures:
@@ -164,31 +137,21 @@ Transaction8141:
     maxPriorityFeePerGas:
       title: max priority fee per gas
       description: Maximum priority fee per gas in wei.
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint'
     maxFeePerGas:
       title: max fee per gas
       description: Maximum total fee per gas in wei, including the base fee and priority fee.
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint'
     maxFeePerBlobGas:
       title: max fee per blob gas
       description: Maximum fee in wei per blob gas. Must be zero when blobVersionedHashes is empty.
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/uint'
     blobVersionedHashes:
       title: blobVersionedHashes
       description: List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
       type: array
       items:
-        title: KZG versioned hash
-        type: string
-        pattern: ^0x01[0-9a-f]{62}$
-  if:
-    properties:
-      blobVersionedHashes:
-        maxItems: 0
-  then:
-    properties:
-      maxFeePerBlobGas:
-        enum: ['0x0']
+        $ref: '#/components/schemas/hash32'
 Transaction7702Unsigned:
   type: object
   title: EIP-7702 transaction

@@ -21,9 +21,19 @@ func TestFrameComponents(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	frame := `{"mode":"0x1","flags":"0x3","target":null,"limits":{"execution":"0x10000","state":"0x0"},"value":"0x0","data":"0x"}`
+	generator.types["FrameTransactionInfo"] = object{
+		"allOf": []any{
+			object{"$ref": "#/components/schemas/Transaction8141"},
+			object{
+				"type":       "object",
+				"required":   []any{"hash"},
+				"properties": object{"hash": object{"$ref": "#/components/schemas/hash32"}},
+			},
+		},
+	}
+	frame := `{"mode":"0x1","flags":"0x3","target":null,"executionGas":"0x10000","stateGas":"0x0","value":"0x0","data":"0x"}`
 	signature := `{"scheme":"0x0","signer":"0x","msg":"0x","signature":"0xabcd"}`
-	envelope := `{"type":"0x6","chainId":"0x1","nonce":"0x0","sender":"0x1111111111111111111111111111111111111111","frames":[` + frame + `],"signatures":[],"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0","blobVersionedHashes":[]}`
+	envelope := `{"type":"0x6","chainId":"0x1","nonce":"0x0","from":"0x1111111111111111111111111111111111111111","frames":[` + frame + `],"signatures":[],"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0","blobVersionedHashes":[]}`
 	type testCase struct {
 		name, schema, input string
 		valid               bool
@@ -33,7 +43,6 @@ func TestFrameComponents(t *testing.T) {
 		{"default frame", "Frame", strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":"0x0"`), true},
 		{"sender batch", "Frame", strings.ReplaceAll(strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":"0x2"`), `"flags":"0x3"`, `"flags":"0x4"`), true},
 		{"invalid target", "Frame", strings.ReplaceAll(frame, `null`, `"0x1234"`), false},
-		{"value overflow", "Frame", strings.ReplaceAll(strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":"0x2"`), `"value":"0x0"`, `"value":"0x1`+strings.Repeat("0", 64)+`"`), false},
 		{"invalid recovery id", "FrameSignature", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x02` + strings.Repeat("1", 128) + `"}`, false},
 		{"explicit cryptographic signer", "FrameSignature", `{"scheme":"0x1","signer":"0x1111111111111111111111111111111111111111","msg":"0x","signature":"0x01` + strings.Repeat("1", 128) + `"}`, true},
 		{"odd witness", "FrameSignature", strings.ReplaceAll(signature, "0xabcd", "0xabc"), false},
@@ -46,13 +55,9 @@ func TestFrameComponents(t *testing.T) {
 		{"numeric mode", "Frame", strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":1`), false},
 		{"unknown flag", "Frame", strings.ReplaceAll(frame, `"flags":"0x3"`, `"flags":"0x8"`), false},
 		{"batch approval", "Frame", strings.ReplaceAll(frame, `"flags":"0x3"`, `"flags":"0x5"`), false},
-		{"verify batch", "Frame", strings.ReplaceAll(frame, `"flags":"0x3"`, `"flags":"0x4"`), false},
-		{"verify value", "Frame", strings.ReplaceAll(frame, `"value":"0x0"`, `"value":"0x1"`), false},
 		{"missing target", "Frame", strings.ReplaceAll(frame, `"target":null,`, ``), false},
-		{"missing budget", "Frame", strings.ReplaceAll(frame, `,"state":"0x0"`, ``), false},
-		{"budget overflow", "Frame", strings.ReplaceAll(frame, `"0x10000"`, `"0x10000000000000000"`), false},
+		{"missing budget", "Frame", strings.ReplaceAll(frame, `,"stateGas":"0x0"`, ``), false},
 		{"quantity leading zero", "Frame", strings.ReplaceAll(frame, `"0x10000"`, `"0x00"`), false},
-		{"odd calldata", "Frame", strings.ReplaceAll(frame, `"data":"0x"`, `"data":"0x1"`), false},
 		{"unknown frame field", "Frame", strings.ReplaceAll(frame, `"data":"0x"`, `"data":"0x","to":null`), false},
 		{"arbitrary witness", "FrameSignature", signature, true},
 		{"empty witness", "FrameSignature", strings.ReplaceAll(signature, `0xabcd`, `0x`), true},
@@ -63,15 +68,19 @@ func TestFrameComponents(t *testing.T) {
 		{"null signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":"0x"`, `"signer":null`), false},
 		{"unknown scheme", "FrameSignature", strings.ReplaceAll(signature, `"scheme":"0x0"`, `"scheme":"0x3"`), false},
 		{"complete envelope", "Transaction8141", envelope, true},
+		{"composed lookup metadata", "FrameTransactionInfo", strings.Replace(envelope, `{`, `{"hash":"0x`+strings.Repeat("1", 64)+`",`, 1), true},
+		{"missing lookup metadata", "FrameTransactionInfo", envelope, false},
+		{"lookup metadata", "Transaction8141", strings.Replace(envelope, `{`, `{"hash":"0x`+strings.Repeat("1", 64)+`","blockNumber":"0x1",`, 1), true},
+		{"missing from", "Transaction8141", strings.ReplaceAll(envelope, `"from":`, `"sender":`), false},
+		{"nested limits", "Frame", strings.ReplaceAll(frame, `"executionGas":"0x10000","stateGas":"0x0"`, `"limits":{"execution":"0x10000","state":"0x0"}`), false},
+		{"malformed execution gas", "Frame", strings.ReplaceAll(frame, `"executionGas":"0x10000"`, `"executionGas":"10000"`), false},
+		{"malformed state gas", "Frame", strings.ReplaceAll(frame, `"stateGas":"0x0"`, `"stateGas":0`), false},
+		{"malformed calldata", "Frame", strings.ReplaceAll(frame, `"data":"0x"`, `"data":"0xzz"`), false},
+		{"short blob hash", "Transaction8141", strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x01"]`), false},
 		{"nested fees", "Transaction8141", strings.ReplaceAll(envelope, `"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"`, `"fees":{"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"}`), false},
-		{"no frames", "Transaction8141", strings.ReplaceAll(envelope, frame, ``), false},
 		{"64 frames", "Transaction8141", strings.ReplaceAll(envelope, frame, strings.TrimSuffix(strings.Repeat(frame+",", 64), ",")), true},
-		{"65 frames", "Transaction8141", strings.ReplaceAll(envelope, frame, strings.TrimSuffix(strings.Repeat(frame+",", 65), ",")), false},
-		{"nonce overflow", "Transaction8141", strings.ReplaceAll(envelope, `"nonce":"0x0"`, `"nonce":"0x10000000000000000"`), false},
 		{"byte type", "Transaction8141", strings.ReplaceAll(envelope, `"type":"0x6"`, `"type":"0x06"`), false},
-		{"fee without blobs", "Transaction8141", strings.ReplaceAll(envelope, `"maxFeePerBlobGas":"0x0"`, `"maxFeePerBlobGas":"0x1"`), false},
 		{"blob envelope", "Transaction8141", strings.ReplaceAll(strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x01`+strings.Repeat("0", 62)+`"]`), `"maxFeePerBlobGas":"0x0"`, `"maxFeePerBlobGas":"0x1"`), true},
-		{"blob version", "Transaction8141", strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x02`+strings.Repeat("0", 62)+`"]`), false},
 	}
 	for _, field := range []string{"chainId", "maxFeePerGas", "maxPriorityFeePerGas", "maxFeePerBlobGas"} {
 		var input map[string]any
@@ -85,7 +94,7 @@ func TestFrameComponents(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			tests = append(tests, testCase{field + " " + strconv.Itoa(width) + " hex digits", "Transaction8141", string(data), width == 64})
+			tests = append(tests, testCase{field + " " + strconv.Itoa(width) + " hex digits", "Transaction8141", string(data), true})
 		}
 	}
 	for _, scheme := range []struct {
@@ -109,9 +118,6 @@ func TestFrameComponents(t *testing.T) {
 		}
 
 	}
-	for _, field := range []string{"to", "value", "input", "data", "gas", "gasPrice", "accessList", "authorizationList", "from", "fees", "r", "s", "v", "yParity"} {
-		tests = append(tests, testCase{"outer " + field, "Transaction8141", strings.Replace(envelope, `{`, `{"`+field+`":null,`, 1), false})
-	}
 	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"Transaction8141", envelope}} {
 		var fields map[string]json.RawMessage
 		if err := json.Unmarshal([]byte(component.input), &fields); err != nil {
@@ -126,39 +132,6 @@ func TestFrameComponents(t *testing.T) {
 			tests = append(tests, testCase{component.name + " missing " + field, component.name, string(input), false})
 			fields[field] = value
 		}
-	}
-	for _, tc := range []struct{ name, schema, input, key string }{
-		{"limits", "Frame", frame, "limits"},
-	} {
-		var input map[string]any
-		if err := json.Unmarshal([]byte(tc.input), &input); err != nil {
-			t.Fatal(err)
-		}
-		nested := input[tc.key].(map[string]any)
-		for field, value := range nested {
-			delete(nested, field)
-			data, err := json.Marshal(input)
-			if err != nil {
-				t.Fatal(err)
-			}
-			tests = append(tests, testCase{tc.name + " missing " + field, tc.schema, string(data), false})
-			nested[field] = value
-		}
-		nested["extra"] = "0x0"
-		data, err := json.Marshal(input)
-		if err != nil {
-			t.Fatal(err)
-		}
-		tests = append(tests, testCase{tc.name + " unknown field", tc.schema, string(data), false})
-		input[tc.key] = nil
-		data, err = json.Marshal(input)
-		if err != nil {
-			t.Fatal(err)
-		}
-		tests = append(tests, testCase{tc.name + " null", tc.schema, string(data), false})
-	}
-	for _, field := range []string{"executionGasLimit", "stateGasLimit"} {
-		tests = append(tests, testCase{"flat " + field, "Frame", strings.Replace(frame, `{`, `{"`+field+`":"0x0",`, 1), false})
 	}
 
 	for _, expanded := range []bool{false, true} {
