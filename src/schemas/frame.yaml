@@ -1,0 +1,182 @@
+Frame:
+  title: EIP-8141 frame
+  description: Complete frame. All fields are explicit; null target resolves to the transaction sender, not contract creation.
+  type: object
+  additionalProperties: false
+  required:
+    - mode
+    - flags
+    - target
+    - executionGasLimit
+    - stateGasLimit
+    - value
+    - data
+  properties:
+    mode:
+      title: execution mode
+      description: DEFAULT (0x0), VERIFY (0x1), or SENDER (0x2).
+      type: string
+      enum: ['0x0', '0x1', '0x2']
+    flags:
+      title: frame flags
+      description: Approval scope occupies bits 0 and 1. Bit 2 joins this frame to the next atomic batch member; approval scope must then be zero.
+      type: string
+      enum: ['0x0', '0x1', '0x2', '0x3', '0x4']
+    target:
+      title: frame target
+      oneOf:
+        - title: transaction sender
+          type: 'null'
+        - $ref: '#/components/schemas/address'
+    executionGasLimit:
+      title: execution gas limit
+      description: Explicit execution budget. Zero is a zero budget, not a request for estimation.
+      $ref: '#/components/schemas/uint64'
+    stateGasLimit:
+      title: state gas limit
+      description: Explicit state budget. Zero is a zero budget, not a request for estimation.
+      $ref: '#/components/schemas/uint64'
+    value:
+      title: transferred value
+      description: Amount in wei transferred from the sender. Must be zero outside SENDER mode.
+      $ref: '#/components/schemas/uint256'
+    data:
+      title: frame calldata
+      type: string
+      pattern: ^0x([0-9a-f]{2})*$
+  oneOf:
+    - properties:
+        mode:
+          enum: ['0x0']
+        value:
+          enum: ['0x0']
+    - properties:
+        mode:
+          enum: ['0x1']
+        value:
+          enum: ['0x0']
+        flags:
+          enum: ['0x0', '0x1', '0x2', '0x3']
+    - properties:
+        mode:
+          enum: ['0x2']
+FrameSignature:
+  title: EIP-8141 signature
+  description: Complete signature entry with raw protocol bytes. Cryptographic validation is required in addition to schema validation.
+  type: object
+  additionalProperties: false
+  required:
+    - scheme
+    - signer
+    - msg
+    - signature
+  properties:
+    scheme:
+      title: signature scheme
+      description: ARBITRARY (0x0), SECP256K1 (0x1), or P256 (0x2).
+      type: string
+      enum: ['0x0', '0x1', '0x2']
+    signer:
+      title: signer metadata
+      description: Empty bytes select the transaction sender for cryptographic schemes. ARBITRARY requires empty bytes and has no resolved signer.
+      type: string
+      pattern: ^0x([0-9a-fA-F]{40})?$
+    msg:
+      title: signed message
+      description: Empty bytes select the canonical transaction signature hash. An explicit digest must be 32 bytes and nonzero.
+      type: string
+      pattern: ^0x([0-9a-f]{64})?$
+      not:
+        enum: ['0x0000000000000000000000000000000000000000000000000000000000000000']
+    signature:
+      title: raw signature
+      description: Arbitrary witness bytes, SECP256K1 v || r || s, or P256 r || s || qx || qy. Each scalar or coordinate occupies 32 bytes.
+      type: string
+      pattern: ^0x([0-9a-f]{2})*$
+  oneOf:
+    - properties:
+        scheme:
+          enum: ['0x0']
+        signer:
+          enum: ['0x']
+    - properties:
+        scheme:
+          enum: ['0x1']
+        signature:
+          pattern: ^0x0[01][0-9a-f]{128}$
+    - properties:
+        scheme:
+          enum: ['0x2']
+        signature:
+          pattern: ^0x[0-9a-f]{256}$
+Transaction8141:
+  title: EIP-8141 transaction envelope
+  description: Complete type-0x6 envelope, without RPC lookup metadata or derived gas. Partial preparation requests and simulation signature placeholders are not accepted.
+  type: object
+  additionalProperties: false
+  required:
+    - type
+    - chainId
+    - nonce
+    - from
+    - frames
+    - signatures
+    - maxPriorityFeePerGas
+    - maxFeePerGas
+    - maxFeePerBlobGas
+    - blobVersionedHashes
+  properties:
+    type:
+      title: transaction type
+      type: string
+      enum: ['0x6']
+    chainId:
+      title: chain ID
+      $ref: '#/components/schemas/uint256'
+    nonce:
+      title: sender nonce
+      $ref: '#/components/schemas/uint64'
+    from:
+      title: transaction sender
+      description: The sender encoded in the envelope, which may differ from the fee payer.
+      $ref: '#/components/schemas/address'
+    frames:
+      title: ordered frames
+      type: array
+      minItems: 1
+      maxItems: 64
+      items:
+        $ref: '#/components/schemas/Frame'
+    signatures:
+      title: transaction signatures
+      description: Ordered signature entries. An empty list is allowed; transaction approval remains an execution requirement.
+      type: array
+      items:
+        $ref: '#/components/schemas/FrameSignature'
+    maxPriorityFeePerGas:
+      title: maximum priority fee per gas
+      description: Maximum priority fee in wei per gas, bounded to 256 bits.
+      $ref: '#/components/schemas/uint256'
+    maxFeePerGas:
+      title: maximum fee per gas
+      description: Maximum total fee in wei per gas, bounded to 256 bits.
+      $ref: '#/components/schemas/uint256'
+    maxFeePerBlobGas:
+      title: maximum fee per blob gas
+      description: Maximum fee in wei per blob gas. Must be zero when blobVersionedHashes is empty.
+      $ref: '#/components/schemas/uint256'
+    blobVersionedHashes:
+      title: versioned blob hashes
+      type: array
+      items:
+        title: KZG versioned hash
+        type: string
+        pattern: ^0x01[0-9a-f]{62}$
+  if:
+    properties:
+      blobVersionedHashes:
+        maxItems: 0
+  then:
+    properties:
+      maxFeePerBlobGas:
+        enum: ['0x0']
