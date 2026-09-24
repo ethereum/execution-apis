@@ -191,11 +191,35 @@ func TestTraceContracts(t *testing.T) {
 	add("standard call fields", "trace_call", 0, traceObject{"chainId": "0x1", "maxFeePerBlobGas": "0x1", "blobVersionedHashes": []any{hash}, "authorizationList": []any{}}, true)
 	add("invalid chain id", "trace_call", 0, traceObject{"chainId": 1}, false)
 	add("invalid blob hash", "trace_call", 0, traceObject{"blobVersionedHashes": []any{"0x01"}}, false)
+	add("gas above uint64", "trace_call", 0, traceObject{"gas": "0x10000000000000000"}, false)
+	add("uint64 gas", "trace_call", 0, traceObject{"gas": "0xffffffffffffffff"}, true)
+	add("block hash", "trace_call", 2, hash, true)
+	add("block hash", "trace_callMany", 1, hash, true)
+	for _, param := range []struct {
+		method   string
+		position int
+	}{{"trace_call", 3}, {"trace_callMany", 2}} {
+		add("null state overrides", param.method, param.position, nil, true)
+		add("state overrides", param.method, param.position, traceObject{address: traceObject{"balance": "0x1", "stateDiff": traceObject{}}}, true)
+		add("malformed state overrides", param.method, param.position, traceObject{"bad": traceObject{}}, false)
+		add("null block overrides", param.method, param.position+1, nil, true)
+		add("block overrides", param.method, param.position+1, traceObject{"baseFeePerGas": "0x0"}, true)
+	}
+	add("invalid blob hash", "trace_call", 0, traceObject{"blobVersionedHashes": []any{"0x01"}}, false)
 	for _, value := range []any{nil, []any{}, []any{address}} {
 		add("unrestricted or address filter", "trace_filter", 0, traceObject{"fromAddress": value, "toAddress": value}, true)
 	}
 	add("scalar address filter", "trace_filter", 0, traceObject{"fromAddress": address}, false)
 	add("negative count", "trace_filter", 0, traceObject{"count": -1}, false)
+	add("uint64 page", "trace_filter", 0, traceObject{"after": uint64(1) << 63, "count": 1}, true)
+	for _, tag := range []string{"earliest", "latest", "safe", "finalized"} {
+		add("range tag "+tag, "trace_filter", 0, traceObject{"fromBlock": tag, "toBlock": tag}, true)
+	}
+	add("pending range", "trace_filter", 0, traceObject{"fromBlock": "pending"}, false)
+	for _, method := range []string{"trace_block", "trace_replayBlockTransactions"} {
+		add("latest block", method, 0, "latest", true)
+		add("pending block", method, 0, "pending", false)
+	}
 	add("hex path", "trace_get", 1, []any{"0x0", "0xa"}, true)
 	add("integer path", "trace_get", 1, []any{0, 10}, false)
 	for _, field := range []string{"maxFeePerGas", "maxPriorityFeePerGas"} {

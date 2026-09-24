@@ -70,13 +70,15 @@ test('actual generated trace pages retain array, variant fields and localization
   for (const field of ['chainId', 'authorizationList', 'blobVersionedHashes', 'maxFeePerBlobGas']) {
     assert.ok(call.includes(`**${field}**`), `standard call field ${field} must be visible`);
   }
-  assert.match(call, /Unknown fields MUST be ignored/);
+  assert.match(call, /Only fields outside this schema are ignored/);
+  for (const param of ['StateOverrides', 'BlockOverrides']) assert.ok(call.includes(`**${param}**`), `reserved ${param} parameter must be visible`);
   const filter = pages.find(page => page.methodName === 'trace_filter').markdown;
   for (const field of ['fromAddress', 'toAddress']) {
     assert.ok(filter.includes(`**${field}**`), `nullable filter field ${field} must be visible`);
   }
   assert.match(filter, /Missing, null or empty/);
-  assert.match(filter, /-32001/);
+  assert.match(filter, /-32602/);
+  assert.doesNotMatch(filter, /-32001/);
   assert.match(get, /Integer path entries are invalid params/);
 
   assert.equal(JSON.stringify(input), before);

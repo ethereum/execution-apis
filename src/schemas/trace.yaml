@@ -23,9 +23,10 @@ TraceCall:
       anyOf:
       - *id001
       - type: 'null'
-    gas: &id002
+    gas:
+      $ref: '#/components/schemas/uint64'
+    gasPrice: &id002
       $ref: '#/components/schemas/uint256'
-    gasPrice: *id002
     maxFeePerGas: *id002
     maxPriorityFeePerGas: *id002
     value: *id002
@@ -52,13 +53,19 @@ TraceCall:
     - required: [maxFeePerGas]
     - required: [maxPriorityFeePerGas]
   additionalProperties: true
-  description: 'Unsigned simulation. Omitted or null to creates a contract. Defaults: from zero address,
-    value zero, input empty, nonce from selected state, fees zero. Omitted gas uses the client execution
-    cap. data is a compatibility alias for input; when both are present they MUST agree. Legacy gasPrice
-    and dynamic fee fields MUST NOT be combined. Standard eth_call transaction fields retain their
-    eth_call meaning, including blob context and authorization lists when supported by the selected fork.
-    Unknown fields MUST be ignored for forward compatibility; acceptance alone does not establish
-    support for an extension. Additional positional state or block overrides remain outside this profile.'
+  description: 'Unsigned simulation. The fields are those of the eth_simulateV1 GenericCallTransaction,
+    with chainId and authorizationList as in GenericTransaction, plus data as a compatibility alias for
+    input. When data and input are both present they MUST be equal; otherwise return -32602. Every field
+    defined here MUST either take effect with its eth_call meaning or cause the request to be rejected
+    (-32602, or the selected fork''s validity error, such as authorizationList before Prague); a client
+    MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting
+    them does not establish extension support (H14). Omitted or null to creates a contract. Defaults: from
+    zero address, value zero, input empty; omitted gas uses the client execution cap. Omitted gasPrice,
+    maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas
+    defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST
+    NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including
+    CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match
+    the chain.'
   title: TraceCall
 TraceCallManyEntry:
   type: array
@@ -87,10 +94,9 @@ TraceFilter:
   type: object
   required: []
   properties:
-    fromBlock:
-      $ref: '#/components/schemas/BlockNumberOrTag'
-    toBlock:
-      $ref: '#/components/schemas/BlockNumberOrTag'
+    fromBlock: &rangeBound
+      $ref: '#/components/schemas/BlockNumberOrTagForRange'
+    toBlock: *rangeBound
     fromAddress:
       anyOf:
       - type: array
@@ -108,18 +114,24 @@ TraceFilter:
       - union
       description: intersection (default) requires every populated address list to match; union requires
         any populated list to match. Unknown values are invalid parameters (-32602).
-    after: *id004
-    count: *id004
+    after: &pageSize
+      type: integer
+      minimum: 0
+      maximum: 18446744073709551615
+    count: *pageSize
   additionalProperties: false
   description: Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head,
-    after 0, count unlimited subject to an explicit server limit. An explicit toBlock before an omitted
-    latest start produces a range error. OR within each address list; AND between lists by default, as
-    eth_getLogs composes topic positions. Missing, null or empty lists are unrestricted. mode union
-    matches either populated list instead. Compare address bytes independently of hex letter case.
-    Resolve tags once per request. Apply filtering before pagination; count 0 returns []. Return an
-    error rather than silently truncate when a server limit is exceeded. Never replace an explicit
-    endpoint with a retention boundary; return 4444 if required history is unavailable.
-    count limits results, not scan or replay work (H03,H04,H23,H27,H30).
+    after 0, count unlimited subject to an explicit server limit. Bounds exclude pending. If either
+    bound resolves beyond the current head block, or fromBlock resolves above toBlock, return -32602;
+    an explicit toBlock before an omitted latest start is such a reversed range. Never clamp the range.
+    OR within each address list; AND between lists by default, as eth_getLogs composes topic positions.
+    Missing, null or empty lists are unrestricted. mode union matches either populated list instead.
+    Compare address bytes independently of hex letter case. Resolve tags once per request. Apply
+    filtering before pagination; count 0 returns []. after and count are JSON integers bounded by
+    uint64. Return an error rather than silently truncate when a server limit is exceeded. earliest is
+    the lowest available block; never replace an explicit endpoint with a retention boundary, and
+    return 4444 if required history is unavailable. count limits results, not scan or replay work
+    (H03,H04,H06,H23,H27,H30,H32).
   title: TraceFilter
 TraceCallAction:
   type: object

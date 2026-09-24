@@ -31,6 +31,7 @@ configurationv
 CRC
 crypto
 DocToc
+DUPn
 eedce
 ef
 eg
@@ -52,6 +53,7 @@ ethereum
 ethereumjs
 EVM
 exitv
+EXTCODECOPY
 FCU
 FCUs
 feeRecipient
@@ -61,6 +63,7 @@ Fulu
 getblobsbundlev
 getblobsv
 getclientversionv
+Geth
 getInclusionListV
 getinclusionlistv
 graphql
@@ -73,8 +76,10 @@ ipc
 js
 json
 JWT
+keccak
 KiB
 kzg
+MCOPY
 mem
 mempool
 merkle
@@ -86,16 +91,19 @@ MUL
 multicallV
 natively
 npm
+ommer
 ommers
 openrpc
 params
 pos
 pre
+precheck
 prev
 prevrandao
 PRs
 pyspelling
 randao
+Reth
 rlp
 RLP's
 rpc
@@ -111,9 +119,11 @@ SSTORE
 ssz
 statev
 statusv
+SWAPn
 TCP
 teku
 TLS
+TSTORE
 TTL
 txpool
 txs
