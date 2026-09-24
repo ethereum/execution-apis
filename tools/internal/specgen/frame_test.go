@@ -21,9 +21,9 @@ func TestFrameComponents(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	frame := `{"mode":"0x1","flags":"0x3","target":null,"executionGasLimit":"0x10000","stateGasLimit":"0x0","value":"0x0","data":"0x"}`
+	frame := `{"mode":"0x1","flags":"0x3","target":null,"limits":{"execution":"0x10000","state":"0x0"},"value":"0x0","data":"0x"}`
 	signature := `{"scheme":"0x0","signer":"0x","msg":"0x","signature":"0xabcd"}`
-	envelope := `{"type":"0x6","chainId":"0x1","nonce":"0x0","from":"0x1111111111111111111111111111111111111111","frames":[` + frame + `],"signatures":[],"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0","blobVersionedHashes":[]}`
+	envelope := `{"type":"0x6","chainId":"0x1","nonce":"0x0","sender":"0x1111111111111111111111111111111111111111","frames":[` + frame + `],"signatures":[],"fees":{"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"},"blobVersionedHashes":[]}`
 	type testCase struct {
 		name, schema, input string
 		valid               bool
@@ -49,7 +49,7 @@ func TestFrameComponents(t *testing.T) {
 		{"verify batch", "Frame", strings.ReplaceAll(frame, `"flags":"0x3"`, `"flags":"0x4"`), false},
 		{"verify value", "Frame", strings.ReplaceAll(frame, `"value":"0x0"`, `"value":"0x1"`), false},
 		{"missing target", "Frame", strings.ReplaceAll(frame, `"target":null,`, ``), false},
-		{"missing budget", "Frame", strings.ReplaceAll(frame, `"stateGasLimit":"0x0",`, ``), false},
+		{"missing budget", "Frame", strings.ReplaceAll(frame, `,"state":"0x0"`, ``), false},
 		{"budget overflow", "Frame", strings.ReplaceAll(frame, `"0x10000"`, `"0x10000000000000000"`), false},
 		{"quantity leading zero", "Frame", strings.ReplaceAll(frame, `"0x10000"`, `"0x00"`), false},
 		{"odd calldata", "Frame", strings.ReplaceAll(frame, `"data":"0x"`, `"data":"0x1"`), false},
@@ -79,7 +79,11 @@ func TestFrameComponents(t *testing.T) {
 		}
 		input["blobVersionedHashes"] = []string{"0x01" + strings.Repeat("0", 62)}
 		for _, width := range []int{64, 65} {
-			input[field] = "0x" + strings.Repeat("f", width)
+			if field == "chainId" {
+				input[field] = "0x" + strings.Repeat("f", width)
+			} else {
+				input["fees"].(map[string]any)[field] = "0x" + strings.Repeat("f", width)
+			}
 			data, err := json.Marshal(input)
 			if err != nil {
 				t.Fatal(err)
@@ -108,7 +112,7 @@ func TestFrameComponents(t *testing.T) {
 		}
 
 	}
-	for _, field := range []string{"to", "value", "input", "data", "gas", "gasPrice", "accessList", "authorizationList", "sender", "r", "s", "v", "yParity"} {
+	for _, field := range []string{"to", "value", "input", "data", "gas", "gasPrice", "accessList", "authorizationList", "from", "maxPriorityFeePerGas", "maxFeePerGas", "maxFeePerBlobGas", "r", "s", "v", "yParity"} {
 		tests = append(tests, testCase{"outer " + field, "Transaction8141", strings.Replace(envelope, `{`, `{"`+field+`":null,`, 1), false})
 	}
 	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"Transaction8141", envelope}} {
@@ -126,6 +130,41 @@ func TestFrameComponents(t *testing.T) {
 			fields[field] = value
 		}
 	}
+	for _, tc := range []struct{ name, schema, input, key string }{
+		{"limits", "Frame", frame, "limits"},
+		{"fees", "Transaction8141", envelope, "fees"},
+	} {
+		var input map[string]any
+		if err := json.Unmarshal([]byte(tc.input), &input); err != nil {
+			t.Fatal(err)
+		}
+		nested := input[tc.key].(map[string]any)
+		for field, value := range nested {
+			delete(nested, field)
+			data, err := json.Marshal(input)
+			if err != nil {
+				t.Fatal(err)
+			}
+			tests = append(tests, testCase{tc.name + " missing " + field, tc.schema, string(data), false})
+			nested[field] = value
+		}
+		nested["extra"] = "0x0"
+		data, err := json.Marshal(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		tests = append(tests, testCase{tc.name + " unknown field", tc.schema, string(data), false})
+		input[tc.key] = nil
+		data, err = json.Marshal(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		tests = append(tests, testCase{tc.name + " null", tc.schema, string(data), false})
+	}
+	for _, field := range []string{"executionGasLimit", "stateGasLimit"} {
+		tests = append(tests, testCase{"flat " + field, "Frame", strings.Replace(frame, `{`, `{"`+field+`":"0x0",`, 1), false})
+	}
+
 	for _, expanded := range []bool{false, true} {
 		for _, tc := range tests {
 			mode := "referenced/"

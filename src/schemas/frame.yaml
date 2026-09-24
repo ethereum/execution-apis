@@ -7,8 +7,7 @@ Frame:
     - mode
     - flags
     - target
-    - executionGasLimit
-    - stateGasLimit
+    - limits
     - value
     - data
   properties:
@@ -28,14 +27,22 @@ Frame:
         - title: transaction sender
           type: 'null'
         - $ref: '#/components/schemas/address'
-    executionGasLimit:
-      title: execution gas limit
-      description: Explicit execution budget. Zero is a zero budget, not a request for estimation.
-      $ref: '#/components/schemas/uint64'
-    stateGasLimit:
-      title: state gas limit
-      description: Explicit state budget. Zero is a zero budget, not a request for estimation.
-      $ref: '#/components/schemas/uint64'
+    limits:
+      title: frame gas limits
+      type: object
+      additionalProperties: false
+      required:
+        - execution
+        - state
+      properties:
+        execution:
+          title: execution gas limit
+          description: Explicit execution budget. Zero is a zero budget, not a request for estimation.
+          $ref: '#/components/schemas/uint64'
+        state:
+          title: state gas limit
+          description: Explicit state budget. Zero is a zero budget, not a request for estimation.
+          $ref: '#/components/schemas/uint64'
     value:
       title: transferred value
       description: Amount in wei transferred from the sender. Must be zero outside SENDER mode.
@@ -118,12 +125,10 @@ Transaction8141:
     - type
     - chainId
     - nonce
-    - from
+    - sender
     - frames
     - signatures
-    - maxPriorityFeePerGas
-    - maxFeePerGas
-    - maxFeePerBlobGas
+    - fees
     - blobVersionedHashes
   properties:
     type:
@@ -136,7 +141,7 @@ Transaction8141:
     nonce:
       title: sender nonce
       $ref: '#/components/schemas/uint64'
-    from:
+    sender:
       title: transaction sender
       description: The sender encoded in the envelope, which may differ from the fee payer.
       $ref: '#/components/schemas/address'
@@ -153,18 +158,27 @@ Transaction8141:
       type: array
       items:
         $ref: '#/components/schemas/FrameSignature'
-    maxPriorityFeePerGas:
-      title: maximum priority fee per gas
-      description: Maximum priority fee in wei per gas, bounded to 256 bits.
-      $ref: '#/components/schemas/uint256'
-    maxFeePerGas:
-      title: maximum fee per gas
-      description: Maximum total fee in wei per gas, bounded to 256 bits.
-      $ref: '#/components/schemas/uint256'
-    maxFeePerBlobGas:
-      title: maximum fee per blob gas
-      description: Maximum fee in wei per blob gas. Must be zero when blobVersionedHashes is empty.
-      $ref: '#/components/schemas/uint256'
+    fees:
+      title: transaction fees
+      type: object
+      additionalProperties: false
+      required:
+        - maxPriorityFeePerGas
+        - maxFeePerGas
+        - maxFeePerBlobGas
+      properties:
+        maxPriorityFeePerGas:
+          title: maximum priority fee per gas
+          description: Maximum priority fee in wei per gas, bounded to 256 bits.
+          $ref: '#/components/schemas/uint256'
+        maxFeePerGas:
+          title: maximum fee per gas
+          description: Maximum total fee in wei per gas, bounded to 256 bits.
+          $ref: '#/components/schemas/uint256'
+        maxFeePerBlobGas:
+          title: maximum fee per blob gas
+          description: Maximum fee in wei per blob gas. Must be zero when blobVersionedHashes is empty.
+          $ref: '#/components/schemas/uint256'
     blobVersionedHashes:
       title: versioned blob hashes
       type: array
@@ -178,5 +192,7 @@ Transaction8141:
         maxItems: 0
   then:
     properties:
-      maxFeePerBlobGas:
-        enum: ['0x0']
+      fees:
+        properties:
+          maxFeePerBlobGas:
+            enum: ['0x0']
