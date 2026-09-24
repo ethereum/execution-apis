@@ -58,9 +58,12 @@ test('actual generated trace pages retain array, variant fields and localization
     assert.match(block, new RegExp(`\\*\\*${field}\\*\\* [^\\n]+\\*required\\*`));
   }
   assert.match(block, /Successful CALL/);
-  assert.match(block, /Failed CREATE/);
+  assert.match(block, /Reverted CREATE/);
+  assert.match(block, /Halted CREATE/);
   assert.match(block, /error must be absent/);
-  assert.match(block, /error and result are required/);
+  assert.match(block, /result carries the frame's gas and revert bytes/);
+  assert.match(block, /result is omitted or null/);
+  assert.match(block, /\*\*creationMethod\*\* [^\n]+\*required\*/);
   assert.match(block, /\*\*transactionHash\*\* `null` \*required\*/);
   const get = pages.find(page => page.methodName === 'trace_get').markdown;
   assert.doesNotMatch(get, /TraceRewardAction/);

@@ -113,31 +113,64 @@ funds, with -32003 (Transaction rejected) as the generic fallback. Malformed inp
 
 ## Execution results and state changes
 
-Failed CALL/CREATE frames require `error` and an explicit `result`: preserve available
-revert bytes and measured gas, or use null where result data does not apply. This is a
-richer contract than Parity’s error-only failures. A populated result does not imply
-success; `error` determines failure. Failed CREATE must not report a successful address
-or deployed code. The execution envelope carries root output, which cannot substitute
-for a nested frame’s revert bytes. A locally successful child remains successful even
-if an ancestor later reverts; its state changes then do not survive in `stateDiff`.
+Frame numbers follow Parity. The root `action.gas` is the transaction gas minus intrinsic gas,
+including access-list and authorization costs. The root `result.gasUsed` is execution gas before
+refunds, excluding intrinsic gas and the EIP-7623 floor. A nested CALL-family `action.gas` is the gas
+forwarded after the 63/64 cap plus the 2300 stipend for a value transfer. CREATE `gasUsed` includes
+the code deposit, and an exceptional halt consumes `action.gas`. CALL and STATICCALL report the
+caller as `from` and the target as `to`; DELEGATECALL and CALLCODE report the executing address and
+the code address. DELEGATECALL `value` is the inherited value and STATICCALL `value` is 0. Create
+actions require `creationMethod` (`create` or `create2`). A `suicide` frame records the opcode and
+its transfer, not account deletion. Calls and creates that fail their precheck (depth limit,
+insufficient balance) emit no frame; a CREATE address collision emits a create frame with error
+`Contract address collision`.
 
-`stateDiff` compares execution endpoints, not intermediate writes. In particular,
-multiple EIP-7702 authorizations may restore the original code while changing nonce;
-only net code changes appear. Accepted authorization effects survive a later EVM revert.
-Accounts absent at both endpoints have no account diff even if created and destroyed;
-a prefunded address existed before creation and can instead require deletion markers.
-Deletion implies clearing all storage. Whether every untouched prior slot must be
-enumerated still needs agreement; empty-storage fixtures do not answer that question.
-Each callMany diff is relative to the preceding call’s post-state, including surviving
-nonce and fee effects but excluding reverted EVM writes.
+`error` alone determines failure. A REVERT frame has error `Reverted` and requires
+`result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt may
+omit `result` or set it to null. Erigon and Reth already emit REVERT results; the new part is the
+failed-CREATE shape, which must not report the would-be address. Failure labels are `Reverted`,
+`Out of gas`, `Bad instruction`, `Bad jump destination`, `Stack underflow`, `Out of stack`,
+`Mutable Call In Static Context`, `Built-in failed` and `Out of bounds`, plus the post-Parity
+`Contract address collision`, `Code size limit exceeded`, `Invalid code prefix 0xEF` and
+`Nonce overflow`. Other strings are extensions that consumers treat as generic failure.
+`revertReason`, if present, is decoded `Error(string)` text; raw revert bytes live in
+`result.output`. The execution envelope carries root output, which cannot substitute for a nested
+frame’s revert bytes. A locally successful child remains successful even if an ancestor later
+reverts; its state changes then do not survive in `stateDiff`.
 
-VM `mem` describes bytes actually written by that opcode, not its whole accessed or
-expanded memory window. MLOAD alone has no byte write; CALL copies only the bytes
-actually returned into its output range. An empty copy has no write. This deliberately
-refines Parity’s post-step memory snapshots, which could include MLOAD and the entire
-requested CALL output window. These deltas do not independently encode allocated memory
-size. `pc`, `cost`, `ex.used` and output trace paths remain JSON integers; stack words
-use hex quantities. Optional `idx` needs a declared numbering convention to be checked.
+`stateDiff` compares execution endpoints, not intermediate writes. An account appears only if its
+balance, nonce, code, storage or existence changed. Existence means presence in the state trie, so
+an existing EIP-161-empty account removed by touch-clearing is a deletion. `+` and `-` appear only
+when the account is born or dies. Slots of an account that exists at both endpoints use `*` with
+32-byte words, including zero words; slots never use `=`. A born account lists its nonzero
+post-state slots as `+`. A deleted account has `storage: {}`, and its `-` implies that all storage
+is wiped, as Parity, Besu and Erigon already report. Multiple EIP-7702 authorizations may restore the
+original code while changing nonce; only net code changes appear. Accepted authorization effects
+survive a later EVM revert. Accounts absent at both endpoints have no account diff even if created
+and destroyed. The sender pays value, `gasUsed` times the effective price and `blobGasUsed` times
+the blob base fee; base and blob fees are burned or credited to a chain-defined collector, and the
+tip goes to the fee recipient.
+
+VM `mem` is the post-operation contents of the memory range the opcode’s operands designate:
+MSTORE and MLOAD `[off, off+32)`, MSTORE8 `[off, off+1)`, the destination of CALLDATACOPY,
+CODECOPY, EXTCODECOPY, RETURNDATACOPY and MCOPY, and the full CALL-family output window. It is null
+when that range is empty or the opcode has none (RETURN, REVERT, LOG, KECCAK256, CREATE). This
+matches Parity, Erigon, Nethermind and Besu for MLOAD, and reverses an earlier draft that narrowed
+`mem` to written bytes. `cost` is the total gas deducted from the caller when the operation starts,
+including gas made available to a child frame (the 63/64-capped forwarded gas for the CALL family,
+excluding the value stipend; all but 1/64 for the CREATE family). `ex.used` is the caller’s
+remaining gas after the operation, including unused child gas returned. An operation that began
+executing and halted exceptionally keeps its pre-execution `cost` and has `ex: null` and `sub: null`.
+Operations rejected before execution are omitted, and no synthetic STOP is added, so every `pc`
+lies inside `code`. `push` is the top k stack words after execution, deepest first, where k is the
+number of words the opcode leaves in place of its inputs (DUPn and SWAPn n+1, CALL and CREATE 1).
+`store` is set only by SSTORE, from its operands, whenever the SSTORE completes, even if the value is
+unchanged. A selected `vmTrace` is always an object. An operation that entered a child frame,
+including a precompile or empty-code target, has that frame’s trace as `sub`
+(`{code: "0x", ops: []}` if no instruction ran); others have `sub: null`. These deltas do not
+independently encode allocated memory size. `pc`, `cost`, `ex.used` and output trace paths remain
+JSON integers; stack words use hex quantities. Optional `idx` needs a declared numbering convention
+to be checked.
 
 Filter membership describes actions, not necessarily committed transfers. Failed CREATE
 can match its creator but has no created-address match; an explicit union may
@@ -160,6 +193,7 @@ distinguish deliberate transport termination from malformed completed responses.
 All methods that return call frames use the same inclusion rule: retain root precompile
 calls regardless of value. Omit nested precompile frames with zero value, and retain
 those with nonzero transferred or inherited value, whether successful or failed.
+A precompile is an address in the precompile set active at the executing block’s fork.
 For CALL and CALLCODE, use the explicit value operand, not the parent transaction value.
 For DELEGATECALL, use the inherited call value; STATICCALL has zero value. The inherited
 value exception preserves action context even though DELEGATECALL transfers no funds.
@@ -201,8 +235,7 @@ approval. Malformed JSON on rejection is independently a reporting defect.
 
 ## Open details requiring focused review
 
-Stable frame error kinds; failed-operation ex conventions; nested CALL stipend/refund gas
-accounting; optional method discovery; client execution caps for omitted gas; `pending` for simulations
+Optional method discovery; client execution caps for omitted gas; `pending` for simulations
 and its localization; the shared semantics of a raw-transaction block selector (H12); and
 simulation extensions beyond the reserved override positions need further agreement. Clients
 must declare supported extensions rather than relying on a successful response as feature
