@@ -45,7 +45,7 @@ func TestFrameCallAPIs(t *testing.T) {
 	}
 	// Clients validate method-specific signature rules, field compatibility, and signed-envelope completeness.
 	var tests []testCase
-	for _, variant := range []string{"defaults", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "missing execution limit", "missing state limit", "empty frames", "outer input", "other type with frames"} {
+	for _, variant := range []string{"defaults", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "missing execution limit", "missing state limit", "missing both limits", "empty frames", "outer input", "other type with frames"} {
 		frame := object{"mode": "0x1", "executionGas": "0x10000", "stateGas": "0x10000"}
 		request := object{"type": "0x6", "from": "0x1111111111111111111111111111111111111111", "frames": []any{frame}}
 		placeholder := object{"scheme": "0x1", "signer": request["from"], "msg": "0x"}
@@ -86,10 +86,11 @@ func TestFrameCallAPIs(t *testing.T) {
 			}
 		case "missing execution limit":
 			delete(frame, "executionGas")
-			valid = false
 		case "missing state limit":
 			delete(frame, "stateGas")
-			valid = false
+		case "missing both limits":
+			delete(frame, "executionGas")
+			delete(frame, "stateGas")
 		case "empty frames":
 			request["frames"] = []any{}
 			valid = false
@@ -114,6 +115,11 @@ func TestFrameCallAPIs(t *testing.T) {
 			delete(unsigned["signatures"].([]any)[0].(map[string]any), "signature")
 			tests = append(tests, testCase{"complete envelope with placeholder", "eth_call", unsigned, true}, testCase{"placeholder is not signed", "Transaction8141Signed", unsigned, false})
 		}
+	}
+	for _, field := range []string{"executionGas", "stateGas"} {
+		frame := object{"mode": "0x1", "flags": "0x3", "target": nil, "executionGas": "0x10000", "stateGas": "0x10000", "value": "0x0", "data": "0x"}
+		delete(frame, field)
+		tests = append(tests, testCase{"complete frame missing " + field, "Frame", frame, false})
 	}
 	tests = append(tests, testCase{"frame type without frames", "eth_call", object{"type": "0x6"}, true})
 	for _, method := range []string{"eth_call", "eth_estimateGas", "eth_createAccessList", "eth_fillTransaction", "eth_signTransaction", "eth_sendTransaction"} {

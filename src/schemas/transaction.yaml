@@ -805,13 +805,11 @@ GenericTransaction:
           - $ref: '#/components/schemas/FrameSignaturePlaceholder'
 FrameRequest:
   title: EIP-8141 frame request
-  description: A frame with explicit gas limits. Omitted flags and value default to zero, target to null, and data to empty bytes. Explicit zero limits remain zero.
+  description: A frame request with optional gas limits determined by the node when omitted. Omitted flags and value default to zero, target to null, and data to empty bytes. Explicit zero limits remain zero.
   type: object
   additionalProperties: false
   required:
     - mode
-    - executionGas
-    - stateGas
   properties:
     mode:
       $ref: '#/components/schemas/Frame/properties/mode'

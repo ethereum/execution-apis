@@ -22,11 +22,14 @@
     matching the declared signer and canonical or explicit message digest.
     Placeholders are simulation inputs and cannot be submitted as transactions.
 
-    Explicit executionGas and stateGas are required for every frame. Zero is a
-    real limit. Requests exceeding the node's RPC gas cap fail; the node must not
-    silently clamp signed limits. Omitted frame fields use FrameRequest defaults.
-    Transaction validity and approval rules still apply,
-    except for the explicit signature-placeholder relaxation.
+    Without complete protocol signatures, the node determines omitted executionGas
+    and stateGas limits for the complete sequence, subject to its RPC gas cap. Supplied limits
+    are preserved, including zero. If usable limits cannot be determined within
+    the cap, the call fails. Signed limits must not be filled or rewritten.
+
+    Requests exceeding the node's RPC gas cap fail. Other omitted frame fields
+    use FrameRequest defaults. Transaction validity and approval rules still
+    apply, except for the explicit signature-placeholder relaxation.
 
     For frame calls, omitted chainId and nonce use the selected chain and sender
     state. Signatures and blobVersionedHashes default to empty arrays. Frame order
