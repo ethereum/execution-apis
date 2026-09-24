@@ -65,27 +65,14 @@ StateOverrides:
 AccountOverride:
   title: Details of an account to be overridden
   type: object
-  oneOf:
+  allOf:
     - $ref: '#/components/schemas/AccountOverrideState'
     - $ref: '#/components/schemas/AccountOverrideStateDiff'
-    - not:
-        anyOf:
-          - required: [state]
-          - required: [stateDiff]
-      properties:
-        nonce:
-          $ref: '#/components/schemas/AccountOverrideState/properties/nonce'
-        balance:
-          $ref: '#/components/schemas/AccountOverrideState/properties/balance'
-        code:
-          $ref: '#/components/schemas/AccountOverrideState/properties/code'
-        movePrecompileToAddress:
-          $ref: '#/components/schemas/AccountOverrideState/properties/movePrecompileToAddress'
+  not:
+    required: [state, stateDiff]
 AccountOverrideState:
   title: Account override with whole storage replacement
   description: It is possible to override any kind of address (EOA's, contracts and precompiles)
-  required:
-    - state
   properties:
     nonce:
       title: Nonce
@@ -106,8 +93,6 @@ AccountOverrideState:
       $ref: '#/components/schemas/AccountStorage'
 AccountOverrideStateDiff:
   title: Account override with partial storage modification
-  required:
-    - stateDiff
   properties:
     nonce:
       title: Nonce

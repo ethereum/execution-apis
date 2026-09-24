@@ -40,6 +40,22 @@ func TestFrameSimulateAPIs(t *testing.T) {
 		valid        bool
 	}
 	var tests []testCase
+	for _, tc := range []struct {
+		name  string
+		value object
+		valid bool
+	}{
+		{"balance only", object{"balance": "0x1"}, true},
+		{"whole storage", object{"state": object{}}, true},
+		{"partial storage", object{"stateDiff": object{}}, true},
+		{"both storage fields", object{"state": object{}, "stateDiff": object{}}, false},
+		{"invalid balance", object{"balance": "invalid"}, false},
+		{"invalid state", object{"state": "invalid"}, false},
+		{"invalid state diff", object{"stateDiff": "invalid"}, false},
+	} {
+		tests = append(tests, testCase{tc.name, "AccountOverride", tc.value, tc.valid})
+	}
+
 	for _, variant := range []string{"optional limits", "explicit limits", "placeholder", "witness", "blob hashes", "scalar blob hash", "invalid mode", "invalid limit", "invalid signature", "invalid override", "invalid block entry"} {
 		frame := object{"mode": "0x2"}
 		tx := object{"type": "0x6", "from": "0x1111111111111111111111111111111111111111", "frames": []any{frame}}
