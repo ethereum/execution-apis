@@ -68,7 +68,6 @@
         value: true
 - name: eth_getFilterChanges
   summary: Polling method for the filter with the given ID (created using `eth_newFilter`). Returns an array of logs, block hashes, or transaction hashes since last poll, depending on the installed filter.
-  description: Log results include only surviving frame transaction logs, in frame order, with the same block-global indexes as receipt logs. Atomic-batch rollback removes logs from every frame in the batch.
   params:
     - name: Filter identifier
       schema:
@@ -110,7 +109,6 @@
               - '0x04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3'
 - name: eth_getFilterLogs
   summary: Returns an array of all logs matching the filter with the given ID (created using `eth_newFilter`).
-  description: Log results include only surviving frame transaction logs, in frame order, with the same block-global indexes as receipt logs. Atomic-batch rollback removes logs from every frame in the batch.
   params:
     - name: Filter identifier
       schema:
@@ -153,10 +151,7 @@
 - name: eth_getLogs
   summary: Returns an array of all logs matching the specified filter.
   description: >-
-    Returns all logs that match the given filter. Frame transaction logs contain
-    only surviving logs in frame order, with the same block-global indexes as
-    receipt logs. Atomic-batch rollback removes all logs from the batch.
-    `fromBlock` and `toBlock`
+    Returns all logs that match the given filter. `fromBlock` and `toBlock`
     bound an inclusive block range; block tags resolve against the current
     head block. If either bound resolves to a block number
     greater than the current head block, or if `fromBlock` resolves to a block

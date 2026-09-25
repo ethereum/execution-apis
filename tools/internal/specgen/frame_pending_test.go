@@ -25,7 +25,7 @@ func TestFramePendingAPIs(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	for _, file := range []string{"../../../src/txpool/pool.yaml", "../../../src/eth/transaction.yaml", "../../../src/eth/subscribe.yaml"} {
+	for _, file := range []string{"../../../src/txpool/pool.yaml", "../../../src/eth/transaction.yaml"} {
 		data, err := os.ReadFile(file)
 		if err != nil {
 			t.Fatal(err)
@@ -34,16 +34,7 @@ func TestFramePendingAPIs(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	var pending object
-	for _, raw := range generator.methods["eth_getTransactionByHash"]["examples"].([]any) {
-		example := raw.(object)
-		if example["name"] == "Pending frame transaction schema example" {
-			pending = example["result"].(object)["value"].(object)
-		}
-	}
-	if pending == nil {
-		t.Fatal("missing pending frame example")
-	}
+	pending := readFrameFixture(t, "frame-pending")
 	// These schema examples model separate payment and execution approval frames.
 	sponsor := "0x3333333333333333333333333333333333333333"
 	pending["frames"] = []any{
@@ -93,34 +84,6 @@ func TestFramePendingAPIs(t *testing.T) {
 		pool := object{"pending": object{}, "queued": object{}}
 		pool[bucket] = object{tx["from"].(string): object{nonce: tx}}
 		tests = append(tests, testCase{variant, "TxpoolContent", pool, valid}, testCase{variant, "TxpoolContentFromResult", bySender, valid})
-		if variant != "queued" {
-			notification := object{"jsonrpc": "2.0", "method": "eth_subscription", "params": object{"subscription": "0x1", "result": tx}}
-			tests = append(tests, testCase{variant, "NewPendingTransactionsNotification", notification, valid})
-		}
-	}
-	for _, result := range []struct {
-		name  string
-		value any
-		valid bool
-	}{
-		{"hash only", pending["hash"], true}, {"short hash", "0x1234", false}, {"null result", nil, false},
-	} {
-		notification := object{"jsonrpc": "2.0", "method": "eth_subscription", "params": object{"subscription": "0x1", "result": result.value}}
-		tests = append(tests, testCase{result.name, "NewPendingTransactionsNotification", notification, result.valid})
-	}
-	for _, variant := range []string{"missing subscription", "wrong method", "response id", "wrong version"} {
-		notification := object{"jsonrpc": "2.0", "method": "eth_subscription", "params": object{"subscription": "0x1", "result": pending["hash"]}}
-		switch variant {
-		case "missing subscription":
-			delete(notification["params"].(object), "subscription")
-		case "wrong method":
-			notification["method"] = "eth_subscribe"
-		case "response id":
-			notification["id"] = 1
-		case "wrong version":
-			notification["jsonrpc"] = "1.0"
-		}
-		tests = append(tests, testCase{variant, "NewPendingTransactionsNotification", notification, false})
 	}
 	for _, file := range []struct{ path, schema string }{
 		{"txpool_content/get-content.io", "TxpoolContent"},

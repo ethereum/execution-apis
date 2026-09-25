@@ -126,16 +126,7 @@ func TestFrameSimulateAPIs(t *testing.T) {
 		}
 		tests = append(tests, testCase{variant, "CallResults", []any{result}, valid})
 	}
-	var fullTx object
-	for _, raw := range generator.methods["eth_getTransactionByHash"]["examples"].([]any) {
-		example := raw.(object)
-		if example["name"] == "Frame transaction schema example" {
-			fullTx = example["result"].(object)["value"].(object)
-		}
-	}
-	if fullTx == nil {
-		t.Fatal("missing full frame transaction example")
-	}
+	fullTx := readFrameFixture(t, "frame-mined")
 	// Existing examples still validate after correcting the block entry schema.
 	for _, raw := range generator.methods["eth_simulateV1"]["examples"].([]any) {
 		example := raw.(object)

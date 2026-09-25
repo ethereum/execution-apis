@@ -34,22 +34,9 @@ func TestFrameReadAPIs(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	examples := make(map[string]object)
-	for _, method := range generator.methods {
-		for _, raw := range method["examples"].([]any) {
-			example := raw.(object)
-			result := example["result"].(object)
-			if strings.Contains(example["name"].(string), "schema example") {
-				examples[example["name"].(string)] = result["value"].(object)
-			}
-		}
-	}
-	mined := examples["Frame transaction schema example"]
-	pending := examples["Pending frame transaction schema example"]
-	block := examples["Mixed transaction types schema example"]
-	if mined == nil || pending == nil || block == nil {
-		t.Fatal("missing frame examples")
-	}
+	mined := readFrameFixture(t, "frame-mined")
+	pending := readFrameFixture(t, "frame-pending")
+	block := readFrameFixture(t, "frame-block")
 	type testCase struct {
 		name, method string
 		value        any
@@ -185,4 +172,17 @@ func TestFrameReadAPIs(t *testing.T) {
 			})
 		}
 	}
+}
+
+func readFrameFixture(t *testing.T, name string) object {
+	t.Helper()
+	data, err := os.ReadFile("testdata/" + name + ".json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var value object
+	if err := json.Unmarshal(data, &value); err != nil {
+		t.Fatal(err)
+	}
+	return value
 }

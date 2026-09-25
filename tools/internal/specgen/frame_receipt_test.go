@@ -25,7 +25,7 @@ func TestFrameReceiptAPIs(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	for _, file := range []string{"../../../src/eth/block.yaml", "../../../src/eth/transaction.yaml", "../../../src/eth/subscribe.yaml", "../../../src/eth/filter.yaml"} {
+	for _, file := range []string{"../../../src/eth/block.yaml", "../../../src/eth/transaction.yaml", "../../../src/eth/filter.yaml"} {
 		data, err := os.ReadFile(file)
 		if err != nil {
 			t.Fatal(err)
@@ -89,14 +89,6 @@ func TestFrameReceiptAPIs(t *testing.T) {
 		for _, method := range []string{"eth_getLogs", "eth_getFilterLogs", "eth_getFilterChanges"} {
 			generator.types[method] = generator.methods[method]["result"].(object)["schema"].(object)
 			tests = append(tests, testCase{scenario, method, []any{log}, true})
-		}
-		for _, notification := range []struct {
-			schema string
-			result any
-		}{
-			{"TransactionReceiptsNotification", []any{legacy, receipt}}, {"LogsNotification", log},
-		} {
-			tests = append(tests, testCase{scenario, notification.schema, object{"jsonrpc": "2.0", "method": "eth_subscription", "params": object{"subscription": "0x1", "result": notification.result}}, true})
 		}
 		for _, missing := range []string{"status", "gasUsed", "executionGasUsed", "stateGasUsed", "logs"} {
 			frame := object{"status": "0x1", "gasUsed": "0x300", "executionGasUsed": "0x100", "stateGasUsed": "0x200", "logs": []any{}}

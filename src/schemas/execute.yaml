@@ -48,9 +48,7 @@ BlockStateCalls:
         type: array
         title: calls
         description: |-
-          List of transactions to execute in order at this block/state. Each frame
-          transaction occupies one entry; its frames execute together before the
-          next entry, sharing state subject to frame and atomic-batch rollback.
+          List of transactions to execute at this block/state.
           Default: []
         items:
           $ref: '#/components/schemas/GenericCallTransaction'

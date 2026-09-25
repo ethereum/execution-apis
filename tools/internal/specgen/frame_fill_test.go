@@ -36,9 +36,9 @@ func TestFrameFillAPIs(t *testing.T) {
 	}
 
 	method := generator.methods["eth_fillTransaction"]
-	example := method["examples"].([]any)[0].(object)
-	request := example["params"].([]any)[0].(object)["value"]
-	result := example["result"].(object)["value"]
+	fixture := readFrameFixture(t, "frame-fill")
+	request := fixture["request"]
+	result := fixture["result"]
 	generator.types["FillRequest"] = method["params"].([]any)[0].(object)["schema"].(object)
 	generator.types["FillResult"] = method["result"].(object)["schema"].(object)
 	type testCase struct {
