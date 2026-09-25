@@ -656,11 +656,11 @@ TransactionLegacySigned:
         s:
           title: s
           $ref: '#/components/schemas/uint'
-Transaction8141Signed:
+Transaction8141:
   title: Signed 8141 Transaction
   type: object
   allOf:
-    - $ref: '#/components/schemas/Transaction8141'
+    - $ref: '#/components/schemas/Transaction8141Unsigned'
   properties:
     signatures:
       title: signatures
@@ -670,7 +670,7 @@ Transaction8141Signed:
         $ref: '#/components/schemas/FrameSignature'
 TransactionSigned:
   oneOf:
-    - $ref: '#/components/schemas/Transaction8141Signed'
+    - $ref: '#/components/schemas/Transaction8141'
     - $ref: '#/components/schemas/Transaction7702Signed'
     - $ref: '#/components/schemas/Transaction4844Signed'
     - $ref: '#/components/schemas/Transaction1559Signed'
