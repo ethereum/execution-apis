@@ -46,7 +46,7 @@ func TestFrameReadAPIs(t *testing.T) {
 	for _, method := range []string{"eth_getTransactionByHash", "eth_getTransactionByBlockHashAndIndex", "eth_getTransactionByBlockNumberAndIndex"} {
 		tests = append(tests, testCase{"mined", method, mined, true}, testCase{"not found", method, nil, true})
 		if method != "eth_getTransactionByBlockHashAndIndex" {
-			tests = append(tests, testCase{"pending", method, pending, true})
+			tests = append(tests, testCase{"pending", method, pending, false})
 		}
 		for _, mutation := range []string{"placeholder", "empty cryptographic signature", "missing from", "missing hash", "malformed hash"} {
 			data, err := json.Marshal(mined)
