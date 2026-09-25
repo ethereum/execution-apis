@@ -717,7 +717,7 @@ from `payload.transactions`).
 
 See
 [refactor.md § Payload submission with witness](./refactor.md#payload-submission-with-witness)
-for endpoint availability, witness requirements, and public-key semantics.
+for endpoint availability and witness requirements.
 
 #### Request (Amsterdam)
 
@@ -730,14 +730,12 @@ for endpoint availability, witness requirements, and public-key semantics.
 PayloadStatusWithWitness {
     payload_status: PayloadStatus
     witness:        Optional[ExecutionWitness]
-    public_keys:    List[ByteVector[65], MAX_TXS_PER_PAYLOAD]
 }
 ```
 
-All three fields are variable-size, so `PayloadStatusWithWitness` is a
-three-offset container (`payload_status`, then `witness`, then
-`public_keys`). Each public key is a fixed-size 65-byte vector, so the
-list encodes as concatenated keys with no per-key offsets.
+Both fields are variable-size, so `PayloadStatusWithWitness` has two
+4-byte offsets (`payload_status`, then `witness`), making an 8-byte
+fixed section.
 
 ### `POST /forkchoice`
 
