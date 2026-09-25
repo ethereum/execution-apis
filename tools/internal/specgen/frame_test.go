@@ -122,6 +122,12 @@ func TestFrameComponents(t *testing.T) {
 		name, input string
 		valid       bool
 	}{
+		{"scheme only secp256k1", `{"scheme":"0x1"}`, true},
+		{"scheme only p256", `{"scheme":"0x2"}`, true},
+		{"scheme only arbitrary", `{"scheme":"0x0"}`, true},
+		{"missing scheme", `{}`, false},
+		{"omitted signer", `{"scheme":"0x1","msg":"0x"}`, true},
+		{"omitted message", `{"scheme":"0x1","signer":"0x"}`, true},
 		{"secp256k1", `{"scheme":"0x1","signer":"0x","msg":"0x"}`, true},
 		{"p256", `{"scheme":"0x2","signer":"0x1111111111111111111111111111111111111111","msg":"0x"}`, true},
 		{"arbitrary", `{"scheme":"0x0","signer":"0x","msg":"0x"}`, true},
@@ -148,7 +154,8 @@ func TestFrameComponents(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			tests = append(tests, testCase{component.name + " missing " + field, component.name, string(input), false})
+			valid := component.name == "FrameSignaturePlaceholder" && (field == "signer" || field == "msg")
+			tests = append(tests, testCase{component.name + " missing " + field, component.name, string(input), valid})
 			fields[field] = value
 		}
 	}

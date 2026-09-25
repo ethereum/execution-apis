@@ -98,8 +98,6 @@ FrameSignaturePlaceholder:
   additionalProperties: false
   required:
     - scheme
-    - signer
-    - msg
   properties:
     scheme:
       $ref: '#/components/schemas/FrameSignature/properties/scheme'

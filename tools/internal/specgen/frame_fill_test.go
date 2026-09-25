@@ -47,7 +47,7 @@ func TestFrameFillAPIs(t *testing.T) {
 		valid        bool
 	}
 	tests := []testCase{{"partial request", "FillRequest", request, true}, {"filled envelope", "FillResult", result, true}}
-	for _, variant := range []string{"empty signatures", "complete signature", "arbitrary witness", "missing chain", "missing nonce", "missing fee", "missing execution gas", "missing state gas", "missing signature metadata", "malformed signature", "missing tx"} {
+	for _, variant := range []string{"empty signatures", "complete signature", "arbitrary witness", "missing chain", "missing nonce", "missing fee", "missing execution gas", "missing state gas", "scheme-only placeholder", "malformed signature", "missing tx"} {
 		data, err := json.Marshal(result)
 		if err != nil {
 			t.Fatal(err)
@@ -80,8 +80,10 @@ func TestFrameFillAPIs(t *testing.T) {
 			delete(frame, "executionGas")
 		case "missing state gas":
 			delete(frame, "stateGas")
-		case "missing signature metadata":
+		case "scheme-only placeholder":
 			delete(signature, "signer")
+			delete(signature, "msg")
+			valid = true
 		case "malformed signature":
 			signature["signature"] = "0xabcd"
 		case "missing tx":
