@@ -126,9 +126,13 @@ the code deposit, and an exceptional halt consumes `action.gas`. CALL and STATIC
 caller as `from` and the target as `to`; DELEGATECALL and CALLCODE report the executing address and
 the code address. DELEGATECALL `value` is the inherited value and STATICCALL `value` is 0. Create
 actions require `creationMethod` (`create` or `create2`). A `suicide` frame records the opcode and
-its transfer, not account deletion. Calls and creates that fail their precheck (depth limit,
-insufficient balance) emit no frame; a CREATE address collision emits a create frame with error
-`Contract address collision`.
+its transfer, not account deletion. A CALL-family call that fails its precheck (depth limit,
+insufficient balance) emits a frame with its action and error, no `result` and no subtraces; the
+forwarded gas returns to the caller, which continues after pushing 0. A CREATE or CREATE2 that fails
+its precheck (depth limit, insufficient balance, nonce overflow) emits the same kind of frame before
+Amsterdam; from Amsterdam the check runs in the creating opcode and no frame is emitted. This follows
+the call tracers of Geth, Erigon, Reth and Besu, which record the rejected attempt. A CREATE address
+collision emits a create frame with error `Contract address collision`.
 
 `error` alone determines failure. A REVERT frame has error `Reverted` and requires
 `result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt may
@@ -136,8 +140,8 @@ omit `result` or set it to null. Erigon and Reth already emit REVERT results; th
 failed-CREATE shape, which must not report the would-be address. Failure labels are `Reverted`,
 `Out of gas`, `Bad instruction`, `Bad jump destination`, `Stack underflow`, `Out of stack`,
 `Mutable Call In Static Context`, `Built-in failed` and `Out of bounds`, plus the post-Parity
-`Contract address collision`, `Code size limit exceeded`, `Invalid code prefix 0xEF` and
-`Nonce overflow`. EIP-3860 oversized initcode aborts the creating frame with `Out of gas`, as the
+`Contract address collision`, `Code size limit exceeded`, `Invalid code prefix 0xEF`,
+`Nonce overflow`, `Insufficient balance for transfer` and `Max call depth exceeded`. EIP-3860 oversized initcode aborts the creating frame with `Out of gas`, as the
 EIP specifies. The designated invalid instruction 0xFE is an undefined opcode: it is omitted from
 `vmTrace` ops and its frame fails with `Bad instruction`. Other strings are extensions that
 consumers treat as generic failure.
