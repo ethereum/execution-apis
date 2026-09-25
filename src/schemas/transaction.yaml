@@ -5,7 +5,6 @@ Frame:
   required:
     - mode
     - flags
-    - target
     - executionGas
     - stateGas
     - value
@@ -23,7 +22,7 @@ Frame:
       enum: ['0x0', '0x1', '0x2', '0x3', '0x4']
     target:
       title: target address
-      description: Address of the call target, or null to use the transaction sender.
+      description: Address of the call target. Omitted or null to use the transaction sender.
       oneOf:
         - title: Transaction sender (null)
           type: 'null'
@@ -50,7 +49,6 @@ FrameSignature:
   additionalProperties: false
   required:
     - scheme
-    - signer
     - msg
     - signature
   properties:
@@ -61,7 +59,7 @@ FrameSignature:
       enum: ['0x0', '0x1', '0x2']
     signer:
       title: signer
-      description: Signer address for SECP256K1 and P256, or empty bytes to use the transaction sender. Must be empty for ARBITRARY.
+      description: Signer address for SECP256K1 and P256. Omitted or empty to use the transaction sender. Must be omitted or empty for ARBITRARY.
       type: string
       pattern: ^0x([0-9a-fA-F]{40})?$
     msg:

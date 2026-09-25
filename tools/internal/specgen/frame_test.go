@@ -44,6 +44,8 @@ func TestFrameComponents(t *testing.T) {
 		{"sender batch", "Frame", strings.ReplaceAll(strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":"0x2"`), `"flags":"0x3"`, `"flags":"0x4"`), true},
 		{"invalid target", "Frame", strings.ReplaceAll(frame, `null`, `"0x1234"`), false},
 		{"invalid recovery id", "FrameSignature", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x02` + strings.Repeat("1", 128) + `"}`, false},
+		{"omitted secp256k1 signer", "FrameSignature", `{"scheme":"0x1","msg":"0x","signature":"0x00` + strings.Repeat("1", 128) + `"}`, true},
+		{"omitted p256 signer", "FrameSignature", `{"scheme":"0x2","msg":"0x","signature":"0x` + strings.Repeat("1", 256) + `"}`, true},
 		{"explicit cryptographic signer", "FrameSignature", `{"scheme":"0x1","signer":"0x1111111111111111111111111111111111111111","msg":"0x","signature":"0x01` + strings.Repeat("1", 128) + `"}`, true},
 		{"odd witness", "FrameSignature", strings.ReplaceAll(signature, "0xabcd", "0xabc"), false},
 		{"unknown signature field", "FrameSignature", strings.Replace(signature, `{`, `{"extra":0,`, 1), false},
@@ -55,7 +57,7 @@ func TestFrameComponents(t *testing.T) {
 		{"numeric mode", "Frame", strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":1`), false},
 		{"unknown flag", "Frame", strings.ReplaceAll(frame, `"flags":"0x3"`, `"flags":"0x8"`), false},
 		{"batch approval", "Frame", strings.ReplaceAll(frame, `"flags":"0x3"`, `"flags":"0x5"`), false},
-		{"missing target", "Frame", strings.ReplaceAll(frame, `"target":null,`, ``), false},
+		{"missing target", "Frame", strings.ReplaceAll(frame, `"target":null,`, ``), true},
 		{"missing budget", "Frame", strings.ReplaceAll(frame, `,"stateGas":"0x0"`, ``), false},
 		{"quantity leading zero", "Frame", strings.ReplaceAll(frame, `"0x10000"`, `"0x00"`), false},
 		{"unknown frame field", "Frame", strings.ReplaceAll(frame, `"data":"0x"`, `"data":"0x","to":null`), false},
@@ -154,7 +156,9 @@ func TestFrameComponents(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			valid := component.name == "FrameSignaturePlaceholder" && (field == "signer" || field == "msg")
+			valid := component.name == "FrameSignaturePlaceholder" && (field == "signer" || field == "msg") ||
+				component.name == "FrameSignature" && field == "signer" ||
+				component.name == "Frame" && field == "target"
 			tests = append(tests, testCase{component.name + " missing " + field, component.name, string(input), valid})
 			fields[field] = value
 		}
