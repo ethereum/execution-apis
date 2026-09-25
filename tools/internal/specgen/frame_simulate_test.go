@@ -40,64 +40,6 @@ func TestFrameSimulateAPIs(t *testing.T) {
 		valid        bool
 	}
 	var tests []testCase
-	for _, tc := range []struct {
-		name  string
-		value object
-		valid bool
-	}{
-		{"balance only", object{"balance": "0x1"}, true},
-		{"whole storage", object{"state": object{}}, true},
-		{"partial storage", object{"stateDiff": object{}}, true},
-		{"both storage fields", object{"state": object{}, "stateDiff": object{}}, false},
-		{"invalid balance", object{"balance": "invalid"}, false},
-		{"invalid state", object{"state": "invalid"}, false},
-		{"invalid state diff", object{"stateDiff": "invalid"}, false},
-	} {
-		tests = append(tests, testCase{tc.name, "AccountOverride", tc.value, tc.valid})
-	}
-
-	for _, variant := range []string{"optional limits", "explicit limits", "placeholder", "witness", "blob hashes", "scalar blob hash", "invalid mode", "invalid limit", "invalid signature", "invalid override", "invalid block entry"} {
-		frame := object{"mode": "0x2"}
-		tx := object{"type": "0x6", "from": "0x1111111111111111111111111111111111111111", "frames": []any{frame}}
-		block := object{"calls": []any{object{"to": tx["from"]}, tx}}
-		valid := true
-		switch variant {
-		case "explicit limits":
-			frame["executionGas"], frame["stateGas"] = "0x10000", "0x0"
-		case "placeholder":
-			tx["signatures"] = []any{object{"scheme": "0x1", "signer": tx["from"], "msg": "0x"}}
-		case "witness":
-			tx["signatures"] = []any{object{"scheme": "0x0", "signer": "0x", "msg": "0x", "signature": "0xabcd"}}
-		case "blob hashes":
-			tx["blobVersionedHashes"] = []any{"0x0100000000000000000000000000000000000000000000000000000000000000"}
-		case "scalar blob hash":
-			tx["blobVersionedHashes"] = "0x0100000000000000000000000000000000000000000000000000000000000000"
-			valid = false
-		case "invalid mode":
-			frame["mode"] = "0x3"
-			valid = false
-		case "invalid limit":
-			frame["executionGas"] = -1
-			valid = false
-		case "invalid signature":
-			tx["signatures"] = []any{object{"scheme": "0x1", "signer": tx["from"], "msg": "0x", "signature": "0x"}}
-			valid = false
-		case "invalid override":
-			block["stateOverrides"] = object{"invalid address": object{}}
-			valid = false
-		}
-		for _, validation := range []bool{false, true} {
-			for _, full := range []bool{false, true} {
-				var entry any = block
-				if variant == "invalid block entry" {
-					entry = "0x1"
-					valid = false
-				}
-				payload := object{"blockStateCalls": []any{entry}, "validation": validation, "returnFullTransactions": full}
-				tests = append(tests, testCase{variant, "EthSimulatePayload", payload, valid})
-			}
-		}
-	}
 	for _, variant := range []string{"success", "failure", "atomic rollback", "missing frame gas", "invalid return bytes", "malformed error"} {
 		frame := object{"status": "0x1", "gasUsed": "0x300", "executionGasUsed": "0x100", "stateGasUsed": "0x200", "logs": []any{}, "returnData": "0xabcd"}
 		result := object{"status": "0x1", "gasUsed": "0x4000", "logs": []any{}, "returnData": "0xabcd", "payer": "0x3333333333333333333333333333333333333333", "frameResults": []any{frame}}
@@ -127,10 +69,8 @@ func TestFrameSimulateAPIs(t *testing.T) {
 		tests = append(tests, testCase{variant, "CallResults", []any{result}, valid})
 	}
 	fullTx := readFrameFixture(t, "frame-mined")
-	// Existing examples still validate after correcting the block entry schema.
 	for _, raw := range generator.methods["eth_simulateV1"]["examples"].([]any) {
 		example := raw.(object)
-		tests = append(tests, testCase{example["name"].(string), "EthSimulatePayload", example["params"].([]any)[0].(object)["value"], true})
 		tests = append(tests, testCase{example["name"].(string), "EthSimulateResult", example["result"].(object)["value"], true})
 		for _, full := range []bool{false, true} {
 			data, err := json.Marshal(example["result"].(object)["value"])

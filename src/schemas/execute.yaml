@@ -29,29 +29,27 @@ BlockStateCalls:
   title: Array of block state calls to be executed at specific, optional block/state.
   description: "The size of this array may be limited depending on the client as a DOS protection. 256 is a common/recommended limit as it is the same limit used by BLOCKHASH opcode."
   type: array
-  items:
-    type: object
-    properties:
-      blockOverrides:
-        title: Block overrides
-        description: |-
-          Block overrides can be used to replace fields in a block.
-          default: no block override.
-        $ref: '#/components/schemas/BlockOverrides'
-      stateOverrides:
-        title: State overrides
-        description: |-
-          State overrides can be used to replace existing blockchain state with new state.
-          Default: no state overrides
-        $ref: '#/components/schemas/StateOverrides'
-      calls:
-        type: array
-        title: calls
-        description: |-
-          List of transactions to execute at this block/state.
-          Default: []
-        items:
-          $ref: '#/components/schemas/GenericCallTransaction'
+  properties:
+    blockOverrides:
+      title: Block overrides
+      description: |-
+        Block overrides can be used to replace fields in a block.
+        default: no block override.
+      $ref: '#/components/schemas/BlockOverrides'
+    stateOverrides:
+      title: State overrides
+      description: |-
+        State overrides can be used to replace existing blockchain state with new state.
+        Default: no state overrides
+      $ref: '#/components/schemas/StateOverrides'
+    calls:
+      type: array
+      title: calls
+      description: |-
+        List of transactions to execute at this block/state.
+        Default: []
+      items:
+        $ref: '#/components/schemas/GenericCallTransaction'
 StateOverrides:
   title: Dictionary of addresses in the state to be overridden
   type: object
@@ -62,14 +60,14 @@ StateOverrides:
 AccountOverride:
   title: Details of an account to be overridden
   type: object
-  allOf:
+  oneOf:
     - $ref: '#/components/schemas/AccountOverrideState'
     - $ref: '#/components/schemas/AccountOverrideStateDiff'
-  not:
-    required: [state, stateDiff]
 AccountOverrideState:
   title: Account override with whole storage replacement
   description: It is possible to override any kind of address (EOA's, contracts and precompiles)
+  required:
+    - state
   properties:
     nonce:
       title: Nonce
@@ -90,6 +88,8 @@ AccountOverrideState:
       $ref: '#/components/schemas/AccountStorage'
 AccountOverrideStateDiff:
   title: Account override with partial storage modification
+  required:
+    - stateDiff
   properties:
     nonce:
       title: Nonce
@@ -125,7 +125,7 @@ BlockOverrides:
       description: When overriding block numbers across multiple blocks, block number need to be increasing. Skipping over blocks numbers is possible. If block number is not specified, it's incremented by one for each block.
     prevRandao:
       title: The Previous value of randomness beacon
-      $ref: '#/components/schemas/bytes32'
+      $ref: '#/components/schemas/uint256'
     time:
       title: Time
       $ref: '#/components/schemas/uint64'
@@ -189,8 +189,6 @@ CallResultFailure:
       type: array
       items:
         $ref: '#/components/schemas/FrameResult'
-    logs:
-      $ref: '#/components/schemas/ReceiptInfo/properties/logs'
     status:
       title: Call Status Failure
       type: string
@@ -205,7 +203,22 @@ CallResultFailure:
       title: Maximum gas used during execution before refunds
       $ref: '#/components/schemas/uint64'
     error:
-      $ref: '#/components/schemas/FrameResult/properties/error'
+      oneOf:
+      - type: object
+        properties:
+          code:
+            const: 3
+          message:
+            type: string
+            pattern: "^execution reverted.*"
+        required: [code, message]
+      - type: object
+        properties:
+          code:
+            const: -32015
+          message:
+            type: string
+            pattern: "^vm execution error.*"
 CallResultSuccess:
   title: Result of call success
   type: object
@@ -311,15 +324,7 @@ GenericCallTransaction:
       description: |-
         EIP-4844 versioned hashes
         Default: []
-      type: array
-      items:
-        $ref: '#/components/schemas/bytes32'
-    chainId:
-      $ref: '#/components/schemas/GenericTransaction/properties/chainId'
-    frames:
-      $ref: '#/components/schemas/GenericTransaction/properties/frames'
-    signatures:
-      $ref: '#/components/schemas/GenericTransaction/properties/signatures'
+      $ref: '#/components/schemas/bytes32'
 FrameResult:
   title: Frame simulation result
   type: object

@@ -9,14 +9,6 @@
       required: false
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
-    - name: State overrides
-      required: false
-      schema:
-        $ref: '#/components/schemas/StateOverrides'
-    - name: Block overrides
-      required: false
-      schema:
-        $ref: '#/components/schemas/BlockOverrides'
   result:
     name: Return data
     schema:
