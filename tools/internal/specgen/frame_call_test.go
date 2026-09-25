@@ -113,7 +113,7 @@ func TestFrameCallAPIs(t *testing.T) {
 				t.Fatal(err)
 			}
 			delete(unsigned["signatures"].([]any)[0].(map[string]any), "signature")
-			tests = append(tests, testCase{"complete envelope with placeholder", "eth_call", unsigned, true}, testCase{"placeholder is not signed", "Transaction8141Signed", unsigned, false})
+			tests = append(tests, testCase{"complete envelope with placeholder", "eth_call", unsigned, true}, testCase{"placeholder is not signed", "Transaction8141", unsigned, false})
 		}
 	}
 	for _, field := range []string{"executionGas", "stateGas"} {
