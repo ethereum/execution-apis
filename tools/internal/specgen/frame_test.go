@@ -23,7 +23,7 @@ func TestFrameComponents(t *testing.T) {
 	}
 	generator.types["FrameTransactionInfo"] = object{
 		"allOf": []any{
-			object{"$ref": "#/components/schemas/Transaction8141"},
+			object{"$ref": "#/components/schemas/Transaction8141Unsigned"},
 			object{
 				"type":       "object",
 				"required":   []any{"hash"},
@@ -67,20 +67,20 @@ func TestFrameComponents(t *testing.T) {
 		{"arbitrary signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":"0x"`, `"signer":"0x`+strings.Repeat("1", 40)+`"`), false},
 		{"null signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":"0x"`, `"signer":null`), false},
 		{"unknown scheme", "FrameSignature", strings.ReplaceAll(signature, `"scheme":"0x0"`, `"scheme":"0x3"`), false},
-		{"complete envelope", "Transaction8141", envelope, true},
+		{"complete envelope", "Transaction8141Unsigned", envelope, true},
 		{"composed lookup metadata", "FrameTransactionInfo", strings.Replace(envelope, `{`, `{"hash":"0x`+strings.Repeat("1", 64)+`",`, 1), true},
 		{"missing lookup metadata", "FrameTransactionInfo", envelope, false},
-		{"lookup metadata", "Transaction8141", strings.Replace(envelope, `{`, `{"hash":"0x`+strings.Repeat("1", 64)+`","blockNumber":"0x1",`, 1), true},
-		{"missing from", "Transaction8141", strings.ReplaceAll(envelope, `"from":`, `"sender":`), false},
+		{"lookup metadata", "Transaction8141Unsigned", strings.Replace(envelope, `{`, `{"hash":"0x`+strings.Repeat("1", 64)+`","blockNumber":"0x1",`, 1), true},
+		{"missing from", "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"from":`, `"sender":`), false},
 		{"nested limits", "Frame", strings.ReplaceAll(frame, `"executionGas":"0x10000","stateGas":"0x0"`, `"limits":{"execution":"0x10000","state":"0x0"}`), false},
 		{"malformed execution gas", "Frame", strings.ReplaceAll(frame, `"executionGas":"0x10000"`, `"executionGas":"10000"`), false},
 		{"malformed state gas", "Frame", strings.ReplaceAll(frame, `"stateGas":"0x0"`, `"stateGas":0`), false},
 		{"malformed calldata", "Frame", strings.ReplaceAll(frame, `"data":"0x"`, `"data":"0xzz"`), false},
-		{"short blob hash", "Transaction8141", strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x01"]`), false},
-		{"nested fees", "Transaction8141", strings.ReplaceAll(envelope, `"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"`, `"fees":{"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"}`), false},
-		{"64 frames", "Transaction8141", strings.ReplaceAll(envelope, frame, strings.TrimSuffix(strings.Repeat(frame+",", 64), ",")), true},
-		{"byte type", "Transaction8141", strings.ReplaceAll(envelope, `"type":"0x6"`, `"type":"0x06"`), false},
-		{"blob envelope", "Transaction8141", strings.ReplaceAll(strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x01`+strings.Repeat("0", 62)+`"]`), `"maxFeePerBlobGas":"0x0"`, `"maxFeePerBlobGas":"0x1"`), true},
+		{"short blob hash", "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x01"]`), false},
+		{"nested fees", "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"`, `"fees":{"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0"}`), false},
+		{"64 frames", "Transaction8141Unsigned", strings.ReplaceAll(envelope, frame, strings.TrimSuffix(strings.Repeat(frame+",", 64), ",")), true},
+		{"byte type", "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"type":"0x6"`, `"type":"0x06"`), false},
+		{"blob envelope", "Transaction8141Unsigned", strings.ReplaceAll(strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x01`+strings.Repeat("0", 62)+`"]`), `"maxFeePerBlobGas":"0x0"`, `"maxFeePerBlobGas":"0x1"`), true},
 	}
 	for _, field := range []string{"chainId", "maxFeePerGas", "maxPriorityFeePerGas", "maxFeePerBlobGas"} {
 		var input map[string]any
@@ -94,7 +94,7 @@ func TestFrameComponents(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			tests = append(tests, testCase{field + " " + strconv.Itoa(width) + " hex digits", "Transaction8141", string(data), true})
+			tests = append(tests, testCase{field + " " + strconv.Itoa(width) + " hex digits", "Transaction8141Unsigned", string(data), true})
 		}
 	}
 	for _, scheme := range []struct {
@@ -114,7 +114,7 @@ func TestFrameComponents(t *testing.T) {
 		} {
 			entry := strings.ReplaceAll(input, "0xabcd", variant.raw)
 			tests = append(tests, testCase{"signature " + scheme.id + " " + variant.name, "FrameSignature", entry, variant.valid})
-			tests = append(tests, testCase{"envelope signature " + scheme.id + " " + variant.name, "Transaction8141", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), variant.valid})
+			tests = append(tests, testCase{"envelope signature " + scheme.id + " " + variant.name, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), variant.valid})
 		}
 
 	}
@@ -135,9 +135,9 @@ func TestFrameComponents(t *testing.T) {
 		{"empty bytes", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x"}`, false},
 	} {
 		tests = append(tests, testCase{"placeholder " + tc.name, "FrameSignaturePlaceholder", tc.input, tc.valid})
-		tests = append(tests, testCase{"envelope placeholder " + tc.name, "Transaction8141", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+tc.input+`]`), tc.valid})
+		tests = append(tests, testCase{"envelope placeholder " + tc.name, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+tc.input+`]`), tc.valid})
 	}
-	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"FrameSignaturePlaceholder", strings.ReplaceAll(signature, `,"signature":"0xabcd"`, "")}, {"Transaction8141", envelope}} {
+	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"FrameSignaturePlaceholder", strings.ReplaceAll(signature, `,"signature":"0xabcd"`, "")}, {"Transaction8141Unsigned", envelope}} {
 		var fields map[string]json.RawMessage
 		if err := json.Unmarshal([]byte(component.input), &fields); err != nil {
 			t.Fatal(err)

@@ -115,7 +115,7 @@ FrameSignaturePlaceholder:
     properties:
       signer:
         enum: ['0x']
-Transaction8141:
+Transaction8141Unsigned:
   title: EIP-8141 transaction
   type: object
   required:
