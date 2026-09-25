@@ -14,6 +14,7 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
   - [ExecutionPayloadBodyV2](#executionpayloadbodyv2)
   - [PayloadAttributesV4](#payloadattributesv4)
   - [BlobCellsAndProofsV1](#blobcellsandproofsv1)
+  - [ForkchoiceStateV2](#forkchoicestatev2)
 - [Methods](#methods)
   - [engine_newPayloadV5](#engine_newpayloadv5)
     - [Request](#request)
@@ -94,6 +95,15 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 
 - `blob_cells`: `Array of DATA|null` - a sequence of byte arrays (`DATA`) representing the partial matrix of the requested blobs, with `null` entries for missing cells.
 - `proofs`: `Array of DATA|null` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`). Entries corresponding to `null` cells **MUST** also be `null`.
+
+### ForkchoiceStateV2
+
+This structure encapsulates the fork choice state. The fields are encoded as follows:
+
+- `headBlockHash`: `DATA`, 32 Bytes - block hash of the head of the canonical chain
+- `safeBlockHash`: `DATA`, 32 Bytes - the "safe" block hash
+- `fastBlockHash`: `DATA`, 32 Bytes - the "fast" block hash
+- `finalizedBlockHash`: `DATA`, 32 Bytes - block hash of the most recent finalized block
 
 ## Methods
 
@@ -207,7 +217,7 @@ This method follows the same specification as [`engine_getPayloadBodiesByRangeV1
 
 * method: `engine_forkchoiceUpdatedV4`
 * params:
-  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#ForkchoiceStateV1).
+  1. `forkchoiceState`: [`ForkchoiceStateV2`](#ForkchoiceStateV2).
   2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV4`](#payloadattributesv4) or `null`.
   3. `custodyColumns`: `DATA|null`, 16 Bytes - Interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the CL's custody set, or `null` if the CL does not provide custody services.
 * timeout: 8s
