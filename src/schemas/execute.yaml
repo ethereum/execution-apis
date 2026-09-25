@@ -181,6 +181,14 @@ CallResultFailure:
     - gasUsed
     - error
   properties:
+    payer:
+      $ref: '#/components/schemas/ReceiptInfo/properties/payer'
+    frameResults:
+      title: Frame results
+      description: Results in frame order, present for frame transactions. Aggregate status is 1 only if every frame succeeds; logs contain only surviving frame logs. Aggregate returnData is the final frame output on success, or the first failed frame output on failure.
+      type: array
+      items:
+        $ref: '#/components/schemas/FrameResult'
     status:
       title: Call Status Failure
       type: string
@@ -220,6 +228,10 @@ CallResultSuccess:
     - gasUsed
     - logs
   properties:
+    payer:
+      $ref: '#/components/schemas/ReceiptInfo/properties/payer'
+    frameResults:
+      $ref: '#/components/schemas/CallResultFailure/properties/frameResults'
     status:
       title: Call Status Success
       type: string
@@ -313,3 +325,45 @@ GenericCallTransaction:
         EIP-4844 versioned hashes
         Default: []
       $ref: '#/components/schemas/bytes32'
+FrameResult:
+  title: Frame simulation result
+  type: object
+  required:
+    - status
+    - gasUsed
+    - executionGasUsed
+    - stateGasUsed
+    - logs
+    - returnData
+  properties:
+    status:
+      $ref: '#/components/schemas/FrameReceipt/properties/status'
+    gasUsed:
+      $ref: '#/components/schemas/FrameReceipt/properties/gasUsed'
+    executionGasUsed:
+      $ref: '#/components/schemas/FrameReceipt/properties/executionGasUsed'
+    stateGasUsed:
+      $ref: '#/components/schemas/FrameReceipt/properties/stateGasUsed'
+    logs:
+      $ref: '#/components/schemas/FrameReceipt/properties/logs'
+    returnData:
+      title: Return data
+      description: Frame output or revert bytes. Empty for skipped frames or failures without return data.
+      $ref: '#/components/schemas/bytes'
+    error:
+      oneOf:
+      - type: object
+        properties:
+          code:
+            const: 3
+          message:
+            type: string
+            pattern: "^execution reverted.*"
+        required: [code, message]
+      - type: object
+        properties:
+          code:
+            const: -32015
+          message:
+            type: string
+            pattern: "^vm execution error.*"

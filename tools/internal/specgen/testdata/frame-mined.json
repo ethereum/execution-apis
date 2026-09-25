@@ -1,0 +1,34 @@
+{
+  "type": "0x6",
+  "chainId": "0x1",
+  "nonce": "0x0",
+  "from": "0x1111111111111111111111111111111111111111",
+  "frames": [
+    {
+      "mode": "0x1",
+      "flags": "0x3",
+      "target": null,
+      "executionGas": "0x10000",
+      "stateGas": "0x0",
+      "value": "0x0",
+      "data": "0x"
+    }
+  ],
+  "signatures": [
+    {
+      "scheme": "0x0",
+      "signer": "0x",
+      "msg": "0x",
+      "signature": "0xabcd"
+    }
+  ],
+  "maxPriorityFeePerGas": "0x1",
+  "maxFeePerGas": "0x2",
+  "maxFeePerBlobGas": "0x0",
+  "blobVersionedHashes": [],
+  "blockHash": "0xd226371d0b1551adb03fb52b71f08e3e11247fe9b1af994768af8cdaa8e7dcd7",
+  "blockNumber": "0x36",
+  "blockTimestamp": "0x21c",
+  "hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+  "transactionIndex": "0x1"
+}
