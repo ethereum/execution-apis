@@ -1,9 +1,8 @@
 # Proposed Parity trace profile
 
 This branch is a draft for client review, not adopted RPC policy. It proposes the nine
-traditional trace methods and three output families. Support/conformance policy (H01)
-remains a standards decision; adding these files does not assert that every client must
-implement every method. Geth support is not assumed.
+traditional trace methods and three output families. A client that serves the trace
+namespace implements all nine methods (H01). Geth support is not assumed.
 
 The companion [trace-interop project](https://github.com/banteg/trace-interop) retains
 client observations, reproducible cases and per-client impact reports.
@@ -13,6 +12,9 @@ costs but do not decide it. Intentional departures are called out below.
 
 ## Explicit choices in this draft
 
+- The nine methods are one contract, with no optional subset or discovery mechanism: a client
+  that serves the trace namespace implements every method. A method a client does not serve
+  returns -32601, never an empty result (H01).
 - An explicit `null` for an optional parameter or an optional member of a parameter object is the
   same as omitting it: the default applies. Clients already treat `null` this way in `eth_call`,
   `eth_estimateGas` and `eth_getLogs` fields. `null` keeps its own meaning only where the schema
@@ -251,7 +253,7 @@ approval. Malformed JSON on rejection is independently a reporting defect.
 
 ## Open details requiring focused review
 
-Optional method discovery; the value of client execution caps; `pending` for simulations
+The value of client execution caps; `pending` for simulations
 and its localization; the shared semantics of a raw-transaction block selector (H12); and
 simulation extensions beyond the reserved override positions need further agreement. Clients
 must declare supported extensions rather than relying on a successful response as feature
