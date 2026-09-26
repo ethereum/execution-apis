@@ -180,14 +180,20 @@ tip goes to the fee recipient.
 
 VM `mem` is the post-operation contents of the memory range the opcode’s operands designate:
 MSTORE and MLOAD `[off, off+32)`, MSTORE8 `[off, off+1)`, the destination of CALLDATACOPY,
-CODECOPY, EXTCODECOPY, RETURNDATACOPY and MCOPY, and the full CALL-family output window. It is null
+CODECOPY, EXTCODECOPY, RETURNDATACOPY and MCOPY; for the CALL family, starting at the output offset,
+either the full output window (preferred) or exactly the bytes copied from return data. It is null
 when that range is empty or the opcode has none (RETURN, REVERT, LOG, KECCAK256, CREATE). This
-matches Parity, Erigon, Nethermind and Besu for MLOAD, and reverses an earlier draft that narrowed
-`mem` to written bytes. `cost` is the total gas deducted from the caller when the operation starts,
+matches Parity, Erigon, Nethermind and Besu for MLOAD. The CALL-family range may be the full window
+(Parity, Erigon) or the copied prefix (Besu, revm-inspectors): both reconstruct memory exactly when
+applied as a write, and no known consumer distinguishes them. Consumers must not infer returned-data
+length from `mem`. `cost` is the total gas deducted from the caller when the operation starts,
 including gas made available to a child frame (the 63/64-capped forwarded gas for the CALL family,
-excluding the value stipend; all but 1/64 for the CREATE family). `ex.used` is the caller’s
+excluding the value stipend; all but 1/64 for the CREATE family), also when the call or creation
+fails its balance or depth precheck and that gas is returned immediately. `ex.used` is the caller’s
 remaining gas after the operation, including unused child gas returned. An operation that began
-executing and halted exceptionally keeps its pre-execution `cost` and has `ex: null` and `sub: null`.
+executing and halted exceptionally has `ex: null` and `sub: null`; its `cost` is an
+implementation-defined non-negative integer, since where an interpreter detects the fault varies
+and a halted frame returns no gas.
 Operations rejected before execution are omitted, and no synthetic STOP is added, so every `pc`
 lies inside `code`. `push` is the top k stack words after execution, deepest first, where k is the
 number of words the opcode leaves in place of its inputs (DUPn and SWAPn n+1, CALL and CREATE 1).
