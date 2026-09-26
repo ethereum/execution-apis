@@ -1,0 +1,484 @@
+- name: trace_call
+  summary: Executes an unsigned call and returns selected traces.
+  description: Execute against the state at the end of the selected block, default latest, under its
+    fork rules and block environment. Block accepts a number, tag or block hash; an unknown selected
+    block returns -32001 (Resource not found), and a known block whose required state is pruned returns
+    4444. pending selects the client's pending block, the next block number built on latest with its
+    pending transactions, and is accepted only when the client has such a pending environment; a client
+    without one returns -32602 rather than substitute another block (H32). Fees follow eth_call and
+    eth_simulateV1 (H15). Omitted fee fields default to 0. The effective gas price is gasPrice, or
+    min(maxPriorityFeePerGas + base fee, maxFeePerGas), computed after defaulting; when it is 0, GASPRICE
+    and BASEFEE are both 0 and no gas fee is paid. BLOBBASEFEE is 0 exactly when maxFeePerBlobGas is
+    supplied as 0 or defaulted to 0; a call without blob fields keeps the block's BLOBBASEFEE. Other block
+    fields are unchanged. Fee validation is skipped only when both fee caps are 0, as with gasPrice 0.
+    Omitted gas, and supplied gas above the server's execution cap, run with that cap, as eth_call does;
+    the cap is server policy, not a truncated result. A defect that makes the call object invalid
+    regardless of state, such as a priority fee above the fee cap, an impossible type and field
+    combination or an empty authorization list, is -32602 and takes precedence when several rules are
+    violated; any other validation failure without a listed code is -32003 (Transaction rejected).
+    Unsigned calls skip the EIP-3607 sender-code check, as eth_call does.
+    Otherwise the price must cover the base fee (-38012), maxPriorityFeePerGas must not exceed
+    maxFeePerGas (-32602), and the sender must fund the upfront cost (-38014); execution then charges
+    the upfront gas payment, applies refunds, burns the base fee and pays the tip. A zero price does not
+    exempt value transfers from funding. Validation rejections use the eth_simulateV1 codes listed below;
+    malformed requests use -32602. Optional StateOverrides and BlockOverrides use the eth_simulateV1
+    schemas and apply before execution; block overrides replace fields of the selected block
+    environment, and the zero-fee rule then uses the overridden base fee. A client that does not
+    implement an override parameter must reject a non-null value with -32602. Simulated changes are
+    discarded. EVM failure is trace output; invalid parameters or unavailable state are RPC errors
+    (H08,H11,H14,H15,H28). This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
+    decision references.
+  params:
+  - name: Call
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceCall'
+  - &id002
+    name: TraceTypes
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceTypes'
+  - &id001
+    name: Block
+    required: false
+    schema:
+      title: Optional block, latest when omitted or null
+      anyOf:
+      - $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+      - type: 'null'
+  - &stateOverrides
+    name: StateOverrides
+    required: false
+    schema:
+      title: Optional state overrides
+      anyOf:
+      - $ref: '#/components/schemas/StateOverrides'
+      - type: 'null'
+  - &blockOverrides
+    name: BlockOverrides
+    required: false
+    schema:
+      title: Optional block overrides
+      anyOf:
+      - $ref: '#/components/schemas/BlockOverrides'
+      - type: 'null'
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceExecution'
+  errors: &simulationErrors
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: -32001
+    message: Resource not found
+  - code: 4444
+    message: Pruned history unavailable
+  - code: -38012
+    message: Transactions baseFeePerGas is too low
+  - code: -38013
+    message: Not enough gas provided to pay for intrinsic gas for a transaction
+  - code: -38014
+    message: Insufficient funds to pay for gas fees and value for a transaction
+  - code: -38025
+    message: Max init code size exceeded
+  - code: -38026
+    message: Client adjustable limit exceeded
+  - code: -32003
+    message: Transaction rejected
+  examples:
+  - name: trace_call result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Call
+      value:
+        from: '0x1111111111111111111111111111111111111111'
+        to: '0x2222222222222222222222222222222222222222'
+        gas: '0x5208'
+    - name: TraceTypes
+      value: &id003 []
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value: &id004
+        output: 0x
+        trace: []
+        stateDiff: null
+        vmTrace: null
+- name: trace_callMany
+  summary: Executes dependent unsigned calls in order.
+  description: Each [call, traceTypes] item is a separate transaction executed in order on the preceding
+    item's post-state. EIP-2200 and EIP-3529 original storage values, EIP-2929 access sets, EIP-1153
+    transient storage, the refund counter and the EIP-6780 same-transaction scope all start afresh for
+    each item. All items share one block environment, as selected for trace_call; NUMBER and TIMESTAMP
+    do not advance between items. The first item runs against the same state and environment as
+    trace_call at the selected block. The trace_call fee rules, including the zero-fee BASEFEE
+    adjustment, apply to each item independently. Each stateDiff is relative to the preceding item's
+    post-state. Reverted writes roll back and subsequent items continue; transaction-level nonce and fee
+    effects survive. If any decoded item fails validation, return one error for the whole request, using the
+    trace_call codes, whose error.data object carries the zero-based index of the failing item as index;
+    return no partial results. A malformed item is invalid params (-32602) without an index. A server may cap the item count or total gas only with an explicit -38026
+    error, never by truncating. Return one envelope per input in order. The sequence never changes
+    canonical state. Empty input returns []. Block defaults to latest; StateOverrides and BlockOverrides
+    apply once, before the first item, as for trace_call (H15,H16,H25,H31). This is a provisional trace
+    profile; see docs-api/docs/trace-profile.md and its decision references.
+  params:
+  - name: Calls
+    required: true
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/TraceCallManyEntry'
+  - *id001
+  - *stateOverrides
+  - *blockOverrides
+  result:
+    name: Result
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/TraceExecution'
+  errors: *simulationErrors
+  examples:
+  - name: Fund an account then spend its simulated balance
+    description: >-
+      Illustrative sequence assuming the first sender has at least one wei, the second sender
+      initially has zero balance, and both recipients have no code. Each call selects no trace
+      families and uses zero fees. The second call spends the wei received from the first call;
+      canonical state is unchanged.
+    params:
+    - name: Calls
+      value:
+      - - from: '0x1111111111111111111111111111111111111111'
+          to: '0x2222222222222222222222222222222222222222'
+          value: '0x1'
+          gas: '0x5208'
+          gasPrice: '0x0'
+        - []
+      - - from: '0x2222222222222222222222222222222222222222'
+          to: '0x3333333333333333333333333333333333333333'
+          value: '0x1'
+          gas: '0x5208'
+          gasPrice: '0x0'
+        - []
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value:
+      - output: 0x
+        trace: []
+        stateDiff: null
+        vmTrace: null
+      - output: 0x
+        trace: []
+        stateDiff: null
+        vmTrace: null
+  - name: trace_callMany result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Calls
+      value: []
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value: []
+- name: trace_rawTransaction
+  summary: Simulates a signed transaction at latest state.
+  description: Decode the signed transaction and validate it for execution against latest state before
+    simulating it (H13). Apply the transaction validity rules of the selected fork, including signature,
+    chain identity, nonce equality, sufficient balance for value and upfront gas, intrinsic gas, fees and
+    sender-code restrictions (including permitted EIP-7702 delegation). Reject both low and high nonces;
+    do not replace signed fields, override the sender nonce or top up its balance. This is execution
+    validation, not transaction-pool admission; do not impose local replacement, already-known or minimum-tip
+    policies. A decodable transaction that fails validation uses the eth_sendRawTransaction error groups,
+    1 nonce too low, 2 nonce too high, 800 intrinsic gas, 804 priority fee above fee cap, 806 fee cap
+    below base fee, 809 insufficient funds, and -32003 (Transaction rejected) for any other validation
+    failure. A signed gas limit above the server's execution cap is not reduced; reject it with -38026.
+    Malformed encodings or request parameters use -32602. A valid transaction that REVERTs or
+    exceptionally halts returns an execution trace, not a validation error. The portable baseline
+    defines two parameters and latest state. An explicitly supplied block-selector extension is outside
+    this baseline; accepting it is not a baseline failure. Extension semantics require separate
+    agreement. Validation failure returns a complete JSON-RPC error, not a partially serialized result
+    (H12-H14,H25). This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
+    decision references.
+  params:
+  - name: Transaction
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceData'
+  - *id002
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceExecution'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 1
+    message: Nonce too low
+  - code: 2
+    message: Nonce too high
+  - code: 800
+    message: Intrinsic gas too low / Intrinsic gas exceeds gas limit
+  - code: 804
+    message: Max priority fee per gas higher than max fee per gas
+  - code: 806
+    message: Max fee per gas less than block base fee
+  - code: 809
+    message: Insufficient funds for gas * price + value
+  - code: -32003
+    message: Transaction rejected
+  - code: -38026
+    message: Client adjustable limit exceeded
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_rawTransaction result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Transaction
+      value: '0xf86a80847735940082520894000000000000000000000000000000000000123401808718e5bb3abd10a0a04c833abdb116ad76fc98610ae0e626d7e35154f1fba38ce6bfdaf69a31eec42ca035ecfb996cc68a2a03df0e1087194e25180b01bf0469f69b4f1d330eea9d027a'
+    - name: TraceTypes
+      value: *id003
+    result:
+      name: Result
+      value: *id004
+- name: trace_replayTransaction
+  summary: Replays a mined transaction with selected traces.
+  description: Reconstruct the state immediately before this transaction from the parent block's
+    post-block state, applying this block's pre-transaction system operations and then its preceding
+    transactions, under this block's fork rules. Return null for a transaction that is not in a
+    canonical block; error for unavailable history. Report the transaction's actual committed state
+    transition; block-level operations belong to no transaction's stateDiff (H06,H07,H16,H18,H28). This
+    is a provisional trace profile; see docs-api/docs/trace-profile.md and its decision references.
+  params:
+  - &id005
+    name: TransactionHash
+    required: true
+    schema:
+      $ref: '#/components/schemas/hash32'
+  - *id002
+  result:
+    name: Result
+    schema:
+      anyOf:
+      - $ref: '#/components/schemas/TraceReplay'
+      - type: 'null'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_replayTransaction result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: TransactionHash
+      value: '0x1111111111111111111111111111111111111111111111111111111111111111'
+    - name: TraceTypes
+      value: *id003
+    result:
+      name: Result
+      value: null
+- name: trace_replayBlockTransactions
+  summary: Replays every transaction in a block.
+  description: 'Default block is not implicit: Block is required. Return exactly one envelope per
+    transaction, in transaction order, each with its transactionHash. Empty blocks and the genesis block
+    return []. Trace the block from its parent''s post-block state with its own pre-transaction system
+    operations applied, under its own fork rules. System operations (EIP-4788 and EIP-2935 pre-block
+    calls, EIP-7002 and EIP-7251 post-block calls), withdrawals and rewards are applied in protocol
+    order but belong to no envelope; concatenated stateDiffs therefore do not reconstruct the block
+    post-state. Block accepts pending only when the client has a pending block (the next block number
+    with its pending transactions); otherwise pending returns -32602. An unknown selected block returns
+    -32001 (Resource not found); a known block whose required state is pruned returns 4444
+    (H05,H07,H16,H28,H32). This is a provisional trace profile; see
+    docs-api/docs/trace-profile.md and its decision references.'
+  params:
+  - &historicalBlock
+    name: Block
+    required: true
+    schema:
+      $ref: '#/components/schemas/BlockNumberOrTag'
+  - *id002
+  result:
+    name: Result
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/TraceReplay'
+  errors: &blockErrors
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: -32001
+    message: Resource not found
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_replayBlockTransactions result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Block
+      value: latest
+    - name: TraceTypes
+      value: *id003
+    result:
+      name: Result
+      value: []
+- name: trace_block
+  summary: Returns localized call traces for a block.
+  description: Return transaction records in transaction-index order, each tree in preorder, followed
+    by the block's historical PoW rewards, the block reward first and then uncle rewards in ommer order.
+    The genesis block has no transaction or reward records and returns []. Do not emit synthetic zero
+    PoW rewards after the Merge. Withdrawals and system operations are applied to state but are not
+    trace records. Trace the block from its parent's post-block state with its own pre-transaction system
+    operations applied, under its own fork rules. Block accepts pending only when the client has a
+    pending block (the next block number with its pending transactions); otherwise pending returns
+    -32602. Records from the pending block carry its number and the hash of the block the client built,
+    which is not canonical; all other records carry canonical block hashes. An unknown selected block
+    returns -32001 (Resource not found); a known block whose required state is pruned returns 4444
+    (H05,H06,H27,H28,H32). This is a provisional trace profile; see docs-api/docs/trace-profile.md and
+    its decision references.
+  params:
+  - *historicalBlock
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceLocalizedFrames'
+  errors: *blockErrors
+  examples:
+  - name: trace_block result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Block
+      value: latest
+    result:
+      name: Result
+      value: []
+- name: trace_transaction
+  summary: Returns localized call traces for a mined transaction.
+  description: Return a flat preorder tree, including the root. A transaction that is not in a canonical
+    block returns null; unavailable state is an error. traceAddress is a path, not a flat list index
+    (H02,H06). This is a provisional trace profile; see docs-api/docs/trace-profile.md and its decision
+    references.
+  params:
+  - *id005
+  result:
+    name: Result
+    schema:
+      anyOf:
+      - $ref: '#/components/schemas/TraceLocalizedTransactionFrames'
+      - type: 'null'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_transaction result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: TransactionHash
+      value: '0x1111111111111111111111111111111111111111111111111111111111111111'
+    result:
+      name: Result
+      value: null
+- name: trace_get
+  summary: Returns the trace at one tree path.
+  description: 'Position selects one traceAddress path: [] is root, ["0x0"] first child, ["0x6","0x0"]
+    the first child of child six. Return one localized object, or null if the transaction is not in a
+    canonical block or the path does not exist. Integer path entries are invalid params (-32602); convert
+    traceAddress integers to hex quantities. Unavailable state is an error (H02,H06). This is a
+    provisional trace profile; see docs-api/docs/trace-profile.md and its decision references.'
+  params:
+  - *id005
+  - name: Position
+    required: true
+    schema:
+      $ref: '#/components/schemas/TracePosition'
+  result:
+    name: Result
+    schema:
+      anyOf:
+      - $ref: '#/components/schemas/TraceLocalizedTransactionFrame'
+      - type: 'null'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_get result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: TransactionHash
+      value: '0x1111111111111111111111111111111111111111111111111111111111111111'
+    - name: Position
+      value: []
+    result:
+      name: Result
+      value: null
+- name: trace_filter
+  summary: Returns localized traces matching an address filter.
+  description: Apply OR within each address list and AND between the lists by default, as eth_getLogs composes topic positions;
+    mode union matches either populated list; omitted/null/empty lists are unrestricted; compare address bytes independently of hex letter case.
+    Omitted bounds mean latest through latest, resolved against one canonical head. As for eth_getLogs,
+    if either bound resolves to a block number greater than the current head block, or fromBlock resolves
+    above toBlock, return -32602 (Invalid params); an explicit toBlock before an omitted latest start is
+    such a reversed range. Never clamp the range or return a partial result. Historical searches must
+    explicitly set fromBlock. earliest means the lowest block the client has available; never replace
+    an explicit endpoint with the retained-history boundary, and return 4444 when required history is
+    unavailable. Resource limits produce errors, never silently narrowed ranges. count limits returned
+    records, not scan or replay work. Indexed retrieval and replay must yield the same fork-correct
+    per-block records, each block traced from its parent's post-block state.
+    Match CALL sender/recipient, CREATE creator/created address and SELFDESTRUCT executing
+    (self-destructing) account/beneficiary; after EIP-6780 that account usually survives. A record
+    matches only addresses it reports; a failed CREATE reports no created address, so it has no
+    created-address match. A reward matches toAddress by author and has no from side; in
+    intersection mode it is excluded whenever fromAddress is populated, while in union mode a toAddress
+    match suffices. The genesis block contributes no records. Order records by block, then transaction,
+    then preorder, with each block's rewards after its transaction records (block reward, then uncle
+    rewards in ommer order). Filter first, then skip after records and take count. Offsets are stable
+    only for a fixed, numerically resolved range. Capture one canonical snapshot for the request
+    (H03-H06,H23,H27,H30,H32). This is a provisional trace profile; see docs-api/docs/trace-profile.md
+    and its decision references.
+  params:
+  - name: Filter
+    required: true
+    schema:
+      $ref: '#/components/schemas/TraceFilter'
+  result:
+    name: Result
+    schema:
+      $ref: '#/components/schemas/TraceLocalizedFrames'
+  errors:
+  - code: -32601
+    message: Method not found
+  - code: -32602
+    message: Invalid params
+  - code: 4444
+    message: Pruned history unavailable
+  examples:
+  - name: trace_filter result shape
+    description: Illustrative response shape; exact execution depends on chain state.
+    params:
+    - name: Filter
+      value:
+        fromBlock: '0x1'
+        toBlock: '0x1'
+    result:
+      name: Result
+      value: []

@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	openrpc "github.com/open-rpc/spec-types/generated/packages/go/v1_4"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
@@ -36,7 +35,7 @@ func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Re
 				}
 				return fmt.Errorf("missing required parameter %s.param[%d]", rt.method, i)
 			}
-			if err := validate(&method.params[i].schema, rt.params[i], fmt.Sprintf("%s.param[%d]", rt.method, i)); err != nil {
+			if err := validate(method.params[i].schema, rt.params[i], fmt.Sprintf("%s.param[%d]", rt.method, i)); err != nil {
 				return fmt.Errorf("unable to validate parameter in %s: %s", rt.name, err)
 			}
 		}
@@ -44,7 +43,7 @@ func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Re
 			// skip validation of errors, they haven't been standardized
 			continue
 		}
-		if err := validate(&method.result.schema, rt.response.Result, fmt.Sprintf("%s.result", rt.method)); err != nil {
+		if err := validate(method.result.schema, rt.response.Result, fmt.Sprintf("%s.result", rt.method)); err != nil {
 			// Print out the value and schema if there is an error to further debug.
 			buf, _ := json.Marshal(method.result.schema)
 			fmt.Println(string(buf))
@@ -58,27 +57,25 @@ func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Re
 	return nil
 }
 
-// validateParam validates the provided value against schema using the url base.
-func validate(schema *openrpc.JSONSchemaObject, val []byte, url string) error {
-	// Set $schema explicitly to force jsonschema to use draft 2019-09.
-	draft := openrpc.Schema("https://json-schema.org/draft/2019-09/schema")
-	schema.Schema = &draft
-
-	// Compile schema.
-	b, err := json.Marshal(schema)
+// validate preserves schema keywords and tuple structure while selecting the
+// same Draft 2019-09 dialect used by the round-trip checker.
+func validate(schema json.RawMessage, val []byte, url string) error {
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(schema, &object); err != nil {
+		return err
+	}
+	object["$schema"] = json.RawMessage(`"https://json-schema.org/draft/2019-09/schema"`)
+	b, err := json.Marshal(object)
 	if err != nil {
-		return fmt.Errorf("unable to marshal schema to json")
+		return fmt.Errorf("unable to marshal schema to json: %w", err)
 	}
 	s, err := jsonschema.CompileString(url, string(b))
 	if err != nil {
 		return err
 	}
-
-	// Validate value
 	var x interface{}
-	json.Unmarshal(val, &x)
-	if err := s.Validate(x); err != nil {
+	if err := json.Unmarshal(val, &x); err != nil {
 		return err
 	}
-	return nil
+	return s.Validate(x)
 }
