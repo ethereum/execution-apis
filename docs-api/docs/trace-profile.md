@@ -106,8 +106,11 @@ same-transaction scope start afresh. All items share one block environment, so N
 do not advance. The first item runs against the same state and environment as `trace_call` at the
 selected block, and each diff is relative to the preceding item’s post-state. If any decoded item
 fails validation, the request returns one error whose `error.data.index` is the zero-based item index,
-and no partial results. A malformed item is invalid params (-32602) without an index. Servers may cap items or total gas with an explicit -38026 error, never by
-truncating.
+and no partial results. The single error without partial results follows Erigon, Reth and Parity.
+`error.data.index` is new in this profile: no client reports the index in structured form today
+(Erigon names it only in message text), and it lets callers locate the failing item without matching
+text. A malformed item is invalid params (-32602) without an index. Servers may cap items or total
+gas with an explicit -38026 error, never by truncating.
 
 Validation rejections of `trace_call` and `trace_callMany` use the `eth_simulateV1` codes: -38012
 base fee too low, -38013 intrinsic gas, -38014 insufficient funds, -38025 init-code size and -38026
