@@ -17,41 +17,68 @@ TraceCall:
   type: object
   required: []
   properties:
-    from: &id001
-      $ref: '#/components/schemas/address'
-    to:
+    from: &nullableAddress
       anyOf:
-      - *id001
+      - &id001
+        $ref: '#/components/schemas/address'
       - type: 'null'
-    gas:
-      $ref: '#/components/schemas/uint64'
-    gasPrice: &id002
-      $ref: '#/components/schemas/uint256'
-    maxFeePerGas: *id002
-    maxPriorityFeePerGas: *id002
-    value: *id002
-    data: &id003
-      $ref: '#/components/schemas/TraceData'
-    input: *id003
-    nonce:
-      $ref: '#/components/schemas/uint64'
+    to: *nullableAddress
+    gas: &nullableUint64
+      anyOf:
+      - $ref: '#/components/schemas/uint64'
+      - type: 'null'
+    gasPrice: &nullableUint256
+      anyOf:
+      - &id002
+        $ref: '#/components/schemas/uint256'
+      - type: 'null'
+    maxFeePerGas: *nullableUint256
+    maxPriorityFeePerGas: *nullableUint256
+    value: *nullableUint256
+    data: &nullableData
+      anyOf:
+      - &id003
+        $ref: '#/components/schemas/TraceData'
+      - type: 'null'
+    input: *nullableData
+    nonce: *nullableUint64
     type:
-      $ref: '#/components/schemas/byte'
+      anyOf:
+      - $ref: '#/components/schemas/byte'
+      - type: 'null'
     accessList:
-      $ref: '#/components/schemas/AccessList'
-    chainId: *id002
-    maxFeePerBlobGas: *id002
+      anyOf:
+      - $ref: '#/components/schemas/AccessList'
+      - type: 'null'
+    chainId: *nullableUint256
+    maxFeePerBlobGas: *nullableUint256
     blobVersionedHashes:
-      type: array
-      items:
-        $ref: '#/components/schemas/hash32'
+      anyOf:
+      - type: array
+        items:
+          $ref: '#/components/schemas/hash32'
+      - type: 'null'
     authorizationList:
-      $ref: '#/components/schemas/AuthorizationList'
+      anyOf:
+      - $ref: '#/components/schemas/AuthorizationList'
+      - type: 'null'
   not:
     required: [gasPrice]
+    properties:
+      gasPrice:
+        not:
+          type: 'null'
     anyOf:
     - required: [maxFeePerGas]
+      properties:
+        maxFeePerGas:
+          not:
+            type: 'null'
     - required: [maxPriorityFeePerGas]
+      properties:
+        maxPriorityFeePerGas:
+          not:
+            type: 'null'
   additionalProperties: true
   description: 'Unsigned simulation. The fields are those of the eth_simulateV1 GenericCallTransaction,
     with chainId and authorizationList as in GenericTransaction, plus data as a compatibility alias for
@@ -59,7 +86,8 @@ TraceCall:
     defined here MUST either take effect with its eth_call meaning or cause the request to be rejected
     (-32602, or the selected fork''s validity error, such as authorizationList before Prague); a client
     MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting
-    them does not establish extension support (H14). Omitted or null to creates a contract. Defaults: from
+    them does not establish extension support (H14). An explicit null for any field other than to is the
+    same as omitting it. Omitted or null to creates a contract. Defaults: from
     zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice,
     maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas
     defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST
@@ -95,7 +123,9 @@ TraceFilter:
   required: []
   properties:
     fromBlock: &rangeBound
-      $ref: '#/components/schemas/BlockNumberOrTagForRange'
+      anyOf:
+      - $ref: '#/components/schemas/BlockNumberOrTagForRange'
+      - type: 'null'
     toBlock: *rangeBound
     fromAddress:
       anyOf:
@@ -108,19 +138,23 @@ TraceFilter:
         items: *id001
       - type: 'null'
     mode:
-      type: string
-      enum:
-      - intersection
-      - union
+      anyOf:
+      - type: string
+        enum:
+        - intersection
+        - union
+      - type: 'null'
       description: intersection (default) requires every populated address list to match; union requires
-        any populated list to match. Unknown values are invalid parameters (-32602).
+        any populated list to match. null is the default. Unknown values are invalid parameters (-32602).
     after: &pageSize
-      type: integer
-      minimum: 0
-      maximum: 18446744073709551615
+      anyOf:
+      - type: integer
+        minimum: 0
+        maximum: 18446744073709551615
+      - type: 'null'
     count: *pageSize
   additionalProperties: false
-  description: Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head,
+  description: An explicit null member is the same as an omitted one. Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head,
     after 0, count unlimited subject to an explicit server limit. Bounds exclude pending. If either
     bound resolves beyond the current head block, or fromBlock resolves above toBlock, return -32602;
     an explicit toBlock before an omitted latest start is such a reversed range. Never clamp the range.

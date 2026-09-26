@@ -19,7 +19,7 @@ import { useState } from 'react';
 
   **Filter** `object` *required*
 
-  Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head, after 0, count unlimited subject to an explicit server limit. Bounds exclude pending. If either bound resolves beyond the current head block, or fromBlock resolves above toBlock, return -32602; an explicit toBlock before an omitted latest start is such a reversed range. Never clamp the range. OR within each address list; AND between lists by default, as eth_getLogs composes topic positions. Missing, null or empty lists are unrestricted. mode union matches either populated list instead. Compare address bytes independently of hex letter case. Resolve tags once per request. Apply filtering before pagination; count 0 returns \[]. after and count are JSON integers bounded by uint64. Return an error rather than silently truncate when a server limit is exceeded. earliest is the lowest available block; never replace an explicit endpoint with a retention boundary, and return 4444 if required history is unavailable. count limits results, not scan or replay work (H03,H04,H06,H23,H27,H30,H32).
+  An explicit null member is the same as an omitted one. Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head, after 0, count unlimited subject to an explicit server limit. Bounds exclude pending. If either bound resolves beyond the current head block, or fromBlock resolves above toBlock, return -32602; an explicit toBlock before an omitted latest start is such a reversed range. Never clamp the range. OR within each address list; AND between lists by default, as eth_getLogs composes topic positions. Missing, null or empty lists are unrestricted. mode union matches either populated list instead. Compare address bytes independently of hex letter case. Resolve tags once per request. Apply filtering before pagination; count 0 returns \[]. after and count are JSON integers bounded by uint64. Return an error rather than silently truncate when a server limit is exceeded. earliest is the lowest available block; never replace an explicit endpoint with a retention boundary, and return 4444 if required history is unavailable. count limits results, not scan or replay work (H03,H04,H06,H23,H27,H30,H32).
 
   ***
 
@@ -31,17 +31,73 @@ import { useState } from 'react';
 
       #### `Filter` fields
 
-      * **after** `integer`
-
-        Range: `>= 0 and <= 18446744073709552000`
+      * **after** `integer or null`
 
         ***
 
-      * **count** `integer`
+        <div>
+          <details>
+            <summary>
+              Show Option 1 `after` integer
+            </summary>
 
-        Range: `>= 0 and <= 18446744073709552000`
+            #### `after` fields
+
+            **after** `integer`
+
+            Range: `>= 0 and <= 18446744073709552000`
+
+            ***
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 2 `after` null
+            </summary>
+
+            #### `after` fields
+
+            **after** `null`
+
+            ***
+          </details>
+        </div>
+
+      * **count** `integer or null`
 
         ***
+
+        <div>
+          <details>
+            <summary>
+              Show Option 1 `count` integer
+            </summary>
+
+            #### `count` fields
+
+            **count** `integer`
+
+            Range: `>= 0 and <= 18446744073709552000`
+
+            ***
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 2 `count` null
+            </summary>
+
+            #### `count` fields
+
+            **count** `null`
+
+            ***
+          </details>
+        </div>
 
       * **fromAddress** `array<string> or null`
 
@@ -79,7 +135,7 @@ import { useState } from 'react';
           </details>
         </div>
 
-      * **fromBlock** `string or string`
+      * **fromBlock** `string or string or null`
 
         ***
 
@@ -121,13 +177,63 @@ import { useState } from 'react';
           </details>
         </div>
 
-      * **mode** `string`
+        <div>
+          <details>
+            <summary>
+              Show Option 3 `fromBlock` null
+            </summary>
 
-        intersection (default) requires every populated address list to match; union requires any populated list to match. Unknown values are invalid parameters (-32602).
+            #### `fromBlock` fields
 
-        *Allowed values:* `intersection` `union`
+            **fromBlock** `null`
+
+            ***
+          </details>
+        </div>
+
+      * **mode** `string or null`
+
+        intersection (default) requires every populated address list to match; union requires any populated list to match. null is the default. Unknown values are invalid parameters (-32602).
 
         ***
+
+        <div>
+          <details>
+            <summary>
+              Show Option 1 `mode` string
+            </summary>
+
+            #### `mode` fields
+
+            intersection (default) requires every populated address list to match; union requires any populated list to match. null is the default. Unknown values are invalid parameters (-32602).
+
+            **mode** `string`
+
+            intersection (default) requires every populated address list to match; union requires any populated list to match. null is the default. Unknown values are invalid parameters (-32602).
+
+            *Allowed values:* `intersection` `union`
+
+            ***
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 2 `mode` null
+            </summary>
+
+            #### `mode` fields
+
+            intersection (default) requires every populated address list to match; union requires any populated list to match. null is the default. Unknown values are invalid parameters (-32602).
+
+            **mode** `null`
+
+            intersection (default) requires every populated address list to match; union requires any populated list to match. null is the default. Unknown values are invalid parameters (-32602).
+
+            ***
+          </details>
+        </div>
 
       * **toAddress** `array<string> or null`
 
@@ -165,7 +271,7 @@ import { useState } from 'react';
           </details>
         </div>
 
-      * **toBlock** `string or string`
+      * **toBlock** `string or string or null`
 
         ***
 
@@ -202,6 +308,20 @@ import { useState } from 'react';
             `earliest`: The lowest numbered block the client has available; `finalized`: The most recent crypto-economically secure block, cannot be re-orged outside of manual intervention driven by community coordination; `safe`: The most recent block that is safe from re-orgs under honest majority and certain synchronicity assumptions; `latest`: The most recent block in the canonical chain observed by the client, this block may be re-orged out of the canonical chain even under healthy/normal conditions. If the `safe` or `finalized` tag cannot be resolved to a block, the method responds as it does for an unknown block.
 
             *Allowed values:* `earliest` `finalized` `safe` `latest`
+
+            ***
+          </details>
+        </div>
+
+        <div>
+          <details>
+            <summary>
+              Show Option 3 `toBlock` null
+            </summary>
+
+            #### `toBlock` fields
+
+            **toBlock** `null`
 
             ***
           </details>

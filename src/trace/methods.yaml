@@ -38,7 +38,10 @@
     name: Block
     required: false
     schema:
-      $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+      title: Optional block, latest when omitted or null
+      anyOf:
+      - $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+      - type: 'null'
   - &stateOverrides
     name: StateOverrides
     required: false
