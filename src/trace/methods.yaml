@@ -3,9 +3,10 @@
   description: Execute against the state at the end of the selected block, default latest, under its
     fork rules and block environment. Block accepts a number, tag or block hash; an unknown selected
     block returns -32001 (Resource not found), and a known block whose required state is pruned returns
-    4444. pending has no agreed semantics yet; a client that does not implement it must reject it
-    explicitly rather than substitute another block (H32). Fees follow eth_call and eth_simulateV1
-    (H15). Omitted fee fields default to 0. The effective gas price is gasPrice, or
+    4444. pending selects the client's pending block, the next block number built on latest with its
+    pending transactions, and is accepted only when the client has such a pending environment; a client
+    without one returns -32602 rather than substitute another block (H32). Fees follow eth_call and
+    eth_simulateV1 (H15). Omitted fee fields default to 0. The effective gas price is gasPrice, or
     min(maxPriorityFeePerGas + base fee, maxFeePerGas), computed after defaulting; when it is 0, GASPRICE
     and BASEFEE are both 0 and no gas fee is paid. BLOBBASEFEE is 0 exactly when maxFeePerBlobGas is
     supplied as 0 or defaulted to 0; a call without blob fields keeps the block's BLOBBASEFEE. Other block
@@ -295,16 +296,17 @@
     operations applied, under its own fork rules. System operations (EIP-4788 and EIP-2935 pre-block
     calls, EIP-7002 and EIP-7251 post-block calls), withdrawals and rewards are applied in protocol
     order but belong to no envelope; concatenated stateDiffs therefore do not reconstruct the block
-    post-state. Block does not accept pending (-32602) until a pending contract exists. An unknown
-    selected block returns -32001 (Resource not found); a known block whose required state is pruned
-    returns 4444 (H05,H07,H16,H28,H32). This is a provisional trace profile; see
+    post-state. Block accepts pending only when the client has a pending block (the next block number
+    with its pending transactions); otherwise pending returns -32602. An unknown selected block returns
+    -32001 (Resource not found); a known block whose required state is pruned returns 4444
+    (H05,H07,H16,H28,H32). This is a provisional trace profile; see
     docs-api/docs/trace-profile.md and its decision references.'
   params:
   - &historicalBlock
     name: Block
     required: true
     schema:
-      $ref: '#/components/schemas/BlockNumberOrTagForRange'
+      $ref: '#/components/schemas/BlockNumberOrTag'
   - *id002
   result:
     name: Result
@@ -339,8 +341,10 @@
     The genesis block has no transaction or reward records and returns []. Do not emit synthetic zero
     PoW rewards after the Merge. Withdrawals and system operations are applied to state but are not
     trace records. Trace the block from its parent's post-block state with its own pre-transaction system
-    operations applied, under its own fork rules. Block does not accept pending (-32602) until a pending
-    contract exists; records never carry a block hash that is not canonical. An unknown selected block
+    operations applied, under its own fork rules. Block accepts pending only when the client has a
+    pending block (the next block number with its pending transactions); otherwise pending returns
+    -32602. Records from the pending block carry its number and the hash of the block the client built,
+    which is not canonical; all other records carry canonical block hashes. An unknown selected block
     returns -32001 (Resource not found); a known block whose required state is pruned returns 4444
     (H05,H06,H27,H28,H32). This is a provisional trace profile; see docs-api/docs/trace-profile.md and
     its decision references.
