@@ -11,8 +11,11 @@
     supplied as 0 or defaulted to 0; a call without blob fields keeps the block's BLOBBASEFEE. Other block
     fields are unchanged. Fee validation is skipped only when both fee caps are 0, as with gasPrice 0.
     Omitted gas, and supplied gas above the server's execution cap, run with that cap, as eth_call does;
-    the cap is server policy, not a truncated result. A validation failure without a listed code is
-    -32602. Unsigned calls skip the EIP-3607 sender-code check, as eth_call does.
+    the cap is server policy, not a truncated result. A defect that makes the call object invalid
+    regardless of state, such as a priority fee above the fee cap, an impossible type and field
+    combination or an empty authorization list, is -32602 and takes precedence when several rules are
+    violated; any other validation failure without a listed code is -32003 (Transaction rejected).
+    Unsigned calls skip the EIP-3607 sender-code check, as eth_call does.
     Otherwise the price must cover the base fee (-38012), maxPriorityFeePerGas must not exceed
     maxFeePerGas (-32602), and the sender must fund the upfront cost (-38014); execution then charges
     the upfront gas payment, applies refunds, burns the base fee and pays the tip. A zero price does not
@@ -81,6 +84,8 @@
     message: Max init code size exceeded
   - code: -38026
     message: Client adjustable limit exceeded
+  - code: -32003
+    message: Transaction rejected
   examples:
   - name: trace_call result shape
     description: Illustrative response shape; exact execution depends on chain state.

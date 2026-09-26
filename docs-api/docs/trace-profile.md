@@ -110,11 +110,15 @@ truncating.
 
 Validation rejections of `trace_call` and `trace_callMany` use the `eth_simulateV1` codes: -38012
 base fee too low, -38013 intrinsic gas, -38014 insufficient funds, -38025 init-code size and -38026
-client limit. A priority fee above the fee cap, and any other validation failure without a listed
-code, is -32602. A supplied nonce is not validated and unsigned calls skip the EIP-3607 sender-code
-check, as `eth_call` does, so the nonce and sender-not-EOA codes do not apply. Omitted gas, and
-supplied gas above the server's execution cap, run with that cap, as `eth_call` does; the cap is
-server policy, not a truncated result.
+client limit. A priority fee above the fee cap, and any other defect that makes the call object
+invalid regardless of state (a transaction type or field combination no transaction can carry, an
+empty authorization list), is -32602; such defects take precedence when several rules are violated.
+Any other validation failure without a listed code, such as a blob fee cap below the blob base fee
+or a transaction type not active at the selected fork, is -32003 (Transaction rejected), the
+fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
+the EIP-3607 sender-code check, as `eth_call` does, so the nonce and sender-not-EOA codes do not
+apply. Omitted gas, and supplied gas above the server's execution cap, run with that cap, as
+`eth_call` does; the cap is server policy, not a truncated result.
 `trace_rawTransaction` uses the `eth_sendRawTransaction` error groups
 ([#650](https://github.com/ethereum/execution-apis/pull/650)): 1 nonce too low, 2 nonce too high,
 800 intrinsic gas, 804 priority fee above fee cap, 806 fee cap below base fee and 809 insufficient
