@@ -147,16 +147,20 @@ collision emits a create frame with error `Contract address collision`.
 `error` alone determines failure. A REVERT frame has error `Reverted` and requires
 `result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt may
 omit `result` or set it to null. Erigon and Reth already emit REVERT results; the new part is the
-failed-CREATE shape, which must not report the would-be address. Failure labels are `Reverted`,
-`Out of gas`, `Bad instruction`, `Bad jump destination`, `Stack underflow`, `Out of stack`,
-`Mutable Call In Static Context`, `Built-in failed` and `Out of bounds`, plus the post-Parity
-`Contract address collision`, `Code size limit exceeded`, `Invalid code prefix 0xEF`,
-`Nonce overflow`, `Insufficient balance for transfer` and `Max call depth exceeded`. EIP-3860 oversized initcode aborts the creating frame with `Out of gas`, as the
-EIP specifies. The designated invalid instruction 0xFE is an undefined opcode: it is omitted from
-`vmTrace` ops and its frame fails with `Bad instruction`. Other strings are extensions that
-consumers treat as generic failure.
-`revertReason`, if present, is decoded `Error(string)` text; raw revert bytes live in
-`result.output`. The execution envelope carries root output, which cannot substitute for a nested
+failed-CREATE shape, which must not report the would-be address. No contract exists at that
+address, which is also why a failed CREATE has no created-address match in `trace_filter` (H23).
+Failure labels are `Reverted`, `Out of gas`, `Bad instruction`, `Bad jump destination`,
+`Stack underflow`, `Out of stack`, `Mutable Call In Static Context`, `Built-in failed` and
+`Out of bounds`. As in Parity and OpenEthereum, a code-deposit failure, including code above the
+EIP-170 size limit, is `Out of gas`, and returned code starting with 0xEF (EIP-3541) is
+`Invalid code`. Beyond Parity, which reported an address collision as `Out of gas` and emitted no
+frame for a failed precheck, the profile distinguishes `Contract address collision`,
+`Nonce overflow`, `Insufficient balance for transfer` and `Max call depth exceeded`. EIP-3860
+oversized initcode aborts the creating frame with `Out of gas`, as the EIP specifies. The
+designated invalid instruction 0xFE is an undefined opcode: it is omitted from `vmTrace` ops and its
+frame fails with `Bad instruction`. Other strings are extensions that consumers treat as generic
+failure. `revertReason` is not part of this profile; raw revert bytes live in `result.output`.
+The execution envelope carries root output, which cannot substitute for a nested
 frame’s revert bytes. A locally successful child remains successful even if an ancestor later
 reverts; its state changes then do not survive in `stateDiff`.
 

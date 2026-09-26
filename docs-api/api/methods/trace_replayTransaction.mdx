@@ -2237,7 +2237,7 @@ import { useState } from 'react';
 
                           Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode (H10).
 
-                          A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                          A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                           **result** `object` *required*
 
@@ -2421,7 +2421,7 @@ import { useState } from 'react';
 
                     * **result** `object or object` *required*
 
-                      A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                      A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                       ***
 
@@ -2433,13 +2433,13 @@ import { useState } from 'react';
 
                           #### `TraceCreateResult` fields
 
-                          A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                          A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                           Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode (H10).
 
                           **result** `object` *required*
 
-                          A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                          A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                           ***
 
@@ -2451,7 +2451,7 @@ import { useState } from 'react';
 
                               #### `result` fields
 
-                              A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                              A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                               * **gasUsed** `string` *required*
 
@@ -2501,11 +2501,11 @@ import { useState } from 'react';
 
                           #### `TraceRevertedCreateResult` fields
 
-                          A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                          A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                           **result** `object` *required*
 
-                          A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                          A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                           ***
 
@@ -2517,7 +2517,7 @@ import { useState } from 'react';
 
                               #### `result` fields
 
-                              A reverted creation reports its gas and revert bytes, never an address or deployed code (H09).
+                              A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address (H09,H23).
 
                               * **gasUsed** `string` *required*
 

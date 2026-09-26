@@ -282,8 +282,8 @@ TraceRevertedCreateResult:
     anyOf:
     - required: [address]
     - required: [code]
-  description: A reverted creation reports its gas and revert bytes, never an address or deployed code
-    (H09).
+  description: A reverted creation reports its gas and revert bytes, never an address or deployed code,
+    because no contract exists at the would-be address (H09,H23).
   title: TraceRevertedCreateResult
 TraceFrame:
   title: Flat call trace record
@@ -301,17 +301,20 @@ TraceFrame:
     Standalone historical records require localization; only protocol rewards have null transaction
     fields. Frames inside simulation and replay envelopes omit localization and protocol rewards.
     error alone determines failure. A REVERT frame has error "Reverted" and a required result
-    {gasUsed, output} carrying its revert bytes, for CREATE too, without address or code. An
-    exceptional halt consumes the frame''s action gas; its result may be omitted or null. Failure labels
-    are "Reverted", "Out of gas", "Bad instruction", "Bad jump destination", "Stack underflow",
-    "Out of stack", "Mutable Call In Static Context", "Built-in failed", "Out of bounds", and after
-    Parity "Contract address collision", "Code size limit exceeded", "Invalid code prefix 0xEF",
-    "Nonce overflow", "Insufficient balance for transfer" and "Max call depth exceeded". EIP-3860 oversized initcode aborts the creating frame with "Out of gas". The
-    designated invalid instruction 0xFE is an undefined opcode, so its frame fails with "Bad instruction".
-    Any other error string is an extension that consumers treat as a generic failure.
-    revertReason, if present, is the decoded Error(string) text; raw revert bytes live in result.output.
-    A suicide frame records the SELFDESTRUCT opcode and its transfer, not account deletion
-    (H05,H09,H10,H24).'
+    {gasUsed, output} carrying its revert bytes, for CREATE too, without address or code: no contract
+    exists at the would-be address. An exceptional halt consumes the frame''s action gas; its result
+    may be omitted or null. Failure labels are "Reverted", "Out of gas", "Bad instruction", "Bad jump
+    destination", "Stack underflow", "Out of stack", "Mutable Call In Static Context", "Built-in
+    failed" and "Out of bounds". As in Parity and OpenEthereum, a code-deposit failure, including code
+    above the EIP-170 size limit, is "Out of gas", and returned code starting with 0xEF (EIP-3541) is
+    "Invalid code". Beyond Parity, which reported an address collision as "Out of gas" and emitted no
+    frame for a failed precheck, use "Contract address collision", "Nonce overflow", "Insufficient
+    balance for transfer" and "Max call depth exceeded". EIP-3860 oversized initcode aborts the
+    creating frame with "Out of gas". The designated invalid instruction 0xFE is an undefined opcode,
+    so its frame fails with "Bad instruction". Any other error string is an extension that consumers
+    treat as a generic failure. revertReason is not part of this profile; raw revert bytes live in
+    result.output. A suicide frame records the SELFDESTRUCT opcode and its transfer, not account
+    deletion (H05,H09,H10,H24).'
   oneOf:
   - type: object
     required:
