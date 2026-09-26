@@ -93,8 +93,8 @@ covers one block or a range. Replay arrays hold exactly one envelope per transac
 Call objects use the `eth_simulateV1` `GenericCallTransaction` fields, together with `chainId` and
 `authorizationList` from `GenericTransaction` and `data` as an alias for `input`. When `data` and
 `input` are both present they must be equal (-32602). Every field the schema defines either takes
-effect with its `eth_call` meaning or causes a rejection (-32602, or the fork’s validity error);
-only fields outside the schema are ignored. A supplied nonce is accepted but neither validated nor
+effect with its `eth_call` meaning or causes a rejection (-32602, or -32003 when the selected fork
+does not support the field); only fields outside the schema are ignored. A supplied nonce is accepted but neither validated nor
 used, so CREATE addresses derive from the state nonce. `gas` is a uint64.
 
 Fees follow `eth_call` and `eth_simulateV1` (H15). Omitted fee fields default to zero. The zero-fee
