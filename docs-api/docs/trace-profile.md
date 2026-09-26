@@ -66,10 +66,11 @@ The genesis block has no transaction or reward records: `trace_block(0)` and
 `trace_replayBlockTransactions(0)` return `[]`, and filters over genesis contribute nothing. In
 every other block, rewards follow all transaction records of that block: the block reward, then
 uncle rewards in ommer order. A reward matches `toAddress` by its `author` and has no sender side,
-so it is excluded when `fromAddress` is populated in intersection mode; in union mode a `toAddress`
-match suffices. `trace_filter` filters first, then applies `after` and `count` in block,
-transaction, preorder, then reward order. `after` and `count` are JSON integers bounded by uint64.
-Offsets are stable only for a fixed, numerically resolved range.
+so it is excluded when `fromAddress` is populated in intersection mode, even when other records of
+that block match `fromAddress`; in union mode a `toAddress` match suffices. `trace_filter` filters
+first, then applies `after` and `count` in block, transaction, preorder, then reward order.
+`after` and `count` are JSON integers bounded by uint64. Offsets are stable only for a fixed,
+numerically resolved range.
 
 System operations (EIP-4788 and EIP-2935 pre-block calls, EIP-7002 and EIP-7251 post-block
 calls), withdrawals and rewards are applied to replay state in protocol order, but they are not call
@@ -198,10 +199,12 @@ independently encode allocated memory size. `pc`, `cost`, `ex.used` and output t
 JSON integers; stack words use hex quantities. Optional `idx` needs a declared numbering convention
 to be checked.
 
-Filter membership describes actions, not necessarily committed transfers. Failed CREATE
-can match its creator but has no created-address match; an explicit union may
-still retain the creator match. SELFDESTRUCT matches the executing (self-destructing) account and
-the beneficiary; after EIP-6780 the account usually survives. Range results must match
+Filter membership describes actions, not necessarily committed transfers. A record matches only
+addresses it reports. A failed CREATE reports no created address, because its result has no address
+(H09), so it can match its creator but never a populated recipient list, even when a client knows
+the would-be address; an explicit union may still retain the creator match. SELFDESTRUCT matches the
+executing (self-destructing) account and the beneficiary; after EIP-6780 the account usually
+survives. Range results must match
 fork-correct per-block records, whether those records come from replay or an index.
 
 ## Response integrity

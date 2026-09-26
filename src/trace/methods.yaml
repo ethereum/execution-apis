@@ -441,8 +441,9 @@
     records, not scan or replay work. Indexed retrieval and replay must yield the same fork-correct
     per-block records, each block traced from its parent's post-block state.
     Match CALL sender/recipient, CREATE creator/created address and SELFDESTRUCT executing
-    (self-destructing) account/beneficiary; after EIP-6780 that account usually survives. Failed CREATE
-    has no created-address match. A reward matches toAddress by author and has no from side; in
+    (self-destructing) account/beneficiary; after EIP-6780 that account usually survives. A record
+    matches only addresses it reports; a failed CREATE reports no created address, so it has no
+    created-address match. A reward matches toAddress by author and has no from side; in
     intersection mode it is excluded whenever fromAddress is populated, while in union mode a toAddress
     match suffices. The genesis block contributes no records. Order records by block, then transaction,
     then preorder, with each block's rewards after its transaction records (block reward, then uncle
