@@ -51,7 +51,9 @@ costs but do not decide it. Intentional departures are called out below.
   ([#875](https://github.com/ethereum/execution-apis/pull/875)): if either bound resolves beyond
   the current head, or `fromBlock` resolves above `toBlock`, return -32602 (Invalid params). Never
   clamp the range or return a partial result. Bounds use `BlockNumberOrTagForRange`, which excludes
-  `pending`. `earliest` is the lowest block the client has available, as the shared tag defines it;
+  `pending` and block hashes. Rejecting hash bounds and EIP-1898 block objects is a choice: Parity,
+  Erigon and Nethermind accept them, but `eth_getLogs` range bounds do not; select a single block by
+  number. `earliest` is the lowest block the client has available, as the shared tag defines it;
   an explicit number below retained history returns 4444.
 - Omitted filter bounds both mean `latest`, resolved against the same canonical head for the
   request. A `toBlock` earlier than the omitted `fromBlock` is a reversed range (-32602);
@@ -59,8 +61,13 @@ costs but do not decide it. Intentional departures are called out below.
   `trace_filter` default and the `eth_getLogs` convention. Query limits produce an explicit error,
   never an incomplete success. `count` limits returned records, not scan or replay work.
   [H30](https://github.com/banteg/trace-interop/blob/main/reports/decisions/H30.md)
-- `trace_block` and `trace_replayBlockTransactions` reject `pending` with -32602 until a pending
-  contract exists. Localized records never carry a block hash that is not canonical.
+- `pending` selects the client's pending block: the next block number, built on `latest` with the
+  client's pending transactions. `trace_block`, `trace_replayBlockTransactions`, `trace_call` and
+  `trace_callMany` accept it only when the client has such a pending environment; a simulation then
+  runs on the pending block's post-state and environment. A client without one returns -32602 rather
+  than evaluate `latest` or another block. Records traced from the pending block carry its number and
+  the hash of the block the client built, which is not canonical; all other localized records carry
+  canonical block hashes. `trace_filter` bounds reject `pending` with -32602 (H32).
 
 ## Blocks, rewards and pagination
 
@@ -275,10 +282,9 @@ approval. Malformed JSON on rejection is independently a reporting defect.
 
 ## Open details requiring focused review
 
-The value of client execution caps; `pending` for simulations
-and its localization; the shared semantics of a raw-transaction block selector (H12); and
-simulation extensions beyond the reserved override positions need further agreement. Clients
-must declare supported extensions rather than relying on a successful response as feature
+The value of client execution caps; the shared semantics of a raw-transaction block selector
+(H12); and simulation extensions beyond the reserved override positions need further agreement.
+Clients must declare supported extensions rather than relying on a successful response as feature
 detection. Full semantic conformance cannot be inferred from schema validity.
 
 The VM schema has its own JSON Schema resource identity and a local self-reference,

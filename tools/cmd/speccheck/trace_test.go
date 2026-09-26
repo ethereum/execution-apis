@@ -254,9 +254,10 @@ func TestTraceContracts(t *testing.T) {
 		add("range tag "+tag, "trace_filter", 0, traceObject{"fromBlock": tag, "toBlock": tag}, true)
 	}
 	add("pending range", "trace_filter", 0, traceObject{"fromBlock": "pending"}, false)
+	add("block hash range", "trace_filter", 0, traceObject{"fromBlock": traceObject{"blockHash": hash}}, false)
 	for _, method := range []string{"trace_block", "trace_replayBlockTransactions"} {
 		add("latest block", method, 0, "latest", true)
-		add("pending block", method, 0, "pending", false)
+		add("pending block", method, 0, "pending", true)
 	}
 	add("hex path", "trace_get", 1, []any{"0x0", "0xa"}, true)
 	add("integer path", "trace_get", 1, []any{0, 10}, false)

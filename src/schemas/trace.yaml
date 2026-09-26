@@ -155,9 +155,10 @@ TraceFilter:
     count: *pageSize
   additionalProperties: false
   description: An explicit null member is the same as an omitted one. Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head,
-    after 0, count unlimited subject to an explicit server limit. Bounds exclude pending. If either
-    bound resolves beyond the current head block, or fromBlock resolves above toBlock, return -32602;
-    an explicit toBlock before an omitted latest start is such a reversed range. Never clamp the range.
+    after 0, count unlimited subject to an explicit server limit. Bounds exclude pending and block
+    hashes. If either bound resolves beyond the current head block, or fromBlock resolves above
+    toBlock, return -32602; an explicit toBlock before an omitted latest start is such a reversed
+    range. Never clamp the range.
     OR within each address list; AND between lists by default, as eth_getLogs composes topic positions.
     Missing, null or empty lists are unrestricted. mode union matches either populated list instead.
     Compare address bytes independently of hex letter case. Resolve tags once per request. Apply
