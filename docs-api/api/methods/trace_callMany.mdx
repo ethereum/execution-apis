@@ -49,7 +49,7 @@ import { useState } from 'react';
 
           **Position 0** `object` *required*
 
-          Unsigned simulation. The fields are those of the eth_simulateV1 GenericCallTransaction, with chainId and authorizationList as in GenericTransaction, plus data as a compatibility alias for input. When data and input are both present they MUST be equal; otherwise return -32602. Every field defined here MUST either take effect with its eth_call meaning or cause the request to be rejected (-32602, or the selected fork's validity error, such as authorizationList before Prague); a client MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting them does not establish extension support (H14). Omitted or null to creates a contract. Defaults: from zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match the chain.
+          Unsigned simulation. The fields are those of the eth_simulateV1 GenericCallTransaction, with chainId and authorizationList as in GenericTransaction, plus data as a compatibility alias for input. When data and input are both present they MUST be equal; otherwise return -32602. Every field defined here MUST either take effect with its eth_call meaning or cause the request to be rejected (-32602, or the selected fork's validity error, such as authorizationList before Prague); a client MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting them does not establish extension support (H14). An explicit null for any field other than to is the same as omitting it. Omitted or null to creates a contract. Defaults: from zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match the chain.
 
           ***
 
@@ -61,201 +61,563 @@ import { useState } from 'react';
 
               #### `Position 0` fields
 
-              Unsigned simulation. The fields are those of the eth_simulateV1 GenericCallTransaction, with chainId and authorizationList as in GenericTransaction, plus data as a compatibility alias for input. When data and input are both present they MUST be equal; otherwise return -32602. Every field defined here MUST either take effect with its eth_call meaning or cause the request to be rejected (-32602, or the selected fork's validity error, such as authorizationList before Prague); a client MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting them does not establish extension support (H14). Omitted or null to creates a contract. Defaults: from zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match the chain.
+              Unsigned simulation. The fields are those of the eth_simulateV1 GenericCallTransaction, with chainId and authorizationList as in GenericTransaction, plus data as a compatibility alias for input. When data and input are both present they MUST be equal; otherwise return -32602. Every field defined here MUST either take effect with its eth_call meaning or cause the request to be rejected (-32602, or the selected fork's validity error, such as authorizationList before Prague); a client MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting them does not establish extension support (H14). An explicit null for any field other than to is the same as omitting it. Omitted or null to creates a contract. Defaults: from zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match the chain.
 
-              * **accessList** `array<object>`
-
-                Access list entry
+              * **accessList** `array<object> or null`
 
                 ***
 
                 <div>
                   <details>
                     <summary>
-                      Show `accessList` object
+                      Show Option 1 `Access list` array
+                    </summary>
+
+                    #### `Access list` fields
+
+                    **accessList** `array<object>`
+
+                    Access list entry
+
+                    ***
+
+                    <div>
+                      <details>
+                        <summary>
+                          Show `accessList` object
+                        </summary>
+
+                        #### `accessList` fields
+
+                        * **address** `string` *required*
+
+                          hex encoded address
+
+                          *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                          ***
+
+                        * **storageKeys** `array<string>` *required*
+
+                          32 byte hex value
+
+                          *Match pattern:* `^0x[0-9a-f]{64}$`
+
+                          ***
+
+                        * **additionalProperties** `false`
+
+                          ***
+                      </details>
+                    </div>
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `accessList` null
                     </summary>
 
                     #### `accessList` fields
 
-                    * **address** `string` *required*
+                    **accessList** `null`
 
-                      hex encoded address
-
-                      *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-                      ***
-
-                    * **storageKeys** `array<string>` *required*
-
-                      32 byte hex value
-
-                      *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                      ***
-
-                    * **additionalProperties** `false`
-
-                      ***
+                    ***
                   </details>
                 </div>
 
-              * **authorizationList** `array<object>`
-
-                List of authorizations for the transaction
+              * **authorizationList** `array<object> or null`
 
                 ***
 
                 <div>
                   <details>
                     <summary>
-                      Show `authorizationList` object
+                      Show Option 1 `Authorization List` array
+                    </summary>
+
+                    #### `Authorization List` fields
+
+                    List of authorizations for the transaction
+
+                    **authorizationList** `array<object>`
+
+                    ***
+
+                    <div>
+                      <details>
+                        <summary>
+                          Show `authorizationList` object
+                        </summary>
+
+                        #### `authorizationList` fields
+
+                        * **address** `string` *required*
+
+                          hex encoded address
+
+                          *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                          ***
+
+                        * **chainId** `string` *required*
+
+                          Chain ID on which this transaction is valid
+
+                          *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                          ***
+
+                        * **nonce** `string` *required*
+
+                          nonce
+
+                          *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+
+                          ***
+
+                        * **r** `string` *required*
+
+                          r
+
+                          *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                          ***
+
+                        * **s** `string` *required*
+
+                          s
+
+                          *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                          ***
+
+                        * **yParity** `string` *required*
+
+                          The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature
+
+                          *Match pattern:* `^0x[0-9a-f]{1,2}$`
+
+                          ***
+
+                        * **additionalProperties** `true`
+
+                          ***
+                      </details>
+                    </div>
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `authorizationList` null
                     </summary>
 
                     #### `authorizationList` fields
 
-                    List of authorizations for the transaction
+                    **authorizationList** `null`
 
-                    * **address** `string` *required*
-
-                      hex encoded address
-
-                      *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-                      ***
-
-                    * **chainId** `string` *required*
-
-                      Chain ID on which this transaction is valid
-
-                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-                      ***
-
-                    * **nonce** `string` *required*
-
-                      nonce
-
-                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
-
-                      ***
-
-                    * **r** `string` *required*
-
-                      r
-
-                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-                      ***
-
-                    * **s** `string` *required*
-
-                      s
-
-                      *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
-
-                      ***
-
-                    * **yParity** `string` *required*
-
-                      The parity (0 for even, 1 for odd) of the y-value of the secp256k1 signature
-
-                      *Match pattern:* `^0x[0-9a-f]{1,2}$`
-
-                      ***
-
-                    * **additionalProperties** `true`
-
-                      ***
+                    ***
                   </details>
                 </div>
 
-              * **blobVersionedHashes** `array<string>`
-
-                32 byte hex value
-
-                *Match pattern:* `^0x[0-9a-f]{64}$`
+              * **blobVersionedHashes** `array<string> or null`
 
                 ***
 
-              * **chainId** `string`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `blobVersionedHashes` array
+                    </summary>
 
-                hex encoded 256 bit unsigned integer
+                    #### `blobVersionedHashes` fields
 
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+                    **blobVersionedHashes** `array<string>`
 
-                ***
+                    32 byte hex value
 
-              * **data** `string`
+                    *Match pattern:* `^0x[0-9a-f]{64}$`
 
-                Trace byte string
+                    ***
+                  </details>
+                </div>
 
-                *Match pattern:* `^0x([0-9a-f]{2})*$`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `blobVersionedHashes` null
+                    </summary>
 
-                ***
+                    #### `blobVersionedHashes` fields
 
-              * **from** `string`
+                    **blobVersionedHashes** `null`
 
-                hex encoded address
+                    ***
+                  </details>
+                </div>
 
-                *Match pattern:* `^0x[0-9a-fA-F]{40}$`
-
-                ***
-
-              * **gas** `string`
-
-                hex encoded 64 bit unsigned integer
-
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
-
-                ***
-
-              * **gasPrice** `string`
-
-                hex encoded 256 bit unsigned integer
-
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+              * **chainId** `string or null`
 
                 ***
 
-              * **input** `string`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 256 bit unsigned integer` string
+                    </summary>
 
-                Trace byte string
+                    #### `hex encoded 256 bit unsigned integer` fields
 
-                *Match pattern:* `^0x([0-9a-f]{2})*$`
+                    **chainId** `string`
+
+                    hex encoded 256 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `chainId` null
+                    </summary>
+
+                    #### `chainId` fields
+
+                    **chainId** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **data** `string or null`
+
+                ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `Trace byte string` string
+                    </summary>
+
+                    #### `Trace byte string` fields
+
+                    **data** `string`
+
+                    Trace byte string
+
+                    *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `data` null
+                    </summary>
+
+                    #### `data` fields
+
+                    **data** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **from** `string or null`
 
                 ***
 
-              * **maxFeePerBlobGas** `string`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded address` string
+                    </summary>
 
-                hex encoded 256 bit unsigned integer
+                    #### `hex encoded address` fields
 
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+                    **from** `string`
+
+                    hex encoded address
+
+                    *Match pattern:* `^0x[0-9a-fA-F]{40}$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `from` null
+                    </summary>
+
+                    #### `from` fields
+
+                    **from** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **gas** `string or null`
 
                 ***
 
-              * **maxFeePerGas** `string`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 64 bit unsigned integer` string
+                    </summary>
 
-                hex encoded 256 bit unsigned integer
+                    #### `hex encoded 64 bit unsigned integer` fields
 
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+                    **gas** `string`
+
+                    hex encoded 64 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `gas` null
+                    </summary>
+
+                    #### `gas` fields
+
+                    **gas** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **gasPrice** `string or null`
 
                 ***
 
-              * **maxPriorityFeePerGas** `string`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 256 bit unsigned integer` string
+                    </summary>
 
-                hex encoded 256 bit unsigned integer
+                    #### `hex encoded 256 bit unsigned integer` fields
 
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+                    **gasPrice** `string`
+
+                    hex encoded 256 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `gasPrice` null
+                    </summary>
+
+                    #### `gasPrice` fields
+
+                    **gasPrice** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **input** `string or null`
 
                 ***
 
-              * **nonce** `string`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `Trace byte string` string
+                    </summary>
 
-                hex encoded 64 bit unsigned integer
+                    #### `Trace byte string` fields
 
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+                    **input** `string`
+
+                    Trace byte string
+
+                    *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `input` null
+                    </summary>
+
+                    #### `input` fields
+
+                    **input** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **maxFeePerBlobGas** `string or null`
 
                 ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 256 bit unsigned integer` string
+                    </summary>
+
+                    #### `hex encoded 256 bit unsigned integer` fields
+
+                    **maxFeePerBlobGas** `string`
+
+                    hex encoded 256 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `maxFeePerBlobGas` null
+                    </summary>
+
+                    #### `maxFeePerBlobGas` fields
+
+                    **maxFeePerBlobGas** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **maxFeePerGas** `string or null`
+
+                ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 256 bit unsigned integer` string
+                    </summary>
+
+                    #### `hex encoded 256 bit unsigned integer` fields
+
+                    **maxFeePerGas** `string`
+
+                    hex encoded 256 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `maxFeePerGas` null
+                    </summary>
+
+                    #### `maxFeePerGas` fields
+
+                    **maxFeePerGas** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **maxPriorityFeePerGas** `string or null`
+
+                ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 256 bit unsigned integer` string
+                    </summary>
+
+                    #### `hex encoded 256 bit unsigned integer` fields
+
+                    **maxPriorityFeePerGas** `string`
+
+                    hex encoded 256 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `maxPriorityFeePerGas` null
+                    </summary>
+
+                    #### `maxPriorityFeePerGas` fields
+
+                    **maxPriorityFeePerGas** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **nonce** `string or null`
+
+                ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 64 bit unsigned integer` string
+                    </summary>
+
+                    #### `hex encoded 64 bit unsigned integer` fields
+
+                    **nonce** `string`
+
+                    hex encoded 64 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `nonce` null
+                    </summary>
+
+                    #### `nonce` fields
+
+                    **nonce** `null`
+
+                    ***
+                  </details>
+                </div>
 
               * **to** `string or null`
 
@@ -293,21 +655,77 @@ import { useState } from 'react';
                   </details>
                 </div>
 
-              * **type** `string`
-
-                hex encoded byte
-
-                *Match pattern:* `^0x[0-9a-f]{1,2}$`
+              * **type** `string or null`
 
                 ***
 
-              * **value** `string`
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded byte` string
+                    </summary>
 
-                hex encoded 256 bit unsigned integer
+                    #### `hex encoded byte` fields
 
-                *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+                    **type** `string`
+
+                    hex encoded byte
+
+                    *Match pattern:* `^0x[0-9a-f]{1,2}$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `type` null
+                    </summary>
+
+                    #### `type` fields
+
+                    **type** `null`
+
+                    ***
+                  </details>
+                </div>
+
+              * **value** `string or null`
 
                 ***
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 1 `hex encoded 256 bit unsigned integer` string
+                    </summary>
+
+                    #### `hex encoded 256 bit unsigned integer` fields
+
+                    **value** `string`
+
+                    hex encoded 256 bit unsigned integer
+
+                    *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                    ***
+                  </details>
+                </div>
+
+                <div>
+                  <details>
+                    <summary>
+                      Show Option 2 `value` null
+                    </summary>
+
+                    #### `value` fields
+
+                    **value** `null`
+
+                    ***
+                  </details>
+                </div>
 
               * **additionalProperties** `true`
 
@@ -327,7 +745,7 @@ import { useState } from 'react';
     </details>
   </div>
 
-  **Block** `string or string or string`
+  **Block** `string or string or string or null`
 
   ***
 
@@ -382,6 +800,22 @@ import { useState } from 'react';
       Block hash
 
       *Match pattern:* `^0x[0-9a-f]{64}$`
+
+      ***
+    </details>
+  </div>
+
+  <div>
+    <details>
+      <summary>
+        Show Option 4 `Optional block, latest when omitted or null` null
+      </summary>
+
+      #### `Optional block, latest when omitted or null` fields
+
+      **Block** `null`
+
+      Optional block, latest when omitted or null
 
       ***
     </details>

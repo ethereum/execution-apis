@@ -13,13 +13,17 @@ costs but do not decide it. Intentional departures are called out below.
 
 ## Explicit choices in this draft
 
+- An explicit `null` for an optional parameter or an optional member of a parameter object is the
+  same as omitting it: the default applies. Clients already treat `null` this way in `eth_call`,
+  `eth_estimateGas` and `eth_getLogs` fields. `null` keeps its own meaning only where the schema
+  gives it one: a null `to` creates a contract (H14).
 - Query path inputs use hex quantities for caller compatibility; traceAddress outputs retain JSON
   integers. Convert each output integer to a minimal hex quantity before passing it to trace_get.
   Integer path entries return -32602, rather than null.
 - Address filters use OR within each list and AND between lists, as `eth_getLogs` composes topic
   positions. Missing, null and empty lists are unrestricted. Addresses compare by bytes, irrespective
-  of hex letter case. Optional `mode` accepts `intersection` (the default) and `union` (match either
-  populated list); other values return -32602.
+  of hex letter case. Optional `mode` accepts `intersection` (the default, also when `mode` is
+  null) and `union` (match either populated list); other values return -32602.
 - Standalone historical records (`trace_block`, `trace_filter`, `trace_transaction`,
   `trace_get`) require non-null block localization. Mined transaction frames also require
   non-null transaction hash/index; protocol rewards require null transaction hash/index
