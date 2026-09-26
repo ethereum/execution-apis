@@ -84,8 +84,9 @@ TraceCall:
     with chainId and authorizationList as in GenericTransaction, plus data as a compatibility alias for
     input. When data and input are both present they MUST be equal; otherwise return -32602. Every field
     defined here MUST either take effect with its eth_call meaning or cause the request to be rejected
-    (-32602, or the selected fork''s validity error, such as authorizationList before Prague); a client
-    MUST NOT silently ignore a defined field. Only fields outside this schema are ignored, and accepting
+    (-32602 for a malformed field or impossible combination, or -32003 when the selected fork does not
+    support the field, such as authorizationList before Prague); a client MUST NOT silently ignore a
+    defined field. Only fields outside this schema are ignored, and accepting
     them does not establish extension support (H14). An explicit null for any field other than to is the
     same as omitting it. Omitted or null to creates a contract. Defaults: from
     zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice,
