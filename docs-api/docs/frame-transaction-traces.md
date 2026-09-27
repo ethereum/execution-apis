@@ -1,7 +1,6 @@
 # Frame transaction traces
 
-This page specifies how `debug_trace*` with `callTracer` and the `trace_*`
-methods render an [EIP-8141](https://eips.ethereum.org/EIPS/eip-8141) frame
+This page specifies how the `debug_trace*` and `trace_*` methods render an [EIP-8141](https://eips.ethereum.org/EIPS/eip-8141) frame
 transaction. It is provisional until at least two clients implement it.
 
 A frame transaction has no single top-level call. Each frame runs as its own
@@ -20,6 +19,11 @@ them. A consumer joins frame `i` of the trace to `frameReceipts[i]` by index.
 - The resolved target of a frame is `frame.target`, or `tx.sender` when
   `frame.target` is empty.
 - The gas limit of a frame is `frame.limits.execution + frame.limits.state`.
+- The transaction gas limit is the maximum gas EIP-8141 lets the transaction
+  use: the intrinsic cost plus every frame limit, or the calldata floor plus
+  every state limit when that is higher. It is not the sum of the frame limits
+  alone, which would be lower than the receipt `gasUsed` of a transaction that
+  spends its full budget.
 
 ## `callTracer`
 
@@ -93,7 +97,24 @@ Because the root and every `DEFAULT` and `VERIFY` frame name `ENTRY_POINT`,
 transaction, and `fromAddress` `[ENTRY_POINT]` returns every `DEFAULT` and
 `VERIFY` frame.
 
-The frame layout of `vmTrace` is not specified.
+In `vmTrace`, the root has `code` `0x` and one operation per frame that
+entered the EVM, in frame order. The `pc` of that operation is the frame index,
+its `cost` is the frame gas limit, and its `sub` is the frame's own `vmTrace`.
+A skipped frame, or a frame that fails before it enters the EVM, has no
+operation.
+
+In `stateDiff`, the transaction is one unit: it includes the payer's fee debit,
+the beneficiary's fee credit, and the sender's nonce increment, as for any
+transaction.
+
+## Opcode tracer
+
+With no named tracer, `structLogs` holds the steps of every frame that entered
+the EVM, in frame order. Each frame starts at `depth` `1`, as a top-level call
+does. A skipped frame, or a frame that fails before it enters the EVM, adds no
+steps. `gas` is the receipt `gasUsed`, and `failed` is `true` if and only if the
+receipt `status` is `0`. `returnValue` is not specified for frame transactions.
+Consumers that need frame boundaries read them from `callTracer`.
 
 ## `prestateTracer`
 
