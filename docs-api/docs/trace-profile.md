@@ -38,11 +38,13 @@ costs but do not decide it. Intentional departures are called out below.
   extension is outside this baseline, not a conformance failure. The third selector existed in
   Parity’s implementation, although its guide omitted it.
 - Empty trace selection is valid. The envelope always preserves output.
-- Unknown single selected blocks (`trace_block`, `trace_replayBlockTransactions`, and the
-  simulation block) return -32001 (Resource not found). In `trace_call` and `trace_callMany`
-  clients use -32000 for transaction-validation failures, so a dedicated code lets callers tell an
-  unknown block from an invalid call without parsing messages. Unknown transactions and valid but
-  absent tree paths return null. Known blocks with pruned required state return 4444. If pruned
+- Where clients already agree, the draft keeps their answer (H06). Unknown transactions and valid but
+  absent tree paths return null, as Parity did and as `eth_getTransactionByHash` does. Unknown single
+  selected blocks (`trace_block`, `trace_replayBlockTransactions`, and the simulation block) return
+  an error, as every client already does for `trace_block` and `eth_call`;
+  `trace_replayBlockTransactions` follows `trace_block`. -32001 (Resource not found) is recommended:
+  in `trace_call` and `trace_callMany` clients use -32000 for transaction-validation failures, so a
+  dedicated code lets callers tell an unknown block from an invalid call without parsing messages. Known blocks with pruned required state return 4444. If pruned
   indexing prevents establishing whether a hash is absent, return 4444 rather than claiming a
   definitive not-found result. This extends the pruned-history code adopted for eth/debug methods in
   [#636](https://github.com/ethereum/execution-apis/pull/636) to trace methods and execution state;

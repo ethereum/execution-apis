@@ -2,7 +2,7 @@
   summary: Executes an unsigned call and returns selected traces.
   description: Execute against the state at the end of the selected block, default latest, under its
     fork rules and block environment. Block accepts a number, tag or block hash; an unknown selected
-    block returns -32001 (Resource not found), and a known block whose required state is pruned returns
+    block returns an error (-32001, Resource not found, recommended), and a known block whose required state is pruned returns
     4444. pending selects the client's pending block, the next block number built on latest with its
     pending transactions, and is accepted only when the client has such a pending environment; a client
     without one returns -32602 rather than substitute another block (H32). Fees follow eth_call and
@@ -298,7 +298,7 @@
     order but belong to no envelope; concatenated stateDiffs therefore do not reconstruct the block
     post-state. Block accepts pending only when the client has a pending block (the next block number
     with its pending transactions); otherwise pending returns -32602. An unknown selected block returns
-    -32001 (Resource not found); a known block whose required state is pruned returns 4444
+    an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns 4444
     (H05,H07,H16,H28,H32). This is a provisional trace profile; see
     docs-api/docs/trace-profile.md and its decision references.'
   params:
@@ -345,7 +345,7 @@
     pending block (the next block number with its pending transactions); otherwise pending returns
     -32602. Records from the pending block carry its number and the hash of the block the client built,
     which is not canonical; all other records carry canonical block hashes. An unknown selected block
-    returns -32001 (Resource not found); a known block whose required state is pruned returns 4444
+    returns an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns 4444
     (H05,H06,H27,H28,H32). This is a provisional trace profile; see docs-api/docs/trace-profile.md and
     its decision references.
   params:
