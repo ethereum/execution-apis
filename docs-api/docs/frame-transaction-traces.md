@@ -88,20 +88,27 @@ The same tree is used in parity encoding:
   otherwise. `from`, `to`, `value`, `input`, and `action.gas` follow the
   `callTracer` rules above, and `result.gasUsed` is
   `frameReceipts[i].gasUsed`.
-- A frame that reverts has `error` `Reverted`. A skipped frame, or a frame
-  that fails before it enters the EVM, has its `action` and `error`, no
-  `result`, and no subtraces. A skipped frame has `error` `frame skipped`.
+- A frame that reverts has `error` `Reverted` and keeps its `result`, with
+  `result.gasUsed` equal to `frameReceipts[i].gasUsed` and `result.output`
+  equal to its revert data.
+- A skipped frame, or a frame that fails before it enters the EVM, has its
+  `action` and `error`, no `result`, and no subtraces, as for a call that fails
+  before it executes. A skipped frame has `error` `frame skipped`. This label extends
+  the `trace_*` failure labels for frame transactions only.
+- The root has an `error` if and only if the receipt `status` is `0`, as in
+  `callTracer`. Its message is not specified.
 
 Because the root and every `DEFAULT` and `VERIFY` frame name `ENTRY_POINT`,
 `trace_filter` with `toAddress` `[ENTRY_POINT]` returns the root of every frame
 transaction, and `fromAddress` `[ENTRY_POINT]` returns every `DEFAULT` and
 `VERIFY` frame.
 
-In `vmTrace`, the root has `code` `0x` and one operation per frame that
-entered the EVM, in frame order. The `pc` of that operation is the frame index,
-its `cost` is the frame gas limit, and its `sub` is the frame's own `vmTrace`.
-A skipped frame, or a frame that fails before it enters the EVM, has no
-operation.
+In `vmTrace`, the root has `code` `0x` and one synthetic operation per frame
+that entered the EVM, in frame order. The `pc` of a synthetic operation is the
+frame index, not a position in code, its `cost` is the frame gas limit, and its
+`sub` is the frame's own `vmTrace`. These operations are the only exception to
+the rule that every `pc` lies inside the executed code. A skipped frame, or a
+frame that fails before it enters the EVM, has no operation.
 
 In `stateDiff`, the transaction is one unit: it includes the payer's fee debit,
 the beneficiary's fee credit, and the sender's nonce increment, as for any
