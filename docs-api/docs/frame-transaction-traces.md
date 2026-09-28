@@ -62,6 +62,9 @@ Status and errors:
   `frame skipped`, `gasUsed` `0x0`, and no `calls`.
 - A frame that fails before it enters the EVM is still rendered from the
   transaction fields, with the error that ended it.
+- A frame that succeeds without entering the EVM, such as a `VERIFY` frame
+  whose target runs default code, is rendered from the transaction fields with
+  `output` `0x` and no `calls`.
 - The root has an `error` if and only if the receipt `status` is `0`. Its
   message is not specified.
 
@@ -95,6 +98,8 @@ The same tree is used in parity encoding:
   `action` and `error`, no `result`, and no subtraces, as for a call that fails
   before it executes. A skipped frame has `error` `frame skipped`. This label extends
   the `trace_*` failure labels for frame transactions only.
+- A frame that succeeds without entering the EVM has its `action` and
+  `result`, with `result.output` `0x`, and no subtraces.
 - The root has an `error` if and only if the receipt `status` is `0`, as in
   `callTracer`. Its message is not specified.
 
@@ -105,10 +110,11 @@ transaction, and `fromAddress` `[ENTRY_POINT]` returns every `DEFAULT` and
 
 In `vmTrace`, the root has `code` `0x` and one synthetic operation per frame
 that entered the EVM, in frame order. The `pc` of a synthetic operation is the
-frame index, not a position in code, its `cost` is the frame gas limit, and its
-`sub` is the frame's own `vmTrace`. These operations are the only exception to
-the rule that every `pc` lies inside the executed code. A skipped frame, or a
-frame that fails before it enters the EVM, has no operation.
+frame index, not a position in code, its `cost` is the frame gas limit, its
+`ex.used` is `cost` minus `frameReceipts[i].gasUsed`, and its `sub` is the
+frame's own `vmTrace`. These operations are the only exception to the rule that
+every `pc` lies inside the executed code. A frame that did not enter the EVM,
+whether skipped, failed, or run as default code, has no operation.
 
 In `stateDiff`, the transaction is one unit: it includes the payer's fee debit,
 the beneficiary's fee credit, and the sender's nonce increment, as for any
@@ -118,8 +124,8 @@ transaction.
 
 With no named tracer, `structLogs` holds the steps of every frame that entered
 the EVM, in frame order. Each frame starts at `depth` `1`, as a top-level call
-does. A skipped frame, or a frame that fails before it enters the EVM, adds no
-steps. `gas` is the receipt `gasUsed`, and `failed` is `true` if and only if the
+does. A frame that did not enter the EVM, whether skipped, failed, or run as
+default code, adds no steps. `gas` is the receipt `gasUsed`, and `failed` is `true` if and only if the
 receipt `status` is `0`. `returnValue` is not specified for frame transactions.
 Consumers that need frame boundaries read them from `callTracer`.
 
