@@ -49,7 +49,7 @@ func TestFrameReadAPIs(t *testing.T) {
 		if method != "eth_getTransactionByBlockHashAndIndex" {
 			tests = append(tests, testCase{"pending", method, pending, false})
 		}
-		for _, mutation := range []string{"placeholder", "empty cryptographic signature", "missing from", "missing hash", "malformed hash"} {
+		for _, mutation := range []string{"placeholder", "null signature", "omitted arbitrary signature", "empty cryptographic signature", "missing from", "missing hash", "malformed hash"} {
 			data, err := json.Marshal(mined)
 			if err != nil {
 				t.Fatal(err)
@@ -60,9 +60,13 @@ func TestFrameReadAPIs(t *testing.T) {
 			}
 			switch mutation {
 			case "placeholder":
-				value["signatures"] = []any{object{"scheme": "0x1", "signer": "0x", "msg": "0x"}}
+				value["signatures"] = []any{object{"scheme": "0x1", "signer": nil, "msg": nil}}
+			case "null signature":
+				value["signatures"].([]any)[0].(map[string]any)["signature"] = nil
+			case "omitted arbitrary signature":
+				delete(value["signatures"].([]any)[0].(map[string]any), "signature")
 			case "empty cryptographic signature":
-				value["signatures"] = []any{object{"scheme": "0x1", "signer": "0x", "msg": "0x", "signature": "0x"}}
+				value["signatures"] = []any{object{"scheme": "0x1", "signer": nil, "msg": nil, "signature": "0x"}}
 			case "missing from":
 				delete(value, "from")
 			case "missing hash":
@@ -77,8 +81,9 @@ func TestFrameReadAPIs(t *testing.T) {
 			signatures []any
 		}{
 			{"no protocol signatures", []any{}},
-			{"secp256k1", []any{object{"scheme": "0x1", "signer": "0x", "msg": "0x", "signature": "0x00" + strings.Repeat("1", 128)}}},
-			{"p256", []any{object{"scheme": "0x2", "signer": "0x", "msg": "0x", "signature": "0x" + strings.Repeat("1", 256)}}},
+			{"omitted signature defaults", []any{object{"scheme": "0x1", "signature": "0x00" + strings.Repeat("1", 128)}}},
+			{"secp256k1", []any{object{"scheme": "0x1", "signer": nil, "msg": nil, "signature": "0x00" + strings.Repeat("1", 128)}}},
+			{"p256", []any{object{"scheme": "0x2", "signer": nil, "msg": nil, "signature": "0x" + strings.Repeat("1", 256)}}},
 		} {
 			value := make(object, len(mined))
 			for key, field := range mined {
@@ -130,7 +135,7 @@ func TestFrameReadAPIs(t *testing.T) {
 					txs[i] = tx.(object)["hash"]
 				}
 			case "placeholder":
-				txs[1].(object)["signatures"] = []any{object{"scheme": "0x2", "signer": "0x", "msg": "0x"}}
+				txs[1].(object)["signatures"] = []any{object{"scheme": "0x2", "signer": nil, "msg": nil}}
 			case "mixed hash and object":
 				txs[0] = txs[0].(object)["hash"]
 			}

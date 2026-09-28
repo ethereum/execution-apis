@@ -45,12 +45,25 @@ func TestFrameCallAPIs(t *testing.T) {
 	}
 	// Clients validate method-specific signature rules, field compatibility, and signed-envelope completeness.
 	var tests []testCase
-	for _, variant := range []string{"defaults", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "missing execution limit", "missing state limit", "missing both limits", "empty frames", "outer input", "other type with frames"} {
+	for _, variant := range []string{"defaults", "null fields", "omitted signature fields", "empty target", "empty message", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "missing execution limit", "missing state limit", "missing both limits", "empty frames", "outer input", "other type with frames"} {
 		frame := object{"mode": "0x1", "executionGas": "0x10000", "stateGas": "0x10000"}
 		request := object{"type": "0x6", "from": "0x1111111111111111111111111111111111111111", "frames": []any{frame}}
-		placeholder := object{"scheme": "0x1", "signer": request["from"], "msg": "0x"}
+		placeholder := object{"scheme": "0x1", "signer": request["from"], "msg": nil}
 		valid := true
 		switch variant {
+		case "null fields":
+			frame["target"] = nil
+			placeholder["signer"], placeholder["signature"] = nil, nil
+			request["signatures"] = []any{placeholder}
+		case "omitted signature fields":
+			request["signatures"] = []any{object{"scheme": "0x1"}}
+		case "empty target":
+			frame["target"] = "0x"
+			valid = false
+		case "empty message":
+			placeholder["msg"] = "0x"
+			request["signatures"] = []any{placeholder}
+			valid = false
 		case "zero limits":
 			frame["executionGas"], frame["stateGas"] = "0x0", "0x0"
 		case "placeholder", "p256 placeholder", "empty signer", "arbitrary placeholder", "empty protocol signature":
@@ -60,16 +73,17 @@ func TestFrameCallAPIs(t *testing.T) {
 			}
 			if variant == "empty signer" {
 				placeholder["signer"] = "0x"
+				valid = false
 			}
 			if variant == "arbitrary placeholder" {
-				placeholder["scheme"], placeholder["signer"] = "0x0", "0x"
+				placeholder["scheme"], placeholder["signer"] = "0x0", nil
 			}
 			if variant == "empty protocol signature" {
 				placeholder["signature"] = "0x"
 				valid = false
 			}
 		case "arbitrary witness":
-			request["signatures"] = []any{object{"scheme": "0x0", "signer": "0x", "msg": "0x", "signature": "0xabcd"}}
+			request["signatures"] = []any{object{"scheme": "0x0", "signer": nil, "msg": nil, "signature": "0xabcd"}}
 		case "complete signature", "signed incomplete envelope", "signed incomplete frame":
 			// Structurally valid signature bytes; cryptographic validity requires a client.
 			placeholder["signature"] = "0x00" + strings.Repeat("11", 64)

@@ -32,7 +32,7 @@ func TestFrameComponents(t *testing.T) {
 		},
 	}
 	frame := `{"mode":"0x1","flags":"0x3","target":null,"executionGas":"0x10000","stateGas":"0x0","value":"0x0","data":"0x"}`
-	signature := `{"scheme":"0x0","signer":"0x","msg":"0x","signature":"0xabcd"}`
+	signature := `{"scheme":"0x0","signer":null,"msg":null,"signature":"0xabcd"}`
 	envelope := `{"type":"0x6","chainId":"0x1","nonce":"0x0","from":"0x1111111111111111111111111111111111111111","frames":[` + frame + `],"signatures":[],"maxPriorityFeePerGas":"0x1","maxFeePerGas":"0x2","maxFeePerBlobGas":"0x0","blobVersionedHashes":[]}`
 	type testCase struct {
 		name, schema, input string
@@ -42,11 +42,12 @@ func TestFrameComponents(t *testing.T) {
 		{"verify frame", "Frame", frame, true},
 		{"default frame", "Frame", strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":"0x0"`), true},
 		{"sender batch", "Frame", strings.ReplaceAll(strings.ReplaceAll(frame, `"mode":"0x1"`, `"mode":"0x2"`), `"flags":"0x3"`, `"flags":"0x4"`), true},
+		{"empty target", "Frame", strings.ReplaceAll(frame, `null`, `"0x"`), false},
 		{"invalid target", "Frame", strings.ReplaceAll(frame, `null`, `"0x1234"`), false},
-		{"invalid recovery id", "FrameSignature", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x02` + strings.Repeat("1", 128) + `"}`, false},
-		{"omitted secp256k1 signer", "FrameSignature", `{"scheme":"0x1","msg":"0x","signature":"0x00` + strings.Repeat("1", 128) + `"}`, true},
-		{"omitted p256 signer", "FrameSignature", `{"scheme":"0x2","msg":"0x","signature":"0x` + strings.Repeat("1", 256) + `"}`, true},
-		{"explicit cryptographic signer", "FrameSignature", `{"scheme":"0x1","signer":"0x1111111111111111111111111111111111111111","msg":"0x","signature":"0x01` + strings.Repeat("1", 128) + `"}`, true},
+		{"invalid recovery id", "FrameSignature", `{"scheme":"0x1","signer":null,"msg":null,"signature":"0x02` + strings.Repeat("1", 128) + `"}`, false},
+		{"omitted secp256k1 signer", "FrameSignature", `{"scheme":"0x1","msg":null,"signature":"0x00` + strings.Repeat("1", 128) + `"}`, true},
+		{"omitted p256 signer", "FrameSignature", `{"scheme":"0x2","msg":null,"signature":"0x` + strings.Repeat("1", 256) + `"}`, true},
+		{"explicit cryptographic signer", "FrameSignature", `{"scheme":"0x1","signer":"0x1111111111111111111111111111111111111111","msg":null,"signature":"0x01` + strings.Repeat("1", 128) + `"}`, true},
 		{"odd witness", "FrameSignature", strings.ReplaceAll(signature, "0xabcd", "0xabc"), false},
 		{"unknown signature field", "FrameSignature", strings.Replace(signature, `{`, `{"extra":0,`, 1), false},
 
@@ -63,11 +64,12 @@ func TestFrameComponents(t *testing.T) {
 		{"unknown frame field", "Frame", strings.ReplaceAll(frame, `"data":"0x"`, `"data":"0x","to":null`), false},
 		{"arbitrary witness", "FrameSignature", signature, true},
 		{"empty witness", "FrameSignature", strings.ReplaceAll(signature, `0xabcd`, `0x`), true},
-		{"explicit digest", "FrameSignature", strings.ReplaceAll(signature, `"msg":"0x"`, `"msg":"0x`+strings.Repeat("1", 64)+`"`), true},
-		{"zero digest", "FrameSignature", strings.ReplaceAll(signature, `"msg":"0x"`, `"msg":"0x`+strings.Repeat("0", 64)+`"`), false},
-		{"short digest", "FrameSignature", strings.ReplaceAll(signature, `"msg":"0x"`, `"msg":"0x01"`), false},
-		{"arbitrary signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":"0x"`, `"signer":"0x`+strings.Repeat("1", 40)+`"`), false},
-		{"null signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":"0x"`, `"signer":null`), false},
+		{"explicit digest", "FrameSignature", strings.ReplaceAll(signature, `"msg":null`, `"msg":"0x`+strings.Repeat("1", 64)+`"`), true},
+		{"zero digest", "FrameSignature", strings.ReplaceAll(signature, `"msg":null`, `"msg":"0x`+strings.Repeat("0", 64)+`"`), false},
+		{"empty digest", "FrameSignature", strings.ReplaceAll(signature, `"msg":null`, `"msg":"0x"`), false},
+		{"short digest", "FrameSignature", strings.ReplaceAll(signature, `"msg":null`, `"msg":"0x01"`), false},
+		{"arbitrary signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":null`, `"signer":"0x`+strings.Repeat("1", 40)+`"`), false},
+		{"empty signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":null`, `"signer":"0x"`), false},
 		{"unknown scheme", "FrameSignature", strings.ReplaceAll(signature, `"scheme":"0x0"`, `"scheme":"0x3"`), false},
 		{"complete envelope", "Transaction8141Unsigned", envelope, true},
 		{"omitted empty lists", "Transaction8141Unsigned", strings.ReplaceAll(strings.ReplaceAll(envelope, `,"signatures":[]`, ``), `,"blobVersionedHashes":[]`, ``), true},
@@ -129,22 +131,32 @@ func TestFrameComponents(t *testing.T) {
 		{"scheme only p256", `{"scheme":"0x2"}`, true},
 		{"scheme only arbitrary", `{"scheme":"0x0"}`, true},
 		{"missing scheme", `{}`, false},
-		{"omitted signer", `{"scheme":"0x1","msg":"0x"}`, true},
-		{"omitted message", `{"scheme":"0x1","signer":"0x"}`, true},
-		{"secp256k1", `{"scheme":"0x1","signer":"0x","msg":"0x"}`, true},
-		{"p256", `{"scheme":"0x2","signer":"0x1111111111111111111111111111111111111111","msg":"0x"}`, true},
-		{"arbitrary", `{"scheme":"0x0","signer":"0x","msg":"0x"}`, true},
-		{"arbitrary signer", `{"scheme":"0x0","signer":"0x1111111111111111111111111111111111111111","msg":"0x"}`, false},
-		{"unknown scheme", `{"scheme":"0x3","signer":"0x","msg":"0x"}`, false},
-		{"nonempty bytes", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x01"}`, false},
-		{"null bytes", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":null}`, false},
-		{"short signer", `{"scheme":"0x1","signer":"0x01","msg":"0x"}`, false},
-		{"zero digest", `{"scheme":"0x1","signer":"0x","msg":"0x` + strings.Repeat("0", 64) + `"}`, false},
-		{"explicit digest", `{"scheme":"0x1","signer":"0x","msg":"0x` + strings.Repeat("1", 64) + `"}`, true},
-		{"empty bytes", `{"scheme":"0x1","signer":"0x","msg":"0x","signature":"0x"}`, false},
+		{"omitted signer", `{"scheme":"0x1","msg":null}`, true},
+		{"omitted message", `{"scheme":"0x1","signer":null}`, true},
+		{"secp256k1", `{"scheme":"0x1","signer":null,"msg":null}`, true},
+		{"p256", `{"scheme":"0x2","signer":"0x1111111111111111111111111111111111111111","msg":null}`, true},
+		{"arbitrary", `{"scheme":"0x0","signer":null,"msg":null}`, true},
+		{"arbitrary signer", `{"scheme":"0x0","signer":"0x1111111111111111111111111111111111111111","msg":null}`, false},
+		{"unknown scheme", `{"scheme":"0x3","signer":null,"msg":null}`, false},
+		{"nonempty bytes", `{"scheme":"0x1","signer":null,"msg":null,"signature":"0x01"}`, false},
+		{"null bytes", `{"scheme":"0x1","signer":null,"msg":null,"signature":null}`, true},
+		{"short signer", `{"scheme":"0x1","signer":"0x01","msg":null}`, false},
+		{"zero digest", `{"scheme":"0x1","signer":null,"msg":"0x` + strings.Repeat("0", 64) + `"}`, false},
+		{"explicit digest", `{"scheme":"0x1","signer":null,"msg":"0x` + strings.Repeat("1", 64) + `"}`, true},
+		{"empty bytes", `{"scheme":"0x1","signer":null,"msg":null,"signature":"0x"}`, false},
 	} {
 		tests = append(tests, testCase{"placeholder " + tc.name, "FrameSignaturePlaceholder", tc.input, tc.valid})
 		tests = append(tests, testCase{"envelope placeholder " + tc.name, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+tc.input+`]`), tc.valid})
+	}
+	for _, scheme := range []string{"0x0", "0x1", "0x2"} {
+		for _, raw := range []string{``, `,"signature":null`} {
+			entry := `{"scheme":"` + scheme + `","signer":null,"msg":null` + raw + `}`
+			tests = append(tests,
+				testCase{"unpopulated signature " + scheme + raw, "FrameSignature", entry, false},
+				testCase{"placeholder signature " + scheme + raw, "FrameSignaturePlaceholder", entry, true},
+				testCase{"envelope placeholder signature " + scheme + raw, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), true},
+			)
+		}
 	}
 	for _, component := range []struct{ name, input string }{{"Frame", frame}, {"FrameSignature", signature}, {"FrameSignaturePlaceholder", strings.ReplaceAll(signature, `,"signature":"0xabcd"`, "")}, {"Transaction8141Unsigned", envelope}} {
 		var fields map[string]json.RawMessage
@@ -158,7 +170,7 @@ func TestFrameComponents(t *testing.T) {
 				t.Fatal(err)
 			}
 			valid := component.name == "FrameSignaturePlaceholder" && (field == "signer" || field == "msg") ||
-				component.name == "FrameSignature" && field == "signer" ||
+				component.name == "FrameSignature" && (field == "signer" || field == "msg") ||
 				component.name == "Frame" && field == "target" ||
 				component.name == "Transaction8141Unsigned" && (field == "signatures" || field == "blobVersionedHashes")
 			tests = append(tests, testCase{component.name + " missing " + field, component.name, string(input), valid})

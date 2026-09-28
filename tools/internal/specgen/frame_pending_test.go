@@ -67,7 +67,7 @@ func TestFramePendingAPIs(t *testing.T) {
 				delete(tx, key)
 			}
 		case "placeholder":
-			tx["signatures"] = []any{object{"scheme": "0x1", "signer": "0x", "msg": "0x"}}
+			tx["signatures"] = []any{object{"scheme": "0x1", "signer": nil, "msg": nil}}
 			valid = false
 		case "mined metadata":
 			tx["blockNumber"] = "0x1"

@@ -47,7 +47,7 @@ func TestFrameFillAPIs(t *testing.T) {
 		valid        bool
 	}
 	tests := []testCase{{"partial request", "FillRequest", request, true}, {"filled envelope", "FillResult", result, true}}
-	for _, variant := range []string{"empty signatures", "complete signature", "arbitrary witness", "missing chain", "missing nonce", "missing fee", "missing execution gas", "missing state gas", "scheme-only placeholder", "malformed signature", "missing tx"} {
+	for _, variant := range []string{"empty signatures", "null signature", "complete signature", "arbitrary witness", "missing chain", "missing nonce", "missing fee", "missing execution gas", "missing state gas", "scheme-only placeholder", "malformed signature", "missing tx"} {
 		data, err := json.Marshal(result)
 		if err != nil {
 			t.Fatal(err)
@@ -64,11 +64,14 @@ func TestFrameFillAPIs(t *testing.T) {
 		case "empty signatures":
 			tx["signatures"] = []any{}
 			valid = true
+		case "null signature":
+			signature["signature"] = nil
+			valid = true
 		case "complete signature":
 			signature["signature"] = "0x00" + strings.Repeat("11", 64)
 			valid = true
 		case "arbitrary witness":
-			tx["signatures"] = []any{object{"scheme": "0x0", "signer": "0x", "msg": "0x", "signature": "0xabcd"}}
+			tx["signatures"] = []any{object{"scheme": "0x0", "signer": nil, "msg": nil, "signature": "0xabcd"}}
 			valid = true
 		case "missing chain":
 			delete(tx, "chainId")

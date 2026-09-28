@@ -17,8 +17,8 @@
   "signatures": [
     {
       "scheme": "0x0",
-      "signer": "0x",
-      "msg": "0x",
+      "signer": null,
+      "msg": null,
       "signature": "0xabcd"
     }
   ],
