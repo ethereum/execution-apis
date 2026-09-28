@@ -119,7 +119,7 @@ func TestFrameComponents(t *testing.T) {
 		} {
 			entry := strings.ReplaceAll(input, "0xabcd", variant.raw)
 			tests = append(tests, testCase{"signature " + scheme.id + " " + variant.name, "FrameSignature", entry, variant.valid})
-			tests = append(tests, testCase{"envelope signature " + scheme.id + " " + variant.name, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), variant.valid})
+			tests = append(tests, testCase{"envelope signature " + scheme.id + " " + variant.name, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), variant.valid || variant.name == "empty"})
 		}
 
 	}
@@ -146,16 +146,16 @@ func TestFrameComponents(t *testing.T) {
 		{"short signer", `{"scheme":"0x1","signer":"0x01","msg":null}`, false},
 		{"zero digest", `{"scheme":"0x1","signer":null,"msg":"0x` + strings.Repeat("0", 64) + `"}`, false},
 		{"explicit digest", `{"scheme":"0x1","signer":null,"msg":"0x` + strings.Repeat("1", 64) + `"}`, true},
-		{"empty bytes", `{"scheme":"0x1","signer":null,"msg":null,"signature":"0x"}`, false},
+		{"empty bytes", `{"scheme":"0x1","signer":null,"msg":null,"signature":"0x"}`, true},
 	} {
 		tests = append(tests, testCase{"placeholder " + tc.name, "FrameSignaturePlaceholder", tc.input, tc.valid})
 		tests = append(tests, testCase{"envelope placeholder " + tc.name, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+tc.input+`]`), tc.valid})
 	}
 	for _, scheme := range []string{"0x0", "0x1", "0x2"} {
-		for _, raw := range []string{``, `,"signature":null`} {
+		for _, raw := range []string{``, `,"signature":null`, `,"signature":"0x"`} {
 			entry := `{"scheme":"` + scheme + `","signer":null,"msg":null` + raw + `}`
 			tests = append(tests,
-				testCase{"unpopulated signature " + scheme + raw, "FrameSignature", entry, false},
+				testCase{"signature defaults " + scheme + raw, "FrameSignature", entry, scheme == "0x0" && raw == `,"signature":"0x"`},
 				testCase{"placeholder signature " + scheme + raw, "FrameSignaturePlaceholder", entry, true},
 				testCase{"envelope placeholder signature " + scheme + raw, "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"signatures":[]`, `"signatures":[`+entry+`]`), true},
 			)

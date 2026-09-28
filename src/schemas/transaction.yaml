@@ -108,8 +108,8 @@ FrameSignaturePlaceholder:
       $ref: '#/components/schemas/FrameSignature/properties/msg'
     signature:
       title: signature
-      description: Omitted or null for a signature placeholder.
-      type: 'null'
+      description: Omitted, null, or empty bytes for a signature placeholder.
+      enum: [null, '0x']
   if:
     properties:
       scheme:
@@ -157,7 +157,7 @@ Transaction8141Unsigned:
       description: List of signatures or signature placeholders in transaction order. May be omitted when empty.
       type: array
       items:
-        oneOf:
+        anyOf:
           - $ref: '#/components/schemas/FrameSignature'
           - $ref: '#/components/schemas/FrameSignaturePlaceholder'
     maxPriorityFeePerGas:
@@ -801,7 +801,7 @@ GenericTransaction:
       title: signatures
       type: array
       items:
-        oneOf:
+        anyOf:
           - $ref: '#/components/schemas/FrameSignature'
           - $ref: '#/components/schemas/FrameSignaturePlaceholder'
 FrameRequest:
