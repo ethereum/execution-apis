@@ -24,6 +24,11 @@ them. A consumer joins frame `i` of the trace to `frameReceipts[i]` by index.
   every state limit when that is higher. It is not the sum of the frame limits
   alone, which would be lower than the receipt `gasUsed` of a transaction that
   spends its full budget.
+- The caller of a frame is `tx.sender` for a `SENDER` frame, and `ENTRY_POINT`
+  for a `DEFAULT` or `VERIFY` frame, or for a `POST_TX` frame where EIP-7906 is
+  active.
+- A frame is static when its mode runs it as a `STATICCALL`: a `VERIFY` frame,
+  or a `POST_TX` frame where EIP-7906 is active.
 
 ## `callTracer`
 
@@ -44,8 +49,8 @@ order. `calls[i]` is frame `i`:
 
 | field | value |
 |---|---|
-| `type` | `STATICCALL` for a `VERIFY` frame, `CALL` otherwise |
-| `from` | `ENTRY_POINT` for a `DEFAULT` or `VERIFY` frame, `tx.sender` for a `SENDER` frame |
+| `type` | `STATICCALL` for a static frame, `CALL` otherwise |
+| `from` | the caller of the frame |
 | `to` | the resolved target |
 | `value` | `frame.value` |
 | `input` | `frame.data` |
@@ -87,7 +92,7 @@ The same tree is used in parity encoding:
   `subtraces` equal to the number of frames.
 - Frame `i` is at `traceAddress` `[i]`, and its nested calls are at
   `[i, ...]`.
-- For frame `i`, `callType` is `staticcall` for a `VERIFY` frame and `call`
+- For frame `i`, `callType` is `staticcall` for a static frame and `call`
   otherwise. `from`, `to`, `value`, `input`, and `action.gas` follow the
   `callTracer` rules above, and `result.gasUsed` is
   `frameReceipts[i].gasUsed`.
@@ -101,12 +106,14 @@ The same tree is used in parity encoding:
 - A frame that succeeds without entering the EVM has its `action` and
   `result`, with `result.output` `0x`, and no subtraces.
 - The root has an `error` if and only if the receipt `status` is `0`, as in
-  `callTracer`. Its message is not specified.
+  `callTracer`. Its message is not specified. A failed root keeps its
+  `result`, with `result.gasUsed` equal to the receipt `gasUsed` and
+  `result.output` `0x`.
 
-Because the root and every `DEFAULT` and `VERIFY` frame name `ENTRY_POINT`,
-`trace_filter` with `toAddress` `[ENTRY_POINT]` returns the root of every frame
-transaction, and `fromAddress` `[ENTRY_POINT]` returns every `DEFAULT` and
-`VERIFY` frame.
+Because the root and every frame whose caller is `ENTRY_POINT` name
+`ENTRY_POINT`, `trace_filter` with `toAddress` `[ENTRY_POINT]` returns the root
+of every frame transaction, and `fromAddress` `[ENTRY_POINT]` returns every
+frame except `SENDER` frames.
 
 In `vmTrace`, the root has `code` `0x` and one synthetic operation per frame
 that entered the EVM, in frame order. The `pc` of a synthetic operation is the
