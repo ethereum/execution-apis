@@ -49,6 +49,13 @@ func TestFrameReadAPIs(t *testing.T) {
 		if method != "eth_getTransactionByBlockHashAndIndex" {
 			tests = append(tests, testCase{"pending", method, pending, false})
 		}
+		keyed := maps.Clone(mined)
+		delete(keyed, "nonce")
+		keyed["nonceKeys"], keyed["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
+		tests = append(tests, testCase{"keyed nonce", method, keyed, true})
+		mixed := maps.Clone(keyed)
+		mixed["nonce"] = "0x0"
+		tests = append(tests, testCase{"mixed nonce formats", method, mixed, false})
 		for _, mutation := range []string{"placeholder", "null signature", "omitted arbitrary signature", "empty cryptographic signature", "missing from", "missing hash", "malformed hash"} {
 			data, err := json.Marshal(mined)
 			if err != nil {
@@ -122,7 +129,7 @@ func TestFrameReadAPIs(t *testing.T) {
 	}
 	for _, method := range []string{"eth_getBlockByHash", "eth_getBlockByNumber"} {
 		tests = append(tests, testCase{"mixed full transactions", method, block, true}, testCase{"not found", method, nil, true})
-		for _, variant := range []string{"hashes", "placeholder", "mixed hash and object"} {
+		for _, variant := range []string{"hashes", "keyed nonce", "placeholder", "mixed hash and object"} {
 			data, err := json.Marshal(block)
 			if err != nil {
 				t.Fatal(err)
@@ -137,12 +144,16 @@ func TestFrameReadAPIs(t *testing.T) {
 				for i, tx := range txs {
 					txs[i] = tx.(object)["hash"]
 				}
+			case "keyed nonce":
+				frameTx := txs[1].(object)
+				delete(frameTx, "nonce")
+				frameTx["nonceKeys"], frameTx["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
 			case "placeholder":
 				txs[1].(object)["signatures"] = []any{object{"scheme": "0x2", "signer": nil, "msg": nil}}
 			case "mixed hash and object":
 				txs[0] = txs[0].(object)["hash"]
 			}
-			tests = append(tests, testCase{variant, method, value, variant == "hashes"})
+			tests = append(tests, testCase{variant, method, value, variant == "hashes" || variant == "keyed nonce"})
 		}
 	}
 	for _, expanded := range []bool{false, true} {

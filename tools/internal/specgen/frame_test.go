@@ -87,6 +87,43 @@ func TestFrameComponents(t *testing.T) {
 		{"byte type", "Transaction8141Unsigned", strings.ReplaceAll(envelope, `"type":"0x6"`, `"type":"0x06"`), false},
 		{"blob envelope", "Transaction8141Unsigned", strings.ReplaceAll(strings.ReplaceAll(envelope, `"blobVersionedHashes":[]`, `"blobVersionedHashes":["0x01`+strings.Repeat("0", 62)+`"]`), `"maxFeePerBlobGas":"0x0"`, `"maxFeePerBlobGas":"0x1"`), true},
 	}
+	for _, tc := range []struct {
+		name, fields string
+		valid        bool
+	}{
+		{"legacy domain", `"nonceKeys":["0x0"],"nonceSeq":"0x0"`, true},
+		{"multiple domains", `"nonceKeys":["0x1","0x10"],"nonceSeq":"0x2"`, true},
+		{"maximum key", `"nonceKeys":["0x` + strings.Repeat("f", 64) + `"],"nonceSeq":"0xfffffffffffffffe"`, true},
+		{"missing keys", `"nonceSeq":"0x0"`, false},
+		{"missing sequence", `"nonceKeys":["0x1"]`, false},
+		{"mixed nonce formats", `"nonce":"0x0","nonceKeys":["0x1"],"nonceSeq":"0x0"`, false},
+		{"nonce and keys", `"nonce":"0x0","nonceKeys":["0x1"]`, false},
+		{"nonce and sequence", `"nonce":"0x0","nonceSeq":"0x0"`, false},
+		{"empty keys", `"nonceKeys":[],"nonceSeq":"0x0"`, false},
+		{"duplicate keys", `"nonceKeys":["0x1","0x1"],"nonceSeq":"0x0"`, false},
+		{"mixed legacy domain", `"nonceKeys":["0x0","0x1"],"nonceSeq":"0x0"`, false},
+		{"null keys", `"nonceKeys":null,"nonceSeq":"0x0"`, false},
+		{"scalar key", `"nonceKeys":"0x1","nonceSeq":"0x0"`, false},
+		{"numeric key", `"nonceKeys":[1],"nonceSeq":"0x0"`, false},
+		{"oversized key", `"nonceKeys":["0x1` + strings.Repeat("0", 64) + `"],"nonceSeq":"0x0"`, false},
+		{"padded key", `"nonceKeys":["0x01"],"nonceSeq":"0x0"`, false},
+		{"oversized sequence", `"nonceKeys":["0x1"],"nonceSeq":"0x10000000000000000"`, false},
+		{"padded sequence", `"nonceKeys":["0x1"],"nonceSeq":"0x00"`, false},
+		{"null sequence", `"nonceKeys":["0x1"],"nonceSeq":null`, false},
+	} {
+		input := strings.Replace(envelope, `"nonce":"0x0"`, tc.fields, 1)
+		for _, schema := range []string{"Transaction8141Unsigned", "Transaction8141", "TransactionSigned"} {
+			tests = append(tests, testCase{tc.name, schema, input, tc.valid})
+		}
+	}
+	for _, count := range []int{16, 17} {
+		keys := make([]string, count)
+		for i := range keys {
+			keys[i] = `"0x` + strconv.FormatInt(int64(i+1), 16) + `"`
+		}
+		input := strings.Replace(envelope, `"nonce":"0x0"`, `"nonceKeys":[`+strings.Join(keys, ",")+`],"nonceSeq":"0x0"`, 1)
+		tests = append(tests, testCase{strconv.Itoa(count) + " nonce keys", "Transaction8141Unsigned", input, count == 16})
+	}
 	for _, field := range []string{"chainId", "maxFeePerGas", "maxPriorityFeePerGas", "maxFeePerBlobGas"} {
 		var input map[string]any
 		if err := json.Unmarshal([]byte(envelope), &input); err != nil {

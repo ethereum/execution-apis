@@ -120,16 +120,25 @@ FrameSignaturePlaceholder:
         enum: [null, '0x']
 Transaction8141Unsigned:
   title: EIP-8141 transaction
+  description: Frame transaction using nonce before EIP-8250 activation, or nonceKeys and nonceSeq after activation.
   type: object
   required:
     - type
     - chainId
-    - nonce
     - from
     - frames
     - maxPriorityFeePerGas
     - maxFeePerGas
     - maxFeePerBlobGas
+  oneOf:
+    - required: [nonce]
+      not:
+        anyOf:
+          - required: [nonceKeys]
+          - required: [nonceSeq]
+    - required: [nonceKeys, nonceSeq]
+      not:
+        required: [nonce]
   properties:
     type:
       title: type
@@ -141,7 +150,26 @@ Transaction8141Unsigned:
       $ref: '#/components/schemas/uint'
     nonce:
       title: nonce
+      description: Sender account nonce before EIP-8250 activation. Replaced by nonceKeys and nonceSeq after activation.
       $ref: '#/components/schemas/uint'
+    nonceKeys:
+      title: nonce keys
+      description: EIP-8250 nonce domains, in strictly increasing numeric order. The single key 0x0 selects the legacy account nonce; nonzero keys select independent sequences.
+      type: array
+      minItems: 1
+      maxItems: 16
+      uniqueItems: true
+      items:
+        $ref: '#/components/schemas/uint256'
+      if:
+        contains:
+          enum: ['0x0']
+      then:
+        maxItems: 1
+    nonceSeq:
+      title: nonce sequence
+      description: EIP-8250 sequence shared by all selected nonce keys. Must match each selected domain's current sequence and be less than 0xffffffffffffffff.
+      $ref: '#/components/schemas/uint64'
     from:
       title: from address
       description: Address of the transaction sender, which may differ from the fee payer.
@@ -720,6 +748,10 @@ GenericTransaction:
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint'
+    nonceKeys:
+      $ref: '#/components/schemas/Transaction8141Unsigned/properties/nonceKeys'
+    nonceSeq:
+      $ref: '#/components/schemas/Transaction8141Unsigned/properties/nonceSeq'
     to:
       title: to address
       oneOf:

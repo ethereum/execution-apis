@@ -47,7 +47,7 @@ func TestFrameFillAPIs(t *testing.T) {
 		valid        bool
 	}
 	tests := []testCase{{"partial request", "FillRequest", request, true}, {"filled envelope", "FillResult", result, true}}
-	for _, variant := range []string{"empty defaults", "empty signatures", "null signature", "empty secp256k1 signature", "empty p256 signature", "empty arbitrary witness", "complete signature", "arbitrary witness", "missing chain", "missing nonce", "missing fee", "missing execution gas", "missing state gas", "scheme-only placeholder", "malformed signature", "missing tx"} {
+	for _, variant := range []string{"keyed nonce", "missing keyed sequence", "missing nonce keys", "mixed nonce formats", "empty defaults", "empty signatures", "null signature", "empty secp256k1 signature", "empty p256 signature", "empty arbitrary witness", "complete signature", "arbitrary witness", "missing chain", "missing nonce", "missing fee", "missing execution gas", "missing state gas", "scheme-only placeholder", "malformed signature", "missing tx"} {
 		data, err := json.Marshal(result)
 		if err != nil {
 			t.Fatal(err)
@@ -61,6 +61,18 @@ func TestFrameFillAPIs(t *testing.T) {
 		signature := tx["signatures"].([]any)[0].(map[string]any)
 		valid := false
 		switch variant {
+		case "keyed nonce", "missing keyed sequence", "missing nonce keys", "mixed nonce formats":
+			delete(tx, "nonce")
+			tx["nonceKeys"], tx["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
+			valid = variant == "keyed nonce"
+			switch variant {
+			case "missing keyed sequence":
+				delete(tx, "nonceSeq")
+			case "missing nonce keys":
+				delete(tx, "nonceKeys")
+			case "mixed nonce formats":
+				tx["nonce"] = "0x0"
+			}
 		case "empty defaults":
 			signature["signer"], signature["msg"] = "0x", "0x"
 			valid = true

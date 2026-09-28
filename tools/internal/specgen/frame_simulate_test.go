@@ -72,7 +72,7 @@ func TestFrameSimulateAPIs(t *testing.T) {
 	for _, raw := range generator.methods["eth_simulateV1"]["examples"].([]any) {
 		example := raw.(object)
 		tests = append(tests, testCase{example["name"].(string), "EthSimulateResult", example["result"].(object)["value"], true})
-		for _, full := range []bool{false, true} {
+		for _, variant := range []string{"hash", "full", "keyed"} {
 			data, err := json.Marshal(example["result"].(object)["value"])
 			if err != nil {
 				t.Fatal(err)
@@ -83,15 +83,24 @@ func TestFrameSimulateAPIs(t *testing.T) {
 			}
 			block := blocks[0].(map[string]any)
 			var tx any = fullTx["hash"]
-			if full {
+			if variant == "full" {
 				tx = fullTx
+			}
+			if variant == "keyed" {
+				keyed := readFrameFixture(t, "frame-mined")
+				delete(keyed, "nonce")
+				keyed["nonceKeys"], keyed["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
+				tx = keyed
 			}
 			block["transactions"] = []any{tx}
 			block["calls"] = []any{object{"status": "0x1", "gasUsed": "0x4000", "logs": []any{}, "returnData": "0xabcd", "payer": fullTx["from"], "frameResults": []any{object{"status": "0x1", "gasUsed": "0x100", "executionGasUsed": "0x100", "stateGasUsed": "0x0", "logs": []any{}, "returnData": "0xabcd"}}}}
-			tests = append(tests, testCase{"frame block result", "EthSimulateResult", blocks, true})
+			tests = append(tests, testCase{"frame block result " + variant, "EthSimulateResult", blocks, true})
 		}
 
 	}
+	request := object{"blockStateCalls": []any{object{"calls": []any{object{"type": "0x6", "nonceKeys": []any{"0x1", "0x2"}, "nonceSeq": "0x0", "frames": []any{object{"mode": "0x1"}}}}}}}
+	generator.types["SimulateRequest"] = generator.methods["eth_simulateV1"]["params"].([]any)[0].(object)["schema"].(object)
+	tests = append(tests, testCase{"keyed request", "SimulateRequest", request, true})
 	for _, expanded := range []bool{false, true} {
 		mode := "referenced/"
 		if expanded {
