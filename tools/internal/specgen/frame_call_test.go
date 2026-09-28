@@ -63,7 +63,6 @@ func TestFrameCallAPIs(t *testing.T) {
 		case "empty message":
 			placeholder["msg"] = "0x"
 			request["signatures"] = []any{placeholder}
-			valid = false
 		case "zero limits":
 			frame["executionGas"], frame["stateGas"] = "0x0", "0x0"
 		case "placeholder", "p256 placeholder", "empty signer", "arbitrary placeholder", "empty protocol signature":
@@ -73,7 +72,6 @@ func TestFrameCallAPIs(t *testing.T) {
 			}
 			if variant == "empty signer" {
 				placeholder["signer"] = "0x"
-				valid = false
 			}
 			if variant == "arbitrary placeholder" {
 				placeholder["scheme"], placeholder["signer"] = "0x0", nil

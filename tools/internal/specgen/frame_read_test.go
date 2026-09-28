@@ -81,6 +81,9 @@ func TestFrameReadAPIs(t *testing.T) {
 			signatures []any
 		}{
 			{"no protocol signatures", []any{}},
+			{"arbitrary empty defaults", []any{object{"scheme": "0x0", "signer": "0x", "msg": "0x", "signature": "0x"}}},
+			{"secp256k1 empty defaults", []any{object{"scheme": "0x1", "signer": "0x", "msg": "0x", "signature": "0x00" + strings.Repeat("1", 128)}}},
+			{"p256 empty defaults", []any{object{"scheme": "0x2", "signer": "0x", "msg": "0x", "signature": "0x" + strings.Repeat("1", 256)}}},
 			{"omitted signature defaults", []any{object{"scheme": "0x1", "signature": "0x00" + strings.Repeat("1", 128)}}},
 			{"secp256k1", []any{object{"scheme": "0x1", "signer": nil, "msg": nil, "signature": "0x00" + strings.Repeat("1", 128)}}},
 			{"p256", []any{object{"scheme": "0x2", "signer": nil, "msg": nil, "signature": "0x" + strings.Repeat("1", 256)}}},

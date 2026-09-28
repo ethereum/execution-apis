@@ -58,17 +58,18 @@ FrameSignature:
       enum: ['0x0', '0x1', '0x2']
     signer:
       title: signer
-      description: Signer address for SECP256K1 and P256. Omitted or null to use the transaction sender. Must be omitted or null for ARBITRARY.
+      description: Signer address for SECP256K1 and P256. Omitted, null, or empty bytes to use the transaction sender. Must be omitted, null, or empty bytes for ARBITRARY.
       oneOf:
         - type: 'null'
         - $ref: '#/components/schemas/address'
+        - enum: ['0x']
     msg:
       title: msg
-      description: Nonzero 32-byte message digest. Omitted or null to use the transaction signature hash.
+      description: Nonzero 32-byte message digest. Omitted, null, or empty bytes to use the transaction signature hash.
       oneOf:
         - type: 'null'
         - type: string
-          pattern: ^0x[0-9a-f]{64}$
+          pattern: ^0x([0-9a-f]{64})?$
           not:
             enum: ['0x0000000000000000000000000000000000000000000000000000000000000000']
     signature:
@@ -81,7 +82,7 @@ FrameSignature:
         scheme:
           enum: ['0x0']
         signer:
-          type: 'null'
+          enum: [null, '0x']
     - properties:
         scheme:
           enum: ['0x1']
@@ -116,7 +117,7 @@ FrameSignaturePlaceholder:
   then:
     properties:
       signer:
-        type: 'null'
+        enum: [null, '0x']
 Transaction8141Unsigned:
   title: EIP-8141 transaction
   type: object
