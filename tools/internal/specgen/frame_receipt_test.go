@@ -2,6 +2,7 @@ package specgen
 
 import (
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,6 +86,22 @@ func TestFrameReceiptAPIs(t *testing.T) {
 			}
 			generator.types[method] = generator.methods[method]["result"].(object)["schema"].(object)
 			tests = append(tests, testCase{scenario, method, value, true})
+			for _, mutation := range []string{"missing payer", "missing frame receipts", "non-null recipient"} {
+				invalid := maps.Clone(receipt)
+				switch mutation {
+				case "missing payer":
+					delete(invalid, "payer")
+				case "missing frame receipts":
+					delete(invalid, "frameReceipts")
+				case "non-null recipient":
+					invalid["to"] = receipt["from"]
+				}
+				value = invalid
+				if method == "eth_getBlockReceipts" {
+					value = []any{legacy, invalid}
+				}
+				tests = append(tests, testCase{scenario + " " + mutation, method, value, false})
+			}
 		}
 		for _, method := range []string{"eth_getLogs", "eth_getFilterLogs", "eth_getFilterChanges"} {
 			generator.types[method] = generator.methods[method]["result"].(object)["schema"].(object)
@@ -97,6 +114,15 @@ func TestFrameReceiptAPIs(t *testing.T) {
 		}
 		badLog := object{"transactionHash": receipt["transactionHash"], "frameIndex": "0x1"}
 		tests = append(tests, testCase{"no frame index extension", "Log", badLog, false})
+	}
+	for _, receiptType := range []string{"", "0x0", "0x1", "0x2", "0x3", "0x4"} {
+		receipt := maps.Clone(legacy)
+		if receiptType == "" {
+			delete(receipt, "type")
+		} else {
+			receipt["type"] = receiptType
+		}
+		tests = append(tests, testCase{"non-frame receipt " + receiptType, "ReceiptInfo", receipt, true})
 	}
 	for _, method := range []string{"eth_getTransactionReceipt", "eth_getBlockReceipts"} {
 		tests = append(tests, testCase{"not found", method, nil, true})

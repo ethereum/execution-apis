@@ -70,6 +70,7 @@ func TestFrameComponents(t *testing.T) {
 		{"null signer", "FrameSignature", strings.ReplaceAll(signature, `"signer":"0x"`, `"signer":null`), false},
 		{"unknown scheme", "FrameSignature", strings.ReplaceAll(signature, `"scheme":"0x0"`, `"scheme":"0x3"`), false},
 		{"complete envelope", "Transaction8141Unsigned", envelope, true},
+		{"omitted empty lists", "Transaction8141Unsigned", strings.ReplaceAll(strings.ReplaceAll(envelope, `,"signatures":[]`, ``), `,"blobVersionedHashes":[]`, ``), true},
 		{"composed lookup metadata", "FrameTransactionInfo", strings.Replace(envelope, `{`, `{"hash":"0x`+strings.Repeat("1", 64)+`",`, 1), true},
 		{"missing lookup metadata", "FrameTransactionInfo", envelope, false},
 		{"lookup metadata", "Transaction8141Unsigned", strings.Replace(envelope, `{`, `{"hash":"0x`+strings.Repeat("1", 64)+`","blockNumber":"0x1",`, 1), true},
@@ -158,7 +159,8 @@ func TestFrameComponents(t *testing.T) {
 			}
 			valid := component.name == "FrameSignaturePlaceholder" && (field == "signer" || field == "msg") ||
 				component.name == "FrameSignature" && field == "signer" ||
-				component.name == "Frame" && field == "target"
+				component.name == "Frame" && field == "target" ||
+				component.name == "Transaction8141Unsigned" && (field == "signatures" || field == "blobVersionedHashes")
 			tests = append(tests, testCase{component.name + " missing " + field, component.name, string(input), valid})
 			fields[field] = value
 		}

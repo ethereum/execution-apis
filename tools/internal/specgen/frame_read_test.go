@@ -2,6 +2,7 @@ package specgen
 
 import (
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,6 +86,13 @@ func TestFrameReadAPIs(t *testing.T) {
 			}
 			value["signatures"] = entry.signatures
 			tests = append(tests, testCase{entry.name, method, value, true})
+		}
+		for _, fields := range [][]string{{"signatures"}, {"blobVersionedHashes"}, {"signatures", "blobVersionedHashes"}} {
+			value := maps.Clone(mined)
+			for _, field := range fields {
+				delete(value, field)
+			}
+			tests = append(tests, testCase{"omitted " + strings.Join(fields, " and "), method, value, true})
 		}
 		// Reuse recorded responses to cover every existing transaction variant.
 		for _, file := range []string{"get-legacy-tx.io", "get-access-list.io", "get-dynamic-fee.io", "get-blob-tx.io", "get-setcode-tx.io"} {
