@@ -88,8 +88,7 @@ func TestFrameSimulateAPIs(t *testing.T) {
 			}
 			if variant == "keyed" {
 				keyed := readFrameFixture(t, "frame-mined")
-				delete(keyed, "nonce")
-				keyed["nonceKeys"], keyed["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
+				keyed["nonceKeys"], keyed["nonce"] = []any{"0x1", "0x2"}, "0x0"
 				tx = keyed
 			}
 			block["transactions"] = []any{tx}
@@ -98,7 +97,7 @@ func TestFrameSimulateAPIs(t *testing.T) {
 		}
 
 	}
-	request := object{"blockStateCalls": []any{object{"calls": []any{object{"type": "0x6", "nonceKeys": []any{"0x1", "0x2"}, "nonceSeq": "0x0", "frames": []any{object{"mode": "0x1"}}}}}}}
+	request := object{"blockStateCalls": []any{object{"calls": []any{object{"type": "0x6", "nonceKeys": []any{"0x1", "0x2"}, "nonce": "0x0", "frames": []any{object{"mode": "0x1"}}}}}}}
 	generator.types["SimulateRequest"] = generator.methods["eth_simulateV1"]["params"].([]any)[0].(object)["schema"].(object)
 	tests = append(tests, testCase{"keyed request", "SimulateRequest", request, true})
 	for _, expanded := range []bool{false, true} {

@@ -45,22 +45,22 @@ func TestFrameCallAPIs(t *testing.T) {
 	}
 	// Clients validate method-specific signature rules, field compatibility, and signed-envelope completeness.
 	var tests []testCase
-	for _, variant := range []string{"defaults", "keyed nonce", "omitted keyed sequence", "invalid nonce keys", "invalid nonce sequence", "null fields", "omitted signature fields", "empty target", "empty message", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "empty p256 signature", "empty arbitrary witness", "missing execution limit", "missing state limit", "missing both limits", "empty frames", "outer input", "other type with frames"} {
+	for _, variant := range []string{"defaults", "keyed nonce", "omitted keyed nonce", "invalid nonce keys", "unknown nonce sequence", "null fields", "omitted signature fields", "empty target", "empty message", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "empty p256 signature", "empty arbitrary witness", "missing execution limit", "missing state limit", "missing both limits", "empty frames", "outer input", "other type with frames"} {
 		frame := object{"mode": "0x1", "executionGas": "0x10000", "stateGas": "0x10000"}
 		request := object{"type": "0x6", "from": "0x1111111111111111111111111111111111111111", "frames": []any{frame}}
 		placeholder := object{"scheme": "0x1", "signer": request["from"], "msg": nil}
 		valid := true
 		switch variant {
-		case "keyed nonce", "omitted keyed sequence", "invalid nonce keys", "invalid nonce sequence":
-			request["nonceKeys"], request["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
-			if variant == "omitted keyed sequence" {
-				delete(request, "nonceSeq")
+		case "keyed nonce", "omitted keyed nonce", "invalid nonce keys", "unknown nonce sequence":
+			request["nonceKeys"], request["nonce"] = []any{"0x1", "0x2"}, "0x0"
+			if variant == "omitted keyed nonce" {
+				delete(request, "nonce")
 			}
 			if variant == "invalid nonce keys" {
 				request["nonceKeys"], valid = []any{"0x0", "0x1"}, false
 			}
-			if variant == "invalid nonce sequence" {
-				request["nonceSeq"], valid = "0x10000000000000000", false
+			if variant == "unknown nonce sequence" {
+				request["nonceSeq"], valid = "0x0", false
 			}
 		case "null fields":
 			frame["target"] = nil

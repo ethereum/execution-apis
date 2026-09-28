@@ -50,12 +50,11 @@ func TestFrameReadAPIs(t *testing.T) {
 			tests = append(tests, testCase{"pending", method, pending, false})
 		}
 		keyed := maps.Clone(mined)
-		delete(keyed, "nonce")
-		keyed["nonceKeys"], keyed["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
+		keyed["nonceKeys"], keyed["nonce"] = []any{"0x1", "0x2"}, "0x0"
 		tests = append(tests, testCase{"keyed nonce", method, keyed, true})
-		mixed := maps.Clone(keyed)
-		mixed["nonce"] = "0x0"
-		tests = append(tests, testCase{"mixed nonce formats", method, mixed, false})
+		missing := maps.Clone(keyed)
+		delete(missing, "nonce")
+		tests = append(tests, testCase{"missing keyed nonce", method, missing, false})
 		for _, mutation := range []string{"placeholder", "null signature", "omitted arbitrary signature", "empty cryptographic signature", "missing from", "missing hash", "malformed hash"} {
 			data, err := json.Marshal(mined)
 			if err != nil {
@@ -146,8 +145,7 @@ func TestFrameReadAPIs(t *testing.T) {
 				}
 			case "keyed nonce":
 				frameTx := txs[1].(object)
-				delete(frameTx, "nonce")
-				frameTx["nonceKeys"], frameTx["nonceSeq"] = []any{"0x1", "0x2"}, "0x0"
+				frameTx["nonceKeys"], frameTx["nonce"] = []any{"0x1", "0x2"}, "0x0"
 			case "placeholder":
 				txs[1].(object)["signatures"] = []any{object{"scheme": "0x2", "signer": nil, "msg": nil}}
 			case "mixed hash and object":
