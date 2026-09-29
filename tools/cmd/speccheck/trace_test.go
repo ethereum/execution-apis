@@ -300,7 +300,10 @@ func TestTraceContracts(t *testing.T) {
 		return accountDiff(traceObject{"-": "0x0"}, traceObject{"-": "0x1"}, traceObject{"-": "0x00"}, storage)
 	}
 	add("deleted account", "trace_call", -1, died(traceObject{}), true)
-	add("deleted account storage", "trace_call", -1, died(traceObject{slot: traceObject{"*": traceObject{"from": hash, "to": slot}}}), false)
+	add("deleted account old storage", "trace_call", -1, died(traceObject{slot: traceObject{"-": hash}}), true)
+	add("deleted account born storage", "trace_call", -1, died(traceObject{slot: traceObject{"+": hash}}), false)
+	add("deleted account short storage", "trace_call", -1, died(traceObject{slot: traceObject{"-": "0x1"}}), false)
+	add("deleted account changed storage", "trace_call", -1, died(traceObject{slot: traceObject{"*": traceObject{"from": hash, "to": slot}}}), false)
 	add("mixed markers", "trace_call", -1, accountDiff(traceObject{"-": "0x1"}, "=", "=", traceObject{}), false)
 	for _, frame := range []traceObject{call, reward, local(call)} {
 		replay := envelope(frame)
@@ -310,6 +313,9 @@ func TestTraceContracts(t *testing.T) {
 	}
 	for _, method := range []string{"trace_get", "trace_transaction", "trace_replayTransaction"} {
 		add("missing transaction", method, -1, nil, true)
+	}
+	for _, method := range []string{"trace_block", "trace_replayBlockTransactions"} {
+		add("missing block", method, -1, nil, true)
 	}
 	// A deeply malformed child must fail through the actual speccheck serialization path.
 	vm := traceObject{"code": "0x00", "ops": []any{}}

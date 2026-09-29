@@ -82,7 +82,7 @@ test('actual generated trace pages retain array, variant fields and localization
   assert.match(filter, /Missing, null or empty/);
   assert.match(filter, /-32602/);
   assert.doesNotMatch(filter, /-32001/);
-  assert.match(get, /Integer path entries are invalid params/);
+  assert.match(get, /Integer path entries are rejected \(-32602 recommended\)/);
 
   assert.equal(JSON.stringify(input), before);
 });
