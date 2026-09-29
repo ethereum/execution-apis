@@ -124,7 +124,8 @@ every `pc` lies inside the executed code. A frame that did not enter the EVM,
 whether skipped, failed, or run as default code, has no operation.
 
 In `stateDiff`, the transaction is one unit: it includes the payer's fee debit,
-the beneficiary's fee credit, and the sender's nonce increment, as for any
+the beneficiary's fee credit, and the transaction's nonce consumption (the
+sender's nonce, or its `NONCE_MANAGER` slots under EIP-8250), as for any
 transaction.
 
 ## Opcode tracer
