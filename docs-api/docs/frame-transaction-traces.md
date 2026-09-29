@@ -171,7 +171,7 @@ for the payer, and a `SENDER` frame that reverts:
   "gas": "0x7d000",
   "gasUsed": "0x1f7a4",
   "input": "0x",
-  "error": "execution reverted",
+  "error": "frame failed",
   "calls": [
     {
       "type": "STATICCALL",
@@ -203,4 +203,5 @@ for the payer, and a `SENDER` frame that reverts:
 }
 ```
 
-Its receipt has `payer` `0x2222...2222` and `frameReceipts[2].status` `0`.
+Its receipt has `payer` `0x2222...2222` and `frameReceipts[2].status` `0`. The
+root `error` message is not specified; `frame failed` is illustrative.
