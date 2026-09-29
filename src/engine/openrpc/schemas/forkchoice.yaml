@@ -156,38 +156,6 @@ PayloadAttributesV5:
       title: Inclusion list transactions
       type: array
       items:
-        $ref: '#/components/schemas/bytes'
-PayloadAttributesV6:
-  title: Payload attributes object V6
-  type: object
-  required:
-    - timestamp
-    - prevRandao
-    - suggestedFeeRecipient
-    - withdrawals
-    - parentBeaconBlockRoot
-    - slotNumber
-    - targetGasLimit
-    - inclusionLists
-  properties:
-    timestamp:
-      $ref: '#/components/schemas/PayloadAttributesV4/properties/timestamp'
-    prevRandao:
-      $ref: '#/components/schemas/PayloadAttributesV4/properties/prevRandao'
-    suggestedFeeRecipient:
-      $ref: '#/components/schemas/PayloadAttributesV4/properties/suggestedFeeRecipient'
-    withdrawals:
-      $ref: '#/components/schemas/PayloadAttributesV4/properties/withdrawals'
-    parentBeaconBlockRoot:
-      $ref: '#/components/schemas/PayloadAttributesV4/properties/parentBeaconBlockRoot'
-    slotNumber:
-      $ref: '#/components/schemas/PayloadAttributesV4/properties/slotNumber'
-    targetGasLimit:
-      $ref: '#/components/schemas/PayloadAttributesV4/properties/targetGasLimit'
-    inclusionLists:
-      title: Inclusion lists
-      type: array
-      items:
         type: array
         items:
           $ref: '#/components/schemas/bytes'

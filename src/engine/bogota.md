@@ -13,6 +13,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
+  - [InclusionListClaimV1](#inclusionlistclaimv1)
 - [Routines](#routines)
   - [Payload building](#payload-building)
 - [Methods](#methods)
@@ -20,6 +21,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
+  - [engine_getPayloadV6](#engine_getpayloadv6)
   - [engine_getInclusionListV1](#engine_getinclusionlistv1)
     - [Request](#request-1)
     - [Response](#response-1)
@@ -38,6 +40,8 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | Name | Value |
 | - | - |
 | `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
+| `INCLUSION_LIST_COMMITTEE_SIZE` | `uint64(16) = 2**4` |
+| `MAX_INCLUSION_LIST_CLAIMS` | `uint64(1024) = 2**10` |
 
 ## Structures
 
@@ -52,7 +56,7 @@ This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloada
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
 - `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
-- `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+- `inclusionListTransactions`: `Array of Array of DATA` - Array of inclusion lists, one per inclusion list committee member, each an array of transaction objects in the order of that inclusion list. Each transaction object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
 
 ### PayloadStatusV2
 
@@ -63,19 +67,26 @@ This structure has the syntax of `PayloadStatusV1` and appends a single field: `
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
 - `inclusionListSatisfied`: `BOOLEAN|null` - whether the payload satisfied the inclusion list constraints if it is deemed `VALID`; `null` otherwise.
 
+### InclusionListClaimV1
+
+This structure maps onto the inclusion list claim defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The fields are encoded as follows:
+
+- `transactionHash`: `DATA`, 32 Bytes - `keccak256` of the claimed inclusion list transaction, `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+- `transactionIndex`: `QUANTITY`, 64 Bits - index in `executionPayload.transactions` at which the omission of the claimed transaction is evaluated.
+
 ## Routines
 
 ### Payload building
 
 This routine follows the same specification as [Payload building](./paris.md#payload-building) with the following changes to the processing flow:
 
-1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload` **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload`, together with the `inclusionListClaims` returned by [`engine_getPayloadV6`](#engine_getpayloadv6), **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ## Methods
 
 ### engine_newPayloadV6
 
-Method parameter list is extended with `inclusionListTransactions`.
+Method parameter list is extended with `inclusionListTransactions` and `inclusionListClaims`.
 
 #### Request
 
@@ -85,7 +96,8 @@ Method parameter list is extended with `inclusionListTransactions`.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
-  5. `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+  5. `inclusionListTransactions`: `Array of Array of DATA` - Array of inclusion lists, one per inclusion list committee member, each an array of transaction objects in the order of that inclusion list. Each transaction object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+  6. `inclusionListClaims`: `Array of InclusionListClaimV1` - Array of inclusion list claims committed to by the builder of the payload, as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 * timeout: 6s
 
 #### Response
@@ -99,13 +111,23 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Bogota fork.
 
-2. Client software **MUST** set `inclusionListSatisfied` in the following way:
+2. Client software **MUST** return `-32602: Invalid params` error if `inclusionListTransactions` has more than `INCLUSION_LIST_COMMITTEE_SIZE` elements, if the sum of the byte lengths of the transactions in any element exceeds `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`, or if `inclusionListClaims` has more than `MAX_INCLUSION_LIST_CLAIMS` elements. Duplicate, unmatched and out-of-range claims **MUST NOT** cause an error; they are resolved as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
-    1. If the payload is deemed `VALID`, `inclusionListSatisfied` **MUST** be set to whether the payload satisfied the inclusion list constraints.
+3. Client software **MUST** set `inclusionListSatisfied` in the following way:
+
+    1. If the payload is deemed `VALID`, `inclusionListSatisfied` **MUST** be set to whether the payload satisfied the inclusion list constraints with respect to `inclusionListTransactions` and `inclusionListClaims`.
 
     2. Otherwise, `inclusionListSatisfied` **MUST** be `null`.
 
-3. Client software **MUST** retain `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
+4. Client software **MUST** retain `inclusionListTransactions` and `inclusionListClaims` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
+
+### engine_getPayloadV6
+
+For a payload whose `timestamp` falls within the time frame of the Bogota fork, the response of [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6) is extended with a single field:
+
+- `inclusionListClaims`: `Array of InclusionListClaimV1` - Inclusion list claims for transactions omitted from `executionPayload`, with at most `MAX_INCLUSION_LIST_CLAIMS` elements.
+
+Each claim **MUST** refer to a transaction of the `inclusionListTransactions` used to build the payload that is omitted from `executionPayload`, and **SHOULD** have an index at which that omission is excused as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The field **MUST** be omitted for a payload that does not fall within the time frame of the Bogota fork.
 
 ### engine_getInclusionListV1
 
@@ -156,7 +178,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 1. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
 
-    1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure, return `-38003: Invalid payload attributes` on failure.
+    1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure and `payloadAttributes.inclusionListTransactions` is within the limits of [`engine_newPayloadV6`](#engine_newpayloadv6), return `-38003: Invalid payload attributes` on failure.
 
     2. `payloadAttributes.timestamp` does not fall within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
 
@@ -164,7 +186,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     1. If the payload referenced by `forkchoiceState.headBlockHash` is deemed `VALID`, `payloadStatus.inclusionListSatisfied` **MUST** be set to whether the payload satisfied the inclusion list constraints.
 
-    2. Client software **MUST** use the retained `inclusionListTransactions` if it validates the payload and checks whether the payload satisfies the inclusion list constraints while processing the call.
+    2. Client software **MUST** use the retained `inclusionListTransactions` and `inclusionListClaims` if it validates the payload and checks whether the payload satisfies the inclusion list constraints while processing the call.
 
     3. Otherwise, `payloadStatus.inclusionListSatisfied` **MUST** be `null`.
 
