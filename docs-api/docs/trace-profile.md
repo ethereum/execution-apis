@@ -10,6 +10,24 @@ Observed agreement is not a correctness oracle. Recommendations below are propos
 The target is a useful, precise contract; historical implementations explain compatibility
 costs but do not decide it. Intentional departures are called out below.
 
+## Error responses
+
+Error codes named in this profile are recommended; conformance requires the error response itself.
+Where the profile requires an error, a client returns one complete JSON-RPC error response, never a
+result, `null`, `[]`, a clamped or partial result, or a malformed or aborted response. What is
+required is the behavior: whether a request executes or is rejected, whether an answer is an error,
+`null` or `[]`, and which requests are rejected at all. A rejection is for the request's own
+violation and reports it: a transaction signed for another chain is rejected for its chain identity,
+not for insufficient funds of the different sender that its signature then recovers. Where several
+rules are violated, the precedence stated below decides which violation a rejection reports. The
+recommended codes reuse the standard JSON-RPC and `eth_simulateV1` codes, the `eth_sendRawTransaction`
+error groups and the pruned-history code, so callers can branch without parsing messages, but a different code is not a
+conformance failure. Only the JSON-RPC 2.0 base protocol is exempt: a request that is not valid JSON
+returns -32700 (Parse error), a method a client does not serve returns -32601 (Method not found), and
+an internal error (-32603) reports a server failure, not a rejection, so it never serves as the
+required error. Malformed parameters recommend the standard -32602 (Invalid params) without requiring
+it, because clients reject some malformed input through their own validation paths.
+
 ## Explicit choices in this draft
 
 - The nine methods are one contract, with no optional subset or discovery mechanism: a client
@@ -21,11 +39,11 @@ costs but do not decide it. Intentional departures are called out below.
   gives it one: a null `to` creates a contract (H14).
 - Query path inputs use hex quantities for caller compatibility; traceAddress outputs retain JSON
   integers. Convert each output integer to a minimal hex quantity before passing it to trace_get.
-  Integer path entries return -32602, rather than null.
+  Integer path entries are rejected with an error (-32602 recommended), rather than null.
 - Address filters use OR within each list and AND between lists, as `eth_getLogs` composes topic
   positions. Missing, null and empty lists are unrestricted. Addresses compare by bytes, irrespective
   of hex letter case. Optional `mode` accepts `intersection` (the default, also when `mode` is
-  null) and `union` (match either populated list); other values return -32602.
+  null) and `union` (match either populated list); other values are rejected (-32602 recommended).
 - Standalone historical records (`trace_block`, `trace_filter`, `trace_transaction`,
   `trace_get`) require non-null block localization. Mined transaction frames also require
   non-null transaction hash/index; protocol rewards require null transaction hash/index
@@ -44,21 +62,21 @@ costs but do not decide it. Intentional departures are called out below.
   an error, as Erigon, Nethermind and Reth already do for `trace_block` and clients do for `eth_call`
   (Besu, like Parity, returns null there); `trace_replayBlockTransactions` follows `trace_block`. -32001 (Resource not found) is recommended:
   in `trace_call` and `trace_callMany` clients use -32000 for transaction-validation failures, so a
-  dedicated code lets callers tell an unknown block from an invalid call without parsing messages. Known blocks with pruned required state return 4444. If pruned
-  indexing prevents establishing whether a hash is absent, return 4444 rather than claiming a
+  dedicated code lets callers tell an unknown block from an invalid call without parsing messages. Known blocks with pruned required state return an error, with 4444 recommended. If pruned
+  indexing prevents establishing whether a hash is absent, return an error (4444 recommended) rather than claiming a
   definitive not-found result. This extends the pruned-history code adopted for eth/debug methods in
   [#636](https://github.com/ethereum/execution-apis/pull/636) to trace methods and execution state;
   that extension remains a proposal.
 - `trace_filter` ranges follow `eth_getLogs`
   ([#875](https://github.com/ethereum/execution-apis/pull/875)): if either bound resolves beyond
-  the current head, or `fromBlock` resolves above `toBlock`, return -32602 (Invalid params). Never
-  clamp the range or return a partial result. Bounds use `BlockNumberOrTagForRange`, which excludes
+  the current head, or `fromBlock` resolves above `toBlock`, return an error (-32602, Invalid params,
+  recommended). Never clamp the range or return a partial result. Bounds use `BlockNumberOrTagForRange`, which excludes
   `pending` and block hashes. Rejecting hash bounds and EIP-1898 block objects is a choice: Parity,
   Erigon and Nethermind accept them, but `eth_getLogs` range bounds do not; select a single block by
   number. `earliest` is the lowest block the client has available, as the shared tag defines it;
-  an explicit number below retained history returns 4444.
+  an explicit number below retained history returns an error (4444 recommended).
 - Omitted filter bounds both mean `latest`, resolved against the same canonical head for the
-  request. A `toBlock` earlier than the omitted `fromBlock` is a reversed range (-32602);
+  request. A `toBlock` earlier than the omitted `fromBlock` is a reversed range and is rejected;
   callers searching history must state `fromBlock`. This follows Parity’s original
   `trace_filter` default and the `eth_getLogs` convention. Query limits produce an explicit error,
   never an incomplete success. `count` limits returned records, not scan or replay work.
@@ -66,10 +84,10 @@ costs but do not decide it. Intentional departures are called out below.
 - `pending` selects the client's pending block: the next block number, built on `latest` with the
   client's pending transactions. `trace_block`, `trace_replayBlockTransactions`, `trace_call` and
   `trace_callMany` accept it only when the client has such a pending environment; a simulation then
-  runs on the pending block's post-state and environment. A client without one returns -32602 rather
-  than evaluate `latest` or another block. Records traced from the pending block carry its number and
+  runs on the pending block's post-state and environment. A client without one rejects it
+  (-32602 recommended) rather than evaluate `latest` or another block. Records traced from the pending block carry its number and
   the hash of the block the client built, which is not canonical; all other localized records carry
-  canonical block hashes. `trace_filter` bounds reject `pending` with -32602 (H32).
+  canonical block hashes. `trace_filter` bounds reject `pending`, with -32602 recommended (H32).
 
 ## Blocks, rewards and pagination
 
@@ -94,9 +112,10 @@ covers one block or a range. Replay arrays hold exactly one envelope per transac
 
 Call objects use the `eth_simulateV1` `GenericCallTransaction` fields, together with `chainId` and
 `authorizationList` from `GenericTransaction` and `data` as an alias for `input`. When `data` and
-`input` are both present they must be equal (-32602). Every field the schema defines either takes
-effect with its `eth_call` meaning or causes a rejection (-32602, or -32003 when the selected fork
-does not support the field); only fields outside the schema are ignored. A supplied nonce is accepted but neither validated nor
+`input` are both present they must be equal, or the request is rejected (-32602 recommended). Every
+field the schema defines either takes effect with its `eth_call` meaning or causes a rejection
+(recommended: -32602, or -32003 when the selected fork does not support the field); only fields
+outside the schema are ignored. A supplied nonce is accepted but neither validated nor
 used, so CREATE addresses derive from the state nonce. `gas` is a uint64.
 
 Fees follow `eth_call` and `eth_simulateV1` (H15). Omitted fee fields default to zero. The zero-fee
@@ -108,7 +127,7 @@ and tips simulated. This removes Parity’s virtual balance top-up for unsigned 
 
 Parameter positions for overrides are reserved: `trace_call` takes `StateOverrides` fourth and
 `BlockOverrides` fifth; `trace_callMany` takes them third and fourth. Both use the `eth_simulateV1`
-schemas. A client that does not implement them must reject a non-null value with -32602. With a
+schemas. A client that does not implement them must reject a non-null value (-32602 recommended). With a
 block override, the zero-fee rule uses the overridden base fee.
 
 In `trace_callMany` every item is a separate transaction: EIP-2200 and EIP-3529 original storage
@@ -120,26 +139,27 @@ fails validation, the request returns one error whose `error.data.index` is the 
 and no partial results. The single error without partial results follows Erigon, Reth and Parity.
 `error.data.index` is new in this profile: no client reports the index in structured form today
 (Erigon names it only in message text), and it lets callers locate the failing item without matching
-text. A malformed item is invalid params (-32602) without an index. Servers may cap items or total
-gas with an explicit -38026 error, never by truncating.
+text. A malformed item is rejected without an index (-32602 recommended). Servers may cap items or
+total gas with an explicit error (-38026 recommended), never by truncating.
 
-Validation rejections of `trace_call` and `trace_callMany` use the `eth_simulateV1` codes: -38012
-base fee too low, -38013 intrinsic gas, -38014 insufficient funds, -38025 init-code size and -38026
-client limit. A priority fee above the fee cap, and any other defect that makes the call object
-invalid regardless of state (a transaction type or field combination no transaction can carry, an
-empty authorization list), is -32602; such defects take precedence when several rules are violated.
-Any other validation failure without a listed code, such as a blob fee cap below the blob base fee
-or a transaction type not active at the selected fork, is -32003 (Transaction rejected), the
+Validation rejections of `trace_call` and `trace_callMany` are errors that report their violation.
+The recommended codes are those of `eth_simulateV1`: -38012 base fee too low, -38013 intrinsic gas,
+-38014 insufficient funds, -38025 init-code size and -38026 client limit. A priority fee above the
+fee cap, and any other defect that makes the call object invalid regardless of state (a transaction
+type or field combination no transaction can carry, an empty authorization list), takes precedence
+when several rules are violated: the rejection reports that defect, with -32602 recommended. Any
+other validation failure without a listed code, such as a blob fee cap below the blob base fee or a
+transaction type not active at the selected fork, recommends -32003 (Transaction rejected), the
 fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
 the EIP-3607 sender-code check, as `eth_call` does, so the nonce and sender-not-EOA codes do not
 apply. Omitted gas, and supplied gas above the server's execution cap, run with that cap, as
 `eth_call` does; the cap is server policy, not a truncated result.
-`trace_rawTransaction` uses the `eth_sendRawTransaction` error groups
+`trace_rawTransaction` rejections recommend the `eth_sendRawTransaction` error groups
 ([#650](https://github.com/ethereum/execution-apis/pull/650)): 1 nonce too low, 2 nonce too high,
 800 intrinsic gas, 804 priority fee above fee cap, 806 fee cap below base fee and 809 insufficient
 funds, with -32003 (Transaction rejected) as the generic fallback. A signed gas limit above the
 server's execution cap is not reduced, because that would change the transaction: it is rejected
-with -38026. Malformed input is -32602.
+(-38026 recommended). Malformed input is rejected (-32602 recommended).
 
 ## Execution results and state changes
 
@@ -264,7 +284,9 @@ precompile fixtures check inclusion and path numbering.
 H13 proposes execution validity at the selected state for signed raw transactions:
 signature, chain identity, nonce equality, balance for value and upfront gas, intrinsic
 gas, fees and the selected fork's sender-code restrictions, including EIP-7702's
-delegation exception. Reject both low and high nonces without modifying signed fields
+delegation exception. Each rejection reports the rule the transaction violates: a
+transaction signed for another chain fails chain identity, whatever its recovered sender
+holds. Reject both low and high nonces without modifying signed fields
 or implicitly changing the sender's nonce or balance. A valid transaction that REVERTs
 or runs out of execution gas still returns a trace. Local pool policies such as
 replacement pricing, already-known rejection and minimum tips do not apply. Full block
