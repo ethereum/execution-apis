@@ -139,9 +139,22 @@ Consumers that need frame boundaries read them from `callTracer`.
 ## `prestateTracer`
 
 A frame transaction has no `to` and creates no contract from the sender nonce.
-The accounts it touches MUST include every resolved target that executed and
-the payer, and MUST NOT include an address derived from `tx.sender` and its
-nonce unless execution touched it.
+Besides `tx.sender` and the block beneficiary, the state it touches MUST
+include:
+
+- the resolved target of every frame, whether or not the frame ran;
+- the payer, which is charged at approval even when the approving frame runs
+  default code and never enters the EVM;
+- where EIP-8250 is active and the transaction uses keyed nonces, every
+  `NONCE_MANAGER` storage slot it consumes.
+
+It MUST NOT include `ENTRY_POINT`, or an address derived from `tx.sender` and
+its nonce, unless execution touched it.
+
+In `diffMode`, the payer's fee debit appears in `pre` and `post` as the fee
+debit of any other transaction's sender does. A keyed nonce consumed by the
+transaction appears as a change to its `NONCE_MANAGER` slot, not to the nonce
+of `tx.sender`.
 
 ## Example
 
