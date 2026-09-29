@@ -89,7 +89,9 @@ TraceCall:
     defined field. Only fields outside this schema are ignored, and accepting
     them does not establish extension support (H14). An explicit null for any field other than to is the
     same as omitting it. Omitted or null to creates a contract. Defaults: from
-    zero address, value zero, input empty; omitted gas, and gas above the client execution cap, use that cap as in eth_call. Omitted gasPrice,
+    zero address, value zero, input empty; omitted gas follows the client eth_call default at the selected
+    state, bounded by the execution cap. A block limit or sender allowance may lower the budget;
+    supplied gas above the cap uses the cap. Supply gas explicitly for a portable budget. Omitted gasPrice,
     maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas
     defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST
     NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including
@@ -595,6 +597,12 @@ TraceStorageChange:
     additionalProperties: false
   - type: object
     required:
+    - '-'
+    properties:
+      '-': *id010
+    additionalProperties: false
+  - type: object
+    required:
     - '*'
     properties:
       '*':
@@ -608,8 +616,8 @@ TraceStorageChange:
         additionalProperties: false
     additionalProperties: false
   description: '+ lists a nonzero post-state slot of a born account. * changes a slot of an account that
-    exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use =
-    and never use - (H17,H26).'
+    exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use =.
+    A deleted account may optionally list old slot values with -; account deletion implies all storage is wiped whether or not slots are listed (H17,H26).'
   title: TraceStorageChange
 TraceAccountDiff:
   type: object
@@ -644,8 +652,8 @@ TraceAccountDiff:
         patternProperties:
           ^0x[0-9a-f]{64}$: *born
   - title: Deleted account
-    description: Present before and absent after; every field uses -, and storage is empty because
-      deletion wipes all storage.
+    description: Present before and absent after; every field uses -. Storage may be empty or list
+      accurate old slot values with -; deletion wipes all storage.
     properties:
       balance: &died
         type: object
@@ -653,7 +661,8 @@ TraceAccountDiff:
       nonce: *died
       code: *died
       storage:
-        maxProperties: 0
+        patternProperties:
+          ^0x[0-9a-f]{64}$: *died
   - title: Existing account
     description: Present at both endpoints; fields use = or *, slots use *, and at least one value changed.
     properties:
@@ -692,7 +701,7 @@ TraceStateDiff:
     deletion. + and - appear only when the account is born or dies; = marks an unchanged field and *
     a changed field of an account that exists at both endpoints. A born account includes zero nonce and
     empty code creation markers and lists its nonzero post-state slots. A deleted account has empty
-    storage; its - implies all storage is wiped. Reverted EVM writes are absent; surviving
+    storage or optional accurate old-slot - entries; account deletion implies all storage is wiped. Reverted EVM writes are absent; surviving
     transaction-level changes remain. callMany diffs are relative to each preceding post-state.
     Multiple authorization writes are reduced to their net effect, including nonce changes when final
     code equals initial code. An account absent at both endpoints has no account diff. The sender pays

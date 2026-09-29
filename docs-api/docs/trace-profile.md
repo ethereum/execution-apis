@@ -57,10 +57,10 @@ it, because clients reject some malformed input through their own validation pat
   Parity’s implementation, although its guide omitted it.
 - Empty trace selection is valid. The envelope always preserves output.
 - Where clients already agree, the draft keeps their answer (H06). Unknown transactions and valid but
-  absent tree paths return null, as Parity did and as `eth_getTransactionByHash` does. Unknown single
-  selected blocks (`trace_block`, `trace_replayBlockTransactions`, and the simulation block) return
-  an error, as Erigon, Nethermind and Reth already do for `trace_block` and clients do for `eth_call`
-  (Besu, like Parity, returns null there); `trace_replayBlockTransactions` follows `trace_block`. -32001 (Resource not found) is recommended:
+  absent tree paths return null, as Parity did and as `eth_getTransactionByHash` does. Unknown blocks
+  in `trace_block` and `trace_replayBlockTransactions` return null or an error, preserving both
+  established client conventions. An unknown simulation block always returns an error, as `eth_call`
+  does. A successful collection never represents an unknown block. -32001 (Resource not found) is recommended:
   in `trace_call` and `trace_callMany` clients use -32000 for transaction-validation failures, so a
   dedicated code lets callers tell an unknown block from an invalid call without parsing messages. Known blocks with pruned required state return an error, with 4444 recommended. If pruned
   indexing prevents establishing whether a hash is absent, return an error (4444 recommended) rather than claiming a
@@ -152,8 +152,10 @@ other validation failure without a listed code, such as a blob fee cap below the
 transaction type not active at the selected fork, recommends -32003 (Transaction rejected), the
 fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
 the EIP-3607 sender-code check, as `eth_call` does, so the nonce and sender-not-EOA codes do not
-apply. Omitted gas, and supplied gas above the server's execution cap, run with that cap, as
-`eth_call` does; the cap is server policy, not a truncated result.
+apply. Omitted gas follows the client's `eth_call` default at the selected state, bounded by the
+server's execution cap. A block limit or sender allowance may lower the budget but never raise it
+above the cap. Supplied gas above the cap runs with the cap. Supply gas explicitly for a portable
+budget; the cap is server policy, not a truncated result.
 `trace_rawTransaction` rejections recommend the `eth_sendRawTransaction` error groups
 ([#650](https://github.com/ethereum/execution-apis/pull/650)): 1 nonce too low, 2 nonce too high,
 800 intrinsic gas, 804 priority fee above fee cap, 806 fee cap below base fee and 809 insufficient
@@ -204,8 +206,10 @@ balance, nonce, code, storage or existence changed. Existence means presence in 
 an existing EIP-161-empty account removed by touch-clearing is a deletion. `+` and `-` appear only
 when the account is born or dies. Slots of an account that exists at both endpoints use `*` with
 32-byte words, including zero words; slots never use `=`. A born account lists its nonzero
-post-state slots as `+`. A deleted account has `storage: {}`, and its `-` implies that all storage
-is wiped, as Parity, Besu and Erigon already report. Multiple EIP-7702 authorizations may restore the
+post-state slots as `+`. A deleted account may report `storage: {}` or accurate optional old-slot
+values with `-`; account deletion implies that all storage is wiped in either case. OpenEthereum
+3.3.5 reports such entries when earlier uncommitted calls wrote a slot. Enumeration is optional
+and callers must not treat the listed slots as exhaustive. Multiple EIP-7702 authorizations may restore the
 original code while changing nonce; only net code changes appear. Accepted authorization effects
 survive a later EVM revert. Accounts absent at both endpoints have no account diff even if created
 and destroyed. The sender pays value, `gasUsed` times the effective price and `blobGasUsed` times

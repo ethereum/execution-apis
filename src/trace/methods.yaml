@@ -11,8 +11,10 @@
     and BASEFEE are both 0 and no gas fee is paid. BLOBBASEFEE is 0 exactly when maxFeePerBlobGas is
     supplied as 0 or defaulted to 0; a call without blob fields keeps the block's BLOBBASEFEE. Other block
     fields are unchanged. Fee validation is skipped only when both fee caps are 0, as with gasPrice 0.
-    Omitted gas, and supplied gas above the server's execution cap, run with that cap, as eth_call does;
-    the cap is server policy, not a truncated result. A validation failure is an error that reports its
+    Omitted gas follows the client's eth_call default at the selected state, bounded by the server's
+    execution cap; a block limit or sender allowance may lower that budget but never raise it above
+    the cap. Supplied gas above the cap runs with the cap. Callers requiring a portable budget supply
+    gas explicitly; the cap is server policy, not a truncated result. A validation failure is an error that reports its
     violation. A defect that makes the call object invalid regardless of state, such as a priority fee
     above the fee cap, an impossible type and field combination or an empty authorization list, takes
     precedence when several rules are violated (-32602 recommended); any other validation failure
@@ -305,9 +307,8 @@
     order but belong to no envelope; concatenated stateDiffs therefore do not reconstruct the block
     post-state. Block accepts pending only when the client has a pending block (the next block number
     with its pending transactions); otherwise pending is rejected (-32602 recommended). An unknown selected block returns
-    an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns an error (4444 recommended)
-    (H05,H07,H16,H28,H32). Error codes named in this profile are recommended; conformance requires the
-    error response itself. This is a provisional trace profile; see
+    null or an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns an error (4444 recommended)
+    (H05,H07,H16,H28,H32). Where an error is required, codes named in this profile are recommended. This is a provisional trace profile; see
     docs-api/docs/trace-profile.md and its decision references.'
   params:
   - &historicalBlock
@@ -319,9 +320,11 @@
   result:
     name: Result
     schema:
-      type: array
-      items:
-        $ref: '#/components/schemas/TraceReplay'
+      anyOf:
+      - type: array
+        items:
+          $ref: '#/components/schemas/TraceReplay'
+      - type: 'null'
   errors: &blockErrors
   - code: -32601
     message: Method not found
@@ -353,16 +356,17 @@
     pending block (the next block number with its pending transactions); otherwise pending is rejected
     (-32602 recommended). Records from the pending block carry its number and the hash of the block the client built,
     which is not canonical; all other records carry canonical block hashes. An unknown selected block
-    returns an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns an error (4444 recommended)
-    (H05,H06,H27,H28,H32). Error codes named in this profile are recommended; conformance requires the
-    error response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md and
+    returns null or an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns an error (4444 recommended)
+    (H05,H06,H27,H28,H32). Where an error is required, codes named in this profile are recommended. This is a provisional trace profile; see docs-api/docs/trace-profile.md and
     its decision references.
   params:
   - *historicalBlock
   result:
     name: Result
     schema:
-      $ref: '#/components/schemas/TraceLocalizedFrames'
+      anyOf:
+      - $ref: '#/components/schemas/TraceLocalizedFrames'
+      - type: 'null'
   errors: *blockErrors
   examples:
   - name: trace_block result shape

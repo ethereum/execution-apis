@@ -77,11 +77,11 @@ import { useState } from 'react';
 
                 #### `TraceStateDiff` fields
 
-                Net committed state changes for this execution, comparing the execution endpoints. An account appears only if its balance, nonce, code, storage or existence changed. Existence means presence in the state trie: an existing EIP-161-empty account removed by touch-clearing is a deletion. + and - appear only when the account is born or dies; = marks an unchanged field and \* a changed field of an account that exists at both endpoints. A born account includes zero nonce and empty code creation markers and lists its nonzero post-state slots. A deleted account has empty storage; its - implies all storage is wiped. Reverted EVM writes are absent; surviving transaction-level changes remain. callMany diffs are relative to each preceding post-state. Multiple authorization writes are reduced to their net effect, including nonce changes when final code equals initial code. An account absent at both endpoints has no account diff. The sender pays value, gasUsed times the effective gas price and blobGasUsed times the blob base fee; base and blob fees are burned or credited to a chain-defined collector, and the tip goes to the fee recipient. Block-level operations (EIP-4788 and EIP-2935 pre-block calls, withdrawals, EIP-7002 and EIP-7251 post-block calls, rewards) belong to no transaction's diff, so concatenated diffs do not reconstruct the block post-state (H16-H18,H26).
+                Net committed state changes for this execution, comparing the execution endpoints. An account appears only if its balance, nonce, code, storage or existence changed. Existence means presence in the state trie: an existing EIP-161-empty account removed by touch-clearing is a deletion. + and - appear only when the account is born or dies; = marks an unchanged field and \* a changed field of an account that exists at both endpoints. A born account includes zero nonce and empty code creation markers and lists its nonzero post-state slots. A deleted account has empty storage or optional accurate old-slot - entries; account deletion implies all storage is wiped. Reverted EVM writes are absent; surviving transaction-level changes remain. callMany diffs are relative to each preceding post-state. Multiple authorization writes are reduced to their net effect, including nonce changes when final code equals initial code. An account absent at both endpoints has no account diff. The sender pays value, gasUsed times the effective gas price and blobGasUsed times the blob base fee; base and blob fees are burned or credited to a chain-defined collector, and the tip goes to the fee recipient. Block-level operations (EIP-4788 and EIP-2935 pre-block calls, withdrawals, EIP-7002 and EIP-7251 post-block calls, rewards) belong to no transaction's diff, so concatenated diffs do not reconstruct the block post-state (H16-H18,H26).
 
                 **stateDiff** `object` *required*
 
-                Net committed state changes for this execution, comparing the execution endpoints. An account appears only if its balance, nonce, code, storage or existence changed. Existence means presence in the state trie: an existing EIP-161-empty account removed by touch-clearing is a deletion. + and - appear only when the account is born or dies; = marks an unchanged field and \* a changed field of an account that exists at both endpoints. A born account includes zero nonce and empty code creation markers and lists its nonzero post-state slots. A deleted account has empty storage; its - implies all storage is wiped. Reverted EVM writes are absent; surviving transaction-level changes remain. callMany diffs are relative to each preceding post-state. Multiple authorization writes are reduced to their net effect, including nonce changes when final code equals initial code. An account absent at both endpoints has no account diff. The sender pays value, gasUsed times the effective gas price and blobGasUsed times the blob base fee; base and blob fees are burned or credited to a chain-defined collector, and the tip goes to the fee recipient. Block-level operations (EIP-4788 and EIP-2935 pre-block calls, withdrawals, EIP-7002 and EIP-7251 post-block calls, rewards) belong to no transaction's diff, so concatenated diffs do not reconstruct the block post-state (H16-H18,H26).
+                Net committed state changes for this execution, comparing the execution endpoints. An account appears only if its balance, nonce, code, storage or existence changed. Existence means presence in the state trie: an existing EIP-161-empty account removed by touch-clearing is a deletion. + and - appear only when the account is born or dies; = marks an unchanged field and \* a changed field of an account that exists at both endpoints. A born account includes zero nonce and empty code creation markers and lists its nonzero post-state slots. A deleted account has empty storage or optional accurate old-slot - entries; account deletion implies all storage is wiped. Reverted EVM writes are absent; surviving transaction-level changes remain. callMany diffs are relative to each preceding post-state. Multiple authorization writes are reduced to their net effect, including nonce changes when final code equals initial code. An account absent at both endpoints has no account diff. The sender pays value, gasUsed times the effective gas price and blobGasUsed times the blob base fee; base and blob fees are burned or credited to a chain-defined collector, and the tip goes to the fee recipient. Block-level operations (EIP-4788 and EIP-2935 pre-block calls, withdrawals, EIP-7002 and EIP-7251 post-block calls, rewards) belong to no transaction's diff, so concatenated diffs do not reconstruct the block post-state (H16-H18,H26).
 
                 ***
 
@@ -689,11 +689,11 @@ import { useState } from 'react';
 
                           #### `Deleted account` fields
 
-                          Present before and absent after; every field uses -, and storage is empty because deletion wipes all storage.
+                          Present before and absent after; every field uses -. Storage may be empty or list accurate old slot values with -; deletion wipes all storage.
 
                           **^0x\[0-9a-f]\{40}$** `object`
 
-                          Present before and absent after; every field uses -, and storage is empty because deletion wipes all storage.
+                          Present before and absent after; every field uses -. Storage may be empty or list accurate old slot values with -; deletion wipes all storage.
 
                           ***
 
@@ -1239,119 +1239,19 @@ import { useState } from 'react';
 
                                     #### `storage` fields
 
-                                    * **^0x\[0-9a-f]\{64}$** `object or object`
-
-                                      * lists a nonzero post-state slot of a born account. \* changes a slot of an account that exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use = and never use - (H17,H26).
+                                    * **^0x\[0-9a-f]\{64}$** `object`
 
                                       ***
 
                                       <div>
                                         <details>
                                           <summary>
-                                            Show Option 1 `TraceStorageChange` object
+                                            Show `^0x[0-9a-f]{64}$` object
                                           </summary>
 
-                                          #### `TraceStorageChange` fields
+                                          #### `^0x[0-9a-f]{64}$` fields
 
-                                          * lists a nonzero post-state slot of a born account. \* changes a slot of an account that exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use = and never use - (H17,H26).
 
-                                          **^0x\[0-9a-f]\{64}$** `object`
-
-                                          * lists a nonzero post-state slot of a born account. \* changes a slot of an account that exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use = and never use - (H17,H26).
-
-                                          ***
-
-                                          <div>
-                                            <details>
-                                              <summary>
-                                                Show `^0x[0-9a-f]{64}$` object
-                                              </summary>
-
-                                              #### `^0x[0-9a-f]{64}$` fields
-
-                                              * lists a nonzero post-state slot of a born account. \* changes a slot of an account that exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use = and never use - (H17,H26).
-
-                                              - **+** `string` *required*
-
-                                                32 hex encoded bytes
-
-                                                *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                                                ***
-
-                                              - **additionalProperties** `false`
-
-                                                ***
-                                            </details>
-                                          </div>
-                                        </details>
-                                      </div>
-
-                                      <div>
-                                        <details>
-                                          <summary>
-                                            Show Option 2 `TraceStorageChange` object
-                                          </summary>
-
-                                          #### `TraceStorageChange` fields
-
-                                          * lists a nonzero post-state slot of a born account. \* changes a slot of an account that exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use = and never use - (H17,H26).
-
-                                          **^0x\[0-9a-f]\{64}$** `object`
-
-                                          * lists a nonzero post-state slot of a born account. \* changes a slot of an account that exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use = and never use - (H17,H26).
-
-                                          ***
-
-                                          <div>
-                                            <details>
-                                              <summary>
-                                                Show `^0x[0-9a-f]{64}$` object
-                                              </summary>
-
-                                              #### `^0x[0-9a-f]{64}$` fields
-
-                                              * lists a nonzero post-state slot of a born account. \* changes a slot of an account that exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use = and never use - (H17,H26).
-
-                                              - **\*** `object` *required*
-
-                                                ***
-
-                                                <div>
-                                                  <details>
-                                                    <summary>
-                                                      Show `*` object
-                                                    </summary>
-
-                                                    #### `*` fields
-
-                                                    * **from** `string` *required*
-
-                                                      32 hex encoded bytes
-
-                                                      *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                                                      ***
-
-                                                    * **to** `string` *required*
-
-                                                      32 hex encoded bytes
-
-                                                      *Match pattern:* `^0x[0-9a-f]{64}$`
-
-                                                      ***
-
-                                                    * **additionalProperties** `false`
-
-                                                      ***
-                                                  </details>
-                                                </div>
-
-                                              - **additionalProperties** `false`
-
-                                                ***
-                                            </details>
-                                          </div>
                                         </details>
                                       </div>
                                   </details>
