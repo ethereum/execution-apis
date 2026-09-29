@@ -137,6 +137,7 @@ PayloadAttributesV5:
     - slotNumber
     - targetGasLimit
     - inclusionListTransactions
+    - inclusionListMembership
   properties:
     timestamp:
       $ref: '#/components/schemas/PayloadAttributesV4/properties/timestamp'
@@ -156,6 +157,9 @@ PayloadAttributesV5:
       title: Inclusion list transactions
       type: array
       items:
-        type: array
-        items:
-          $ref: '#/components/schemas/bytes'
+        $ref: '#/components/schemas/bytes'
+    inclusionListMembership:
+      title: Inclusion list membership
+      type: array
+      items:
+        $ref: '#/components/schemas/InclusionListMembershipV1'

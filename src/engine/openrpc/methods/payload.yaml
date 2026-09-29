@@ -1105,9 +1105,13 @@
       schema:
         type: array
         items:
-          type: array
-          items:
-            $ref: '#/components/schemas/bytes'
+          $ref: '#/components/schemas/bytes'
+    - name: Inclusion list membership
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/InclusionListMembershipV1'
     - name: Inclusion list claims
       required: true
       schema:

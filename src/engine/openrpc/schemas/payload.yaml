@@ -433,3 +433,7 @@ InclusionListClaimV1:
     transactionIndex:
       title: Transaction index
       $ref: '#/components/schemas/uint64'
+InclusionListMembershipV1:
+  title: Inclusion list membership bitvector over the inclusion list committee
+  type: string
+  pattern: ^0x[0-9a-f]{4}$
