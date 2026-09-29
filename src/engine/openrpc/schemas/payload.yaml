@@ -420,3 +420,16 @@ BlobsBundleV2:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+InclusionListClaimV1:
+  title: Inclusion list claim object V1
+  type: object
+  required:
+    - transactionHash
+    - transactionIndex
+  properties:
+    transactionHash:
+      title: Transaction hash
+      $ref: '#/components/schemas/hash32'
+    transactionIndex:
+      title: Transaction index
+      $ref: '#/components/schemas/uint64'
