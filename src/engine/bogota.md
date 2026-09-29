@@ -187,6 +187,8 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
     3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
+    4. When [EIP-8141](https://eips.ethereum.org/EIPS/eip-8141) is active, the total VERIFY budget cost of the Profile 2 candidates in the transaction list **MUST NOT** exceed `MAX_VERIFY_GAS_PER_IL`, with the cost, the candidates and the constant as defined in [EIP-8369](https://eips.ethereum.org/EIPS/eip-8369).
+
 2. The strategy for selecting transactions is implementation dependent.
 
 ### engine_forkchoiceUpdatedV5
