@@ -52,7 +52,7 @@ order. `calls[i]` is frame `i`:
 | `type` | `STATICCALL` for a static frame, `CALL` otherwise |
 | `from` | the caller of the frame |
 | `to` | the resolved target |
-| `value` | `frame.value` |
+| `value` | `frame.value`, omitted for a static frame |
 | `input` | `frame.data` |
 | `gas` | the gas limit of the frame |
 | `gasUsed` | `frameReceipts[i].gasUsed` |
@@ -69,7 +69,7 @@ Status and errors:
   transaction fields, with the error that ended it.
 - A frame that succeeds without entering the EVM, such as a `VERIFY` frame
   whose target runs default code, is rendered from the transaction fields with
-  `output` `0x` and no `calls`.
+  no `output` and no `calls`.
 - The root has an `error` if and only if the receipt `status` is `0`. Its
   message is not specified.
 
@@ -93,9 +93,9 @@ The same tree is used in parity encoding:
 - Frame `i` is at `traceAddress` `[i]`, and its nested calls are at
   `[i, ...]`.
 - For frame `i`, `callType` is `staticcall` for a static frame and `call`
-  otherwise. `from`, `to`, `value`, `input`, and `action.gas` follow the
-  `callTracer` rules above, and `result.gasUsed` is
-  `frameReceipts[i].gasUsed`.
+  otherwise. `from`, `to`, `input`, and `action.gas` follow the `callTracer`
+  rules above, `value` is `frame.value` (`0x0` for a static frame, as for any
+  `staticcall`), and `result.gasUsed` is `frameReceipts[i].gasUsed`.
 - A frame that reverts has `error` `Reverted` and keeps its `result`, with
   `result.gasUsed` equal to `frameReceipts[i].gasUsed` and `result.output`
   equal to its revert data.
@@ -197,7 +197,6 @@ for the payer, and a `SENDER` frame that reverts:
       "gas": "0x186a0",
       "gasUsed": "0x2710",
       "input": "0xa9059cbb",
-      "output": "0x",
       "error": "execution reverted"
     }
   ]
