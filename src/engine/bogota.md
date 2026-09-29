@@ -21,15 +21,18 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
-  - [engine_getPayloadV6](#engine_getpayloadv6)
-  - [engine_getInclusionListV1](#engine_getinclusionlistv1)
+  - [engine_getPayloadV7](#engine_getpayloadv7)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
-  - [engine_forkchoiceUpdatedV5](#engine_forkchoiceupdatedv5)
+  - [engine_getInclusionListV1](#engine_getinclusionlistv1)
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_forkchoiceUpdatedV5](#engine_forkchoiceupdatedv5)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Amsterdam API](#amsterdam-api)
 
@@ -80,7 +83,7 @@ This structure maps onto the inclusion list claim defined in [EIP-7805](https://
 
 This routine follows the same specification as [Payload building](./paris.md#payload-building) with the following changes to the processing flow:
 
-1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload`, together with the `inclusionListClaims` returned by [`engine_getPayloadV6`](#engine_getpayloadv6), **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload`, together with the `inclusionListClaims` returned by [`engine_getPayloadV7`](#engine_getpayloadv7), **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ## Methods
 
@@ -121,13 +124,35 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 4. Client software **MUST** retain `inclusionListTransactions` and `inclusionListClaims` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
 
-### engine_getPayloadV6
+### engine_getPayloadV7
 
-For a payload whose `timestamp` falls within the time frame of the Bogota fork, the response of [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6) is extended with a single field:
+This method is updated to return `inclusionListClaims`.
 
-- `inclusionListClaims`: `Array of InclusionListClaimV1` - Inclusion list claims for transactions omitted from `executionPayload`, with at most `MAX_INCLUSION_LIST_CLAIMS` elements.
+#### Request
 
-Each claim **MUST** refer to a transaction of the `inclusionListTransactions` used to build the payload that is omitted from `executionPayload`, and **SHOULD** have an index at which that omission is excused as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The field **MUST** be omitted for a payload that does not fall within the time frame of the Bogota fork.
+* method: `engine_getPayloadV7`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
+
+#### Response
+
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV4`](./amsterdam.md#executionpayloadv4)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
+  - `blobsBundle`: [`BlobsBundleV2`](./osaka.md#blobsbundlev2) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
+  - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
+  - `inclusionListClaims`: `Array of InclusionListClaimV1` - Inclusion list claims for transactions omitted from `executionPayload`.
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Bogota fork.
+
+2. `inclusionListClaims` **MUST NOT** have more than `MAX_INCLUSION_LIST_CLAIMS` elements. Each claim **MUST** refer to a transaction of the `inclusionListTransactions` used to build the payload that is omitted from `executionPayload`, and **SHOULD** have an index at which that omission is excused as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ### engine_getInclusionListV1
 
@@ -197,6 +222,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 For the following methods:
 
 - [`engine_newPayloadV5`](./amsterdam.md#engine_newpayloadv5)
+- [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6)
 - [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4)
 
 a validation **MUST** be added:
