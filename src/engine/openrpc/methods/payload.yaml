@@ -1215,7 +1215,7 @@
   summary: Runs execution payload validation
   externalDocs:
     description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eipxxxx.md#engine_newpayloadv7
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip8369.md#engine_newpayloadv7
   params:
     - name: Execution payload
       required: true
@@ -1264,7 +1264,7 @@
   summary: Obtains execution payload from payload build process
   externalDocs:
     description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eipxxxx.md#engine_getpayloadv7
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/eip8369.md#engine_getpayloadv7
   params:
     - name: Payload id
       required: true
