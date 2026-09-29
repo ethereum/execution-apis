@@ -53,7 +53,7 @@ As eth_simulate is an extension to `eth_call` we want to enable the nice user ex
 | nonce | Take the correct nonce for the account prior eth_simulate and increment by one for each transaction by the account |
 | to | `null` |
 | from | `0x0000000000000000000000000000000000000000` |
-| gasLimit | blockGasLimit - soFarUsedGasInBlock |
+| gasLimit | blockGasLimit - soFarUsedGasInBlock. After Amsterdam, see [Gas after Amsterdam](#gas-after-amsterdam) |
 | value | `0x0` |
 | input | no data |
 | gasPrice | `0x0` |
@@ -66,6 +66,17 @@ As eth_simulate is an extension to `eth_call` we want to enable the nice user ex
 | s | `0x0` |
 | yParity | even |
 | v | `0x0` |
+
+### Gas after Amsterdam
+After Amsterdam (EIP-8037) a block counts regular gas and state gas separately. The default `gasLimit` of a call is the largest gas limit that the block can still include:
+
+- If the remaining regular gas is at least the transaction gas limit cap of EIP-7825 (`2^24`), the default is the remaining state gas.
+- Otherwise, the default is the smaller of the remaining regular gas and the remaining state gas.
+
+The client's global gas limit (see [Clients can set their own limits](#clients-can-set-their-own-limits)) then caps this value.
+
+### Nonce limit
+EIP-2681 limits an account nonce to `2^64 - 1`. A call from a sender whose nonce is `2^64 - 1` fails with an error, whether or not `validation` is enabled. The nonce does not wrap to zero. Disabled validation skips the check that the transaction nonce equals the account nonce, not this limit.
 
 ## Overriding default values
 The default values of blocks and transactions can be overridden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobBaseFee`:
@@ -185,6 +196,9 @@ But not following ones:
 
 ETH logs are not part of the calculation for logs bloom filter. Also, similar to normal logs, if the transaction sends ETH but the execution reverts, no log gets issued.
 
+### Log index
+The `logIndex` of a log is its position among all logs that the calls of the same block return, starting at `0`. This is the same numbering as in receipts. A log that a failed or reverted call emitted is not returned, and it does not use an index. The `traceTransfers` logs are numbered together with the other logs, in execution order.
+
 ### EIP-7708
 After Amsterdam the protocol emits a transfer log for every non-zero ETH transfer (EIP-7708). The log has the same topics and data as the `traceTransfers` log, but the emitting address is `0xfffffffffffffffffffffffffffffffffffffffe`. In blocks where EIP-7708 is active, `traceTransfers` adds no logs from `0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`, and the flag has no effect. Blocks before Amsterdam in the same simulation still get the `0xeeee...` logs. A consumer that wants all ETH transfers filters on the `Transfer(address,address,uint256)` topic and accepts both emitting addresses.
 
@@ -207,7 +221,7 @@ The method name for eth_simulate `eth_simulateV1` the intention is that after re
 ## Clients can set their own limits
 Clients may introduce their own limits to prevent DOS attacks using the method. We have thought of three such standard limits
 - How many blocks can be defined in `BlockStateCalls`. The suggested default for this is 256 blocks
-- A global gas limit (similar to the same limit for `eth_call`). The eth_simulate cannot exceed the global gas limit over its lifespan
+- A global gas limit (similar to the same limit for `eth_call`). The eth_simulate cannot exceed the global gas limit over its lifespan. Each call uses up the `gasUsed` of its call result from this limit
 - The clients can set their own limit on how big the input JSON payload can be. A suggested default for this is 30mb
 
 ## Rationale

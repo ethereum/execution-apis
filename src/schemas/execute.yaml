@@ -12,7 +12,7 @@ EthSimulatePayload:
       title: Trace ETH Transfers
       description: |-
         Adds ETH transfers as ERC20 transfer events to the logs. These transfers have emitter contract parameter set as address(0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee).
-        In blocks where EIP-7708 is active, no synthetic transfer events are added. The protocol transfer logs emitted from address(0xfffffffffffffffffffffffffffffffffffffffe) cover the same transfers with the same topics and data, and the flag has no effect.
+        In blocks where EIP-7708 is active, no synthetic transfer events are added. The protocol transfer logs emitted from address(0xfffffffffffffffffffffffffffffffffffffffe) cover the same transfers with the same topics and data, and the flag has no effect. The flag is deprecated for these blocks.
         Default: false.
       type: boolean
     validation:
@@ -104,7 +104,7 @@ AccountOverrideStateDiff:
     movePrecompileToAddress:
       title: MovePrecompileToAddress
       $ref: '#/components/schemas/address'
-      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. Can only move precompiles.
+      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. Can only move precompiles. The move does not change the EIP-2929 set of addresses that are warm at the start of each call. That set keeps the precompile addresses of the active fork, and the destination address is not warm because of the move.
     stateDiff:
       title: Storage difference
       description: Key-value mapping to override individual slots in the account storage before executing the call. This functions similar to eth_call's state parameter.
@@ -155,7 +155,7 @@ EthSimulateResult:
 EthSimulateBlockResultSingleSuccess:
   title: Result of eth_simulate block-level, with array of calls
   description: |-
-    A simulated block carries every header field that a real block carries at the fork active for that block, including blockAccessListHash and slotNumber after Amsterdam. Header fields that the simulation cannot derive take the default values documented in the eth_simulateV1 notes.
+    A simulated block carries every header field that a real block carries at the fork active for that block, including blockAccessListHash and slotNumber after Amsterdam. The only exception is slotNumber, which is omitted when the parent block has none. Header fields that the simulation cannot derive take the default values documented in the eth_simulateV1 notes.
   type: object
   allOf:
     - $ref: '#/components/schemas/Block'
