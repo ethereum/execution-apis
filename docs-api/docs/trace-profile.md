@@ -10,6 +10,18 @@ Observed agreement is not a correctness oracle. Recommendations below are propos
 The target is a useful, precise contract; historical implementations explain compatibility
 costs but do not decide it. Intentional departures are called out below.
 
+## Storage and resource policy
+
+Implementations may generate traces on demand or use stored traces or indexes. This profile
+does not require additional indexes, trace persistence, archive retention, or particular
+latency, throughput, or minimum query-range guarantees. Historical replay still requires
+the block data and suitable execution pre-state, or the ability to reconstruct that state.
+
+Clients may impose implementation-defined limits on query ranges, output size, execution
+work, and duration. Unavailable required history or a resource limit that prevents completing
+the requested result produces an explicit error, never a silently narrowed selection or an
+incomplete success. Explicit pagination through `count` and `after` retains its defined meaning.
+
 ## Error responses
 
 Error codes named in this profile are recommended; conformance requires the error response itself.
