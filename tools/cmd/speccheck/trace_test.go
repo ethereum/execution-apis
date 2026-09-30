@@ -255,6 +255,16 @@ func TestTraceContracts(t *testing.T) {
 	}
 	add("pending range", "trace_filter", 0, traceObject{"fromBlock": "pending"}, false)
 	add("block hash range", "trace_filter", 0, traceObject{"fromBlock": traceObject{"blockHash": hash}}, false)
+	add("bare block hash range", "trace_filter", 0, traceObject{"fromBlock": hash}, false)
+	add("exact block hash", "trace_filter", 0, traceObject{"blockHash": hash}, true)
+	add("hash with null bounds", "trace_filter", 0, traceObject{"blockHash": hash, "fromBlock": nil, "toBlock": nil}, true)
+	add("null hash with range", "trace_filter", 0, traceObject{"blockHash": nil, "fromBlock": "0x1", "toBlock": "0x1"}, true)
+	add("hash with count zero", "trace_filter", 0, traceObject{"blockHash": hash, "count": 0}, true)
+	for _, bound := range []string{"fromBlock", "toBlock"} {
+		add("hash conflicts with "+bound, "trace_filter", 0, traceObject{"blockHash": hash, bound: "0x1"}, false)
+	}
+	add("short block hash", "trace_filter", 0, traceObject{"blockHash": "0x01"}, false)
+	add("object block hash", "trace_filter", 0, traceObject{"blockHash": traceObject{"blockHash": hash, "requireCanonical": true}}, false)
 	for _, method := range []string{"trace_block", "trace_replayBlockTransactions"} {
 		add("latest block", method, 0, "latest", true)
 		add("pending block", method, 0, "pending", true)

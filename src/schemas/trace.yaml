@@ -125,9 +125,17 @@ TraceFilter:
   type: object
   required: []
   properties:
+    blockHash:
+      anyOf:
+      - $ref: '#/components/schemas/hash32'
+      - type: 'null'
+      description: Optional exact-block selection (H33). Explicitly reject a non-null member when unsupported
+        (-32602 recommended), never ignore it. Null is omitted, including on clients without support.
     fromBlock: &rangeBound
       anyOf:
-      - $ref: '#/components/schemas/BlockNumberOrTagForRange'
+      - allOf:
+        - $ref: '#/components/schemas/BlockNumberOrTagForRange'
+        - maxLength: 18
       - type: 'null'
     toBlock: *rangeBound
     fromAddress:
@@ -158,19 +166,35 @@ TraceFilter:
       - type: 'null'
     count: *pageSize
   additionalProperties: false
+  if:
+    required: [blockHash]
+    properties:
+      blockHash:
+        type: string
+  then:
+    properties:
+      fromBlock:
+        type: 'null'
+      toBlock:
+        type: 'null'
   description: An explicit null member is the same as an omitted one. Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head,
     after 0, count unlimited subject to an explicit server limit. Bounds exclude pending and block
-    hashes. If either bound resolves beyond the current head block, or fromBlock resolves above
+    hashes; numeric bounds fit uint64. If either bound resolves beyond the current head block, or fromBlock resolves above
     toBlock, return an error (-32602 recommended); an explicit toBlock before an omitted latest start is
     such a reversed range. Never clamp the range.
     OR within each address list; AND between lists by default, as eth_getLogs composes topic positions.
     Missing, null or empty lists are unrestricted. mode union matches either populated list instead.
     Compare address bytes independently of hex letter case. Resolve tags once per request. Apply
-    filtering before pagination; count 0 returns []. after and count are JSON integers bounded by
+    filtering before pagination; validate selectors before count 0 returns []. after and count are JSON integers bounded by
     uint64. Return an error rather than silently truncate when a server limit is exceeded. earliest is
     the lowest available block; never replace an explicit endpoint with a retention boundary, and
     return an error (4444 recommended) if required history is unavailable. count limits results, not scan or replay work
-    (H03,H04,H06,H23,H27,H30,H32).
+    A non-null blockHash is mutually exclusive with non-null bounds. Accepted hash selections return only
+    that block's records with its own hash, including accurate noncanonical records where supported;
+    orphan support and retention are optional. Unknown, unexecuted or otherwise unavailable hashes return
+    an error (-32001 recommended; 4444 for pruned required history), never null, [], partial results or
+    another block's records. Preserve exact identity in one coherent view, never substituting a block by height
+    (H03,H04,H06,H23,H27,H30,H32,H33).
   title: TraceFilter
 TraceCallAction:
   type: object
