@@ -94,9 +94,11 @@ TraceCall:
     state, bounded by the execution cap, while an explicit gas of 0 is a supplied zero limit that
     fails the intrinsic-gas check (-38013 recommended). A block limit or sender allowance may lower the budget;
     supplied gas above the cap uses the cap. Supply gas explicitly for a portable budget. Omitted
-    gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call. Blob simulation
-    defaults, validation and opcode-visible BLOBBASEFEE for omitted or zero maxFeePerBlobGas remain
-    separately unresolved; a universal zero default is not required (H15). Legacy gasPrice and dynamic
+    gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call. A blob call (one
+    carrying blobVersionedHashes or maxFeePerBlobGas) whose maxFeePerBlobGas is omitted, null or 0 runs
+    with BLOBBASEFEE 0 and pays no blob fee; a positive maxFeePerBlobGas is validated against the
+    selected block''s blob base fee and charged. Calls without blob fields keep the selected block''s
+    BLOBBASEFEE (H15). Legacy gasPrice and dynamic
     fee fields MUST
     NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including
     CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match
