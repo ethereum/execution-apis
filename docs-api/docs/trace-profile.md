@@ -82,11 +82,13 @@ it, because clients reject some malformed input through their own validation pat
 - `trace_filter` ranges follow `eth_getLogs`
   ([#875](https://github.com/ethereum/execution-apis/pull/875)): if either bound resolves beyond
   the current head, or `fromBlock` resolves above `toBlock`, return an error (-32602, Invalid params,
-  recommended). Never clamp the range or return a partial result. Portable bounds use `BlockNumberOrTagForRange`, excluding `pending`. Existing canonical hash
-  strings and EIP-1898 block-hash objects may remain documented optional range extensions. Resolve
-  accepted endpoints to heights in one coherent canonical view, or reject unsupported forms; unknown,
-  noncanonical, unexecuted or unavailable endpoints return an error, never a substituted bound.
-  Hash endpoints do not pin exact identity across a reorg; use the optional exact-block member below.
+  recommended). Never clamp the range or return a partial result. Bounds use `BlockNumberOrTagForRange`:
+  numbers and the `earliest`, `latest`, `safe` and `finalized` tags, excluding `pending`. A block-hash
+  string or EIP-1898 block-hash object as `fromBlock` or `toBlock` is rejected (-32602 recommended),
+  as `eth_getLogs` range bounds reject them. Rejecting hash bounds is a choice: Erigon and Nethermind
+  accept both forms today. Parity accepted only the EIP-1898 object, never a bare hash string, and
+  resolved it to a number before scanning its canonical trace index, so its hash bounds never pinned
+  a block. To pin one block by hash, use the `blockHash` member below.
   An unresolvable `safe` or `finalized` tag returns an error, never head substitution or an empty result. `earliest` is the lowest block the client has available, as the shared tag defines it;
   an explicit number below retained history returns an error (4444 recommended).
 - Omitted filter bounds both mean `latest`, resolved against the same canonical head for the
@@ -95,18 +97,20 @@ it, because clients reject some malformed input through their own validation pat
   `trace_filter` default and the `eth_getLogs` convention. Query limits produce an explicit error,
   never an incomplete success. `count` limits returned records, not scan or replay work.
   [H30](https://github.com/banteg/trace-interop/blob/main/reports/decisions/H30.md)
-- `trace_filter` may implement a `blockHash` member, using the `eth_getLogs` selector shape.
-  An unsupported non-null member is explicitly rejected (-32602 recommended), never silently ignored.
-  Null means omission even on clients without support (H14). A non-null hash is mutually exclusive
-  with non-null bounds (-32602 recommended). Accepted results, including `[]`, describe exactly that
-  block, with its own hash on each record; matching, ordering and pagination retain their usual rules.
-  Accurate noncanonical results are allowed where the required body, branch state and execution
-  environment are available. Orphan support and retention are optional. Unknown, unexecuted or
-  otherwise unavailable hashes return an error (-32001 recommended; 4444 for pruned required history),
-  never null, `[]`, partial results or another block's records. Validate the selector before any
-  `count: 0` shortcut and preserve identity in one coherent view, rather than resolving a hash to a
-  height and scanning a replacement. This exact-block-or-error proposal is narrower than EIP-234's
-  orphan-serving contract. Universal support remains a separate portability question (H33).
+- `trace_filter` takes a `blockHash` member (a 32-byte hash), as `eth_getLogs` does under EIP-234.
+  It is part of the method contract, like the other filter members (H01): callers may omit it, and
+  clients implement it rather than reject or ignore it. A non-null `blockHash` is mutually exclusive
+  with non-null `fromBlock` and `toBlock` (-32602 recommended); an explicit null for any of the three
+  is the same as omitting it (H14). It selects exactly the block with that hash: the result, including
+  `[]`, is for that block and each record carries its hash. Address matching, `mode` (including reward
+  matching), ordering and `after`/`count` then apply as for a single-block range. The block must be
+  canonical in the request's chain view and executed: an unknown, noncanonical, not-yet-executed or
+  otherwise unavailable hash returns an error (-32001 recommended; 4444 for pruned history), never
+  `[]` or another block's records. Resolve the hash and trace the block in one chain view, never
+  resolving it to a number and scanning that number in a newer view, and validate the selector before
+  any `count: 0` shortcut. This narrows EIP-234, which also serves noncanonical blocks: serving a side
+  chain needs its body, its parent's state and its branch environment, which canonical history
+  retention does not provide. Side-chain selection is left to a possible later extension (H33).
 - Existing correct hash-string and EIP-1898 selector forms on other trace methods remain optional
   extensions beyond the baseline selector schemas. An accepted selector must preserve its requested
   identity. Accepting `requireCanonical: true` must enforce canonicality or reject the request;
@@ -117,10 +121,8 @@ it, because clients reject some malformed input through their own validation pat
   `trace_callMany` accept it only when the client has such a pending environment; a simulation then
   runs on the pending block's post-state and environment. A client without one rejects it
   (-32602 recommended) rather than evaluate `latest` or another block. Records traced from the pending block carry its number and
-  the hash of the block the client built, which is not canonical; numeric and tag selections otherwise
-  carry canonical block hashes. Optional exact hash selections may return accurate noncanonical
-  records carrying the requested block's own hash (H33). `trace_filter` bounds reject `pending`,
-  with -32602 recommended (H32).
+  the hash of the block the client built, which is not canonical; all other localized records carry
+  canonical block hashes. `trace_filter` bounds reject `pending`, with -32602 recommended (H32).
 
 ## Blocks, rewards and pagination
 
