@@ -155,10 +155,12 @@ used, so CREATE addresses derive from the state nonce. `gas` is a uint64.
 
 Ordinary execution fees follow `eth_call` (H15). Omitted execution-fee fields default to zero. The zero-fee
 rule applies to the effective gas price after defaulting: a zero price means GASPRICE 0 and BASEFEE
-0. Blob simulation defaults, fee-cap validation and opcode-visible BLOBBASEFEE for omitted or zero blob
-pricing remain separately unresolved; this profile does not require a universal zero rule. Covering
-positive blob pricing and calls without blob fields preserve the selected block’s BLOBBASEFEE. Defined
-blob fields must take effect or cause rejection, never be ignored. Execution-fee validation is skipped only when both execution fee caps are zero.
+0. The blob fee is decided independently of the execution fee. A blob call carries
+`blobVersionedHashes` or `maxFeePerBlobGas`; when its `maxFeePerBlobGas` is omitted, null or zero, it
+runs with BLOBBASEFEE 0 and pays no blob fee, so an explicit zero is accepted, matching Geth’s
+`eth_call` defaults and the `eth_simulateV1` schema default of 0. A positive `maxFeePerBlobGas` is validated against
+the selected block’s blob base fee and charged. Calls without blob fields keep the selected block’s
+BLOBBASEFEE. Defined blob fields must take effect or cause rejection, never be ignored. Execution-fee validation is skipped only when both execution fee caps are zero.
 Positive prices are validated against the base fee, funded and charged, with refunds, base-fee burn
 and tips simulated. This removes Parity’s virtual balance top-up for unsigned calls.
 
@@ -188,7 +190,7 @@ The recommended codes are those of `eth_simulateV1`: -38012 base fee too low, -3
 fee cap, and any other defect that makes the call object invalid regardless of state (a transaction
 type or field combination no transaction can carry, an empty authorization list), takes precedence
 when several rules are violated: the rejection reports that defect, with -32602 recommended. Any
-other validation failure without a listed code, such as a blob fee cap below the blob base fee or a
+other validation failure without a listed code, such as a positive blob fee cap below the blob base fee or a
 transaction type not active at the selected fork, recommends -32003 (Transaction rejected), the
 fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
 the EIP-3607 sender-code check, as `eth_call` does, so the nonce and sender-not-EOA codes do not

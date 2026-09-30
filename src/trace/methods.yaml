@@ -9,11 +9,12 @@
     execution fees follow eth_call (H15). Omitted execution-fee fields default to 0. The effective gas
     price is gasPrice, or
     min(maxPriorityFeePerGas + base fee, maxFeePerGas), computed after defaulting; when it is 0, GASPRICE
-    and BASEFEE are both 0 and no gas fee is paid. Blob simulation defaults, fee-cap validation and
-    opcode-visible BLOBBASEFEE for omitted or zero blob pricing remain separately unresolved (H15); no
-    universal zero rule is required. A covering positive blob cap and calls without blob fields preserve
-    the selected block's BLOBBASEFEE. Defined blob fields must take effect or cause rejection, never be
-    ignored. Other block
+    and BASEFEE are both 0 and no gas fee is paid. The blob fee is decided independently (H15). A blob
+    call carries blobVersionedHashes or maxFeePerBlobGas, and when its maxFeePerBlobGas is omitted, null
+    or 0 it runs with BLOBBASEFEE 0 and pays no blob fee, so an explicit zero is accepted. A positive
+    maxFeePerBlobGas is validated against the selected block's blob base fee and charged. Calls without
+    blob fields keep the selected block's BLOBBASEFEE. Defined blob fields must take effect or cause
+    rejection, never be ignored. Other block
     fields are unchanged. Execution-fee validation is skipped only when both execution fee caps are 0, as with gasPrice 0.
     Omitted gas follows the client's eth_call default at the selected state, bounded by the server's
     execution cap; a block limit or sender allowance may lower that budget but never raise it above
@@ -126,8 +127,8 @@
     transient storage, the refund counter and the EIP-6780 same-transaction scope all start afresh for
     each item. All items share one block environment, as selected for trace_call; NUMBER and TIMESTAMP
     do not advance between items. The first item runs against the same state and environment as
-    trace_call at the selected block. The trace_call fee rules, including the zero-fee BASEFEE
-    adjustment, apply to each item independently. Each stateDiff is relative to the preceding item's
+    trace_call at the selected block. The trace_call fee rules, including the zero-fee BASEFEE and blob-fee
+    BLOBBASEFEE adjustments, apply to each item independently. Each stateDiff is relative to the preceding item's
     post-state. Reverted writes roll back and subsequent items continue; transaction-level nonce and fee
     effects survive. If any decoded item fails validation, return one error for the whole request, with
     the trace_call codes recommended; return no partial results. A client SHOULD include the failing
