@@ -5,12 +5,16 @@
     block returns an error (-32001, Resource not found, recommended), and a known block whose required state is pruned returns
     an error (4444 recommended). pending selects the client's pending block, the next block number built on latest with its
     pending transactions, and is accepted only when the client has such a pending environment; a client
-    without one rejects it (-32602 recommended) rather than substitute another block (H32). Fees follow eth_call and
-    eth_simulateV1 (H15). Omitted fee fields default to 0. The effective gas price is gasPrice, or
+    without one rejects it (-32602 recommended) rather than substitute another block (H32). Ordinary
+    execution fees follow eth_call (H15). Omitted execution-fee fields default to 0. The effective gas
+    price is gasPrice, or
     min(maxPriorityFeePerGas + base fee, maxFeePerGas), computed after defaulting; when it is 0, GASPRICE
-    and BASEFEE are both 0 and no gas fee is paid. BLOBBASEFEE is 0 exactly when maxFeePerBlobGas is
-    supplied as 0 or defaulted to 0; a call without blob fields keeps the block's BLOBBASEFEE. Other block
-    fields are unchanged. Fee validation is skipped only when both fee caps are 0, as with gasPrice 0.
+    and BASEFEE are both 0 and no gas fee is paid. Blob simulation defaults, fee-cap validation and
+    opcode-visible BLOBBASEFEE for omitted or zero blob pricing remain separately unresolved (H15); no
+    universal zero rule is required. A covering positive blob cap and calls without blob fields preserve
+    the selected block's BLOBBASEFEE. Defined blob fields must take effect or cause rejection, never be
+    ignored. Other block
+    fields are unchanged. Execution-fee validation is skipped only when both execution fee caps are 0, as with gasPrice 0.
     Omitted gas follows the client's eth_call default at the selected state, bounded by the server's
     execution cap; a block limit or sender allowance may lower that budget but never raise it above
     the cap. Supplied gas above the cap runs with the cap. Callers requiring a portable budget supply
@@ -24,10 +28,13 @@
     maxFeePerGas (-32602 recommended), and the sender must fund the upfront cost (-38014 recommended); execution then charges
     the upfront gas payment, applies refunds, burns the base fee and pays the tip. A zero price does not
     exempt value transfers from funding. Validation rejections recommend the eth_simulateV1 codes listed below;
-    malformed requests are rejected (-32602 recommended). Optional StateOverrides and BlockOverrides use the eth_simulateV1
-    schemas and apply before execution; block overrides replace fields of the selected block
-    environment, and the zero-fee rule then uses the overridden base fee. A client that does not
-    implement an override parameter must reject a non-null value (-32602 recommended). Simulated changes are
+    malformed requests are rejected (-32602 recommended). Positional StateOverrides and BlockOverrides
+    are preferred optional extensions, using the eth_simulateV1 schemas and applying before execution.
+    Existing recognized configuration wrappers remain optional extensions where their contents take
+    effect. The baseline call arity does not require either form. Reject an unsupported non-null override
+    shape (-32602 recommended), never silently treat a state map as an empty configuration. Block
+    overrides replace fields of the selected block environment, and the zero-fee rule then uses the
+    overridden base fee. Simulated changes are
     discarded. EVM failure is trace output; invalid parameters or unavailable state are RPC errors
     (H08,H11,H14,H15,H28). Error codes named in this profile are recommended; conformance requires the
     error response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
@@ -56,7 +63,8 @@
     schema:
       title: Optional state overrides
       anyOf:
-      - $ref: '#/components/schemas/StateOverrides'
+      - $ref: '#/components/schemas/TraceStateOverrides'
+      - $ref: '#/components/schemas/TraceOverrideConfig'
       - type: 'null'
   - &blockOverrides
     name: BlockOverrides
@@ -122,11 +130,14 @@
     adjustment, apply to each item independently. Each stateDiff is relative to the preceding item's
     post-state. Reverted writes roll back and subsequent items continue; transaction-level nonce and fee
     effects survive. If any decoded item fails validation, return one error for the whole request, with
-    the trace_call codes recommended, whose error.data object carries the zero-based index of the failing item as index;
-    return no partial results. A malformed item is rejected without an index (-32602 recommended). A server may cap the item count or total gas only with an explicit
+    the trace_call codes recommended; return no partial results. A client SHOULD include the failing
+    item's zero-based index in error.data.index. If present, the index MUST identify the failing item. A
+    malformed item is rejected without an index (-32602 recommended). A server may cap the item count or
+    total gas only with an explicit
     error (-38026 recommended), never by truncating. Return one envelope per input in order. The sequence never changes
-    canonical state. Empty input returns []. Block defaults to latest; StateOverrides and BlockOverrides
-    apply once, before the first item, as for trace_call (H15,H16,H25,H31). Error codes named in this
+    canonical state. Empty input returns []. Block defaults to latest; preferred positional overrides or
+    recognized existing override wrappers are optional, and accepted overrides apply once, before the
+    first item, as for trace_call (H15,H16,H25,H31). Error codes named in this
     profile are recommended; conformance requires the error response itself. This is a provisional trace
     profile; see docs-api/docs/trace-profile.md and its decision references.
   params:
@@ -307,8 +318,10 @@
     order but belong to no envelope; concatenated stateDiffs therefore do not reconstruct the block
     post-state. Block accepts pending only when the client has a pending block (the next block number
     with its pending transactions); otherwise pending is rejected (-32602 recommended). An unknown selected block returns
-    null or an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns an error (4444 recommended)
-    (H05,H07,H16,H28,H32). Where an error is required, codes named in this profile are recommended. This is a provisional trace profile; see
+    null or an error (-32001, Resource not found, recommended); a known block whose required state is
+    pruned returns an error (4444 recommended)
+    (H05,H07,H16,H28,H32). Where an error is required, codes named in this profile are recommended. This
+    is a provisional trace profile; see
     docs-api/docs/trace-profile.md and its decision references.'
   params:
   - &historicalBlock
@@ -358,8 +371,10 @@
     which is not canonical; numeric and tag selections otherwise carry canonical block hashes.
     Correct optional hash-selector extensions may return the requested noncanonical block's own records (H33).
     An unknown selected block
-    returns null or an error (-32001, Resource not found, recommended); a known block whose required state is pruned returns an error (4444 recommended)
-    (H05,H06,H27,H28,H32). Where an error is required, codes named in this profile are recommended. This is a provisional trace profile; see docs-api/docs/trace-profile.md and
+    returns null or an error (-32001, Resource not found, recommended); a known block whose required
+    state is pruned returns an error (4444 recommended)
+    (H05,H06,H27,H28,H32). Where an error is required, codes named in this profile are recommended. This
+    is a provisional trace profile; see docs-api/docs/trace-profile.md and
     its decision references.
   params:
   - *historicalBlock
@@ -460,7 +475,8 @@
     another block's records. Validate the selector before a count 0 shortcut. Resolve and trace against
     one coherent view, preserving identity rather than scanning a replacement block at the same height.
     Apply OR within each address list and AND between the lists by default, as eth_getLogs composes topic positions;
-    mode union matches either populated list; omitted/null/empty lists are unrestricted; compare address bytes independently of hex letter case.
+    mode union matches either populated list; omitted/null/empty lists are unrestricted; compare address
+    bytes independently of hex letter case.
     Omitted bounds mean latest through latest, resolved against one canonical head. As for eth_getLogs,
     if either bound resolves to a block number greater than the current head block, or fromBlock resolves
     above toBlock, return an error (-32602, Invalid params, recommended); an explicit toBlock before an omitted latest start is
@@ -479,7 +495,8 @@
     then preorder, with each block's rewards after its transaction records (block reward, then uncle
     rewards in ommer order). Filter first, then skip after records and take count. Offsets are stable
     only for a fixed selection. Capture one coherent snapshot for the request; numeric and tag ranges
-    select its canonical blocks (H03-H06,H23,H27,H30,H32,H33). Error codes named in this profile are recommended; conformance requires
+    select its canonical blocks (H03-H06,H23,H27,H30,H32,H33). Error codes named in this profile are
+    recommended; conformance requires
     the error response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md
     and its decision references.
   params:

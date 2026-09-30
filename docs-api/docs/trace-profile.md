@@ -70,10 +70,12 @@ it, because clients reject some malformed input through their own validation pat
 - `trace_filter` ranges follow `eth_getLogs`
   ([#875](https://github.com/ethereum/execution-apis/pull/875)): if either bound resolves beyond
   the current head, or `fromBlock` resolves above `toBlock`, return an error (-32602, Invalid params,
-  recommended). Never clamp the range or return a partial result. Bounds use `BlockNumberOrTagForRange`, which excludes
-  `pending` and block hashes. Rejecting hash bounds and EIP-1898 block objects is a choice: Parity,
-  Erigon and Nethermind accept them, but `eth_getLogs` range bounds do not; use a number or the optional
-  exact-block member below. `earliest` is the lowest block the client has available, as the shared tag defines it;
+  recommended). Never clamp the range or return a partial result. Portable bounds use `BlockNumberOrTagForRange`, excluding `pending`. Existing canonical hash
+  strings and EIP-1898 block-hash objects may remain documented optional range extensions. Resolve
+  accepted endpoints to heights in one coherent canonical view, or reject unsupported forms; unknown,
+  noncanonical, unexecuted or unavailable endpoints return an error, never a substituted bound.
+  Hash endpoints do not pin exact identity across a reorg; use the optional exact-block member below.
+  An unresolvable `safe` or `finalized` tag returns an error, never head substitution or an empty result. `earliest` is the lowest block the client has available, as the shared tag defines it;
   an explicit number below retained history returns an error (4444 recommended).
 - Omitted filter bounds both mean `latest`, resolved against the same canonical head for the
   request. A `toBlock` earlier than the omitted `fromBlock` is a reversed range and is rejected;
@@ -137,28 +139,33 @@ field the schema defines either takes effect with its `eth_call` meaning or caus
 outside the schema are ignored. A supplied nonce is accepted but neither validated nor
 used, so CREATE addresses derive from the state nonce. `gas` is a uint64.
 
-Fees follow `eth_call` and `eth_simulateV1` (H15). Omitted fee fields default to zero. The zero-fee
+Ordinary execution fees follow `eth_call` (H15). Omitted execution-fee fields default to zero. The zero-fee
 rule applies to the effective gas price after defaulting: a zero price means GASPRICE 0 and BASEFEE
-0. BLOBBASEFEE is 0 exactly when `maxFeePerBlobGas` is supplied as 0 or defaulted to 0; calls without blob
-fields keep the block’s BLOBBASEFEE. Fee validation is skipped only when both fee caps are zero.
+0. Blob simulation defaults, fee-cap validation and opcode-visible BLOBBASEFEE for omitted or zero blob
+pricing remain separately unresolved; this profile does not require a universal zero rule. Covering
+positive blob pricing and calls without blob fields preserve the selected block’s BLOBBASEFEE. Defined
+blob fields must take effect or cause rejection, never be ignored. Execution-fee validation is skipped only when both execution fee caps are zero.
 Positive prices are validated against the base fee, funded and charged, with refunds, base-fee burn
 and tips simulated. This removes Parity’s virtual balance top-up for unsigned calls.
 
-Parameter positions for overrides are reserved: `trace_call` takes `StateOverrides` fourth and
-`BlockOverrides` fifth; `trace_callMany` takes them third and fourth. Both use the `eth_simulateV1`
-schemas. A client that does not implement them must reject a non-null value (-32602 recommended). With a
-block override, the zero-fee rule uses the overridden base fee.
+Preferred positional overrides are optional extensions: `trace_call` takes `StateOverrides` fourth
+and `BlockOverrides` fifth; `trace_callMany` takes them third and fourth, using the `eth_simulateV1`
+field schemas, with storage optional for balance/code/nonce-only overrides and `state`/`stateDiff` mutually exclusive. Existing recognized configuration wrappers remain optional extensions where their contents
+actually take effect. The baseline call arity does not require either form. Reject unsupported non-null
+override shapes (-32602 recommended), never silently treat a state map as an empty configuration.
+Accepted overrides apply before execution, once before the first batch item. With a block override,
+the zero-fee rule uses the overridden base fee.
 
 In `trace_callMany` every item is a separate transaction: EIP-2200 and EIP-3529 original storage
 values, EIP-2929 access sets, EIP-1153 transient storage, the refund counter and EIP-6780’s
 same-transaction scope start afresh. All items share one block environment, so NUMBER and TIMESTAMP
 do not advance. The first item runs against the same state and environment as `trace_call` at the
 selected block, and each diff is relative to the preceding item’s post-state. If any decoded item
-fails validation, the request returns one error whose `error.data.index` is the zero-based item index,
-and no partial results. The single error without partial results follows Erigon, Reth and Parity.
+fails validation, the request returns one error and no partial results. A client SHOULD include the
+failing item’s zero-based index in `error.data.index`; if present, the index MUST identify that item. The single error without partial results follows Erigon, Reth and Parity.
 `error.data.index` is new in this profile: no client reports the index in structured form today
-(Erigon names it only in message text), and it lets callers locate the failing item without matching
-text. A malformed item is rejected without an index (-32602 recommended). Servers may cap items or
+(Erigon names it only in message text). It is recommended diagnostics, so its absence is not a
+conformance failure; when supplied it lets callers locate the failing item without matching text. A malformed item is rejected without an index (-32602 recommended). Servers may cap items or
 total gas with an explicit error (-38026 recommended), never by truncating.
 
 Validation rejections of `trace_call` and `trace_callMany` are errors that report their violation.
