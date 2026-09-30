@@ -465,7 +465,13 @@
       value: null
 - name: trace_filter
   summary: Returns localized traces matching an address filter.
-  description: An optional blockHash member selects exactly one block, using the eth_getLogs selector shape.
+  description: Implementations may generate traces on demand or use stored traces or indexes.
+    No additional index, trace persistence, archive retention, or particular latency, throughput,
+    or minimum query-range guarantee is required. Clients may impose implementation-defined limits
+    on query ranges, output size, execution work, and duration; unavailable required history or a
+    limit that prevents completing the requested result produces an explicit error, never a silently
+    narrowed selection or an incomplete success. Explicit pagination retains its defined meaning.
+    An optional blockHash member selects exactly one block, using the eth_getLogs selector shape.
     Clients without support explicitly reject a non-null member (-32602 recommended), never ignore it;
     null is omitted even without support (H14). A non-null hash is mutually exclusive with non-null range
     bounds (-32602 recommended). Accepted collections, including [], belong entirely to the requested block
