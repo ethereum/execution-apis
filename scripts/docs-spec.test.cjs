@@ -76,12 +76,14 @@ test('actual generated trace pages retain array, variant fields and localization
   assert.match(call, /Only fields outside this schema are ignored/);
   for (const param of ['StateOverrides', 'BlockOverrides']) assert.ok(call.includes(`**${param}**`), `reserved ${param} parameter must be visible`);
   const filter = pages.find(page => page.methodName === 'trace_filter').markdown;
-  for (const field of ['fromAddress', 'toAddress']) {
+  for (const field of ['blockHash', 'fromAddress', 'toAddress']) {
     assert.ok(filter.includes(`**${field}**`), `nullable filter field ${field} must be visible`);
   }
   assert.match(filter, /Missing, null or empty/);
   assert.match(filter, /-32602/);
-  assert.doesNotMatch(filter, /-32001/);
+  assert.match(filter, /-32001/);
+  assert.match(filter, /Clients without support explicitly reject/);
+  assert.match(filter, /orphan support and retention are optional/);
   assert.match(get, /Integer path entries are rejected \(-32602 recommended\)/);
 
   assert.equal(JSON.stringify(input), before);
