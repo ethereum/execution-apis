@@ -195,9 +195,13 @@ transaction type not active at the selected fork, recommends -32003 (Transaction
 fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
 the EIP-3607 sender-code check, as `eth_call` does, so the nonce and sender-not-EOA codes do not
 apply. Omitted gas follows the client's `eth_call` default at the selected state, bounded by the
-server's execution cap. A block limit or sender allowance may lower the budget but never raise it
-above the cap. Supplied gas above the cap runs with the cap. Supply gas explicitly for a portable
-budget; the cap is server policy, not a truncated result.
+server's execution cap. Only omitted or null gas takes that default: an explicit `"gas": "0x0"` is a
+supplied limit of 0, which fails the intrinsic-gas check, so the call is rejected (-38013
+recommended) with no trace, and in `trace_callMany` the whole request errors as for any invalid item.
+This matches `eth_simulateV1` and every client's `eth_call` except Erigon's, which treats 0 as
+omitted. A block limit or sender allowance may lower the budget but never raise it above the cap.
+Supplied gas above the cap runs with the cap. Supply gas explicitly for a portable budget; the cap
+is server policy, not a truncated result.
 `trace_rawTransaction` rejections recommend the `eth_sendRawTransaction` error groups
 ([#650](https://github.com/ethereum/execution-apis/pull/650)): 1 nonce too low, 2 nonce too high,
 800 intrinsic gas, 804 priority fee above fee cap, 806 fee cap below base fee and 809 insufficient

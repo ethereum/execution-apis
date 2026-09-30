@@ -18,7 +18,9 @@
     fields are unchanged. Execution-fee validation is skipped only when both execution fee caps are 0, as with gasPrice 0.
     Omitted gas follows the client's eth_call default at the selected state, bounded by the server's
     execution cap; a block limit or sender allowance may lower that budget but never raise it above
-    the cap. Supplied gas above the cap runs with the cap. Callers requiring a portable budget supply
+    the cap. Only omitted or null gas takes that default. An explicit gas of 0 is a supplied limit of
+    0 that fails the intrinsic-gas check, so the call is rejected (-38013 recommended) with no trace,
+    as in eth_simulateV1. Supplied gas above the cap runs with the cap. Callers requiring a portable budget supply
     gas explicitly; the cap is server policy, not a truncated result. A validation failure is an error that reports its
     violation. A defect that makes the call object invalid regardless of state, such as a priority fee
     above the fee cap, an impossible type and field combination or an empty authorization list, takes
@@ -128,7 +130,8 @@
     each item. All items share one block environment, as selected for trace_call; NUMBER and TIMESTAMP
     do not advance between items. The first item runs against the same state and environment as
     trace_call at the selected block. The trace_call fee rules, including the zero-fee BASEFEE and blob-fee
-    BLOBBASEFEE adjustments, apply to each item independently. Each stateDiff is relative to the preceding item's
+    BLOBBASEFEE adjustments, apply to each item independently, as do its gas rules, so an item with an
+    explicit gas of 0 fails the intrinsic-gas check (-38013 recommended). Each stateDiff is relative to the preceding item's
     post-state. Reverted writes roll back and subsequent items continue; transaction-level nonce and fee
     effects survive. If any decoded item fails validation, return one error for the whole request, with
     the trace_call codes recommended; return no partial results. A client SHOULD include the failing

@@ -91,7 +91,8 @@ TraceCall:
     them does not establish extension support (H14). An explicit null for any field other than to is the
     same as omitting it. Omitted or null to creates a contract. Defaults: from
     zero address, value zero, input empty; omitted gas follows the client eth_call default at the selected
-    state, bounded by the execution cap. A block limit or sender allowance may lower the budget;
+    state, bounded by the execution cap, while an explicit gas of 0 is a supplied zero limit that
+    fails the intrinsic-gas check (-38013 recommended). A block limit or sender allowance may lower the budget;
     supplied gas above the cap uses the cap. Supply gas explicitly for a portable budget. Omitted
     gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call. Blob simulation
     defaults, validation and opcode-visible BLOBBASEFEE for omitted or zero maxFeePerBlobGas remain
