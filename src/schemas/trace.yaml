@@ -85,15 +85,18 @@ TraceCall:
     input. When data and input are both present they MUST be equal; otherwise reject the request (-32602
     recommended). Every field defined here MUST either take effect with its eth_call meaning or cause the
     request to be rejected (recommended: -32602 for a malformed field or impossible combination, or -32003
-    when the selected fork does not support the field, such as authorizationList before Prague); a client MUST NOT silently ignore a
+    when the selected fork does not support the field, such as authorizationList before Prague); a client
+    MUST NOT silently ignore a
     defined field. Only fields outside this schema are ignored, and accepting
     them does not establish extension support (H14). An explicit null for any field other than to is the
     same as omitting it. Omitted or null to creates a contract. Defaults: from
     zero address, value zero, input empty; omitted gas follows the client eth_call default at the selected
     state, bounded by the execution cap. A block limit or sender allowance may lower the budget;
-    supplied gas above the cap uses the cap. Supply gas explicitly for a portable budget. Omitted gasPrice,
-    maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call and eth_simulateV1; maxFeePerBlobGas
-    defaults to 0 when blobVersionedHashes are present (H15). Legacy gasPrice and dynamic fee fields MUST
+    supplied gas above the cap uses the cap. Supply gas explicitly for a portable budget. Omitted
+    gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call. Blob simulation
+    defaults, validation and opcode-visible BLOBBASEFEE for omitted or zero maxFeePerBlobGas remain
+    separately unresolved; a universal zero default is not required (H15). Legacy gasPrice and dynamic
+    fee fields MUST
     NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including
     CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match
     the chain.'
@@ -136,7 +139,20 @@ TraceFilter:
       - allOf:
         - $ref: '#/components/schemas/BlockNumberOrTagForRange'
         - maxLength: 18
+      - title: Block hash
+        $ref: '#/components/schemas/hash32'
+      - type: object
+        required: [blockHash]
+        properties:
+          blockHash:
+            $ref: '#/components/schemas/hash32'
+          requireCanonical:
+            type: boolean
+        additionalProperties: false
       - type: 'null'
+      description: Numbers and mined tags are the portable baseline. Canonical hash strings or
+        blockHash objects are optional range extensions, resolved to heights in one coherent
+        canonical view; unsupported forms are explicitly rejected, never ignored (H32).
     toBlock: *rangeBound
     fromAddress:
       anyOf:
@@ -177,9 +193,16 @@ TraceFilter:
         type: 'null'
       toBlock:
         type: 'null'
-  description: An explicit null member is the same as an omitted one. Inclusive block range; defaults omitted fromBlock and toBlock to the same latest head,
-    after 0, count unlimited subject to an explicit server limit. Bounds exclude pending and block
-    hashes; numeric bounds fit uint64. If either bound resolves beyond the current head block, or fromBlock resolves above
+  description: An explicit null member is the same as an omitted one. Inclusive block range; defaults
+    omitted fromBlock and toBlock to the same latest head,
+    after 0, count unlimited subject to an explicit server limit. Portable bounds are numbers and mined
+    tags, excluding pending; numeric bounds fit uint64. Canonical hash strings or blockHash objects are
+    optional range extensions; resolve accepted endpoints to heights in one coherent canonical view, or
+    explicitly reject unsupported forms. Unknown, noncanonical, unexecuted or unavailable endpoints
+    return an error, never a substituted bound. These endpoints do not provide exact block identity
+    across a reorg; use blockHash for that (H32,H33). Unresolvable safe or finalized tags return an
+    error, never head substitution or an empty result. If either bound resolves beyond the current head
+    block, or fromBlock resolves above
     toBlock, return an error (-32602 recommended); an explicit toBlock before an omitted latest start is
     such a reversed range. Never clamp the range.
     OR within each address list; AND between lists by default, as eth_getLogs composes topic positions.
@@ -641,7 +664,8 @@ TraceStorageChange:
     additionalProperties: false
   description: '+ lists a nonzero post-state slot of a born account. * changes a slot of an account that
     exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use =.
-    A deleted account may optionally list old slot values with -; account deletion implies all storage is wiped whether or not slots are listed (H17,H26).'
+    A deleted account may optionally list old slot values with -; account deletion implies all storage is
+    wiped whether or not slots are listed (H17,H26).'
   title: TraceStorageChange
 TraceAccountDiff:
   type: object
@@ -725,7 +749,8 @@ TraceStateDiff:
     deletion. + and - appear only when the account is born or dies; = marks an unchanged field and *
     a changed field of an account that exists at both endpoints. A born account includes zero nonce and
     empty code creation markers and lists its nonzero post-state slots. A deleted account has empty
-    storage or optional accurate old-slot - entries; account deletion implies all storage is wiped. Reverted EVM writes are absent; surviving
+    storage or optional accurate old-slot - entries; account deletion implies all storage is wiped.
+    Reverted EVM writes are absent; surviving
     transaction-level changes remain. callMany diffs are relative to each preceding post-state.
     Multiple authorization writes are reduced to their net effect, including nonce changes when final
     code equals initial code. An account absent at both endpoints has no account diff. The sender pays
@@ -880,3 +905,65 @@ TraceReplay:
       $ref: '#/components/schemas/hash32'
   description: Execution envelope with the replayed transaction hash (H07).
   title: TraceReplay
+
+TraceOverrideConfig:
+  title: Optional legacy override configuration
+  type: object
+  properties:
+    stateOverrides:
+      anyOf:
+      - $ref: '#/components/schemas/TraceStateOverrides'
+      - type: 'null'
+    blockOverrides:
+      anyOf:
+      - $ref: '#/components/schemas/BlockOverrides'
+      - type: 'null'
+  anyOf:
+  - required: [stateOverrides]
+  - required: [blockOverrides]
+  additionalProperties: true
+  description: Existing recognized configuration wrappers with override members may be accepted
+    instead of the preferred positional state map. Other configuration entries remain extension
+    fields. A successful decode does not establish support; accepted override members must take
+    effect, and unsupported non-null shapes must be rejected (H15).
+
+TraceStateOverrides:
+  title: Optional trace state overrides
+  type: object
+  patternProperties:
+    ^0x[a-fA-F0-9]{40}$:
+      type: object
+      properties:
+        nonce:
+          title: Nonce
+          $ref: '#/components/schemas/uint64'
+        balance:
+          title: Balance
+          $ref: '#/components/schemas/uint256'
+        code:
+          title: Code
+          $ref: '#/components/schemas/bytes'
+        movePrecompileToAddress:
+          title: MovePrecompileToAddress
+          $ref: '#/components/schemas/address'
+          description: Moves addresses precompile into the specified address. This move is done before
+            the 'code' override is set. Can only move precompiles.
+        state:
+          title: Storage
+          description: Key-value mapping to override all slots in the account storage before executing
+            the call. This functions similar to eth_call's state parameter.
+          $ref: '#/components/schemas/AccountStorage'
+        stateDiff:
+          title: Storage difference
+          description: Key-value mapping to override individual slots in the account storage before executing
+            the call. This functions similar to eth_call's state parameter.
+          $ref: '#/components/schemas/AccountStorage'
+      not:
+        required:
+        - state
+        - stateDiff
+      additionalProperties: false
+  additionalProperties: false
+  description: The StateOverrides fields with optional storage, preserving existing balance/code/nonce-only
+    trace and eth_call overrides. State and stateDiff are mutually exclusive. Accepted contents must take
+    effect (H15).
