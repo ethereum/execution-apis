@@ -82,8 +82,9 @@ test('actual generated trace pages retain array, variant fields and localization
   assert.match(filter, /Missing, null or empty/);
   assert.match(filter, /-32602/);
   assert.match(filter, /-32001/);
-  assert.match(filter, /Clients without support explicitly reject/);
-  assert.match(filter, /orphan support and retention are optional/);
+  assert.match(filter, /callers may omit it and clients implement it/);
+  assert.match(filter, /The block must be canonical and executed/);
+  assert.doesNotMatch(filter, /orphan/);
   assert.match(get, /Integer path entries are rejected \(-32602 recommended\)/);
 
   assert.equal(JSON.stringify(input), before);

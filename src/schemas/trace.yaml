@@ -132,27 +132,15 @@ TraceFilter:
       anyOf:
       - $ref: '#/components/schemas/hash32'
       - type: 'null'
-      description: Optional exact-block selection (H33). Explicitly reject a non-null member when unsupported
-        (-32602 recommended), never ignore it. Null is omitted, including on clients without support.
+      description: Selects exactly the canonical block with this hash (H33). Mutually exclusive with non-null
+        fromBlock and toBlock (-32602 recommended); null is omitted. An unknown, noncanonical, unexecuted or
+        unavailable hash returns an error (-32001 recommended; 4444 for pruned history), never [].
     fromBlock: &rangeBound
       anyOf:
       - allOf:
         - $ref: '#/components/schemas/BlockNumberOrTagForRange'
         - maxLength: 18
-      - title: Block hash
-        $ref: '#/components/schemas/hash32'
-      - type: object
-        required: [blockHash]
-        properties:
-          blockHash:
-            $ref: '#/components/schemas/hash32'
-          requireCanonical:
-            type: boolean
-        additionalProperties: false
       - type: 'null'
-      description: Numbers and mined tags are the portable baseline. Canonical hash strings or
-        blockHash objects are optional range extensions, resolved to heights in one coherent
-        canonical view; unsupported forms are explicitly rejected, never ignored (H32).
     toBlock: *rangeBound
     fromAddress:
       anyOf:
@@ -195,13 +183,10 @@ TraceFilter:
         type: 'null'
   description: An explicit null member is the same as an omitted one. Inclusive block range; defaults
     omitted fromBlock and toBlock to the same latest head,
-    after 0, count unlimited subject to an explicit server limit. Portable bounds are numbers and mined
-    tags, excluding pending; numeric bounds fit uint64. Canonical hash strings or blockHash objects are
-    optional range extensions; resolve accepted endpoints to heights in one coherent canonical view, or
-    explicitly reject unsupported forms. Unknown, noncanonical, unexecuted or unavailable endpoints
-    return an error, never a substituted bound. These endpoints do not provide exact block identity
-    across a reorg; use blockHash for that (H32,H33). Unresolvable safe or finalized tags return an
-    error, never head substitution or an empty result. If either bound resolves beyond the current head
+    after 0, count unlimited subject to an explicit server limit. Bounds are numbers and the earliest,
+    latest, safe and finalized tags; pending, block-hash strings and EIP-1898 block-hash objects are
+    rejected (-32602 recommended); numeric bounds fit uint64 (H32). Unresolvable safe or finalized tags
+    return an error, never head substitution or an empty result. If either bound resolves beyond the current head
     block, or fromBlock resolves above
     toBlock, return an error (-32602 recommended); an explicit toBlock before an omitted latest start is
     such a reversed range. Never clamp the range.
@@ -211,13 +196,12 @@ TraceFilter:
     filtering before pagination; validate selectors before count 0 returns []. after and count are JSON integers bounded by
     uint64. Return an error rather than silently truncate when a server limit is exceeded. earliest is
     the lowest available block; never replace an explicit endpoint with a retention boundary, and
-    return an error (4444 recommended) if required history is unavailable. count limits results, not scan or replay work
-    A non-null blockHash is mutually exclusive with non-null bounds. Accepted hash selections return only
-    that block's records with its own hash, including accurate noncanonical records where supported;
-    orphan support and retention are optional. Unknown, unexecuted or otherwise unavailable hashes return
-    an error (-32001 recommended; 4444 for pruned required history), never null, [], partial results or
-    another block's records. Preserve exact identity in one coherent view, never substituting a block by height
-    (H03,H04,H06,H23,H27,H30,H32,H33).
+    return an error (4444 recommended) if required history is unavailable. count limits results, not scan or replay work.
+    A non-null blockHash is mutually exclusive with non-null bounds (-32602 recommended) and selects
+    exactly that canonical block; the result, including [], is for that block, and each record carries
+    its hash. An unknown, noncanonical, unexecuted or otherwise unavailable hash returns an error (-32001
+    recommended; 4444 for pruned history), never [] or another block's records. Resolve the hash and
+    trace the block in one chain view, never substituting a block by height (H03,H04,H06,H23,H27,H30,H32,H33).
   title: TraceFilter
 TraceCallAction:
   type: object
