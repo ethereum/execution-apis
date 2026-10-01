@@ -36,6 +36,28 @@ the test and is only used to describe what the test is aiming to test.
 
 ## Generation
 
+### Engine API fixtures
+
+`rpctestgen` sends `engine_*` methods to the authenticated Engine API endpoint.
+It records only JSON-RPC request and response bodies; authentication headers
+are not part of the fixture. Hive rpc-compat needs Engine API routing support
+to replay these fixtures on the authenticated endpoint.
+
+For `engine_forkchoiceUpdatedV*`, payload IDs are opaque and client-specific.
+A recorded non-null `payloadId` requires a non-null 8-byte DATA value on replay,
+while the other response fields are compared exactly. These tests do not use
+`speconly`: a `SYNCING` response or a null payload ID must not satisfy a fixture
+that expects `VALID` and a started payload build.
+
+The `engine_forkchoiceUpdatedV4/target-gas-limit-*` fixtures require the Amsterdam
+chain from [#867](https://github.com/ethereum/execution-apis/pull/867). They cover
+zero, one, the signed 64-bit maximum, and the upper half of the unsigned 64-bit
+range. They keep the known head unchanged and check successful payload-building
+initiation, not equality between the target and the next block's gas limit.
+The generator reports an explicit error if run against a pre-Amsterdam head.
+
+### Generating fixtures
+
 Test generation can be broken down into two parts. First is the generation of a
 chain against which tests will be executed. Second is executing the actual
 tests and recording their round-trip.
