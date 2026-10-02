@@ -53,7 +53,7 @@ BlockStateCalls:
 StateOverrides:
   title: Dictionary of addresses in the state to be overridden
   description: |-
-    An override writes the account to the pre-state. The account exists after the overrides are applied, even when they leave it empty.
+    An override writes the account to the pre-state and changes only what it sets: the fields it names, the slots in `stateDiff`, or the whole storage with `state`. The rest of the account keeps its values. The account exists after the overrides are applied, even when they leave it empty.
   type: object
   patternProperties:
     '^0x[a-fA-F0-9]{40}$':
