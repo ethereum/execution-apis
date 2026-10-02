@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
@@ -6505,6 +6506,103 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-override-code-replaced-by-delegation",
+			About: "a code override is pre-state: an EIP-7702 delegation of the overridden account later in the block replaces it",
+			Run: func(ctx context.Context, t *T) error {
+				authority, auth, err := simulateDelegationAuth(t)
+				if err != nil {
+					return err
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+							common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+							authority:            OverrideAccount{Code: hex2Bytes("")},
+						},
+						Calls: []TransactionArgs{
+							{From: &common.Address{0xc0}, To: &authority},
+							{From: &common.Address{0xc0}, To: &common.Address{0xc0}, AuthorizationList: []types.SetCodeAuthorization{auth}},
+							{From: &common.Address{0xc0}, To: &authority},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, ""); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 2, returnWord(42))
+			},
+		},
+		{
+			Name:  "ethSimulate-override-delegation-replaced-by-redelegation",
+			About: "a code override with an EIP-7702 delegation designator is pre-state: a re-delegation later in the block replaces it",
+			Run: func(ctx context.Context, t *T) error {
+				authority, auth, err := simulateDelegationAuth(t)
+				if err != nil {
+					return err
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+							common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+							common.Address{0xc2}: OverrideAccount{Code: hex2Bytes(returnWordCode(1))},
+							authority:            OverrideAccount{Code: hex2Bytes("ef0100c200000000000000000000000000000000000000")},
+						},
+						Calls: []TransactionArgs{
+							{From: &common.Address{0xc0}, To: &authority},
+							{From: &common.Address{0xc0}, To: &common.Address{0xc0}, AuthorizationList: []types.SetCodeAuthorization{auth}},
+							{From: &common.Address{0xc0}, To: &authority},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, returnWord(1)); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 2, returnWord(42))
+			},
+		},
+		{
+			Name:  "ethSimulate-override-code-replaced-by-create",
+			About: "a code override is pre-state: a contract creation at the overridden address later in the block replaces it",
+			Run: func(ctx context.Context, t *T) error {
+				sender := common.Address{0xc0}
+				created := crypto.CreateAddress(sender, t.chain.state[sender].Nonce)
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							sender:  OverrideAccount{Balance: newRPCBalance(2000000)},
+							created: OverrideAccount{Code: hex2Bytes("")},
+						},
+						Calls: []TransactionArgs{
+							// PUSH10 <runtime> PUSH1 0 MSTORE PUSH1 10 PUSH1 22 RETURN
+							{From: &sender, Input: hex2Bytes("69" + returnWordCode(42) + "600052600a6016f3")},
+							{From: &sender, To: &created},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, returnWordCode(42)); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 1, returnWord(42))
+			},
+		},
+		{
 			Name:  "ethSimulate-extcodehash-existing-contract",
 			About: "test extcodehash getting of existing contract and then overriding it",
 			Run: func(ctx context.Context, t *T) error {
@@ -7195,6 +7293,9 @@ type TransactionArgs struct {
 	// Introduced by AccessListTxType transaction.
 	AccessList *types.AccessList `json:"accessList,omitempty"`
 	ChainID    *hexutil.Big      `json:"chainId,omitempty"`
+
+	// Introduced by SetCodeTxType transaction.
+	AuthorizationList []types.SetCodeAuthorization `json:"authorizationList,omitempty"`
 }
 
 // BlockOverrides is a set of header fields to override.
@@ -7272,6 +7373,44 @@ type transfer struct {
 	From  common.Address `json:"from"`
 	To    common.Address `json:"to"`
 	Value *big.Int       `json:"value"`
+}
+
+// simulateDelegationAuth signs an EIP-7702 authorization that delegates a pre-funded
+// account with no code to 0xc1, at the account's nonce in the head state.
+func simulateDelegationAuth(t *T) (common.Address, types.SetCodeAuthorization, error) {
+	authority, _ := t.chain.GetSender(3)
+	account := t.chain.state[authority]
+	if len(account.Code) != 0 {
+		return common.Address{}, types.SetCodeAuthorization{}, fmt.Errorf("sender %s has code", authority)
+	}
+	auth, err := t.chain.SignAuth(authority, types.SetCodeAuthorization{
+		ChainID: *uint256.MustFromBig(t.chain.Config().ChainID),
+		Address: common.Address{0xc1},
+		Nonce:   account.Nonce,
+	})
+	return authority, auth, err
+}
+
+// returnWordCode is runtime code that returns the given value as a 32-byte word:
+// PUSH1 <value> PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN.
+func returnWordCode(value byte) string {
+	return fmt.Sprintf("60%02x60005260206000f3", value)
+}
+
+// returnWord is the hex of a 32-byte word holding the given value.
+func returnWord(value byte) string {
+	return fmt.Sprintf("%064x", value)
+}
+
+// checkReturnData checks that the call at idx succeeded and returned the given hex data.
+func checkReturnData(calls []callResult, idx int, want string) error {
+	if calls[idx].Status != 1 {
+		return fmt.Errorf("call %d: unexpected status (have: %d, want: 1)", idx, calls[idx].Status)
+	}
+	if have := common.Bytes2Hex(calls[idx].ReturnData); have != want {
+		return fmt.Errorf("call %d: unexpected return data (have: %s, want: %s)", idx, have, want)
+	}
+	return nil
 }
 
 func newRPCBalance(balance int) **hexutil.Big {
