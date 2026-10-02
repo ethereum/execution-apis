@@ -6606,18 +6606,7 @@ var EthSimulateV1 = MethodTests{
 			Name:  "ethSimulate-override-empty-account-exists",
 			About: "an override that leaves a missing account empty still creates it: an EIP-7702 authorization from that account gets the existing-account refund",
 			Run: func(ctx context.Context, t *T) error {
-				key, err := crypto.ToECDSA(common.LeftPadBytes([]byte{0x77, 0x02}, 32))
-				if err != nil {
-					return err
-				}
-				authority := crypto.PubkeyToAddress(key.PublicKey)
-				if _, exists := t.chain.state[authority]; exists {
-					return fmt.Errorf("authority %s exists in the head state", authority)
-				}
-				auth, err := types.SignSetCode(key, types.SetCodeAuthorization{
-					ChainID: *uint256.MustFromBig(t.chain.Config().ChainID),
-					Address: common.Address{0xc1},
-				})
+				authority, auth, err := simulateFreshAuthorityAuth(t)
 				if err != nil {
 					return err
 				}
@@ -6647,6 +6636,48 @@ var EthSimulateV1 = MethodTests{
 					return fmt.Errorf("call 0: unexpected gas used (have: %d, want: 36800), the overridden account does not exist", got)
 				}
 				return checkReturnData(res[0].Calls, 1, returnWord(42))
+			},
+		},
+		{
+			Name:  "ethSimulate-override-empty-account-exists-across-blocks",
+			About: "an account that an override left empty still exists in the next block, also after an override there leaves it empty again",
+			Run: func(ctx context.Context, t *T) error {
+				authority, auth, err := simulateFreshAuthorityAuth(t)
+				if err != nil {
+					return err
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+							common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+							authority:            OverrideAccount{Code: hex2Bytes("")},
+						},
+						Calls: []TransactionArgs{
+							{From: &common.Address{0xc0}, To: &common.Address{0xc1}},
+						},
+					}, {
+						StateOverrides: &StateOverride{
+							authority: OverrideAccount{Balance: newRPCBalance(0)},
+						},
+						Calls: []TransactionArgs{
+							{From: &common.Address{0xc0}, To: &common.Address{0xc0}, AuthorizationList: []types.SetCodeAuthorization{auth}},
+							{From: &common.Address{0xc0}, To: &authority},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[1].Calls, 0, ""); err != nil {
+					return err
+				}
+				if got := res[1].Calls[0].GasUsed; got != 36800 {
+					return fmt.Errorf("call 0: unexpected gas used (have: %d, want: 36800), the overridden account does not exist", got)
+				}
+				return checkReturnData(res[1].Calls, 1, returnWord(42))
 			},
 		},
 		{
@@ -7434,6 +7465,24 @@ func simulateDelegationAuth(t *T) (common.Address, types.SetCodeAuthorization, e
 		ChainID: *uint256.MustFromBig(t.chain.Config().ChainID),
 		Address: common.Address{0xc1},
 		Nonce:   account.Nonce,
+	})
+	return authority, auth, err
+}
+
+// simulateFreshAuthorityAuth signs an EIP-7702 authorization to 0xc1 from a fixed key whose
+// address is not in the head state, so a state override can create the account.
+func simulateFreshAuthorityAuth(t *T) (common.Address, types.SetCodeAuthorization, error) {
+	key, err := crypto.ToECDSA(common.LeftPadBytes([]byte{0x77, 0x02}, 32))
+	if err != nil {
+		return common.Address{}, types.SetCodeAuthorization{}, err
+	}
+	authority := crypto.PubkeyToAddress(key.PublicKey)
+	if _, exists := t.chain.state[authority]; exists {
+		return common.Address{}, types.SetCodeAuthorization{}, fmt.Errorf("authority %s exists in the head state", authority)
+	}
+	auth, err := types.SignSetCode(key, types.SetCodeAuthorization{
+		ChainID: *uint256.MustFromBig(t.chain.Config().ChainID),
+		Address: common.Address{0xc1},
 	})
 	return authority, auth, err
 }
