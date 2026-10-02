@@ -6681,6 +6681,21 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-override-empties-contract-keeps-storage",
+			About: "an override that leaves an existing contract empty keeps the account and its storage, so code set by a later override reads the old slots",
+			Run: func(ctx context.Context, t *T) error {
+				contract := common.HexToAddress("0x7Dcd17433742F4c0Ca53122aB541D0Ba67fC27Df")
+				return simulateEmptiedAccountKeepsStorage(t, contract)
+			},
+		},
+		{
+			Name:  "ethSimulate-override-empties-delegated-account-keeps-storage",
+			About: "an override that leaves a delegated account empty keeps the account and its storage, so code set by a later override reads the old slots",
+			Run: func(ctx context.Context, t *T) error {
+				return simulateEmptiedAccountKeepsStorage(t, t.chain.txinfo.EIP7702.Account)
+			},
+		},
+		{
 			Name:  "ethSimulate-extcodehash-existing-contract",
 			About: "test extcodehash getting of existing contract and then overriding it",
 			Run: func(ctx context.Context, t *T) error {
@@ -7485,6 +7500,42 @@ func simulateFreshAuthorityAuth(t *T) (common.Address, types.SetCodeAuthorizatio
 		Address: common.Address{0xc1},
 	})
 	return authority, auth, err
+}
+
+// simulateEmptiedAccountKeepsStorage empties an account with storage through an override in
+// one block, gives it code that returns slot 0 in the next block, and checks that the old
+// slot value is still there.
+func simulateEmptiedAccountKeepsStorage(t *T, account common.Address) error {
+	slot0 := t.chain.Storage(account, common.Hash{})
+	if slot0 == nil {
+		return fmt.Errorf("account %s has no storage at slot 0", account)
+	}
+	zero := hexutil.Uint64(0)
+	params := ethSimulateOpts{
+		BlockStateCalls: []CallBatch{{
+			StateOverrides: &StateOverride{
+				common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+				account:              OverrideAccount{Nonce: &zero, Code: hex2Bytes(""), Balance: newRPCBalance(0)},
+			},
+			Calls: []TransactionArgs{
+				{From: &common.Address{0xc0}, To: &common.Address{0xc0}},
+			},
+		}, {
+			StateOverrides: &StateOverride{
+				// PUSH1 0 SLOAD PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN
+				account: OverrideAccount{Code: hex2Bytes("60005460005260206000f3")},
+			},
+			Calls: []TransactionArgs{
+				{From: &common.Address{0xc0}, To: &account},
+			},
+		}},
+		Validation: false,
+	}
+	res := make([]blockResult, 0)
+	if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+		return err
+	}
+	return checkReturnData(res[1].Calls, 0, common.Bytes2Hex(slot0))
 }
 
 // returnWordCode is runtime code that returns the given value as a 32-byte word:
