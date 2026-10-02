@@ -68,12 +68,9 @@ As eth_simulate is an extension to `eth_call` we want to enable the nice user ex
 | v | `0x0` |
 
 ### Gas after Amsterdam
-After Amsterdam (EIP-8037) a block counts execution gas and state gas separately. The remaining execution gas is the block `gasLimit` minus the execution gas that the earlier calls of the block used. The remaining state gas is the block `gasLimit` minus the state gas that they used. The default `gasLimit` of a call is the largest gas limit that the block can still include:
+After Amsterdam (EIP-8037) a block counts execution gas and state gas separately. The default `gasLimit` of a call is the block `gasLimit` minus the gas that the block has used after the earlier calls. EIP-8037 defines that gas used as the larger of the cumulative execution gas and the cumulative state gas of those calls. This equals the smaller of the remaining execution gas and the remaining state gas, and it equals the `gasUsed` header field of a block that ends after the earlier calls. It is not the `cumulativeGasUsed` of the previous receipt, and it is not the sum of the `gasUsed` values of the earlier call results, because EIP-8037 counts gas before refunds. Calls that revert or fail during execution still count.
 
-- If the remaining execution gas is at least the transaction gas limit cap of EIP-7825 (`2^24`), the default is the remaining state gas.
-- Otherwise, the default is the smaller of the remaining execution gas and the remaining state gas.
-
-The client's global gas limit (see [Clients can set their own limits](#clients-can-set-their-own-limits)) then caps this value.
+The default is the same whether or not `validation` is enabled. The client's global gas limit (see [Clients can set their own limits](#clients-can-set-their-own-limits)) then caps this value. The default does not waive any validation check. A call with the default `gasLimit` can still fail, for example when the remaining gas is below its intrinsic cost.
 
 ### Nonce limit
 EIP-2681 limits an account nonce to `2^64 - 1`. Whether or not `validation` is enabled, a call from a sender whose nonce is `2^64 - 1` ends the simulation, and eth_simulateV1 returns an error (see [Failures](#failures)). The nonce does not wrap to zero. Disabled validation skips the check that the transaction nonce equals the account nonce, not this limit.
