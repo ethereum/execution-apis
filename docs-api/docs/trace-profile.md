@@ -195,8 +195,10 @@ otherwise serves as both `maxFeePerGas` and `maxPriorityFeePerGas`, also with an
 whose authorizations apply, or with blob fields, whose blob fee is priced on its own. For transaction
 types 0x0 to 0x4, `type` never changes a simulated call: the fields present decide, no supplied field
 is dropped because of it, and the type adds no requirement of its own. An access list before Berlin,
-blob fields before Cancun and an `authorizationList` before Prague are rejected, since those features
-are not active at the selected fork; dynamic fee fields before London are not yet settled. Methods that build or sign a transaction, and other type values,
+`maxFeePerGas` or `maxPriorityFeePerGas` before London, blob fields before Cancun and an
+`authorizationList` before Prague are rejected, even with zero or empty values, since no transaction at
+the selected fork can carry them: before London only `gasPrice` priced a transaction, so dynamic fees
+are neither ignored nor reinterpreted there. Methods that build or sign a transaction, and other type values,
 which chains define as extensions, are outside this rule. Any
 other validation failure without a listed code, such as a positive blob fee cap below the blob base fee or a
 feature listed above before its fork, recommends -32003 (Transaction rejected), the
