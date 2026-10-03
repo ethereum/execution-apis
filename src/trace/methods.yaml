@@ -25,9 +25,12 @@
     violation. A defect that makes the call object invalid regardless of state, such as a priority fee
     above the fee cap, an impossible type and field combination or an empty authorization list, takes
     precedence when several rules are violated (-32602 recommended); any other validation failure
-    without a listed code recommends -32003 (Transaction rejected). A legacy gasPrice with an
-    authorizationList is not an impossible combination; the call is accepted, gasPrice serves as both
-    maxFeePerGas and maxPriorityFeePerGas, and the authorizations apply (H14).
+    without a listed code recommends -32003 (Transaction rejected). gasPrice with maxFeePerGas or
+    maxPriorityFeePerGas is an impossible combination. A legacy gasPrice otherwise serves as both
+    maxFeePerGas and maxPriorityFeePerGas, also with an authorizationList, whose authorizations apply, or
+    with blob fields, whose blob fee is priced on its own. type never changes execution; the fields
+    present decide, no supplied field is dropped because of it, and a type not active at the selected
+    fork is rejected (H14).
     Unsigned calls skip the EIP-3607 sender-code check, as eth_call does.
     Otherwise the price must cover the base fee (-38012 recommended), maxPriorityFeePerGas must not exceed
     maxFeePerGas (-32602 recommended), and the sender must fund the upfront cost (-38014 recommended); execution then charges
