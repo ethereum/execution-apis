@@ -194,12 +194,12 @@ when several rules are violated: the rejection reports that defect, with -32602 
 otherwise serves as both `maxFeePerGas` and `maxPriorityFeePerGas`, also with an `authorizationList`,
 whose authorizations apply, or with blob fields, whose blob fee is priced on its own. For transaction
 types 0x0 to 0x4, `type` never changes a simulated call: the fields present decide, no supplied field
-is dropped because of it, and the type adds no requirement of its own. A supplied feature not active at
-the selected fork is rejected, such as an access list before Berlin, blob fields before Cancun or an
-`authorizationList` before Prague. Methods that build or sign a transaction, and other type values,
+is dropped because of it, and the type adds no requirement of its own. An access list before Berlin,
+blob fields before Cancun and an `authorizationList` before Prague are rejected, since those features
+are not active at the selected fork; dynamic fee fields before London are not yet settled. Methods that build or sign a transaction, and other type values,
 which chains define as extensions, are outside this rule. Any
 other validation failure without a listed code, such as a positive blob fee cap below the blob base fee or a
-feature not active at the selected fork, recommends -32003 (Transaction rejected), the
+feature listed above before its fork, recommends -32003 (Transaction rejected), the
 fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
 the EIP-3607 sender-code check, as `eth_call` does, so the nonce and sender-not-EOA codes do not
 apply. Omitted gas follows the client's `eth_call` default at the selected state, bounded by the

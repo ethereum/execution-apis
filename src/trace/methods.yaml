@@ -30,9 +30,9 @@
     maxFeePerGas and maxPriorityFeePerGas, also with an authorizationList, whose authorizations apply, or
     with blob fields, whose blob fee is priced on its own. For transaction types 0x0 to 0x4, type never
     changes execution; the fields present decide, no supplied field is dropped because of it, and the
-    type adds no requirement of its own. A supplied feature not active at the selected fork is rejected
-    (-32003 recommended), such as an access list before Berlin, blob fields before Cancun or an
-    authorizationList before Prague (H14).
+    type adds no requirement of its own. An access list before Berlin, blob fields before Cancun and an
+    authorizationList before Prague are rejected (-32003 recommended), since those features are not
+    active at the selected fork (H14).
     Unsigned calls skip the EIP-3607 sender-code check, as eth_call does.
     Otherwise the price must cover the base fee (-38012 recommended), maxPriorityFeePerGas must not exceed
     maxFeePerGas (-32602 recommended), and the sender must fund the upfront cost (-38014 recommended); execution then charges
