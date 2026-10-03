@@ -189,7 +189,9 @@ The recommended codes are those of `eth_simulateV1`: -38012 base fee too low, -3
 -38014 insufficient funds, -38025 init-code size and -38026 client limit. A priority fee above the
 fee cap, and any other defect that makes the call object invalid regardless of state (a transaction
 type or field combination no transaction can carry, an empty authorization list), takes precedence
-when several rules are violated: the rejection reports that defect, with -32602 recommended. Any
+when several rules are violated: the rejection reports that defect, with -32602 recommended. A
+legacy `gasPrice` with an `authorizationList` is not such a combination: the call is accepted,
+`gasPrice` serves as both `maxFeePerGas` and `maxPriorityFeePerGas`, and the authorizations apply. Any
 other validation failure without a listed code, such as a positive blob fee cap below the blob base fee or a
 transaction type not active at the selected fork, recommends -32003 (Transaction rejected), the
 fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
