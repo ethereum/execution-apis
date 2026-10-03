@@ -187,16 +187,19 @@ total gas with an explicit error (-38026 recommended), never by truncating.
 Validation rejections of `trace_call` and `trace_callMany` are errors that report their violation.
 The recommended codes are those of `eth_simulateV1`: -38012 base fee too low, -38013 intrinsic gas,
 -38014 insufficient funds, -38025 init-code size and -38026 client limit. A priority fee above the
-fee cap, and any other defect that makes the call object invalid regardless of state (a transaction
-type or field combination no transaction can carry, an empty authorization list), takes precedence
+fee cap, and any other defect that makes the call object invalid regardless of state (a field
+combination no transaction can carry, an empty authorization list), takes precedence
 when several rules are violated: the rejection reports that defect, with -32602 recommended.
 `gasPrice` with `maxFeePerGas` or `maxPriorityFeePerGas` is such a combination. A legacy `gasPrice`
 otherwise serves as both `maxFeePerGas` and `maxPriorityFeePerGas`, also with an `authorizationList`,
-whose authorizations apply, or with blob fields, whose blob fee is priced on its own. `type` never
-changes execution: the fields present decide, no supplied field is dropped because of it, and a type
-not active at the selected fork is rejected. Any
+whose authorizations apply, or with blob fields, whose blob fee is priced on its own. For transaction
+types 0x0 to 0x4, `type` never changes a simulated call: the fields present decide, no supplied field
+is dropped because of it, and the type adds no requirement of its own. A supplied feature not active at
+the selected fork is rejected, such as an access list before Berlin, blob fields before Cancun or an
+`authorizationList` before Prague. Methods that build or sign a transaction, and other type values,
+which chains define as extensions, are outside this rule. Any
 other validation failure without a listed code, such as a positive blob fee cap below the blob base fee or a
-transaction type not active at the selected fork, recommends -32003 (Transaction rejected), the
+feature not active at the selected fork, recommends -32003 (Transaction rejected), the
 fallback `trace_rawTransaction` also uses. A supplied nonce is not validated and unsigned calls skip
 the EIP-3607 sender-code check, as `eth_call` does, so the nonce and sender-not-EOA codes do not
 apply. Omitted gas follows the client's `eth_call` default at the selected state, bounded by the
