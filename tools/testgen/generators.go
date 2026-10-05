@@ -2733,7 +2733,6 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 
 				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
-					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
 					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
@@ -2827,7 +2826,6 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 
 				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
-					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
 					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
@@ -2886,7 +2884,6 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 
 				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
-					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
 					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
@@ -2973,7 +2970,6 @@ var TestingBuildBlockV1 = MethodTests{
 				}
 
 				if t.chain.Config().IsAmsterdam(parentBlock.Number(), parentBlock.Time()) {
-					payloadAttrs["slotNumber"] = hexutil.Uint64(0)
 					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
