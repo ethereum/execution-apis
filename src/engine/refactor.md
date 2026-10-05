@@ -23,6 +23,7 @@
   - [Payload submission with witness](#payload-submission-with-witness)
   - [Forkchoice update](#forkchoice-update)
   - [Payload retrieval](#payload-retrieval)
+  - [Payload retrieval with witness](#payload-retrieval-with-witness)
   - [Historical bodies](#historical-bodies)
   - [Blob pool](#blob-pool)
   - [Capabilities & identification](#capabilities--identification)
@@ -66,6 +67,7 @@ All hot-path endpoints select the fork via the
 | `engine_newPayloadV{1..5}` + `debug_executionWitness` (two calls) | `POST /payloads/witness` | **optional**, Amsterdam+; same request as `/payloads`, response also carries the stateless `ExecutionWitness` so provers / stateless validators get the validation status and witness in one round-trip |
 | `engine_forkchoiceUpdatedV{1..4}` | `POST /forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
 | `engine_getPayloadV{1..6}` | `GET /payloads/{id}` | poll-style, same semantics as today |
+| `engine_getPayloadV{1..6}`, then `engine_newPayloadV{1..5}` + `debug_executionWitness` on the built payload | `GET /payloads/{id}/witness` | **optional**, Amsterdam+; same snapshot as `/payloads/{id}`, response also carries the stateless `ExecutionWitness` of the built payload so builders can start proving without re-submitting their own block |
 | `engine_getPayloadBodiesByHashV{1,2}` | `POST /bodies/hash` | header selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
 | `engine_getPayloadBodiesByRangeV{1,2}` | `GET /bodies?from=...&count=...` | header selects both the response schema and the era of returned blocks |
 | `engine_getBlobsV1` | `POST /blobs/v1` | independently versioned; legacy version numbers carry forward |
@@ -89,6 +91,7 @@ endpoints ignore it.
 | Payload | `POST /engine/v1/payloads` | Submit a payload received from the CL gossip network for the EL to validate / import. Replaces `engine_newPayload`. Fork-scoped via `Eth-Execution-Version`. |
 | Payload | `POST /engine/v1/payloads/witness` | **Optional (Amsterdam+).** Same as `POST /payloads`, but the response also returns the stateless execution witness. Folds the legacy `engine_newPayload` + `debug_executionWitness` two-call flow into one. Fork-scoped via `Eth-Execution-Version`. |
 | Payload | `GET /engine/v1/payloads/{payloadId}` | Retrieve a built payload by id. Replaces `engine_getPayload`. Fork-scoped via `Eth-Execution-Version`. CL polls when it wants a fresher snapshot. |
+| Payload | `GET /engine/v1/payloads/{payloadId}/witness` | **Optional (Amsterdam+).** Same as `GET /payloads/{payloadId}`, but the response also returns the stateless execution witness of the built payload. Removes the need to re-submit a self-built payload to obtain its witness. Fork-scoped via `Eth-Execution-Version`. |
 | Forkchoice | `POST /engine/v1/forkchoice` | Atomic forkchoice update: update head/safe/finalized, optionally start a payload build, optionally update custody set. Replaces `engine_forkchoiceUpdated`. Fork-scoped via `Eth-Execution-Version`. |
 | Bodies | `POST /engine/v1/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. `Eth-Execution-Version` selects both the response schema *and* the era of returned blocks; out-of-era blocks come back as `available=false`. |
 | Bodies | `GET /engine/v1/bodies?from=N&count=M` | Replaces `engine_getPayloadBodiesByRange`. Same fork scoping as `/bodies/hash`. |
@@ -320,7 +323,9 @@ Replaces `engine_getPayloadV{1..6}`.
 
 Polling semantics are unchanged from `engine_getPayload`: the CL calls
 `GET /payloads/{payloadId}` whenever it wants the latest
-snapshot of the build. Each call returns the most recent version
+snapshot of the build. A *snapshot* is the version of the payload the
+EL holds at a given moment; successive snapshots of the same build may
+differ. Each call returns the most recent snapshot
 available at the time of receipt; the EL MAY stop the build process
 after serving a call. `payloadId` values are opaque server-assigned
 tokens issued by `POST /forkchoice`.
@@ -339,6 +344,84 @@ malformed segment returns `400 invalid-request`.
 **Token TTL.** A `payloadId` is valid until either the payload was
 retrieved by `GET /payloads/{payloadId}` or another payload
 was built via a forkchoice with payload attributes.
+
+### Payload retrieval with witness
+
+#### `GET /engine/v1/payloads/{payloadId}/witness`
+
+**Optional.** Same as `GET /payloads/{payloadId}`; the response
+additionally carries the **stateless execution witness** of the
+returned payload. It is the block-building counterpart of
+[`POST /payloads/witness`](#payload-submission-with-witness).
+
+The motivation is latency for nodes that prove the blocks they build.
+EIP-8025 provers may prove self-built blocks, and in future
+mandatory-proof forks, builders are expected to produce execution proofs
+as part of block production. Without this endpoint, such a node
+retrieves the payload, sends it back to the EL through
+`POST /payloads/witness` (or `engine_newPayload` followed by
+`debug_executionWitness`), and waits for the EL to re-execute a block
+it has just built. Returning the witness with the built payload lets
+the CL start proving as soon as it retrieves the payload. The response
+carries the payload, its execution requests, its blob commitments, and
+its witness; the CL already has the `parent_beacon_block_root` it sent
+in `payload_attributes`.
+
+This endpoint is **available from Amsterdam onward**; an
+`Eth-Execution-Version` below Amsterdam returns
+`400 /engine-api/errors/unsupported-fork`. It is optional and
+independent of `POST /payloads/witness`: ELs that implement it
+advertise `payloads/{payloadId}/witness` in the `fork_scoped_endpoints`
+list of `GET /capabilities`. A CL that doesn't find it there falls back
+to `GET /payloads/{payloadId}` and obtains the witness of the built
+payload through `POST /payloads/witness`, or through `engine_newPayload`
+followed by `debug_executionWitness`.
+
+- **Response body:** SSZ-encoded
+  [`BuiltPayloadWithWitness`](./refactor-ssz.md#get-payloadspayloadidwitness),
+  containing `built_payload` and `witness`.
+
+  `built_payload` MUST be the `BuiltPayload{Fork}` that
+  `GET /payloads/{payloadId}` would return for the same request: the
+  EL selects the most recent snapshot available at the time of
+  receipt, and MUST NOT switch to a newer snapshot while producing the
+  witness.
+
+  `witness` MUST equal the `ExecutionWitness` that a `VALID` response
+  from `POST /payloads/witness` carries for the
+  `ExecutionPayloadEnvelope` formed from `built_payload.payload`, the
+  `parent_beacon_block_root` of the build's `payload_attributes`, and
+  `built_payload.execution_requests`. Its contents, ordering, and
+  bounds therefore follow
+  [Payload submission with witness](#payload-submission-with-witness).
+  State and code accessed only by transactions that the EL executed and
+  then excluded from the payload MUST NOT appear in the witness.
+
+  The EL MAY record the witness while building or produce it on demand
+  for the selected snapshot. An EL that cannot produce the witness MUST
+  return `500 /engine-api/errors/internal` rather than the payload
+  alone.
+
+- **Polling and lifetime:** identical to `GET /payloads/{payloadId}`.
+  A call to either endpoint counts as retrieving the payload for the
+  [token TTL](#payload-retrieval), and the EL MAY stop the build
+  process after serving it. The EL MUST include
+  `Cache-Control: no-store` on the response.
+
+- **Latency and size:** producing and transferring the witness can make
+  this call considerably slower and larger than
+  `GET /payloads/{payloadId}`. CLs on the block-proposal critical path
+  that do not need the witness SHOULD keep using
+  `GET /payloads/{payloadId}`, and CLs calling this endpoint SHOULD
+  allow a longer request timeout. As with `POST /payloads/witness`, the
+  response is bounded by the `MAX_*` limits of its containers, not by
+  an advertised `limits.*` value.
+
+- **HTTP status:** `200 OK` on success. Path validation and the
+  [error model](#error-model) are otherwise identical to
+  `GET /payloads/{payloadId}`: a malformed `{payloadId}` returns
+  `400 invalid-request`, and an unknown or expired one returns
+  `404 unknown-payload`.
 
 ### Historical bodies
 
@@ -641,6 +724,49 @@ Content-Length: 49
 
 { "type": "/engine-api/errors/unsupported-fork" }
 ```
+
+### Example: poll a built payload with its witness
+
+```bash
+curl http://localhost:8551/engine/v1/payloads/0x1234567890abcdef/witness \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Eth-Execution-Version: amsterdam" \
+  -H "Accept: application/octet-stream" \
+  -H "X-Engine-Client-Version: LH/v6.2.1" \
+  -o built_payload_with_witness.ssz
+```
+
+Request:
+
+```
+GET /engine/v1/payloads/0x1234567890abcdef/witness HTTP/2
+Host: localhost:8551
+Authorization: Bearer <JWT>
+Eth-Execution-Version: amsterdam
+Accept: application/octet-stream
+```
+
+Successful response:
+
+```
+HTTP/2 200
+Content-Type: application/octet-stream
+Cache-Control: no-store
+
+<SSZ(BuiltPayloadWithWitness)>
+```
+
+Error response (`Eth-Execution-Version` names a fork before Amsterdam):
+
+```
+HTTP/2 400
+Content-Type: application/problem+json
+Content-Length: 49
+
+{ "type": "/engine-api/errors/unsupported-fork" }
+```
+
+See [Payload retrieval with witness](#payload-retrieval-with-witness).
 
 ### Examples: every fork
 
