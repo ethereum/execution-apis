@@ -36,6 +36,7 @@
   - [`ExecutionPayloadEnvelope` per fork](#executionpayloadenvelope-per-fork)
   - [`ForkchoiceUpdate` per fork](#forkchoiceupdate-per-fork)
   - [`BlobAndProof` per revision](#blobandproof-per-revision)
+  - [`PayloadStatus` per fork](#payloadstatus-per-fork)
   - [Identification & capabilities](#identification--capabilities)
 - [Endpoint containers](#endpoint-containers)
   - [`POST /payloads`](#post-payloads)
@@ -46,6 +47,7 @@
   - [`POST /blobs/v2`](#post-blobsv2)
   - [`POST /blobs/v3`](#post-blobsv3)
   - [`POST /blobs/v4`](#post-blobsv4)
+  - [`GET /inclusion-list`](#get-inclusion-list)
 - [Open sketch questions](#open-sketch-questions)
 
 ---
@@ -87,6 +89,7 @@
 | `MAX_BYTES_PER_EXECUTION_REQUEST` | `MAX_BYTES_PER_TX` | this spec (placeholder; reuse the tx bound) |
 | `MAX_VERSIONED_HASHES_PER_REQUEST` | `128` | [Osaka](./osaka.md#engine_getblobsv2) |
 | `MAX_BLOBS_REQUEST` | `MAX_VERSIONED_HASHES_PER_REQUEST` (128) | derived |
+| `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` | `2**13` (8,192) | [Bogota](./bogota.md#constants) |
 | `MAX_BODIES_REQUEST` | `2**5` (32) | [Shanghai](./shanghai.md#engine_getpayloadbodiesbyhashv1) |
 | `MAX_REQUEST_BODY_SIZE` | `2**26` (67,108,864) | this spec (64 MiB; advertised as `limits.payload.max_bytes`) |
 | `MAX_ERROR_BYTES` | `1024` | this spec |
@@ -193,7 +196,9 @@ ForkchoiceState {
 ### `PayloadStatus`
 
 Used by `POST /payloads` (full enum) and `POST /forkchoice`
-(restricted enum — `ACCEPTED` not allowed).
+(restricted enum — `ACCEPTED` not allowed). This is the Paris through
+Amsterdam shape; Bogota appends `inclusion_list_satisfied` (see
+[`PayloadStatus` per fork](#payloadstatus-per-fork)).
 
 ```
 PayloadStatus {
@@ -333,6 +338,9 @@ ExecutionPayloadAmsterdam {
     block_access_list:  ByteList[MAX_BAL_BYTES]
     slot_number:        Uint64
 }
+
+# Bogota = Amsterdam (no payload-shape change; inclusion_list_transactions is at the envelope level)
+ExecutionPayloadBogota = ExecutionPayloadAmsterdam
 ```
 
 The Amsterdam variant is identical to the
@@ -376,6 +384,12 @@ PayloadAttributesAmsterdam {
     slot_number:      Uint64
     target_gas_limit: Uint64
 }
+
+# Bogota = Amsterdam + inclusion_list_transactions
+PayloadAttributesBogota {
+    ...Amsterdam fields...
+    inclusion_list_transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
+}
 ```
 
 ### `ExecutionPayloadBody` per fork
@@ -406,6 +420,9 @@ ExecutionPayloadBodyAmsterdam {
     ...Shanghai fields...
     block_access_list: ByteList[MAX_BAL_BYTES]
 }
+
+# Bogota = Amsterdam (no shape change for the body)
+ExecutionPayloadBodyBogota = ExecutionPayloadBodyAmsterdam
 ```
 
 ### `BlobsBundle` per revision
@@ -431,7 +448,7 @@ BlobsBundleV2 {
 ```
 
 `BuiltPayload` for Cancun / Prague carries `BlobsBundleV1`;
-Osaka / Amsterdam carries `BlobsBundleV2`.
+Osaka / Amsterdam / Bogota carries `BlobsBundleV2`.
 
 ### `BuiltPayload` per fork
 
@@ -518,6 +535,15 @@ BuiltPayloadAmsterdam {
     execution_requests:      List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
     should_override_builder: Boolean
 }
+
+# Bogota = Amsterdam shape, with ExecutionPayloadBogota inner
+BuiltPayloadBogota {
+    payload:                 ExecutionPayloadBogota
+    block_value:             Uint256
+    blobs_bundle:            BlobsBundleV2
+    execution_requests:      List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
+    should_override_builder: Boolean
+}
 ```
 
 The Amsterdam variant is the one shown in the
@@ -527,8 +553,9 @@ The Amsterdam variant is the one shown in the
 
 The request body of `POST /payloads`. `parent_beacon_block_root`
 exists from Cancun on (it was a separate `engine_newPayload` parameter
-since Cancun); `execution_requests` from Prague on. Field order is
-normative.
+since Cancun); `execution_requests` from Prague on;
+`inclusion_list_transactions` from Bogota on (it was a separate
+`engine_newPayloadV6` parameter). Field order is normative.
 
 ```
 # Paris / Shanghai — bare payload, no envelope fields
@@ -554,6 +581,14 @@ ExecutionPayloadEnvelopePrague {
 
 # Osaka = Prague shape, with ExecutionPayloadOsaka inner
 # Amsterdam = Prague shape, with ExecutionPayloadAmsterdam inner
+
+# Bogota — Amsterdam + inclusion_list_transactions
+ExecutionPayloadEnvelopeBogota {
+    payload:                     ExecutionPayloadBogota
+    parent_beacon_block_root:    Root
+    execution_requests:          List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
+    inclusion_list_transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
+}
 ```
 
 ### `ForkchoiceUpdate` per fork
@@ -573,6 +608,13 @@ ForkchoiceUpdate {
 ForkchoiceUpdateAmsterdam {
     forkchoice_state:   ForkchoiceState
     payload_attributes: Optional[PayloadAttributesAmsterdam]
+    custody_columns:    Optional[Bitvector[CELLS_PER_EXT_BLOB]]
+}
+
+# Bogota = Amsterdam shape, with PayloadAttributesBogota inner
+ForkchoiceUpdateBogota {
+    forkchoice_state:   ForkchoiceState
+    payload_attributes: Optional[PayloadAttributesBogota]
     custody_columns:    Optional[Bitvector[CELLS_PER_EXT_BLOB]]
 }
 ```
@@ -600,6 +642,46 @@ BlobCellsAndProofs {
     proofs:     List[Optional[Bytes48], CELLS_PER_EXT_BLOB]
 }
 ```
+
+### `PayloadStatus` per fork
+
+Used by `POST /payloads` and, wrapped in `ForkchoiceUpdateResponse`,
+by `POST /forkchoice`. Reflects today's
+[`PayloadStatusV2`](./bogota.md#payloadstatusv2) from Bogota on.
+
+```
+# Paris .. Amsterdam
+PayloadStatus {
+    status:            uint8
+    latest_valid_hash: Optional[Hash32]
+    validation_error:  Optional[String]
+}
+
+# Bogota — + inclusion_list_satisfied
+PayloadStatusBogota {
+    status:                   uint8
+    latest_valid_hash:        Optional[Hash32]
+    validation_error:         Optional[String]
+    inclusion_list_satisfied: Optional[Boolean]
+}
+
+# Paris .. Amsterdam
+ForkchoiceUpdateResponse {
+    payload_status: PayloadStatus
+    payload_id:     Optional[Bytes8]
+}
+
+# Bogota
+ForkchoiceUpdateResponseBogota {
+    payload_status: PayloadStatusBogota
+    payload_id:     Optional[Bytes8]
+}
+```
+
+`inclusion_list_satisfied` is present iff `status` is `VALID`, and
+then carries whether the payload satisfied the inclusion list
+constraints of [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805);
+it is absent for every other status.
 
 ### Identification & capabilities
 
@@ -641,11 +723,13 @@ value of the `Eth-Execution-Version` request header. For instance
 and `GET /payloads/{id}` with `Eth-Execution-Version: shanghai`
 returns a `BuiltPayloadShanghai`.
 
-> **Fork-invariant containers.** `PayloadStatus`, `ForkchoiceState`,
-> `ForkchoiceUpdateResponse`, and `Withdrawal` have the **same shape
-> across all forks** — only the fork-scoped payload/attributes/body
-> containers and the `BuiltPayload` / `ExecutionPayloadEnvelope` /
-> `ForkchoiceUpdate` wrappers that embed them vary by fork.
+> **Fork-invariant containers.** `ForkchoiceState` and `Withdrawal`
+> have the **same shape across all forks**. `PayloadStatus` and
+> `ForkchoiceUpdateResponse` are fixed from Paris through Amsterdam
+> and gain `inclusion_list_satisfied` at Bogota. The fork-scoped
+> payload/attributes/body containers and the `BuiltPayload` /
+> `ExecutionPayloadEnvelope` / `ForkchoiceUpdate` wrappers that embed
+> them vary by fork.
 
 > **Implementation note (monolithic vs. per-fork types).** This
 > catalogue names a distinct container per fork
@@ -663,7 +747,7 @@ returns a `BuiltPayloadShanghai`.
 
 ### `POST /payloads`
 
-Replaces `engine_newPayloadV{1..5}` (Amsterdam shown; `engine_newPayloadV5`).
+Replaces `engine_newPayloadV{1..6}` (Amsterdam shown; `engine_newPayloadV5`).
 Each fork uses its `ExecutionPayloadEnvelope{Fork}` from the catalogue
 above — Paris/Shanghai carry the bare payload, Cancun+ add
 `parent_beacon_block_root`, Prague+ add `execution_requests`.
@@ -681,17 +765,34 @@ ExecutionPayloadEnvelopeAmsterdam {
 `expected_blob_versioned_hashes` is removed (the EL recomputes it
 from `payload.transactions`).
 
+#### Request (Bogota)
+
+```
+ExecutionPayloadEnvelopeBogota {
+    payload:                     ExecutionPayloadBogota
+    parent_beacon_block_root:    Root
+    execution_requests:          List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
+    inclusion_list_transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
+}
+```
+
+Replaces `engine_newPayloadV6`. The EL **MUST** retain
+`inclusion_list_transactions` for a payload with `ACCEPTED` status
+and **MAY** discard them once the payload is no longer the tip of a
+branch.
+
 #### Response
 
-`PayloadStatus` (full enum, `0`/`1`/`2`/`3`).
+`PayloadStatus` (full enum, `0`/`1`/`2`/`3`); `PayloadStatusBogota`
+from Bogota on.
 
 ### `POST /forkchoice`
 
-Replaces `engine_forkchoiceUpdatedV{1..4}` (Amsterdam shown;
+Replaces `engine_forkchoiceUpdatedV{1..5}` (Amsterdam shown;
 `engine_forkchoiceUpdatedV4`). Each fork uses its `ForkchoiceUpdate{Fork}`
 and `PayloadAttributes{Fork}` from the catalogue; `custody_columns`
-exists only from Amsterdam on. `ForkchoiceState` and the response are
-fork-invariant.
+exists only from Amsterdam on. `ForkchoiceState` is fork-invariant;
+the response gains `inclusion_list_satisfied` at Bogota.
 
 #### Request (Amsterdam)
 
@@ -703,7 +804,24 @@ ForkchoiceUpdateAmsterdam {
 }
 ```
 
-#### Response (all forks)
+#### Request (Bogota)
+
+```
+ForkchoiceUpdateBogota {
+    forkchoice_state:    ForkchoiceState
+    payload_attributes:  Optional[PayloadAttributesBogota]
+    custody_columns:     Optional[Bitvector[CELLS_PER_EXT_BLOB]]
+}
+```
+
+Replaces `engine_forkchoiceUpdatedV5`. When building a payload the EL
+**MUST** take `payload_attributes.inclusion_list_transactions` into
+account, and the built payload **MUST** satisfy the inclusion list
+constraints with respect to them. When validating the head payload the
+EL **MUST** use the `inclusion_list_transactions` retained from
+`POST /payloads`.
+
+#### Response
 
 ```
 ForkchoiceUpdateResponse {
@@ -711,6 +829,10 @@ ForkchoiceUpdateResponse {
     payload_id:     Optional[Bytes8]
 }
 ```
+
+From Bogota on the response is `ForkchoiceUpdateResponseBogota`, which
+carries `PayloadStatusBogota`; see
+[`PayloadStatus` per fork](#payloadstatus-per-fork).
 
 ### `GET /payloads/{payloadId}`
 
@@ -970,6 +1092,29 @@ each `64 * 32` = `2048` bytes — `c-kzg-4844`'s `compute_cells` writes
 exactly this. The earlier `BYTES_PER_BLOB / CELLS_PER_EXT_BLOB`
 derivation was wrong: it divided the *original*-blob byte count over
 the *extended*-blob cell count, halving the true cell size.
+
+### `GET /inclusion-list`
+
+Replaces `engine_getInclusionListV1` (Bogota). Fork-scoped; the EL
+returns `400 unsupported-fork` for any `Eth-Execution-Version` before
+`bogota`.
+
+#### Request
+
+No request body.
+
+#### Response
+
+```
+InclusionListResponse {
+    transactions: List[ByteList[MAX_BYTES_PER_TX], MAX_TXS_PER_PAYLOAD]
+}
+```
+
+Each element of `transactions` **MUST** be at least 1 byte, **MUST
+NOT** be a blob transaction, and the sum of the element lengths **MUST
+NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`. The selection
+strategy is implementation dependent.
 
 ---
 
