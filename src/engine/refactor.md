@@ -138,7 +138,7 @@ Replaces `engine_newPayloadV{1..6}`.
 
   `INVALID_BLOCK_HASH` is dropped (already supplanted by `INVALID`).
 
-  From Bogota on, `inclusion_list_satisfied` is present iff `status`
+  From Bogota on, `inclusion_list_satisfied` is present only when `status`
   is `VALID` and carries whether the payload satisfied the inclusion
   list constraints of
   [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The EL **MUST**

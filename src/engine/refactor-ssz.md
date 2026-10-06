@@ -678,7 +678,7 @@ ForkchoiceUpdateResponseBogota {
 }
 ```
 
-`inclusion_list_satisfied` is present iff `status` is `VALID`, and
+`inclusion_list_satisfied` is present only when `status` is `VALID`, and
 then carries whether the payload satisfied the inclusion list
 constraints of [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805);
 it is absent for every other status.
