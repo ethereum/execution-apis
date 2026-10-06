@@ -860,6 +860,31 @@ func calldataFloor(t *T, n int) uint64 {
 	return params.TxGas + uint64(n)*params.TxCostFloorPerToken
 }
 
+// estimateValueTransfer builds a 1-wei transfer. withAuth attaches one dummy EIP-7702 authorization.
+func estimateValueTransfer(t *T, input hexutil.Bytes, withAuth bool) map[string]any {
+	sender, nonce := t.chain.GetSender(0)
+	msg := map[string]any{
+		"from":  sender,
+		"to":    common.Address{0x01},
+		"value": hexutil.Uint64(1),
+		"nonce": hexutil.Uint64(nonce),
+		"input": input,
+	}
+	if !withAuth {
+		return msg
+	}
+	msg["type"] = "0x4"
+	msg["authorizationList"] = []map[string]any{{
+		"chainId": "0x1",
+		"address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		"nonce":   "0x0",
+		"yParity": "0x0",
+		"r":       "0x1111111111111111111111111111111111111111111111111111111111111111",
+		"s":       "0x2222222222222222222222222222222222222222222222222222222222222222",
+	}}
+	return msg
+}
+
 // EthEstimateGas stores a list of all tests against the method.
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
@@ -986,75 +1011,22 @@ var EthEstimateGas = MethodTests{
 		},
 		{
 			Name:     "estimate-eip7623-calldata-floor",
-			About:    "checks that 32 zero-byte calldata meets the EIP-7623 floor",
+			About:    "32 zero-byte calldata meets the EIP-7623 floor, and an authorization costs more",
 			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
-				sender, nonce := t.chain.GetSender(0)
 				input := hexutil.Bytes(make([]byte, 32))
-				msg := map[string]any{
-					"from":  sender,
-					"to":    common.Address{0x01},
-					"value": hexutil.Uint64(1),
-					"nonce": hexutil.Uint64(nonce),
-					"input": input,
-				}
-				var got hexutil.Uint64
-				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg); err != nil {
-					return err
-				}
-				floor := calldataFloor(t, len(input))
-				if uint64(got) < floor {
-					return fmt.Errorf("expected estimate at or above the calldata floor (got: %d, floor: %d)", got, floor)
-				}
-				return nil
-			},
-		},
-		{
-			Name:     "estimate-eip7623-floor-with-authorization",
-			About:    "checks that an authorization is charged above the EIP-7623 floor",
-			SpecOnly: true,
-			Run: func(ctx context.Context, t *T) error {
-				sender, nonce := t.chain.GetSender(0)
-				to := common.Address{0x01}
-				input := hexutil.Bytes(make([]byte, 32))
-				floorMsg := map[string]any{
-					"from":  sender,
-					"to":    to,
-					"value": hexutil.Uint64(1),
-					"nonce": hexutil.Uint64(nonce),
-					"input": input,
-				}
-				withAuth := map[string]any{
-					"type":  "0x4",
-					"from":  sender,
-					"to":    to,
-					"value": hexutil.Uint64(1),
-					"nonce": hexutil.Uint64(nonce),
-					"input": input,
-					"authorizationList": []map[string]any{
-						{
-							"chainId": "0x1",
-							"address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-							"nonce":   "0x0",
-							"yParity": "0x0",
-							"r":       "0x1111111111111111111111111111111111111111111111111111111111111111",
-							"s":       "0x2222222222222222222222222222222222222222222222222222222222222222",
-						},
-					},
-				}
 				var floorGas, authGas hexutil.Uint64
-				if err := t.rpc.CallContext(ctx, &floorGas, "eth_estimateGas", floorMsg); err != nil {
+				if err := t.rpc.CallContext(ctx, &floorGas, "eth_estimateGas", estimateValueTransfer(t, input, false)); err != nil {
 					return fmt.Errorf("floor estimation failed: %v", err)
 				}
-				if err := t.rpc.CallContext(ctx, &authGas, "eth_estimateGas", withAuth); err != nil {
-					return fmt.Errorf("floor with authorization estimation failed: %v", err)
+				if err := t.rpc.CallContext(ctx, &authGas, "eth_estimateGas", estimateValueTransfer(t, input, true)); err != nil {
+					return fmt.Errorf("authorization estimation failed: %v", err)
 				}
-				floor := calldataFloor(t, len(input))
-				if uint64(floorGas) < floor {
+				if floor := calldataFloor(t, len(input)); uint64(floorGas) < floor {
 					return fmt.Errorf("expected estimate at or above the calldata floor (got: %d, floor: %d)", floorGas, floor)
 				}
 				if authGas <= floorGas {
-					return fmt.Errorf("expected authorization above calldata floor (got: %d, floor: %d)", authGas, floorGas)
+					return fmt.Errorf("expected authorization above the calldata floor (got: %d, floor: %d)", authGas, floorGas)
 				}
 				return nil
 			},
