@@ -1,0 +1,43 @@
+diff --git a/node_modules/@open-rpc/markdown-generator/dist/index.js b/node_modules/@open-rpc/markdown-generator/dist/index.js
+index e02139d..0c0edec 100644
+--- a/node_modules/@open-rpc/markdown-generator/dist/index.js
++++ b/node_modules/@open-rpc/markdown-generator/dist/index.js
+@@ -289,6 +289,8 @@ function labelTypeStringForSchema(schema) {
+   if (schema === null || schema === undefined)
+     return "null";
+   if (typeof schema === "object" && schema !== null) {
++    if (schema.type === "array" && Array.isArray(schema.items))
++      return `[${schema.items.map(labelTypeStringForSchema).join(", ")}]`;
+     if (schema.type === "array")
+       return `array<${labelTypeStringForSchema(schema.items)}>`;
+     if (schema.type === "object")
+@@ -843,6 +845,29 @@ function renderSchema(contentDescriptor = undefined, schema = undefined, editSch
+       return renderOfTypeSchema(contentDescriptor, "anyOf", schema, editSchema);
+     }
+     if (schema.type === "array") {
++      // Tuples and nested arrays need their own container. Passing a tuple's
++      // items array back to renderSchema silently drops every position.
++      if (Array.isArray(schema.items) || schema.items?.type === "array") {
++        const tuple = Array.isArray(schema.items);
++        const items = tuple ? schema.items : [schema.items];
++        const children = items.flatMap((item, index) => renderSchema({
++          name: tuple ? `Position ${index}` : "Items",
++          description: item.description,
++          required: tuple && index < (schema.minItems ?? 0),
++          constraintsSchema: item
++        }, item, editSchema));
++        const container = { ...contentDescriptor, constraintsSchema: schema };
++        return [
++          ...renderAtomicHelper(container.name ?? schema.title ?? "", labelTypeStringForSchema(schema), getSchemaDescription(container, schema), container),
++          ...divify([details({
++            summaryTitle: tuple ? "Show tuple positions" : "Show array items",
++            summaryCode: container.name ?? schema.title ?? "",
++            summaryType: "array",
++            summaryContent: children,
++            detailDescription: tuple ? "Tuple positions are zero-based and must be supplied in the order shown." : ""
++          })])
++        ];
++      }
+       if (typeof schema.items === "object") {
+         const containingContent = {
+           ...contentDescriptor,
