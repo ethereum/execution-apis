@@ -108,6 +108,12 @@
             - '0x0000000000000000000000000000000000000000000000000000000000000001'
 - name: eth_getTransactionCount
   summary: "Returns the nonce of an account in the state. NOTE: The name eth_getTransactionCount reflects the historical fact that an account's nonce and sent transaction count were the same. After the Pectra fork, with the inclusion of EIP-7702, this is no longer true."
+  description: |
+    Omitting `nonceKeys` or passing `["0x0"]` preserves the existing account nonce behavior, including for `pending`.
+
+    For nonzero keys, return the shared sequence from the [EIP-8250 nonce state](https://eips.ethereum.org/EIPS/eip-8250#nonce-state). Unused keys have sequence zero. Read every key from the same selected block state; `pending` uses the pending block state.
+
+    Return `-32602` for invalid nonce keys, including keys that are not strictly increasing. Return `-32000` if the selected keys have different sequences or EIP-8250 is not active at the selected block for a nonzero-key query. Do not select a minimum or maximum sequence when the keys differ.
   params:
     - name: Address
       required: true
@@ -118,8 +124,18 @@
       description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+    - name: nonceKeys
+      required: false
+      description: Nonce domains to query. Omitted or ["0x0"] to query the account nonce.
+      schema:
+        $ref: '#/components/schemas/Transaction8141Unsigned/properties/nonceKeys'
+  errors:
+    - code: -32602
+      message: Invalid params
+    - code: -32000
+      message: Invalid input
   result:
-    name: Account nonce
+    name: Nonce
     schema:
       $ref: '#/components/schemas/uint'
   examples:
@@ -132,6 +148,29 @@
       result:
         name: Transaction count
         value: '0x1'
+    - name: eth_getTransactionCount legacy nonce key
+      params:
+        - name: Address
+          value: '0xc94770007dda54cF92009BFF0dE90c06F603a09f'
+        - name: Block
+          value: 'latest'
+        - name: nonceKeys
+          value: ['0x0']
+      result:
+        name: Nonce
+        value: '0x1'
+    - name: eth_getTransactionCount shared keyed nonce
+      description: Both selected nonce domains have sequence 3 at the selected block.
+      params:
+        - name: Address
+          value: '0xc94770007dda54cF92009BFF0dE90c06F603a09f'
+        - name: Block
+          value: 'latest'
+        - name: nonceKeys
+          value: ['0x1', '0x2']
+      result:
+        name: Nonce
+        value: '0x3'
 - name: eth_getCode
   summary: Returns code at a given address.
   params:

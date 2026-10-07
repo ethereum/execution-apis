@@ -89,6 +89,8 @@ prev
 prevrandao
 PRs
 pyspelling
+qx
+qy
 randao
 rlp
 RLP's

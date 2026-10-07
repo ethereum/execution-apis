@@ -1,0 +1,217 @@
+package specgen
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/santhosh-tekuri/jsonschema/v6"
+)
+
+func TestFrameCallAPIs(t *testing.T) {
+	generator := New()
+	files, err := filepath.Glob("../../../src/schemas/*.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := generator.AddSchemas(data); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, file := range []string{"../../../src/eth/execute.yaml", "../../../src/eth/fill.yaml", "../../../src/eth/sign.yaml", "../../../src/eth/submit.yaml"} {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := generator.AddMethods(data); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	for _, method := range []string{"eth_call", "eth_estimateGas", "eth_createAccessList", "eth_fillTransaction", "eth_signTransaction", "eth_sendTransaction"} {
+		generator.types[method] = generator.methods[method]["params"].([]any)[0].(object)["schema"].(object)
+	}
+	type testCase struct {
+		name, schema string
+		value        any
+		valid        bool
+	}
+	// Clients validate method-specific signature rules, field compatibility, and signed-envelope completeness.
+	var tests []testCase
+	for _, variant := range []string{"defaults", "keyed nonce", "omitted keyed nonce", "invalid nonce keys", "unknown nonce sequence", "null fields", "omitted signature fields", "empty target", "empty message", "zero limits", "placeholder", "p256 placeholder", "arbitrary witness", "complete signature", "signed incomplete envelope", "signed incomplete frame", "empty signer", "arbitrary placeholder", "empty protocol signature", "empty p256 signature", "empty arbitrary witness", "missing execution limit", "missing state limit", "missing both limits", "empty frames", "outer input", "other type with frames"} {
+		frame := object{"mode": "0x1", "executionGas": "0x10000", "stateGas": "0x10000"}
+		request := object{"type": "0x6", "from": "0x1111111111111111111111111111111111111111", "frames": []any{frame}}
+		placeholder := object{"scheme": "0x1", "signer": request["from"], "msg": nil}
+		valid := true
+		switch variant {
+		case "keyed nonce", "omitted keyed nonce", "invalid nonce keys", "unknown nonce sequence":
+			request["nonceKeys"], request["nonce"] = []any{"0x1", "0x2"}, "0x0"
+			if variant == "omitted keyed nonce" {
+				delete(request, "nonce")
+			}
+			if variant == "invalid nonce keys" {
+				request["nonceKeys"], valid = []any{"0x0", "0x1"}, false
+			}
+			if variant == "unknown nonce sequence" {
+				request["nonceSeq"], valid = "0x0", false
+			}
+		case "null fields":
+			frame["target"] = nil
+			placeholder["signer"], placeholder["signature"] = nil, nil
+			request["signatures"] = []any{placeholder}
+		case "omitted signature fields":
+			request["signatures"] = []any{object{"scheme": "0x1"}}
+		case "empty target":
+			frame["target"] = "0x"
+			valid = false
+		case "empty message":
+			placeholder["msg"] = "0x"
+			request["signatures"] = []any{placeholder}
+		case "zero limits":
+			frame["executionGas"], frame["stateGas"] = "0x0", "0x0"
+		case "placeholder", "p256 placeholder", "empty signer", "arbitrary placeholder", "empty protocol signature", "empty p256 signature", "empty arbitrary witness":
+			request["signatures"] = []any{placeholder}
+			if variant == "p256 placeholder" {
+				placeholder["scheme"] = "0x2"
+			}
+			if variant == "empty signer" {
+				placeholder["signer"] = "0x"
+			}
+			if variant == "arbitrary placeholder" {
+				placeholder["scheme"], placeholder["signer"] = "0x0", nil
+			}
+			if variant == "empty protocol signature" || variant == "empty p256 signature" || variant == "empty arbitrary witness" {
+				placeholder["signature"] = "0x"
+				if variant == "empty p256 signature" {
+					placeholder["scheme"] = "0x2"
+				}
+				if variant == "empty arbitrary witness" {
+					placeholder["scheme"], placeholder["signer"] = "0x0", nil
+				}
+			}
+		case "arbitrary witness":
+			request["signatures"] = []any{object{"scheme": "0x0", "signer": nil, "msg": nil, "signature": "0xabcd"}}
+		case "complete signature", "signed incomplete envelope", "signed incomplete frame":
+			// Structurally valid signature bytes; cryptographic validity requires a client.
+			placeholder["signature"] = "0x00" + strings.Repeat("11", 64)
+			request["signatures"] = []any{placeholder}
+			request["chainId"], request["nonce"] = "0x1", "0x0"
+			request["maxPriorityFeePerGas"], request["maxFeePerGas"], request["maxFeePerBlobGas"] = "0x0", "0x0", "0x0"
+			request["blobVersionedHashes"] = []any{}
+			frame["flags"], frame["target"], frame["value"], frame["data"] = "0x3", nil, "0x0", "0x"
+			if variant == "signed incomplete envelope" {
+				delete(request, "nonce")
+			}
+			if variant == "signed incomplete frame" {
+				delete(frame, "data")
+			}
+		case "missing execution limit":
+			delete(frame, "executionGas")
+		case "missing state limit":
+			delete(frame, "stateGas")
+		case "missing both limits":
+			delete(frame, "executionGas")
+			delete(frame, "stateGas")
+		case "empty frames":
+			request["frames"] = []any{}
+			valid = false
+		case "outer input":
+			request["input"] = "0x"
+		case "other type with frames":
+			request["type"] = "0x2"
+		}
+		tests = append(tests, testCase{variant, "eth_call", request, valid})
+		for _, method := range []string{"eth_estimateGas", "eth_createAccessList", "eth_fillTransaction", "eth_signTransaction", "eth_sendTransaction"} {
+			tests = append(tests, testCase{variant, method, request, valid})
+		}
+		if variant == "complete signature" {
+			data, err := json.Marshal(request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var unsigned object
+			if err := json.Unmarshal(data, &unsigned); err != nil {
+				t.Fatal(err)
+			}
+			delete(unsigned["signatures"].([]any)[0].(map[string]any), "signature")
+			tests = append(tests, testCase{"complete envelope with placeholder", "eth_call", unsigned, true}, testCase{"placeholder is not signed", "Transaction8141", unsigned, false})
+		}
+	}
+	for _, field := range []string{"executionGas", "stateGas"} {
+		frame := object{"mode": "0x1", "flags": "0x3", "target": nil, "executionGas": "0x10000", "stateGas": "0x10000", "value": "0x0", "data": "0x"}
+		delete(frame, field)
+		tests = append(tests, testCase{"complete frame missing " + field, "Frame", frame, false})
+	}
+	tests = append(tests, testCase{"frame type without frames", "eth_call", object{"type": "0x6"}, true})
+	for _, method := range []string{"eth_call", "eth_estimateGas", "eth_createAccessList", "eth_fillTransaction", "eth_signTransaction", "eth_sendTransaction"} {
+		tests = append(tests, testCase{"legacy request", method, object{"to": "0x1111111111111111111111111111111111111111", "input": "0x"}, true})
+	}
+	files, err = filepath.Glob("../../../tests/eth_call/*.io")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			if !strings.HasPrefix(line, ">> ") {
+				continue
+			}
+			var request object
+			if err := json.Unmarshal([]byte(strings.TrimPrefix(line, ">> ")), &request); err != nil {
+				t.Fatal(err)
+			}
+			if request["method"] == "eth_call" {
+				tests = append(tests, testCase{filepath.Base(file), "eth_call", request["params"].([]any)[0], true})
+			}
+		}
+	}
+	for _, expanded := range []bool{false, true} {
+		mode := "referenced/"
+		if expanded {
+			mode = "expanded/"
+		}
+		for _, tc := range tests {
+			t.Run(mode+tc.schema+"/"+tc.name, func(t *testing.T) {
+				root := object{"components": object{"schemas": repo2object(generator.types)}, "$ref": "#/components/schemas/" + tc.schema}
+				if expanded {
+					var err error
+					root, err = generator.expandSchema(generator.types[tc.schema], generator.types)
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+				compiler := jsonschema.NewCompiler()
+				compiler.DefaultDraft(jsonschema.Draft7)
+				if err := compiler.AddResource("call.json", root); err != nil {
+					t.Fatal(err)
+				}
+				schema, err := compiler.Compile("call.json")
+				if err != nil {
+					t.Fatal(err)
+				}
+				data, err := json.Marshal(tc.value)
+				if err != nil {
+					t.Fatal(err)
+				}
+				var value any
+				if err := json.Unmarshal(data, &value); err != nil {
+					t.Fatal(err)
+				}
+				err = schema.Validate(value)
+				if (err == nil) != tc.valid {
+					t.Fatalf("valid=%v, validation error: %v", tc.valid, err)
+				}
+			})
+		}
+	}
+}
