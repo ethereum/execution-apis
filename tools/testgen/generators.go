@@ -886,8 +886,10 @@ var EthEstimateGas = MethodTests{
 				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg, t.chain.Head().Hash()); err != nil {
 					return err
 				}
-				if uint64(got) != params.TxGas {
-					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				// post-Amsterdam (EIP-2780), a zero-value transfer to an existing account costs 15000
+				want := uint64(15000)
+				if uint64(got) != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
