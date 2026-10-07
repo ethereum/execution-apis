@@ -4801,11 +4801,11 @@ var EthSimulateV1 = MethodTests{
 				if len(res) != len(params.BlockStateCalls) {
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
-				if len(res[0].Calls[0].Logs) != 2 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, simulated plus the EIP-7708 transfer log)", len(res[0].Calls[0].Logs), 2)
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, the EIP-7708 transfer log replaces the simulated one)", len(res[0].Calls[0].Logs), 1)
 				}
-				if res[0].Calls[0].Logs[0].Address.String() != "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" {
-					return fmt.Errorf("unexpected log address (have: %s, want: %s)", res[0].Calls[0].Logs[0].Address.String(), "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
+				if got := res[0].Calls[0].Logs[0].Address; got != ethTransferLogAddress {
+					return fmt.Errorf("unexpected log address (have: %s, want: %s)", got, ethTransferLogAddress)
 				}
 				return nil
 			},
@@ -4950,8 +4950,8 @@ var EthSimulateV1 = MethodTests{
 				if len(res) != len(params.BlockStateCalls) {
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
-				if len(res[0].Calls[0].Logs) != 4 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, two hops each with a simulated and an EIP-7708 transfer log)", len(res[0].Calls[0].Logs), 4)
+				if len(res[0].Calls[0].Logs) != 2 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, one EIP-7708 transfer log per hop)", len(res[0].Calls[0].Logs), 2)
 				}
 				return nil
 			},
@@ -6521,8 +6521,8 @@ var EthSimulateV1 = MethodTests{
 				if res[0].Calls[0].Status != 1 {
 					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
 				}
-				if len(res[0].Calls[0].Logs) != 2 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
 				}
 				return nil
 			},
@@ -6561,8 +6561,8 @@ var EthSimulateV1 = MethodTests{
 				if res[0].Calls[0].Status != 1 {
 					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
 				}
-				if len(res[0].Calls[0].Logs) != 2 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
 				}
 				return nil
 			},
@@ -6598,8 +6598,8 @@ var EthSimulateV1 = MethodTests{
 				if res[0].Calls[0].Status != 1 {
 					return fmt.Errorf("unexpected call status (have: %d, want: %d)", res[0].Calls[0].Status, 1)
 				}
-				if len(res[0].Calls[0].Logs) != 2 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
 				}
 				return nil
 			},
