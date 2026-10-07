@@ -1,5 +1,12 @@
 - name: eth_call
   summary: Executes a new message call immediately without creating a transaction on the block chain.
+  description: |
+    Executes a new message call immediately without creating a transaction on the block chain.
+
+    When the gas fee fields (`gasPrice`, `maxFeePerGas`, `maxPriorityFeePerGas`) are omitted, the
+    client MAY select implementation-defined fee values for the simulation. The request MUST NOT
+    fail solely because the sender cannot afford the gas fees implied by those client-selected
+    defaults. This does not waive balance requirements for a non-zero transaction `value`.
   params:
     - name: Transaction
       required: true
@@ -34,6 +41,13 @@
 
 - name: eth_estimateGas
   summary: Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+  description: |
+    Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+
+    When the gas fee fields (`gasPrice`, `maxFeePerGas`, `maxPriorityFeePerGas`) are omitted, the
+    client MAY select implementation-defined fee values for the simulation. The request MUST NOT
+    fail solely because the sender cannot afford the gas fees implied by those client-selected
+    defaults. This does not waive balance requirements for a non-zero transaction `value`.
   params:
     - name: Transaction
       required: true
@@ -71,7 +85,7 @@
     Generates an access list for a transaction.
 
     When the gas fee fields (`gasPrice`, `maxFeePerGas`, `maxPriorityFeePerGas`) are omitted, the
-    client may select implementation-defined fee values for the simulation. The request MUST NOT
+    client MAY select implementation-defined fee values for the simulation. The request MUST NOT
     fail solely because the sender cannot afford the gas fees implied by those client-selected
     defaults. This does not waive balance requirements for a non-zero transaction `value`.
   params:
