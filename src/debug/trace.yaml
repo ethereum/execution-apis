@@ -12,10 +12,11 @@
     OpcodeBlockTransactionTrace, whose result field conforms to
     OpcodeTransactionTrace.
 
-    When a named tracer is specified via the tracer field in TraceConfig (e.g.
-    "callTracer", "prestateTracer"), the result field of each entry contains
-    tracer-specific output. Defining the output schemas of named tracers is
-    outside the scope of this specification.
+    When the tracer field in TraceConfig is "callTracer", each entry conforms
+    to CallTracerBlockEntry, whose result field is the transaction's CallFrame
+    tree. For other named tracers (e.g. "prestateTracer"), the result field
+    contains tracer-specific output; defining the output schemas of other
+    named tracers is outside the scope of this specification.
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
@@ -41,23 +42,28 @@
       description: >-
         An array of trace entries ordered by transaction index within the block.
         When no named tracer is set, each entry conforms to
-        OpcodeBlockTransactionTrace. When a named tracer is set, the result
-        field of each entry contains tracer-specific output not defined by this
-        specification, but the txHash field is always present.
+        OpcodeBlockTransactionTrace. When the callTracer is set, each entry
+        conforms to CallTracerBlockEntry. When another named tracer is set, the
+        result field of each entry contains tracer-specific output not defined
+        by this specification, but the txHash field is always present.
       type: array
       items:
         anyOf:
           - title: Opcode tracer entry
             description: Returned when no named tracer is specified.
             $ref: '#/components/schemas/OpcodeBlockTransactionTrace'
+          - title: Call tracer entry
+            description: Returned when the tracer field is "callTracer".
+            $ref: '#/components/schemas/CallTracerBlockEntry'
           - title: Named tracer entry
             description: >-
-              Returned when a named tracer is specified. The result field
-              contains tracer-specific output not defined by this specification.
+              Returned when another named tracer is specified. The result field
+              contains tracer-specific output not defined by this
+              specification; error is present instead when the transaction
+              could not be traced.
             type: object
             required:
               - txHash
-              - result
             properties:
               txHash:
                 $ref: '#/components/schemas/hash32'
@@ -65,6 +71,9 @@
                 description: >-
                   Named tracer output. The schema is unspecified and may be
                   any valid JSON value.
+              error:
+                description: The error that prevented tracing this transaction.
+                type: string
   examples:
     - name: debug_traceBlockByNumber example (opcode tracer)
       params:
@@ -121,10 +130,11 @@
     OpcodeBlockTransactionTrace, whose result field conforms to
     OpcodeTransactionTrace.
 
-    When a named tracer is specified via the tracer field in TraceConfig (e.g.
-    "callTracer", "prestateTracer"), the result field of each entry contains
-    tracer-specific output. Defining the output schemas of named tracers is
-    outside the scope of this specification.
+    When the tracer field in TraceConfig is "callTracer", each entry conforms
+    to CallTracerBlockEntry, whose result field is the transaction's CallFrame
+    tree. For other named tracers (e.g. "prestateTracer"), the result field
+    contains tracer-specific output; defining the output schemas of other
+    named tracers is outside the scope of this specification.
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
@@ -152,23 +162,28 @@
       description: >-
         An array of trace entries ordered by transaction index within the block.
         When no named tracer is set, each entry conforms to
-        OpcodeBlockTransactionTrace. When a named tracer is set, the result
-        field of each entry contains tracer-specific output not defined by this
-        specification, but the txHash field is always present.
+        OpcodeBlockTransactionTrace. When the callTracer is set, each entry
+        conforms to CallTracerBlockEntry. When another named tracer is set, the
+        result field of each entry contains tracer-specific output not defined
+        by this specification, but the txHash field is always present.
       type: array
       items:
         anyOf:
           - title: Opcode tracer entry
             description: Returned when no named tracer is specified.
             $ref: '#/components/schemas/OpcodeBlockTransactionTrace'
+          - title: Call tracer entry
+            description: Returned when the tracer field is "callTracer".
+            $ref: '#/components/schemas/CallTracerBlockEntry'
           - title: Named tracer entry
             description: >-
-              Returned when a named tracer is specified. The result field
-              contains tracer-specific output not defined by this specification.
+              Returned when another named tracer is specified. The result field
+              contains tracer-specific output not defined by this
+              specification; error is present instead when the transaction
+              could not be traced.
             type: object
             required:
               - txHash
-              - result
             properties:
               txHash:
                 $ref: '#/components/schemas/hash32'
@@ -176,6 +191,9 @@
                 description: >-
                   Named tracer output. The schema is unspecified and may be
                   any valid JSON value.
+              error:
+                description: The error that prevented tracing this transaction.
+                type: string
   examples:
     - name: debug_traceBlockByHash example (opcode tracer)
       params:
@@ -228,10 +246,12 @@
     When no tracer is specified (or the tracer field is absent), the opcode
     (struct) logger is used and the result conforms to OpcodeTransactionTrace.
 
-    When a named tracer is specified via the tracer field in TraceConfig (e.g.
-    "callTracer", "prestateTracer"), the result contains tracer-specific output.
-    Defining the output schemas of named tracers is outside the scope of this
-    specification.
+    When the tracer field in TraceConfig is "callTracer", the result conforms
+    to CallFrame: the transaction's call tree with one frame per call, create,
+    or selfdestruct, configurable via CallTracerConfig in tracerConfig. For
+    other named tracers (e.g. "prestateTracer"), the result contains
+    tracer-specific output; defining the output schemas of other named tracers
+    is outside the scope of this specification.
   params:
     - name: Transaction hash
       required: true
@@ -252,11 +272,15 @@
         - title: Opcode tracer result
           description: Returned when no named tracer is specified.
           $ref: '#/components/schemas/OpcodeTransactionTrace'
+        - title: Call tracer result
+          description: Returned when the tracer field is "callTracer".
+          $ref: '#/components/schemas/CallFrame'
         - title: Named tracer result
           description: >-
-            Returned when a named tracer is specified via the tracer field.
-            The format is tracer-specific and not defined by this specification.
-            Named tracers may return any JSON value (object, array, integer, etc.).
+            Returned when another named tracer is specified via the tracer
+            field. The format is tracer-specific and not defined by this
+            specification. Named tracers may return any JSON value (object,
+            array, integer, etc.).
   examples:
     - name: debug_traceTransaction example (opcode tracer)
       params:
@@ -315,5 +339,88 @@
           value: '0x0'
           gas: '0x1a49e'
           gasUsed: '0x1a49e'
+          input: '0x'
+          output: '0x'
+
+- name: debug_traceCall
+  summary: Executes a call and returns its trace.
+  description: >-
+    Executes a new message call on top of the state of the given block and
+    returns a trace of its execution, without creating a transaction. The
+    call's execution context (state, block environment) is that of the given
+    block after all its transactions have been applied.
+
+    When no tracer is specified (or the tracer field is absent), the opcode
+    (struct) logger is used and the result conforms to OpcodeTransactionTrace.
+
+    When the tracer field in TraceCallConfig is "callTracer", the result
+    conforms to CallFrame, configurable via CallTracerConfig in tracerConfig.
+    For other named tracers, the result contains tracer-specific output;
+    defining the output schemas of other named tracers is outside the scope of
+    this specification.
+
+    A call that reverts or otherwise halts with an error is NOT a JSON-RPC
+    error: the trace is returned with the failure reflected in the tracer
+    output (e.g. the CallFrame error field, or failed=true for the opcode
+    logger). Clients MUST return a JSON-RPC error only for invalid parameters,
+    an unknown block, unavailable historical state, or tracer failure.
+    Transaction validation follows eth_call semantics: fee and balance checks
+    that eth_call skips or relaxes are equally skipped or relaxed here.
+  params:
+    - name: Transaction
+      required: true
+      schema:
+        $ref: '#/components/schemas/GenericTransaction'
+    - name: Block
+      required: false
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+    - name: TraceCallConfig
+      required: false
+      schema:
+        $ref: '#/components/schemas/TraceCallConfig'
+  errors:
+    - code: 4444
+      message: Pruned history unavailable
+  result:
+    name: Call trace
+    schema:
+      title: Call trace result
+      anyOf:
+        - title: Opcode tracer result
+          description: Returned when no named tracer is specified.
+          $ref: '#/components/schemas/OpcodeTransactionTrace'
+        - title: Call tracer result
+          description: Returned when the tracer field is "callTracer".
+          $ref: '#/components/schemas/CallFrame'
+        - title: Named tracer result
+          description: >-
+            Returned when another named tracer is specified via the tracer
+            field. The format is tracer-specific and not defined by this
+            specification. Named tracers may return any JSON value (object,
+            array, integer, etc.).
+  examples:
+    - name: debug_traceCall example (callTracer)
+      params:
+        - name: Transaction
+          value:
+            from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+            to: '0x0100000000000000000000000000000000000000'
+            gas: '0x1a49e'
+            input: '0x'
+        - name: Block
+          value: latest
+        - name: TraceCallConfig
+          value:
+            tracer: callTracer
+      result:
+        name: Call trace (callTracer)
+        value:
+          type: CALL
+          from: '0xfe3b557e8fb62b89f4916b721be55ceb828dbd73'
+          to: '0x0100000000000000000000000000000000000000'
+          value: '0x0'
+          gas: '0x1a49e'
+          gasUsed: '0x5208'
           input: '0x'
           output: '0x'
