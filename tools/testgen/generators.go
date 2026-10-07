@@ -784,6 +784,25 @@ var EthCall = MethodTests{
 	"eth_call",
 	[]Test{
 		{
+			Name: "call-unfunded-sender",
+			About: `Performs a call with a zero-value transfer from an unfunded sender with all gas fee
+fields omitted. The request must not fail merely because the sender cannot afford the client's fee defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var result hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				if len(result) != 0 {
+					return fmt.Errorf("unexpected return data: %x", result)
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "call-contract",
 			About: "performs a basic contract call with default settings",
 			Run: func(ctx context.Context, t *T) error {
@@ -947,6 +966,25 @@ if (BigInt(messages[1].response.result) <= 5000) {
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
 	[]Test{
+		{
+			Name: "estimate-unfunded-sender",
+			About: `Estimates a zero-value transfer from an unfunded sender with all gas fee fields omitted.
+The request must not fail merely because the sender cannot afford the client's fee defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var got hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg, "latest"); err != nil {
+					return err
+				}
+				if uint64(got) != params.TxGas {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				}
+				return nil
+			},
+		},
 		{
 			Name:  "estimate-simple-transfer",
 			About: "estimates a simple transfer",
