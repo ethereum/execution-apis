@@ -536,7 +536,7 @@ BuiltPayloadAmsterdam {
     should_override_builder: Boolean
 }
 
-# Bogota = Amsterdam shape, with ExecutionPayloadBogota inner
+# Bogota — Amsterdam with the Bogota ExecutionPayload
 BuiltPayloadBogota {
     payload:                 ExecutionPayloadBogota
     block_value:             Uint256
@@ -747,7 +747,7 @@ returns a `BuiltPayloadShanghai`.
 
 ### `POST /payloads`
 
-Replaces `engine_newPayloadV{1..6}` (Amsterdam shown; `engine_newPayloadV5`).
+Replaces `engine_newPayloadV{1..6}` (Bogota shown; `engine_newPayloadV6`).
 Each fork uses its `ExecutionPayloadEnvelope{Fork}` from the catalogue
 above — Paris/Shanghai carry the bare payload, Cancun+ add
 `parent_beacon_block_root`, Prague+ add `execution_requests`.
@@ -776,7 +776,7 @@ ExecutionPayloadEnvelopeBogota {
 }
 ```
 
-Replaces `engine_newPayloadV6`. The EL **MUST** retain
+The EL **MUST** retain
 `inclusion_list_transactions` for a payload with `ACCEPTED` status
 and **MAY** discard them once the payload is no longer the tip of a
 branch.
@@ -788,8 +788,8 @@ from Bogota on.
 
 ### `POST /forkchoice`
 
-Replaces `engine_forkchoiceUpdatedV{1..5}` (Amsterdam shown;
-`engine_forkchoiceUpdatedV4`). Each fork uses its `ForkchoiceUpdate{Fork}`
+Replaces `engine_forkchoiceUpdatedV{1..5}` (Bogota shown;
+`engine_forkchoiceUpdatedV5`). Each fork uses its `ForkchoiceUpdate{Fork}`
 and `PayloadAttributes{Fork}` from the catalogue; `custody_columns`
 exists only from Amsterdam on. `ForkchoiceState` is fork-invariant;
 the response gains `inclusion_list_satisfied` at Bogota.
@@ -814,7 +814,7 @@ ForkchoiceUpdateBogota {
 }
 ```
 
-Replaces `engine_forkchoiceUpdatedV5`. When building a payload the EL
+When building a payload, the EL
 **MUST** take `payload_attributes.inclusion_list_transactions` into
 account, and the built payload **MUST** satisfy the inclusion list
 constraints with respect to them. When validating the head payload the
