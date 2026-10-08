@@ -915,6 +915,113 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 				return nil
 			},
 		},
+		{
+			Name:  "call-fork-inactive-access-list",
+			About: "calls with an empty access list on a block before Berlin. The request is invalid because EIP-2930 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":       sender,
+					"to":         common.Address{0x01},
+					"accessList": types.AccessList{},
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for access list before Berlin")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-fee-fields-zero",
+			About: "calls with zero maxFeePerGas and maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active, even when the values are zero.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxFeePerGas":         (*hexutil.Big)(common.Big0),
+					"maxPriorityFeePerGas": (*hexutil.Big)(common.Big0),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for EIP-1559 fee fields before London")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-priority-fee",
+			About: "calls with only maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxPriorityFeePerGas before London")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-blob-hashes",
+			About: "calls with blob versioned hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{{0x01}},
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for blob hashes before Cancun")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-authorization-list",
+			About: "calls with an authorization list on a block before Prague. The request is invalid because EIP-7702 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":              sender,
+					"to":                common.Address{0x01},
+					"authorizationList": []types.SetCodeAuthorization{{Address: common.Address{0x01}}},
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().PragueTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for authorization list before Prague")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-gas-price-before-london",
+			About: "calls with gasPrice set on a block before London. gasPrice is valid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":     sender,
+					"to":       common.Address{0x01},
+					"gas":      hexutil.Uint64(params.TxGas),
+					"gasPrice": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
 	},
 }
 
@@ -1088,6 +1195,43 @@ var EthEstimateGas = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "estimate-fork-inactive-access-list",
+			About: "estimates a transfer with an empty access list on a block before Berlin. The request is invalid because EIP-2930 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":       sender,
+					"to":         common.Address{0x01},
+					"accessList": types.AccessList{},
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block); err == nil {
+					return fmt.Errorf("expected error for access list before Berlin")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-fork-inactive-fee-fields",
+			About: "estimates a transfer with maxFeePerGas and maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxFeePerGas":         (*hexutil.Big)(big.NewInt(2 * params.GWei)),
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block); err == nil {
+					return fmt.Errorf("expected error for EIP-1559 fee fields before London")
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -1224,6 +1368,42 @@ in the "error" field.`,
 				}
 				if len(result.Error) == 0 {
 					return fmt.Errorf("EVM revert error not signaled in response")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-fork-inactive",
+			About: "creates an access list for a transfer on a block before Berlin. The request is invalid because EIP-2930 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block); err == nil {
+					return fmt.Errorf("expected error for access list before Berlin")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-fork-inactive-fee-fields",
+			About: "creates an access list with maxFeePerGas and maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxFeePerGas":         (*hexutil.Big)(big.NewInt(2 * params.GWei)),
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block); err == nil {
+					return fmt.Errorf("expected error for EIP-1559 fee fields before London")
 				}
 				return nil
 			},

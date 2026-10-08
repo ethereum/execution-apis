@@ -1,5 +1,14 @@
 - name: eth_call
   summary: Executes a new message call immediately without creating a transaction on the block chain.
+  description: |
+    Executes a new message call immediately without creating a transaction on the block chain.
+
+    A transaction field whose EIP is not active at the target block makes the request invalid,
+    and the client MUST reject it. This applies even when the field has a zero value or is an
+    empty list. These fields are `accessList` before Berlin (EIP-2930), `maxFeePerGas` and
+    `maxPriorityFeePerGas` before London (EIP-1559), `blobVersionedHashes` before Cancun
+    (EIP-4844) and `authorizationList` before Prague (EIP-7702). `gasPrice` without the
+    EIP-1559 fields is valid at every fork.
   params:
     - name: Transaction
       required: true
@@ -34,6 +43,15 @@
 
 - name: eth_estimateGas
   summary: Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+  description: |
+    Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+
+    A transaction field whose EIP is not active at the target block makes the request invalid,
+    and the client MUST reject it. This applies even when the field has a zero value or is an
+    empty list. These fields are `accessList` before Berlin (EIP-2930), `maxFeePerGas` and
+    `maxPriorityFeePerGas` before London (EIP-1559), `blobVersionedHashes` before Cancun
+    (EIP-4844) and `authorizationList` before Prague (EIP-7702). `gasPrice` without the
+    EIP-1559 fields is valid at every fork.
   params:
     - name: Transaction
       required: true
@@ -67,6 +85,17 @@
 
 - name: eth_createAccessList
   summary: Generates an access list for a transaction.
+  description: |
+    Generates an access list for a transaction.
+
+    A transaction field whose EIP is not active at the target block makes the request invalid,
+    and the client MUST reject it. This applies even when the field has a zero value or is an
+    empty list. These fields are `accessList` before Berlin (EIP-2930), `maxFeePerGas` and
+    `maxPriorityFeePerGas` before London (EIP-1559), `blobVersionedHashes` before Cancun
+    (EIP-4844) and `authorizationList` before Prague (EIP-7702). `gasPrice` without the
+    EIP-1559 fields is valid at every fork.
+
+    If Berlin (EIP-2930) is not active at the target block, the client MUST reject the request.
   params:
     - name: Transaction
       required: true
