@@ -44,7 +44,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | - | - |
 | `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
 | `INCLUSION_LIST_COMMITTEE_SIZE` | `uint64(16) = 2**4` |
-| `MAX_INCLUSION_LIST_CLAIMS` | `uint64(1024) = 2**10` |
+| `MAX_INCLUSION_LIST_CLAIMS` | `uint64(4096) = 2**12` |
 
 ## Structures
 
@@ -187,7 +187,7 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
     3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
-    4. When [EIP-8141](https://eips.ethereum.org/EIPS/eip-8141) is active, the total VERIFY budget cost of the Profile 2 candidates in the transaction list **MUST NOT** exceed `MAX_VERIFY_GAS_PER_IL`, with the cost, the candidates and the constant as defined in [EIP-8369](https://eips.ethereum.org/EIPS/eip-8369).
+    4. When [EIP-8141](https://eips.ethereum.org/EIPS/eip-8141) is active, the total VERIFY budget cost of the Profile 2 candidates in the transaction list **MUST NOT** exceed `MAX_VERIFY_GAS_PER_IL`, with the cost, the candidates and the constant as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 2. The strategy for selecting transactions is implementation dependent.
 
