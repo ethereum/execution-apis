@@ -13,6 +13,10 @@
     name: Return data
     schema:
       $ref: '#/components/schemas/bytes'
+  error-groups:
+    - $ref: '#/components/error-groups/JSONRPCStandardErrors'
+    - $ref: '#/components/error-groups/ExecutionErrors'
+    - $ref: '#/components/error-groups/GasErrors'
   errors:
     - code: 3
       message: "execution reverted"
@@ -47,6 +51,10 @@
     name: Gas used
     schema:
       $ref: '#/components/schemas/uint'
+  error-groups:
+    - $ref: '#/components/error-groups/JSONRPCStandardErrors'
+    - $ref: '#/components/error-groups/ExecutionErrors'
+    - $ref: '#/components/error-groups/GasErrors'
   errors:
     - code: 3
       message: "execution reverted"
