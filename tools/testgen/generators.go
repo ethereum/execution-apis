@@ -5829,6 +5829,33 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-override-precompile-code-without-move",
+			About: "override the code of a precompile without moving it; the new code runs instead of the precompile",
+			Run: func(ctx context.Context, t *T) error {
+				identityAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000004"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							identityAddress: OverrideAccount{
+								// PUSH1 0x2a PUSH1 0 MSTORE PUSH1 0x20 PUSH1 0 RETURN
+								Code: hex2Bytes("602a60005260206000f3"),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &identityAddress,
+							Input: hex2Bytes("1234"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "ethSimulate-override-identity",
 			About: "override identity precompile",
 			Run: func(ctx context.Context, t *T) error {
