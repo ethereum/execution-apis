@@ -3,10 +3,19 @@
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_getinclusionlistv1
-  params: []
+  params:
+    - name: Parent block hash
+      required: false
+      schema:
+        oneOf:
+          - $ref: '#/components/schemas/hash32'
+          - type: 'null'
   result:
     name: Inclusion list transactions
     schema:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+  errors:
+    - code: -32602
+      message: Invalid params
