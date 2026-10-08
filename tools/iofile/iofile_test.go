@@ -72,10 +72,11 @@ func TestValidationScriptTimeout(t *testing.T) {
 
 func TestValidationScriptSchema(t *testing.T) {
 	testFile := `
->> {"key": {"a": "x", "b": 2}, "key2": {"a": "x", "b": "y"}}
+>> {"valid": [{"address": "0xa02457e5dfd32bda5fc7e1f1b008aa5979568150", "storageKeys": ["0x0000000000000000000000000000000000000000000000000000000000000081"]}]}
+>> {"invalid": [{"address": "0xa02457e5dfd32bda5fc7e1f1b008aa5979568150", "storageKeys": ["0x00000000000000000000000000000000000000000000000000000000000000"]}]}
 --
-jsonschema.validate(openrpc, messages[0].send.key);
-jsonschema.validate(openrpc, messages[0].send.key2);
+jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[0].send.valid);
+jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[1].send.invalid);
 `
 	test, err := Load("schema.io", strings.NewReader(testFile))
 	if err != nil {
@@ -83,14 +84,53 @@ jsonschema.validate(openrpc, messages[0].send.key2);
 	}
 
 	schema := json.RawMessage(`{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "a": { "type": "string" },
-    "b": { "type": "integer" }
-  },
-  "required": ["a", "b"],
-  "additionalProperties": false
+  "openrpc": "1.4.1",
+  "components": {
+    "schemas": {
+      "AccessList": {
+        "items": {
+          "$ref": "#/components/schemas/AccessListEntry"
+        },
+        "title": "Access list",
+        "type": "array"
+      },
+      "AccessListEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/address"
+          },
+          "storageKeys": {
+            "items": {
+              "$ref": "#/components/schemas/hash32"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "address",
+          "storageKeys"
+        ],
+        "title": "Access list entry",
+        "type": "object"
+      },
+      "address": {
+        "pattern": "^0x[0-9a-fA-F]{40}$",
+        "title": "hex encoded address",
+        "type": "string"
+      },
+      "hash32": {
+        "pattern": "^0x[0-9a-f]{64}$",
+        "title": "32 byte hex value",
+        "type": "string"
+      },
+      "uint": {
+        "pattern": "^0x(0|[1-9a-f][0-9a-f]*)$",
+        "title": "hex encoded unsigned integer",
+        "type": "string"
+      }
+    }
+  }
 }`)
 	config := ScriptConfig{OpenRPCSchema: schema}
 	err = test.RunScript(config, nil)

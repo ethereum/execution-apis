@@ -12,7 +12,7 @@ import (
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 type scriptMessage struct {
@@ -176,7 +176,7 @@ func enableJSONSchemaModule(runtime *goja.Runtime) {
 	runtime.Set("jsonschema", require.Require(runtime, jsonschemaModuleName))
 }
 
-// validate(schema, value), throws when invalid.
+// validate(document, schemaPath, value), throws when invalid.
 func (m *jsonschemaModule) validate(call goja.FunctionCall) goja.Value {
 	err := m.doValidate(call)
 	if err != nil {
@@ -185,24 +185,28 @@ func (m *jsonschemaModule) validate(call goja.FunctionCall) goja.Value {
 	return goja.Undefined()
 }
 
-// isValid(schema, value) -> boolean
+// isValid(document, schemaPath, value) -> boolean
 func (m *jsonschemaModule) isValid(call goja.FunctionCall) goja.Value {
 	err := m.doValidate(call)
 	return m.vm.ToValue(err == nil)
 }
 
 func (m *jsonschemaModule) doValidate(call goja.FunctionCall) error {
-	if len(call.Arguments) < 2 || len(call.Arguments) > 3 {
-		throw(m.vm, "invalid number of arguments (%d), need (schema, value, [url])", len(call.Arguments))
+	if len(call.Arguments) != 3 {
+		throw(m.vm, "invalid number of arguments (%d), need (schema, path, value)", len(call.Arguments))
 	}
-	schema := call.Arguments[0]
-	value := call.Arguments[1]
-	url := ""
-	if len(call.Arguments) > 2 {
-		url = call.Arguments[2].ToString().String()
+	doc := call.Arguments[0]
+	url, ok := call.Arguments[1].Export().(string)
+	if !ok {
+		throw(m.vm, "invalid URL argument, expected string")
+	}
+	value := call.Arguments[2]
+	if goja.IsUndefined(value) {
+		throw(m.vm, "value to validate is undefined")
 	}
 
-	schemaJSON, err := schema.ToObject(m.vm).MarshalJSON()
+	// convert schema document and value to Go via JSON.
+	docJSON, err := doc.ToObject(m.vm).MarshalJSON()
 	if err != nil {
 		throw(m.vm, "invalid JSON schema: %v", err)
 	}
@@ -210,12 +214,18 @@ func (m *jsonschemaModule) doValidate(call goja.FunctionCall) error {
 	if err != nil {
 		throw(m.vm, "invalid JSON value: %v", err)
 	}
+	var docGo any
+	if err := json.Unmarshal(docJSON, &docGo); err != nil {
+		throw(m.vm, "invalid JSON value: %v", err)
+	}
 	var valueGo any
 	if err := json.Unmarshal(valueJSON, &valueGo); err != nil {
 		throw(m.vm, "invalid JSON value: %v", err)
 	}
 
-	schemaGo, err := jsonschema.CompileString(url, string(schemaJSON))
+	c := jsonschema.NewCompiler()
+	c.AddResource("", docGo)
+	schemaGo, err := c.Compile(url)
 	if err != nil {
 		throw(m.vm, "invalid JSON schema: %v", err)
 	}
