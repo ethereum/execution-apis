@@ -695,6 +695,21 @@ var DebugTraceTransaction = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "calltracer-gas-dimensions",
+			About: "traces an Amsterdam calltree invocation with the callTracer; the root frame MUST carry the EIP-8037 executionGasUsed, stateGasUsed and gasRefund, and nested frames MUST NOT carry executionGasUsed or gasRefund",
+			Run:   traceCallTracerGasDimensions,
+		},
+		{
+			Name:  "calltracer-gas-dimensions-pre-amsterdam",
+			About: "traces a transfer from before Amsterdam with the callTracer; the EIP-8037 gas fields MUST be omitted",
+			Run:   traceCallTracerNoGasDimensions,
+		},
+		{
+			Name:  "trace-gas-dimensions",
+			About: "traces an Amsterdam transfer with the opcode logger; the result MUST carry the EIP-8037 executionGasUsed, stateGasUsed and gasRefund as integers",
+			Run:   traceOpcodeGasDimensions,
+		},
 	},
 }
 

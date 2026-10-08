@@ -61,6 +61,7 @@ type callTracerOpts struct {
 //   - calls MUST be absent when empty or when onlyTopCall is set
 //   - logs MUST be absent without withLog, and on failed frames and their
 //     descendants
+//   - executionGasUsed and gasRefund MUST only be present on the root frame
 func validateCallFrame(frame map[string]interface{}, opts callTracerOpts) error {
 	var me multiError
 	validateCallFrameAt("", frame, opts, false, &me)
@@ -95,6 +96,10 @@ func validateCallFrameAt(path string, frame map[string]interface{}, opts callTra
 	checkFieldPattern(me, prefix, frame, "value", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "input", bytesPattern)
 	checkFieldPattern(me, prefix, frame, "output", bytesPattern)
+	checkFieldPattern(me, prefix, frame, "executionGasUsed", uint256Pattern)
+	checkFieldPattern(me, prefix, frame, "stateGasUsed", intPattern)
+	checkFieldPattern(me, prefix, frame, "gasRefund", uint256Pattern)
+	checkFieldPattern(me, prefix, frame, "stateGasReservoir", uint256Pattern)
 
 	errVal, hasError := frame["error"]
 	if hasError {
@@ -170,6 +175,11 @@ func validateCallFrameAt(path string, frame map[string]interface{}, opts callTra
 			if !ok {
 				me.add("%s: calls[%d] must be an object, got %T", prefix, i, c)
 				continue
+			}
+			for _, key := range rootOnlyFrameFields {
+				if _, ok := sub[key]; ok {
+					me.add("%s.calls[%d]: %q MUST only be present on the root frame", prefix, i, key)
+				}
 			}
 			validateCallFrameAt(fmt.Sprintf("%s.calls[%d]", prefix, i), sub, opts, failed, me)
 		}
