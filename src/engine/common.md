@@ -176,3 +176,5 @@ Execution layer clients **MUST** support `engine_exchangeCapabilities` method, w
         * response: `["engine_newPayloadV2", "engine_newPayloadV3", ...]`.
 
 3. The `engine_exchangeCapabilities` method **MUST NOT** be returned in the response list.
+
+4. When connected to multiple execution clients via a multiplexer, the multiplexer **MUST** return the intersection of the capability sets returned by each execution client, i.e. the response list **MUST** contain only those methods that are supported by every connected execution client.
