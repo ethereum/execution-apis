@@ -65,7 +65,7 @@ AccountOverride:
     - $ref: '#/components/schemas/AccountOverrideStateDiff'
 AccountOverrideState:
   title: Account override with whole storage replacement
-  description: It is possible to override any kind of address (EOA's, contracts and precompiles)
+  description: It is possible to override any kind of address (EOA's, contracts and precompiles). A `code` override on a precompile address replaces the precompile.
   required:
     - state
   properties:
@@ -88,6 +88,7 @@ AccountOverrideState:
       $ref: '#/components/schemas/AccountStorage'
 AccountOverrideStateDiff:
   title: Account override with partial storage modification
+  description: A `code` override on a precompile address replaces the precompile.
   required:
     - stateDiff
   properties:
