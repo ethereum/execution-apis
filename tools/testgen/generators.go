@@ -765,6 +765,25 @@ var EthCall = MethodTests{
 	"eth_call",
 	[]Test{
 		{
+			Name: "call-unfunded-sender",
+			About: `Performs a call with a zero-value transfer from an unfunded sender with all gas fee
+fields omitted. The request must not fail merely because the sender cannot afford the client's fee defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var result hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				if len(result) != 0 {
+					return fmt.Errorf("unexpected return data: %x", result)
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "call-contract",
 			About: "performs a basic contract call with default settings",
 			Run: func(ctx context.Context, t *T) error {
@@ -922,6 +941,25 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
 	[]Test{
+		{
+			Name: "estimate-unfunded-sender",
+			About: `Estimates a zero-value transfer from an unfunded sender with all gas fee fields omitted.
+The request must not fail merely because the sender cannot afford the client's fee defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var got hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg, "latest"); err != nil {
+					return err
+				}
+				if uint64(got) != params.TxGas {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				}
+				return nil
+			},
+		},
 		{
 			Name:  "estimate-simple-transfer",
 			About: "estimates a simple transfer",
@@ -1127,6 +1165,32 @@ var EthCreateAccessList = MethodTests{
 				}
 				result := make(map[string]any)
 				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, t.chain.Head().Hash())
+			},
+		},
+		{
+			Name: "create-al-unfunded-sender",
+			About: `Creates an access list for a zero-value transfer from an unfunded sender with all gas fee
+fields omitted. The client selects implementation-defined fee defaults for simulation, and the
+request must not fail merely because the sender cannot afford those defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var result struct {
+					AccessList types.AccessList `json:"accessList"`
+					GasUsed    hexutil.Uint64   `json:"gasUsed"`
+				}
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest"); err != nil {
+					return err
+				}
+				if len(result.AccessList) != 0 {
+					return fmt.Errorf("expected empty access list, got %d entries", len(result.AccessList))
+				}
+				if result.GasUsed != 21000 {
+					return fmt.Errorf("unexpected gasUsed (got %d want 21000)", uint64(result.GasUsed))
+				}
+				return nil
 			},
 		},
 		{
