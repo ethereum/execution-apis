@@ -7,6 +7,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -41,6 +42,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -74,6 +76,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "default: 'latest'"
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:

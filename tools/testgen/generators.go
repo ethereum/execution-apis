@@ -786,6 +786,25 @@ var EthCall = MethodTests{
 			},
 		},
 		{
+			Name:  "call-omitted-block",
+			About: "performs a contract call without the optional block parameter, which defaults to latest",
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"to":    t.chain.txinfo.CallMeContract.Addr,
+					"input": hexutil.Bytes{0xff, 0x01},
+				}
+				var result hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg); err != nil {
+					return err
+				}
+				want := []byte{0xff, 0xee}
+				if !bytes.Equal(result, want) {
+					return fmt.Errorf("unexpected return value (got: %#x, want: %#x)", result, want)
+				}
+				return nil
+			},
+		},
+		{
 			Name: "call-block-hash-object",
 			About: `Performs a call at a block hash given as an EIP-1898 object.
 Calls the callenv contract, whose echoed block number makes the result differ per
@@ -1127,6 +1146,37 @@ var EthCreateAccessList = MethodTests{
 				}
 				result := make(map[string]any)
 				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, t.chain.Head().Hash())
+			},
+		},
+		{
+			Name:     "create-al-omitted-block",
+			About:    "creates an access list without the optional block parameter, which defaults to latest",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				gasprice := t.chain.Head().BaseFee()
+				sender, nonce := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":     sender,
+					"to":       emitContract,
+					"nonce":    hexutil.Uint64(nonce),
+					"gas":      hexutil.Uint64(60000),
+					"gasPrice": (*hexutil.Big)(gasprice),
+					"input":    "0x010203040506",
+				}
+				var result struct {
+					AccessList types.AccessList
+				}
+				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg)
+				if err != nil {
+					return err
+				}
+				if len(result.AccessList) == 0 {
+					return fmt.Errorf("empty access list")
+				}
+				if result.AccessList[0].Address != emitContract {
+					return fmt.Errorf("wrong address in access list entry")
+				}
+				return nil
 			},
 		},
 		{
