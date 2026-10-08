@@ -61,7 +61,7 @@ type callTracerOpts struct {
 //   - calls MUST be absent when empty or when onlyTopCall is set
 //   - logs MUST be absent without withLog, and on failed frames and their
 //     descendants
-//   - executionGasUsed and gasRefund MUST only be present on the root frame
+//   - regularGasUsed and gasRefund MUST only be present on the root frame
 func validateCallFrame(frame map[string]interface{}, opts callTracerOpts) error {
 	var me multiError
 	validateCallFrameAt("", frame, opts, false, &me)
@@ -96,7 +96,7 @@ func validateCallFrameAt(path string, frame map[string]interface{}, opts callTra
 	checkFieldPattern(me, prefix, frame, "value", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "input", bytesPattern)
 	checkFieldPattern(me, prefix, frame, "output", bytesPattern)
-	checkFieldPattern(me, prefix, frame, "executionGasUsed", uint256Pattern)
+	checkFieldPattern(me, prefix, frame, "regularGasUsed", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "stateGasUsed", intPattern)
 	checkFieldPattern(me, prefix, frame, "gasRefund", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "stateGasReservoir", uint256Pattern)

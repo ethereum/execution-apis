@@ -263,12 +263,12 @@ OpcodeTransactionTrace:
       description: Total amount of gas consumed by the transaction.
       type: integer
       minimum: 0
-    executionGasUsed:
-      title: execution gas used (block contribution)
+    regularGasUsed:
+      title: regular gas used (block contribution)
       description: >-
         EIP-8037 (Amsterdam and later). The transaction's contribution to the
         block's execution-gas counter, with the same definition as the
-        executionGasUsed field of the callTracer's CallFrame. MUST be present
+        regularGasUsed field of the callTracer's CallFrame. MUST be present
         for Amsterdam and later transactions and MUST be omitted before the
         Amsterdam fork.
       type: integer

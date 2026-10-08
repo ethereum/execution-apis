@@ -12,10 +12,10 @@ import (
 var intPattern = regexp.MustCompile(`^(0x0|-?0x[1-9a-f][0-9a-f]*)$`)
 
 // gasDimensionFields are the EIP-8037 settlement fields of a transaction trace.
-var gasDimensionFields = []string{"executionGasUsed", "stateGasUsed", "gasRefund"}
+var gasDimensionFields = []string{"regularGasUsed", "stateGasUsed", "gasRefund"}
 
 // rootOnlyFrameFields are CallFrame fields that MUST NOT appear on nested frames.
-var rootOnlyFrameFields = []string{"executionGasUsed", "gasRefund"}
+var rootOnlyFrameFields = []string{"regularGasUsed", "gasRefund"}
 
 // isAmsterdamBlock reports whether the given block of the test chain is at or
 // after the Amsterdam fork.
@@ -39,11 +39,11 @@ func checkGasDimensionPresence(obj map[string]interface{}, amsterdam bool) error
 	return nil
 }
 
-// checkSettlementSum checks executionGasUsed + stateGasUsed == gasUsed +
+// checkSettlementSum checks regularGasUsed + stateGasUsed == gasUsed +
 // gasRefund, which holds when the calldata floor binds neither quantity.
 func checkSettlementSum(gasUsed, execution, state, refund uint64) error {
 	if execution+state != gasUsed+refund {
-		return fmt.Errorf("executionGasUsed (%d) + stateGasUsed (%d) != gasUsed (%d) + gasRefund (%d)", execution, state, gasUsed, refund)
+		return fmt.Errorf("regularGasUsed (%d) + stateGasUsed (%d) != gasUsed (%d) + gasRefund (%d)", execution, state, gasUsed, refund)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func traceCallTracerGasDimensions(ctx context.Context, t *T) error {
 		return err
 	}
 	var vals [4]uint64
-	for i, key := range []string{"gasUsed", "executionGasUsed", "stateGasUsed", "gasRefund"} {
+	for i, key := range []string{"gasUsed", "regularGasUsed", "stateGasUsed", "gasRefund"} {
 		v, err := hexField(result, key)
 		if err != nil {
 			return err
@@ -131,7 +131,7 @@ func traceOpcodeGasDimensions(ctx context.Context, t *T) error {
 		return err
 	}
 	var vals [4]uint64
-	for i, key := range []string{"gas", "executionGasUsed", "stateGasUsed", "gasRefund"} {
+	for i, key := range []string{"gas", "regularGasUsed", "stateGasUsed", "gasRefund"} {
 		v, err := intField(result, key)
 		if err != nil {
 			return err
