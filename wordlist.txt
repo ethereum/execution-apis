@@ -98,6 +98,8 @@ secp
 SFI
 sha
 SHOULDs
+getLogsV
+LogsV
 simulateV
 SLOAD
 SSTORE
