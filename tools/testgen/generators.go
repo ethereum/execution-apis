@@ -6119,6 +6119,37 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-override-state-clears-existing-storage",
+			About: "override the state of an account whose storage is already set on chain; slots not listed in the override read as zero",
+			Run: func(ctx context.Context, t *T) error {
+				// slots 1, 2 and 3 of this account hold 1, 2 and 3 in the genesis block
+				account := common.HexToAddress("0x8bebc8ba651aee624937e7d897853ac30c95a067")
+				state := map[common.Hash]common.Hash{
+					common.BytesToHash([]byte{0x03}): common.BytesToHash([]byte{0x2a}),
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							account: OverrideAccount{
+								// returns sload(1) followed by sload(3)
+								Code:  hex2Bytes("60015460005260035460205260406000f3"),
+								State: &state,
+							},
+						},
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc0},
+							To:   &account,
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "ethSimulate-block-override-reflected-in-contract-simple",
 			About: "Checks that block overrides are true in contract for block number and time",
 			Run: func(ctx context.Context, t *T) error {
