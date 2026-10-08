@@ -918,6 +918,40 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 	},
 }
 
+// calldataFloor is the EIP-7623 minimum for n zero bytes on the active fork.
+func calldataFloor(t *T, n int) uint64 {
+	head := t.chain.Head()
+	if t.chain.Config().IsAmsterdam(head.Number(), head.Time()) {
+		return params.TxBaseCost2780 + uint64(n)*params.TxTokenPerNonZeroByte*params.TxCostFloorPerToken7976
+	}
+	return params.TxGas + uint64(n)*params.TxCostFloorPerToken
+}
+
+// estimateValueTransfer builds a 1-wei transfer. withAuth attaches one dummy EIP-7702 authorization.
+func estimateValueTransfer(t *T, input hexutil.Bytes, withAuth bool) map[string]any {
+	sender, nonce := t.chain.GetSender(0)
+	msg := map[string]any{
+		"from":  sender,
+		"to":    common.Address{0x01},
+		"value": hexutil.Uint64(1),
+		"nonce": hexutil.Uint64(nonce),
+		"input": input,
+	}
+	if !withAuth {
+		return msg
+	}
+	msg["type"] = "0x4"
+	msg["authorizationList"] = []map[string]any{{
+		"chainId": "0x1",
+		"address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		"nonce":   "0x0",
+		"yParity": "0x0",
+		"r":       "0x1111111111111111111111111111111111111111111111111111111111111111",
+		"s":       "0x2222222222222222222222222222222222222222222222222222222222222222",
+	}}
+	return msg
+}
+
 // EthEstimateGas stores a list of all tests against the method.
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
@@ -1056,6 +1090,28 @@ var EthEstimateGas = MethodTests{
 				}
 				if authGas <= baseGas {
 					return fmt.Errorf("expected higher gas with auth (got: %d, base: %d)", authGas, baseGas)
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "estimate-eip7623-calldata-floor",
+			About:    "32 zero-byte calldata meets the EIP-7623 floor, and an authorization costs more",
+			SpecOnly: true,
+			Run: func(ctx context.Context, t *T) error {
+				input := hexutil.Bytes(make([]byte, 32))
+				var floorGas, authGas hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &floorGas, "eth_estimateGas", estimateValueTransfer(t, input, false)); err != nil {
+					return fmt.Errorf("floor estimation failed: %v", err)
+				}
+				if err := t.rpc.CallContext(ctx, &authGas, "eth_estimateGas", estimateValueTransfer(t, input, true)); err != nil {
+					return fmt.Errorf("authorization estimation failed: %v", err)
+				}
+				if floor := calldataFloor(t, len(input)); uint64(floorGas) < floor {
+					return fmt.Errorf("expected estimate at or above the calldata floor (got: %d, floor: %d)", floorGas, floor)
+				}
+				if authGas <= floorGas {
+					return fmt.Errorf("expected authorization above the calldata floor (got: %d, floor: %d)", authGas, floorGas)
 				}
 				return nil
 			},
