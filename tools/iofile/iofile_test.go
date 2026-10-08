@@ -123,11 +123,6 @@ jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[1].send
         "pattern": "^0x[0-9a-f]{64}$",
         "title": "32 byte hex value",
         "type": "string"
-      },
-      "uint": {
-        "pattern": "^0x(0|[1-9a-f][0-9a-f]*)$",
-        "title": "hex encoded unsigned integer",
-        "type": "string"
       }
     }
   }
@@ -137,7 +132,11 @@ jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[1].send
 	if err == nil {
 		t.Fatal("no error from script")
 	}
-	if !strings.Contains(err.Error(), "jsonschema: '/b' does not validate with") {
+	if !strings.Contains(err.Error(), "jsonschema validation failed with") {
 		t.Fatalf("wrong error from schema validation: %v", err)
 	}
+	if !strings.Contains(err.Error(), "at schema.io:6:20") {
+		t.Fatalf("backtrace line not in error from schema validation: %v", err)
+	}
+
 }
