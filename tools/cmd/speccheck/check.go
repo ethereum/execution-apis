@@ -44,10 +44,22 @@ func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Re
 			// skip validation of errors, they haven't been standardized
 			continue
 		}
-		if err := validate(&method.result.schema, rt.response.Result, fmt.Sprintf("%s.result", rt.method)); err != nil {
+		url := fmt.Sprintf("%s.result", rt.method)
+		narrowed, err := selectTracerSchema(&method.result.schema, rt.method, rt.params)
+		if err != nil {
+			return fmt.Errorf("unable to narrow result schema for %s: %s", rt.name, err)
+		}
+		var schemaJSON []byte
+		if narrowed != nil {
+			err = validateRaw(narrowed, rt.response.Result, url)
+			schemaJSON, _ = json.Marshal(narrowed)
+		} else {
+			err = validate(&method.result.schema, rt.response.Result, url)
+			schemaJSON, _ = json.Marshal(method.result.schema)
+		}
+		if err != nil {
 			// Print out the value and schema if there is an error to further debug.
-			buf, _ := json.Marshal(method.result.schema)
-			fmt.Println(string(buf))
+			fmt.Println(string(schemaJSON))
 			fmt.Println(string(rt.response.Result))
 			fmt.Println()
 			return fmt.Errorf("invalid result %s\n%#v", rt.name, err)
@@ -56,6 +68,23 @@ func checkSpec(methods map[string]*methodSchema, rts []*roundTrip, re *regexp.Re
 
 	fmt.Println("all passing.")
 	return nil
+}
+
+// validateRaw validates val against a schema given as a raw map, compiling it
+// without the typed-struct round-trip (see selectTracerSchema).
+func validateRaw(schema map[string]interface{}, val []byte, url string) error {
+	schema["$schema"] = "https://json-schema.org/draft/2019-09/schema"
+	b, err := json.Marshal(schema)
+	if err != nil {
+		return fmt.Errorf("unable to marshal schema to json")
+	}
+	s, err := jsonschema.CompileString(url, string(b))
+	if err != nil {
+		return err
+	}
+	var x interface{}
+	json.Unmarshal(val, &x)
+	return s.Validate(x)
 }
 
 // validateParam validates the provided value against schema using the url base.

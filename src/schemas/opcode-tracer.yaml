@@ -1,18 +1,31 @@
 TraceConfig:
   title: Trace configuration
   description: >-
-    Configuration object accepted by debug_traceBlockByNumber and
-    debug_traceTransaction.
+    Configuration object accepted by debug_traceBlockByNumber,
+    debug_traceBlockByHash, debug_traceTransaction, and (extended as
+    TraceCallConfig) debug_traceCall.
 
     When the tracer field is absent or empty, the opcode (struct) logger is
     used and the result conforms to OpcodeTransactionTrace. The fields
     enableMemory, disableStack, disableStorage, enableReturnData, and limit
     only apply to the opcode logger and are ignored when a named tracer is set.
 
-    When the tracer field is set to a named tracer (e.g. "callTracer",
-    "prestateTracer"), the result format is tracer-specific. Defining the
-    output schemas of named tracers is outside the scope of this specification.
+    When the tracer field is "callTracer", the result conforms to CallFrame
+    and tracerConfig accepts CallTracerConfig. For other named tracers (e.g.
+    "prestateTracer"), the result format is tracer-specific; defining the
+    output schemas of other named tracers is outside the scope of this
+    specification.
   type: object
+  if:
+    required:
+      - tracer
+    properties:
+      tracer:
+        const: callTracer
+  then:
+    properties:
+      tracerConfig:
+        $ref: '#/components/schemas/CallTracerConfig'
   properties:
     tracer:
       title: tracer name
@@ -33,7 +46,8 @@ TraceConfig:
       description: >-
         An optional tracer-specific configuration object passed to the named
         tracer. Only applicable when the tracer field is set.
-        The fields accepted here depend on the named tracer in use.
+        The fields accepted here depend on the named tracer in use; for
+        "callTracer" this is CallTracerConfig.
       type: object
     timeout:
       title: execution timeout
@@ -117,7 +131,11 @@ StructLog:
       type: string
     gas:
       title: remaining gas
-      description: The amount of gas remaining before executing this opcode.
+      description: >-
+        The amount of gas remaining before executing this opcode. From the
+        Amsterdam fork (EIP-8037) this is gas_left only, the value the GAS
+        opcode returns; the state-gas reservoir is reported separately in
+        stateGasReservoir.
       type: integer
       minimum: 0
     gasCost:
@@ -127,6 +145,44 @@ StructLog:
         deducted from the remaining gas assuming successful execution. Includes
         dynamic costs such as memory expansion and storage access charges
         (e.g. cold vs. warm SLOAD/SSTORE).
+
+        From the Amsterdam fork (EIP-8037), gasCost is the opcode's execution
+        gas cost only. State gas charged by the opcode is reported in
+        stateGasCost and is excluded from gasCost, including the part drawn
+        from gas_left once the state-gas reservoir is exhausted. The gas of the
+        next step in the same frame can therefore be lower than gas - gasCost,
+        when state gas is drawn from gas_left, or higher, when a state-gas
+        refill is credited to gas_left.
+      type: integer
+      minimum: 0
+    stateGasCost:
+      title: state gas cost
+      description: >-
+        EIP-8037 (Amsterdam and later). The net state gas charged (positive)
+        or refilled (negative) by this opcode before any child frame it creates
+        is entered, whether funded from the state-gas reservoir or from
+        gas_left. Non-zero only for an SSTORE that allocates a storage slot
+        that was zero at transaction start (a charge) or clears such a slot
+        again (a refill), a value-bearing CALL to a non-existent account, a
+        CREATE or CREATE2 to a non-existent address, and a SELFDESTRUCT whose
+        balance transfer creates its beneficiary. It excludes state gas charged
+        or refilled within child frames, refills applied when a child frame
+        reverts or halts, the code-deposit charge, and pre-execution charges
+        (EIP-2780), so the sum over all steps does not in general equal the
+        transaction's stateGasUsed. Clients MAY include this field; when
+        included it MUST be present at every step where it is non-zero and
+        SHOULD be omitted where it is zero. MUST be omitted before the
+        Amsterdam fork.
+      type: integer
+    stateGasReservoir:
+      title: state-gas reservoir
+      description: >-
+        EIP-8037 (Amsterdam and later). The state-gas reservoir remaining
+        before executing this opcode. Clients MAY include this field, and
+        SHOULD include it when they include stateGasCost, since together with
+        gas it distinguishes state gas drawn from gas_left from state gas
+        funded by the reservoir. MAY be omitted when zero. MUST be omitted
+        before the Amsterdam fork.
       type: integer
       minimum: 0
     depth:
@@ -207,6 +263,35 @@ OpcodeTransactionTrace:
       description: Total amount of gas consumed by the transaction.
       type: integer
       minimum: 0
+    regularGasUsed:
+      title: regular gas used (block contribution)
+      description: >-
+        EIP-8037 (Amsterdam and later). The transaction's contribution to the
+        block's execution-gas counter, with the same definition as the
+        regularGasUsed field of the callTracer's CallFrame. MUST be present
+        for Amsterdam and later transactions and MUST be omitted before the
+        Amsterdam fork.
+      type: integer
+      minimum: 0
+    stateGasUsed:
+      title: state gas used (block contribution)
+      description: >-
+        EIP-8037 (Amsterdam and later). The transaction's contribution to the
+        block's state-gas counter, with the same definition as the root-frame
+        stateGasUsed field of the callTracer's CallFrame. MUST be present for
+        Amsterdam and later transactions and MUST be omitted before the
+        Amsterdam fork.
+      type: integer
+      minimum: 0
+    gasRefund:
+      title: gas refund
+      description: >-
+        EIP-8037 (Amsterdam and later). The refund applied to the transaction
+        before the calldata floor, with the same definition as the gasRefund
+        field of the callTracer's CallFrame. MUST be present for Amsterdam and
+        later transactions and MUST be omitted before the Amsterdam fork.
+      type: integer
+      minimum: 0
     failed:
       title: failed
       description: Whether the transaction execution failed (reverted or ran out of gas).
@@ -230,11 +315,16 @@ OpcodeBlockTransactionTrace:
   description: >-
     A single transaction's opcode trace result within a debug_traceBlockByNumber
     or debug_traceBlockByHash response when no named tracer is used. Pairs the
-    transaction hash with its opcode trace.
+    transaction hash with its opcode trace. Either result or error (the reason
+    this transaction could not be traced) is present.
   type: object
   required:
     - txHash
-    - result
+  anyOf:
+    - required:
+        - result
+    - required:
+        - error
   properties:
     txHash:
       title: transaction hash
@@ -244,3 +334,29 @@ OpcodeBlockTransactionTrace:
       title: opcode transaction trace
       description: The opcode trace for this transaction.
       $ref: '#/components/schemas/OpcodeTransactionTrace'
+    error:
+      title: trace failure
+      description: The error that prevented tracing this transaction.
+      type: string
+
+TraceCallConfig:
+  title: Trace call configuration
+  description: >-
+    Configuration object accepted by debug_traceCall. Extends TraceConfig with
+    state and block overrides applied before the call executes, reusing the
+    override semantics of eth_simulateV1.
+  allOf:
+    - $ref: '#/components/schemas/TraceConfig'
+    - type: object
+      properties:
+        stateOverrides:
+          title: state overrides
+          description: >-
+            State modifications applied to the block's state before executing
+            the call.
+          $ref: '#/components/schemas/StateOverrides'
+        blockOverrides:
+          title: block overrides
+          description: >-
+            Modifications to the block environment the call executes in.
+          $ref: '#/components/schemas/BlockOverrides'
