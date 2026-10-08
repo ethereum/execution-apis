@@ -225,3 +225,88 @@
             uncles: []
             withdrawals: []
             withdrawalsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421'
+
+- name: eth_simulateFrameTransaction
+  summary: Simulates an EIP-8141 frame transaction without submitting it, reporting whether its validation prefix passes, which account pays, and the gas it would use.
+  description: >-
+    [EIP-8141](https://eips.ethereum.org/EIPS/eip-8141) replaces a transaction's
+    signature with a sequence of frames, so whether a transaction is valid is
+    decided by code the account runs rather than by a signature the client can
+    check on its own. A client therefore cannot say whether a frame transaction
+    would be accepted, which account would pay for it, or what it would cost
+    without executing it, and no existing method can express the question:
+    `eth_call` and `eth_simulateV1` take a flat call and cannot represent a
+    multi-frame envelope and its signatures.
+    The method takes the canonical typed envelope, the same bytes
+    `eth_sendRawTransaction` accepts, runs the validation prefix that governs
+    mempool admission, and if the prefix passes executes the remaining frames
+    against a throwaway state at the requested block. It never touches the
+    mempool or block building.
+    `valid` reports the frame-specific admission check only. It is necessary but
+    not sufficient for acceptance, because gates that are not frame-specific are
+    not all re-evaluated here. It always carries a decided verdict: when the node
+    cannot decide, because the state for the requested block has been pruned or
+    the simulation timed out, clients MUST return an error rather than report
+    `valid` false, so a caller can tell a rejected transaction from an
+    unanswerable question. A `valid` of false is authoritative against `latest`,
+    where this is the same prefix simulation the mempool applies; against an
+    earlier block the sender's nonce and code may differ, so the verdict is
+    informational.
+    Callers use the per-frame figures to size the `[execution, state]` limits
+    each frame declares. `gasUsed` is the figure the block accounts for, which
+    under [EIP-8037](https://eips.ethereum.org/EIPS/eip-8037) is the larger of
+    the two totals rather than their sum.
+    `maxCost` is the same quantity a node reserves against the payer on
+    admission, the `TXPARAM(0x06)` value EIP-8141's mempool section adds to
+    `reserved_pending_cost`, so a wallet can show exactly what will be held. It
+    prices blobs at the declared `maxFeePerBlobGas` rather than the including
+    block's `blobBaseFee`, which is not knowable ahead of inclusion, so it is an
+    upper bound on what execution finally charges.
+    For blocks that predate the fork activating EIP-8141 clients MUST return the
+    `-32001: Resource not found` error.
+    Two different bounds apply to the work, and conflating them breaks the
+    property callers rely on. The validation prefix MUST be bounded by the same
+    `MAX_VERIFY_GAS` the node applies on mempool admission, so that a transaction
+    which passes here is not rejected on submission for exceeding a budget this
+    endpoint was more generous about. The frames after the prefix are not part of
+    admission, and clients SHOULD bound those by the per-transaction gas cap they
+    apply to `eth_estimateGas`, because their limits are chosen by the caller and
+    would otherwise be unbounded work on a public endpoint.
+  params:
+    - name: Frame transaction
+      required: true
+      description: Canonical EIP-8141 typed envelope, beginning with the 0x06 type byte.
+      schema:
+        $ref: '#/components/schemas/bytes'
+    - name: Block
+      required: false
+      description: "default: 'latest'"
+      schema:
+        $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+  result:
+    name: Frame simulation result
+    schema:
+      $ref: '#/components/schemas/FrameSimulationResult'
+  errors:
+    - code: -32001
+      message: Resource not found
+    - code: -32015
+      message: Execution error
+    - code: -32602
+      message: Missing or invalid parameters
+    - code: -32603
+      message: The Ethereum node encountered an internal error
+  examples:
+    - name: eth_simulateFrameTransaction example
+      params:
+        - name: Frame transaction
+          value: '0x06f8a583013e020394a15628761691f165ac6310f91bda26fa4f88f118f5cb010380c583013880808080e8028094c8506e65d008f3ca81da76639d5a0542d1e07f59c782753083030d4087038d7ea4c6800080f848f846018080b841009e9e28d724cd4bdac3f61d626ce1ccb60048414f6f95e615e81a0e67c3d8a9fd1467a88a568b44bb69a5a136e752fe2301a8de153f4bc31742ce9279a60a1ab9c9830f4240830f424e80c0'
+        - name: Block
+          value: 'latest'
+      result:
+        name: Frame simulation result
+        value:
+          valid: false
+          prefixShape: 'SelfVerify'
+          maxCost: '0x4d7aad49a4'
+          violation: 'nonce mismatch: expected 4, got 3'
