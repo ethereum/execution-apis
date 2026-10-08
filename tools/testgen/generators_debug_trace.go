@@ -697,7 +697,7 @@ var DebugTraceTransaction = MethodTests{
 		},
 		{
 			Name:  "calltracer-gas-dimensions",
-			About: "traces an Amsterdam calltree invocation with the callTracer; the root frame MUST carry the EIP-8037 executionGasUsed, stateGasUsed and gasRefund, and nested frames MUST NOT carry executionGasUsed or gasRefund",
+			About: "traces an Amsterdam calltree invocation with the callTracer; the root frame MUST carry the EIP-8037 regularGasUsed, stateGasUsed and gasRefund, and nested frames MUST NOT carry regularGasUsed or gasRefund",
 			Run:   traceCallTracerGasDimensions,
 		},
 		{
@@ -707,7 +707,7 @@ var DebugTraceTransaction = MethodTests{
 		},
 		{
 			Name:  "trace-gas-dimensions",
-			About: "traces an Amsterdam transfer with the opcode logger; the result MUST carry the EIP-8037 executionGasUsed, stateGasUsed and gasRefund as integers",
+			About: "traces an Amsterdam transfer with the opcode logger; the result MUST carry the EIP-8037 regularGasUsed, stateGasUsed and gasRefund as integers",
 			Run:   traceOpcodeGasDimensions,
 		},
 	},

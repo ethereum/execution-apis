@@ -21,7 +21,7 @@ CallFrame:
     reservoir is exhausted. gas and gasUsed keep their meaning as amounts of
     gas_left and are not split by dimension. The root frame additionally
     reports the transaction's contribution to each block gas counter
-    (executionGasUsed, stateGasUsed) and its refund (gasRefund); any frame may
+    (regularGasUsed, stateGasUsed) and its refund (gasRefund); any frame may
     report stateGasUsed and stateGasReservoir. None of these fields are
     present for transactions before the Amsterdam fork. For debug_traceCall
     they are computed as if the call were included as a transaction.
@@ -30,11 +30,11 @@ CallFrame:
     used by the transaction before refunds, and floor the calldata floor
     (calldata_floor_gas_cost of EIP-8037, per EIP-7623 as amended by EIP-7976
     and EIP-2780), gasUsed == max(before_refund - gasRefund, floor) and
-    executionGasUsed == max(before_refund - stateGasUsed, floor). Hence
-    executionGasUsed + stateGasUsed == gasUsed + gasRefund whenever floor does
+    regularGasUsed == max(before_refund - stateGasUsed, floor). Hence
+    regularGasUsed + stateGasUsed == gasUsed + gasRefund whenever floor does
     not exceed before_refund - max(gasRefund, stateGasUsed). Because the floor
-    is applied to each quantity separately, it can bind for executionGasUsed
-    but not for gasUsed, in which case executionGasUsed + stateGasUsed exceeds
+    is applied to each quantity separately, it can bind for regularGasUsed
+    but not for gasUsed, in which case regularGasUsed + stateGasUsed exceeds
     gasUsed + gasRefund.
 
     The calls array references this schema through its $id. The $id URI is an
@@ -108,8 +108,8 @@ CallFrame:
         back, and excludes state gas funded from the reservoir. It is not a
         per-dimension quantity; stateGasUsed reports the state dimension.
       $ref: '#/components/schemas/uint'
-    executionGasUsed:
-      title: execution gas used (block contribution)
+    regularGasUsed:
+      title: regular gas used (block contribution)
       description: >-
         EIP-8037 (Amsterdam and later), root frame only. The transaction's
         contribution to the block's execution-gas counter
@@ -118,8 +118,9 @@ CallFrame:
         refund (EIP-7778), and summing it over a block's transactions yields
         block_execution_gas_used. MUST be present on the root frame of
         Amsterdam and later transactions, and MUST be omitted on nested frames
-        and before the Amsterdam fork. Earlier drafts of EIP-8037 called this
-        dimension regular gas; clients MUST use the name executionGasUsed.
+        and before the Amsterdam fork. The name keeps the earlier EIP-8037
+        term "regular gas" for what the EIP now calls execution gas, matching
+        deployed implementations.
       $ref: '#/components/schemas/uint'
     stateGasUsed:
       title: state gas used
