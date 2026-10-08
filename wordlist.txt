@@ -75,6 +75,7 @@ mempool
 merkle
 merkleization
 MiB
+MPT
 MSM
 MUL
 multicallV
