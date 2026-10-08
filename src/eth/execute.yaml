@@ -98,7 +98,7 @@
         - name: Transaction
           value:
             from: '0xaea8f8f781326bfe6a7683c2bd48dd6aa4d3ba63'
-            data: '0x608060806080608155'
+            input: '0x608060806080608155'
         - name: Block
           value: 'latest'
       result:
