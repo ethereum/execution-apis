@@ -1022,6 +1022,154 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
 			},
 		},
+		{
+			Name:  "call-fork-inactive-blob-fee",
+			About: "calls with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas before Cancun")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-blob-fee-without-hashes",
+			About: "calls with maxFeePerBlobGas and no blob hashes. From Cancun the field is valid without blob hashes.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest")
+			},
+		},
+		{
+			Name:  "call-type-access-list-before-berlin",
+			About: "calls with type 0x1 and no access list on a block before Berlin. The client ignores type, so the call runs as a legacy call.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.AccessListTxType),
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
+		{
+			Name:  "call-type-blob-before-cancun",
+			About: "calls with type 0x3 and no blob fields on a block before Cancun. The client ignores type, so the call runs without blobs.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.BlobTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
+		{
+			Name:  "call-type-set-code-before-prague",
+			About: "calls with type 0x4 and no authorization list on a block before Prague. The client ignores type, so the call runs without authorizations.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.SetCodeTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().PragueTime).NumberU64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
+		{
+			Name:  "call-type-unknown",
+			About: "calls with type 0x7f, which is not a known transaction type. The client ignores type.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(0x7f),
+				}
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest")
+			},
+		},
+		{
+			Name: "call-type-legacy-with-fee-fields",
+			About: `creates a contract that returns GASPRICE, with type 0x0 and the EIP-1559 fee fields.
+The client ignores type, so the fee fields set the gas price to the base fee plus the priority fee.`,
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"type":                 hexutil.Uint64(types.LegacyTxType),
+					"gas":                  hexutil.Uint64(100000),
+					"maxFeePerGas":         (*hexutil.Big)(big.NewInt(2 * params.GWei)),
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+					// GASPRICE PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN
+					"input": hexutil.Bytes(common.FromHex("0x3a60005260206000f3")),
+				}
+				var result hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				want := new(big.Int).Add(t.chain.Head().BaseFee(), big.NewInt(params.GWei))
+				if got := new(big.Int).SetBytes(result); got.Cmp(want) != 0 {
+					return fmt.Errorf("wrong GASPRICE: got %v, want %v", got, want)
+				}
+				return nil
+			},
+		},
+		{
+			Name: "call-type-legacy-with-access-list",
+			About: `creates a contract that reads the balance of an address and returns the remaining gas, with type 0x0
+and an access list that contains the address. The client ignores type, so the result equals the second call,
+which sends the same request without type.`,
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				target := common.Address{0x01}
+				// PUSH20 target BALANCE POP GAS PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN
+				code := append(append([]byte{0x73}, target.Bytes()...), common.FromHex("0x31505a60005260206000f3")...)
+				msg := map[string]any{
+					"from":       sender,
+					"type":       hexutil.Uint64(types.LegacyTxType),
+					"gas":        hexutil.Uint64(200000),
+					"accessList": types.AccessList{{Address: target, StorageKeys: []common.Hash{}}},
+					"input":      hexutil.Bytes(code),
+				}
+				var withType, withoutType hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &withType, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				delete(msg, "type")
+				if err := t.rpc.CallContext(ctx, &withoutType, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				if !bytes.Equal(withType, withoutType) {
+					return fmt.Errorf("type changed the result: %x != %x", withType, withoutType)
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -1232,6 +1380,39 @@ var EthEstimateGas = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "estimate-fork-inactive-blob-fee",
+			About: "estimates a transfer with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas before Cancun")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-type-blob-before-cancun",
+			About: "estimates a transfer with type 0x3 and no blob fields on a block before Cancun. The client ignores type.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.BlobTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result hexutil.Uint64
+				return t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block)
+			},
+		},
 	},
 }
 
@@ -1406,6 +1587,52 @@ in the "error" field.`,
 					return fmt.Errorf("expected error for EIP-1559 fee fields before London")
 				}
 				return nil
+			},
+		},
+		{
+			Name:  "create-al-fork-inactive-blob-fee",
+			About: "creates an access list with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas before Cancun")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-blob-fee-without-hashes",
+			About: "creates an access list for a transfer from an unfunded sender with maxFeePerBlobGas and no blob hashes. From Cancun the field does not make the request invalid, and it does not need funds from the sender.",
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from":             common.Address{0xaa},
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				var result any
+				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
+			},
+		},
+		{
+			Name:  "create-al-type-set-code-before-prague",
+			About: "creates an access list for a transfer with type 0x4 and no authorization list on a block before Prague. The client ignores type.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.SetCodeTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().PragueTime).NumberU64() - 1)
+				var result any
+				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block)
 			},
 		},
 	},
