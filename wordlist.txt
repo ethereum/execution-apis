@@ -64,6 +64,11 @@ graphql
 greppable
 gwei
 https
+InclusionListClaimV
+InclusionListClaimsV
+InclusionListMembershipV
+InclusionListMembershipsV
+InclusionListTransactionsV
 interop
 ipc
 js

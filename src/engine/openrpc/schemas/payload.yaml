@@ -51,34 +51,27 @@ PayloadStatusNoInvalidBlockHash:
 PayloadStatusV2:
   $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash'
   title: Payload status object V2
+  required:
+    - status
+    - latestValidHash
+    - validationError
+    - inclusionListSatisfied
   properties:
     status:
       $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/status'
     latestValidHash:
-      $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/latestValidHash'
+      oneOf:
+        - $ref: '#/components/schemas/hash32'
+        - type: 'null'
     validationError:
-      $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/validationError'
+      type:
+        - string
+        - 'null'
     inclusionListSatisfied:
       title: Whether the payload satisfied the inclusion list constraints
       oneOf:
         - type: boolean
         - type: 'null'
-RestrictedPayloadStatusV2:
-  $ref: '#/components/schemas/PayloadStatusV2'
-  properties:
-    status:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/status'
-      description: Set of possible values is restricted to VALID, INVALID, SYNCING
-      enum:
-        - VALID
-        - INVALID
-        - SYNCING
-    latestValidHash:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/latestValidHash'
-    validationError:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/validationError'
-    inclusionListSatisfied:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/inclusionListSatisfied'
 ExecutionPayloadV1:
   title: Execution payload object V1
   type: object
@@ -420,3 +413,50 @@ BlobsBundleV2:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+InclusionListClaimV1:
+  title: Inclusion list claim object V1
+  type: object
+  required:
+    - transactionHash
+    - transactionIndex
+  properties:
+    transactionHash:
+      title: Transaction hash
+      $ref: '#/components/schemas/hash32'
+    transactionIndex:
+      title: Transaction index
+      description: Index before a payload transaction, with the transaction count denoting the end; larger uint64 values are clamped to the end by EIP-7805.
+      $ref: '#/components/schemas/uint64'
+InclusionListClaimsV1:
+  title: Ordered inclusion list claims
+  description: The committed list is passed unchanged, including duplicate claims; EIP-7805 defines their evaluation.
+  type: array
+  maxItems: 4096
+  items:
+    $ref: '#/components/schemas/InclusionListClaimV1'
+InclusionListTransactionV1:
+  title: Nonempty inclusion list transaction bytes
+  description: Transaction validity is evaluated under EIP-7805 rather than JSON-RPC parameter validation.
+  type: string
+  pattern: ^0x([0-9a-f]{2})+$
+  maxLength: 16386
+InclusionListTransactionsV1:
+  title: Distinct inclusion list transaction bytes
+  type: array
+  uniqueItems: true
+  maxItems: 131072
+  items:
+    $ref: '#/components/schemas/InclusionListTransactionV1'
+InclusionListMembershipV1:
+  title: Inclusion list membership bitvector over the inclusion list committee
+  description: SSZ Bitvector[16], with bit i in bit i modulo 8 of byte i divided by 8; positions 0 and 9 encode as 0x0102.
+  type: string
+  pattern: ^0x[0-9a-f]{4}$
+  not:
+    const: '0x0000'
+InclusionListMembershipsV1:
+  title: Membership per inclusion list transaction
+  type: array
+  maxItems: 131072
+  items:
+    $ref: '#/components/schemas/InclusionListMembershipV1'
