@@ -1103,21 +1103,15 @@
     - name: Inclusion list transactions
       required: true
       schema:
-        type: array
-        items:
-          $ref: '#/components/schemas/bytes'
+        $ref: '#/components/schemas/InclusionListTransactionsV1'
     - name: Inclusion list membership
       required: true
       schema:
-        type: array
-        items:
-          $ref: '#/components/schemas/InclusionListMembershipV1'
+        $ref: '#/components/schemas/InclusionListMembershipsV1'
     - name: Inclusion list claims
       required: true
       schema:
-        type: array
-        items:
-          $ref: '#/components/schemas/InclusionListClaimV1'
+        $ref: '#/components/schemas/InclusionListClaimsV1'
   result:
     name: Payload status
     schema:
@@ -1258,9 +1252,7 @@
           items:
             $ref: '#/components/schemas/bytes'
         inclusionListClaims:
-          type: array
-          items:
-            $ref: '#/components/schemas/InclusionListClaimV1'
+          $ref: '#/components/schemas/InclusionListClaimsV1'
   errors:
     - code: -38001
       message: Unknown payload

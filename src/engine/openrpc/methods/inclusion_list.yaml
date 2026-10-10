@@ -8,5 +8,6 @@
     name: Inclusion list transactions
     schema:
       type: array
+      maxItems: 8192
       items:
-        $ref: '#/components/schemas/bytes'
+        $ref: '#/components/schemas/InclusionListTransactionV1'
