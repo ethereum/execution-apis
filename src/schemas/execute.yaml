@@ -312,4 +312,6 @@ GenericCallTransaction:
       description: |-
         EIP-4844 versioned hashes
         Default: []
-      $ref: '#/components/schemas/bytes32'
+      type: array
+      items:
+        $ref: '#/components/schemas/hash32'
