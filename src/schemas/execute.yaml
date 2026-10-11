@@ -125,7 +125,7 @@ BlockOverrides:
       description: When overriding block numbers across multiple blocks, block number need to be increasing. Skipping over blocks numbers is possible. If block number is not specified, it's incremented by one for each block.
     prevRandao:
       title: The Previous value of randomness beacon
-      $ref: '#/components/schemas/uint256'
+      $ref: '#/components/schemas/bytes32'
     time:
       title: Time
       $ref: '#/components/schemas/uint64'
