@@ -1023,8 +1023,8 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 			},
 		},
 		{
-			Name:  "call-fork-inactive-blob-fee",
-			About: "calls with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Name:  "call-blob-fee-without-hashes-before-cancun",
+			About: "calls with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid at every fork.",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				msg := map[string]any{
@@ -1035,14 +1035,14 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
 				var result any
 				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
-					return fmt.Errorf("expected error for maxFeePerBlobGas before Cancun")
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
 				}
 				return nil
 			},
 		},
 		{
 			Name:  "call-blob-fee-without-hashes",
-			About: "calls with maxFeePerBlobGas and no blob hashes. From Cancun the field is valid without blob hashes.",
+			About: "calls with maxFeePerBlobGas and no blob hashes. The request is invalid at every fork.",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				msg := map[string]any{
@@ -1050,8 +1050,46 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 					"to":               common.Address{0x01},
 					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
 				}
-				var result hexutil.Bytes
-				return t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest")
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-empty-blob-hashes",
+			About: "calls with an empty blobVersionedHashes list and no maxFeePerBlobGas. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for empty blobVersionedHashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-blob-fee-empty-blob-hashes",
+			About: "calls with maxFeePerBlobGas and an empty blobVersionedHashes list. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"maxFeePerBlobGas":    (*hexutil.Big)(big.NewInt(1)),
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas with empty blobVersionedHashes")
+				}
+				return nil
 			},
 		},
 		{
@@ -1381,8 +1419,8 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:  "estimate-fork-inactive-blob-fee",
-			About: "estimates a transfer with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Name:  "estimate-blob-fee-without-hashes-before-cancun",
+			About: "estimates a transfer with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid at every fork.",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				msg := map[string]any{
@@ -1393,7 +1431,41 @@ var EthEstimateGas = MethodTests{
 				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
 				var result any
 				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block); err == nil {
-					return fmt.Errorf("expected error for maxFeePerBlobGas before Cancun")
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-blob-fee-without-hashes",
+			About: "estimates a transfer with maxFeePerBlobGas and no blob hashes. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-empty-blob-hashes",
+			About: "estimates a transfer with an empty blobVersionedHashes list and no maxFeePerBlobGas. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for empty blobVersionedHashes")
 				}
 				return nil
 			},
@@ -1590,8 +1662,8 @@ in the "error" field.`,
 			},
 		},
 		{
-			Name:  "create-al-fork-inactive-blob-fee",
-			About: "creates an access list with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Name:  "create-al-blob-fee-without-hashes-before-cancun",
+			About: "creates an access list with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid at every fork.",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				msg := map[string]any{
@@ -1602,22 +1674,43 @@ in the "error" field.`,
 				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
 				var result any
 				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block); err == nil {
-					return fmt.Errorf("expected error for maxFeePerBlobGas before Cancun")
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
 				}
 				return nil
 			},
 		},
 		{
 			Name:  "create-al-blob-fee-without-hashes",
-			About: "creates an access list for a transfer from an unfunded sender with maxFeePerBlobGas and no blob hashes. From Cancun the field does not make the request invalid, and it does not need funds from the sender.",
+			About: "creates an access list with maxFeePerBlobGas and no blob hashes. The request is invalid at every fork.",
 			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
 				msg := map[string]any{
-					"from":             common.Address{0xaa},
+					"from":             sender,
 					"to":               common.Address{0x01},
 					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
 				}
 				var result any
-				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-empty-blob-hashes",
+			About: "creates an access list with an empty blobVersionedHashes list and no maxFeePerBlobGas. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for empty blobVersionedHashes")
+				}
+				return nil
 			},
 		},
 		{
