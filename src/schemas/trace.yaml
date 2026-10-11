@@ -184,7 +184,10 @@ TraceFilter:
         type: 'null'
       toBlock:
         type: 'null'
-  description: An explicit null member is the same as an omitted one. Inclusive block range; defaults
+  description: An explicit null member is the same as an omitted one. Callers use the member names
+    exactly as defined; a server may match them case-insensitively, but every member takes effect as
+    the member it matches or is rejected (-32602 recommended), never ignored, so an unknown member is
+    rejected (H14). Inclusive block range; defaults
     omitted fromBlock and toBlock to the same latest head,
     after 0, count unlimited subject to an explicit server limit. Bounds are numbers and the earliest,
     latest, safe and finalized tags; pending, block-hash strings and EIP-1898 block-hash objects are
