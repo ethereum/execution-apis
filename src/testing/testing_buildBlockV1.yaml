@@ -42,7 +42,7 @@
           slotNumber:
             title: Slot number
             description: Value for the slotNumber field of the built block. Required when building post-Amsterdam blocks.
-            $ref: '#/components/schemas/uint'
+            $ref: '#/components/schemas/uint64'
     - name: Transactions
       required: true
       description: |
