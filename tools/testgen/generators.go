@@ -2957,6 +2957,7 @@ var TestingBuildBlockV1 = MethodTests{
 
 				if slot := parentBlock.SlotNumber(); slot != nil {
 					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
 				// Use sender index 2 so nonce matches geth state: index 0 (and 3) are used by
@@ -3050,6 +3051,7 @@ var TestingBuildBlockV1 = MethodTests{
 
 				if slot := parentBlock.SlotNumber(); slot != nil {
 					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
 				extraData := hexutil.Encode([]byte{})
@@ -3108,6 +3110,7 @@ var TestingBuildBlockV1 = MethodTests{
 
 				if slot := parentBlock.SlotNumber(); slot != nil {
 					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
 				// Add a transaction to the mempool first
@@ -3194,6 +3197,7 @@ var TestingBuildBlockV1 = MethodTests{
 
 				if slot := parentBlock.SlotNumber(); slot != nil {
 					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
 				// Use an invalid nonce (e.g. 999) so the tx cannot be applied; client MUST fail.
@@ -3271,6 +3275,7 @@ func commitBlockV1PayloadAttrs(t *T, parentBlock *types.Block, salt string) map[
 	}
 	if slot := parentBlock.SlotNumber(); slot != nil {
 		attrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+		attrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 	}
 	_ = salt
 	return attrs

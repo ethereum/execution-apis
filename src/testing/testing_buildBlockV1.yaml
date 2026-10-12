@@ -43,6 +43,10 @@
             title: Slot number
             description: Value for the slotNumber field of the built block. Required when building post-Amsterdam blocks.
             $ref: '#/components/schemas/uint64'
+          targetGasLimit:
+            title: Target gas limit
+            description: Target value for the gasLimit field of the built block. Required when building post-Amsterdam blocks.
+            $ref: '#/components/schemas/uint64'
     - name: Transactions
       required: true
       description: |
