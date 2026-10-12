@@ -77,7 +77,7 @@ AccountOverride:
       $ref: '#/components/schemas/bytes'
     movePrecompileToAddress:
       title: MovePrecompileToAddress
-      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set.
+      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. Can only move precompiles.
       $ref: '#/components/schemas/address'
     state:
       title: Storage
