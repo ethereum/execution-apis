@@ -935,6 +935,12 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 	},
 }
 
+var estimateGasTestScript = `
+if (BigInt(messages[1].response.result) <= 5000) {
+    throw new Exception("invalid gas estimation result");
+}
+`
+
 // EthEstimateGas stores a list of all tests against the method.
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
@@ -973,9 +979,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-successful-call",
-			About:    "estimates a successful contract call",
-			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
+			Name:             "estimate-successful-call",
+			About:            "estimates a successful contract call",
+			SpecOnly:         true, // EVM gas estimation is not required to be identical across clients
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				caller := common.Address{1, 2, 3}
 				callme := t.chain.txinfo.CallMeContract.Addr
@@ -1034,9 +1041,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-with-eip7702",
-			About:    "checks that including an EIP-7720 authorization in the message increases gas",
-			SpecOnly: true,
+			Name:             "estimate-with-eip7702",
+			About:            "checks that including an EIP-7720 authorization in the message increases gas",
+			SpecOnly:         true,
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				to := common.Address{0x01}
@@ -1078,9 +1086,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-with-eip4844",
-			About:    "checks gas estimation for blob transactions (EIP-4844)",
-			SpecOnly: true,
+			Name:             "estimate-with-eip4844",
+			About:            "checks gas estimation for blob transactions (EIP-4844)",
+			SpecOnly:         true,
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				to := common.Address{0x01}
