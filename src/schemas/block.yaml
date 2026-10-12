@@ -209,7 +209,7 @@ Header:
       $ref: '#/components/schemas/hash32'
     slotNumber:
       title: EIP-7843 slot number
-      $ref: '#/components/schemas/uint'
+      $ref: '#/components/schemas/uint64'
 BlockTag:
   title: Block tag
   type: string
