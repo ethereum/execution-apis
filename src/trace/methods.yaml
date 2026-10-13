@@ -10,7 +10,7 @@
     price is gasPrice, or
     min(maxPriorityFeePerGas + base fee, maxFeePerGas), computed after defaulting; when it is 0, GASPRICE
     and BASEFEE are both 0 and no gas fee is paid. The blob fee is decided independently (H15). A blob
-    call carries blobVersionedHashes or maxFeePerBlobGas, and when its maxFeePerBlobGas is omitted, null
+    call carries a non-empty blobVersionedHashes list, and when its maxFeePerBlobGas is omitted, null
     or 0 it runs with BLOBBASEFEE 0 and pays no blob fee, so an explicit zero is accepted. A positive
     maxFeePerBlobGas is validated against the selected block's blob base fee and charged. Calls without
     blob fields keep the selected block's BLOBBASEFEE. Defined blob fields must take effect or cause
@@ -33,7 +33,9 @@
     type adds no requirement of its own. An access list before Berlin, maxFeePerGas or
     maxPriorityFeePerGas before London, blob fields before Cancun and an authorizationList before Prague
     are rejected (-32003 recommended), even with zero or empty values, since no transaction at the
-    selected fork can carry them (H14).
+    selected fork can carry them (H14). A maxFeePerBlobGas without blobVersionedHashes, or an empty
+    blobVersionedHashes list, is rejected at every fork, since a blob transaction carries at least one
+    versioned hash.
     Unsigned calls skip the EIP-3607 sender-code check, as eth_call does.
     Otherwise the price must cover the base fee (-38012 recommended), maxPriorityFeePerGas must not exceed
     maxFeePerGas (-32602 recommended), and the sender must fund the upfront cost (-38014 recommended); execution then charges

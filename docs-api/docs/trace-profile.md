@@ -155,12 +155,13 @@ used, so CREATE addresses derive from the state nonce. `gas` is a uint64.
 
 Ordinary execution fees follow `eth_call` (H15). Omitted execution-fee fields default to zero. The zero-fee
 rule applies to the effective gas price after defaulting: a zero price means GASPRICE 0 and BASEFEE
-0. The blob fee is decided independently of the execution fee. A blob call carries
-`blobVersionedHashes` or `maxFeePerBlobGas`; when its `maxFeePerBlobGas` is omitted, null or zero, it
+0. The blob fee is decided independently of the execution fee. A blob call carries a
+non-empty `blobVersionedHashes` list; when its `maxFeePerBlobGas` is omitted, null or zero, it
 runs with BLOBBASEFEE 0 and pays no blob fee, so an explicit zero is accepted, matching Geth’s
 `eth_call` defaults and the `eth_simulateV1` schema default of 0. A positive `maxFeePerBlobGas` is validated against
 the selected block’s blob base fee and charged. Calls without blob fields keep the selected block’s
-BLOBBASEFEE. Defined blob fields must take effect or cause rejection, never be ignored. Execution-fee validation is skipped only when both execution fee caps are zero.
+BLOBBASEFEE. Defined blob fields must take effect or cause rejection, never be ignored: a `maxFeePerBlobGas`
+without `blobVersionedHashes` is rejected (H14). Execution-fee validation is skipped only when both execution fee caps are zero.
 Positive prices are validated against the base fee, funded and charged, with refunds, base-fee burn
 and tips simulated. This removes Parity’s virtual balance top-up for unsigned calls.
 
@@ -198,7 +199,9 @@ is dropped because of it, and the type adds no requirement of its own. An access
 `maxFeePerGas` or `maxPriorityFeePerGas` before London, blob fields before Cancun and an
 `authorizationList` before Prague are rejected, even with zero or empty values, since no transaction at
 the selected fork can carry them: before London only `gasPrice` priced a transaction, so dynamic fees
-are neither ignored nor reinterpreted there. Methods that build or sign a transaction, and other type values,
+are neither ignored nor reinterpreted there. A `maxFeePerBlobGas` without `blobVersionedHashes`, or an
+empty `blobVersionedHashes` list, is rejected at every fork, since a blob transaction carries at least
+one versioned hash. Methods that build or sign a transaction, and other type values,
 which chains define as extensions, are outside this rule. Any
 other validation failure without a listed code, such as a positive blob fee cap below the blob base fee or a
 feature listed above before its fork, recommends -32003 (Transaction rejected), the
