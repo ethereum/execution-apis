@@ -82,7 +82,10 @@
       properties:
         executionPayload:
           title: Execution payload
-          $ref: '#/components/schemas/ExecutionPayloadV3'
+          description: ExecutionPayloadV4 for a post-Amsterdam block, ExecutionPayloadV3 otherwise.
+          anyOf:
+            - $ref: '#/components/schemas/ExecutionPayloadV4'
+            - $ref: '#/components/schemas/ExecutionPayloadV3'
         blockValue:
           title: Expected block value
           $ref: '#/components/schemas/uint256'
