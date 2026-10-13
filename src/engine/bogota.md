@@ -52,7 +52,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | `MAX_INCLUSION_LIST_CLAIMS` | `uint64(4096) = 2**12` |
 | `MAX_VERIFY_GAS_PER_IL` | `uint64(1048576) = 2**20` |
 
-The VERIFY budget and claim cap are defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805#constants), including their activation conditions.
+Both EIP-7805 profiles apply from Bogota activation. The VERIFY budget and claim cap are defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805#constants).
 
 ## Structures
 
@@ -87,7 +87,7 @@ This structure has the syntax of `PayloadStatusV1` and appends `inclusionListSat
 This structure maps onto the inclusion list claim defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The fields are encoded as follows:
 
 - `transactionHash`: `DATA`, 32 Bytes - `keccak256` of the claimed inclusion list transaction, `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
-- `transactionIndex`: `QUANTITY`, 64 Bits - index in `executionPayload.transactions` at which the omission of the claimed transaction is evaluated.
+- `evaluationIndex`: `QUANTITY`, 64 Bits - index in `executionPayload.transactions` at which the omission of the claimed transaction is evaluated.
 
 Index zero is before the first transaction; `len(executionPayload.transactions)` is the end of the payload. The claim list retains its committed order and duplicates. The consensus layer checks its commitment; the execution layer applies EIP-7805's evaluation rules.
 
@@ -181,7 +181,7 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Bogota fork.
 
-2. `inclusionListClaims` **MUST NOT** have more than `MAX_INCLUSION_LIST_CLAIMS` elements. Each claim **MUST** identify a distinct omitted Profile 2 candidate from the `inclusionListTransactions` used to build the payload, with an index no greater than `len(executionPayload.transactions)` at which its omission is excused under EIP-7805. When Profile 2 is inactive under EIP-7805, the list **MUST** be empty.
+2. `inclusionListClaims` **MUST NOT** have more than `MAX_INCLUSION_LIST_CLAIMS` elements. Each claim **MUST** identify a distinct omitted Profile 2 candidate from the `inclusionListTransactions` used to build the payload, with an index no greater than `len(executionPayload.transactions)` at which its omission is excused under EIP-7805.
 
 ### engine_getInclusionListV1
 
@@ -206,7 +206,7 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
     3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
-    4. When Profile 2 is active under EIP-7805, the total VERIFY budget cost of the distinct Profile 2 candidates in the transaction list **SHOULD NOT** exceed `MAX_VERIFY_GAS_PER_IL`, using EIP-7805's candidate and cost definitions. This is a selection recommendation, not an inclusion list validity rule.
+    4. The total VERIFY budget cost of the distinct Profile 2 candidates in the transaction list **SHOULD NOT** exceed `MAX_VERIFY_GAS_PER_IL`, using EIP-7805's candidate and cost definitions. This is a selection recommendation, not an inclusion list validity rule.
 
 2. The strategy for selecting transactions is implementation dependent.
 

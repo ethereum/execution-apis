@@ -441,13 +441,13 @@ InclusionListClaimV1:
   type: object
   required:
     - transactionHash
-    - transactionIndex
+    - evaluationIndex
   properties:
     transactionHash:
       title: Transaction hash
       $ref: '#/components/schemas/hash32'
-    transactionIndex:
-      title: Transaction index
+    evaluationIndex:
+      title: Evaluation index
       description: Index before a payload transaction, with the transaction count denoting the end; larger uint64 values are clamped to the end by EIP-7805.
       $ref: '#/components/schemas/uint64'
 InclusionListClaimsV1:
