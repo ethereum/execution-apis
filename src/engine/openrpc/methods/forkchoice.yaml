@@ -218,10 +218,17 @@
         oneOf:
           - $ref: '#/components/schemas/bytes16'
           - type: 'null'
+    - name: Inclusion list context id
+      required: false
+      schema:
+        title: Head inclusion check context
+        oneOf:
+          - $ref: '#/components/schemas/hash32'
+          - type: 'null'
   result:
     name: Response object
     schema:
-      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV1'
+      $ref: '#/components/schemas/ForkchoiceUpdatedResponseV2'
   errors:
     - code: -38002
       message: Invalid forkchoice state
@@ -233,3 +240,5 @@
       message: Unsupported fork
     - code: -38006
       message: Too deep reorg
+    - code: -38007
+      message: Unknown inclusion context

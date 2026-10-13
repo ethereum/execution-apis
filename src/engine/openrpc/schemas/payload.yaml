@@ -56,6 +56,7 @@ PayloadStatusV2:
     - latestValidHash
     - validationError
     - inclusionListSatisfied
+    - inclusionListContextId
   properties:
     status:
       $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/status'
@@ -72,6 +73,28 @@ PayloadStatusV2:
       oneOf:
         - type: boolean
         - type: 'null'
+    inclusionListContextId:
+      title: Inclusion check context identifier
+      oneOf:
+        - $ref: '#/components/schemas/hash32'
+        - type: 'null'
+RestrictedPayloadStatusV2:
+  $ref: '#/components/schemas/PayloadStatusV2'
+  properties:
+    status:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/status'
+      enum:
+        - VALID
+        - INVALID
+        - SYNCING
+    latestValidHash:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/latestValidHash'
+    validationError:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/validationError'
+    inclusionListSatisfied:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/inclusionListSatisfied'
+    inclusionListContextId:
+      $ref: '#/components/schemas/PayloadStatusV2/properties/inclusionListContextId'
 ExecutionPayloadV1:
   title: Execution payload object V1
   type: object

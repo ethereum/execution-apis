@@ -60,6 +60,7 @@ getblobsv
 getclientversionv
 getinclusionlistv
 getInclusionListV
+getInclusionListStatusV
 graphql
 greppable
 gwei

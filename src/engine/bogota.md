@@ -15,6 +15,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
   - [PayloadStatusV2](#payloadstatusv2)
   - [InclusionListClaimV1](#inclusionlistclaimv1)
 - [Routines](#routines)
+  - [Inclusion-check contexts](#inclusion-check-contexts)
   - [Payload building](#payload-building)
 - [Methods](#methods)
   - [engine_newPayloadV6](#engine_newpayloadv6)
@@ -33,6 +34,10 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
+  - [engine_getInclusionListStatusV1](#engine_getinclusionliststatusv1)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Amsterdam API](#amsterdam-api)
 
@@ -69,12 +74,13 @@ The transaction list contains distinct, nonempty byte strings; its order is unre
 
 ### PayloadStatusV2
 
-This structure has the syntax of `PayloadStatusV1` and appends a single field: `inclusionListSatisfied`
+This structure has the syntax of `PayloadStatusV1` and appends `inclusionListSatisfied` and `inclusionListContextId`.
 
 - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED"`
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
-- `inclusionListSatisfied`: `BOOLEAN|null` - whether the payload satisfied the inclusion list constraints if it is deemed `VALID`; `null` otherwise.
+- `inclusionListSatisfied`: `BOOLEAN|null` - the completed inclusion verdict for a `VALID` payload; `null` while either check is pending, if execution is invalid, or if no context was requested.
+- `inclusionListContextId`: `DATA|null`, 32 Bytes - opaque identifier of the inclusion-check context, or `null` if none was registered or requested.
 
 ### InclusionListClaimV1
 
@@ -86,6 +92,14 @@ This structure maps onto the inclusion list claim defined in [EIP-7805](https://
 Index zero is before the first transaction; `len(executionPayload.transactions)` is the end of the payload. The claim list retains its committed order and duplicates. The consensus layer checks its commitment; the execution layer applies EIP-7805's evaluation rules.
 
 ## Routines
+
+### Inclusion-check contexts
+
+An inclusion-check context binds an execution block hash to the exact `inclusionListTransactions`, `inclusionListMembership` and `inclusionListClaims` supplied to `engine_newPayloadV6`. Identifiers are issued by the execution layer, are local to the Engine API, and are not part of the execution payload or any consensus commitment. An identifier **MUST NOT** be rebound to different inputs, including across restarts. Clients **MAY** reuse an identifier for identical inputs and share execution data between contexts.
+
+Execution validation and inclusion checking may complete asynchronously. For a retained context, the execution layer **MUST** schedule inclusion checking once execution is `VALID`; it **MUST NOT** require resubmission to start that check. A completed verdict **MUST NOT** change for that context. Inclusion failure **MUST NOT** change execution validity or the processing of forkchoice or payload building.
+
+Clients **MAY** bound retained contexts and evict them, including on restart. Queries for an unknown or evicted identifier **MUST** return `-38007: Unknown inclusion context`. The consensus layer **MUST** retain the original inputs until it records a completed verdict or abandons the block, and resubmit them through `engine_newPayloadV6` on this error. A pending verdict **MUST NOT** be interpreted as satisfied. Execution optimism remains governed by the consensus specification.
 
 ### Payload building
 
@@ -135,13 +149,9 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
    Otherwise well-formed transaction byte strings **MUST NOT** cause an RPC error solely because their transaction encoding or validity checks fail. Well-formed duplicate or unmatched claims, and indices above the payload transaction count, **MUST NOT** cause an RPC error: EIP-7805 ignores repeated transaction hashes and irrelevant claims, and clamps remaining indices to the end of the payload. Exceeding the VERIFY budget is likewise handled by EIP-7805's per-member fill, not as an RPC error.
 
-3. Client software **MUST** set `inclusionListSatisfied` in the following way:
+3. Client software **MUST** evaluate inclusion against this call's inputs, even if execution validity is already known. It **MUST** return `inclusionListSatisfied` as the completed boolean verdict only if execution is `VALID`; otherwise, including while inclusion checking is pending, it **MUST** return `null`.
 
-    1. If the payload is deemed `VALID`, `inclusionListSatisfied` **MUST** be set to whether the payload satisfied the inclusion list constraints with respect to this call's `inclusionListTransactions`, `inclusionListMembership` and `inclusionListClaims`, even if execution validity was already known. A failed inclusion list check **MUST NOT** change execution validity to `INVALID`.
-
-    2. Otherwise, `inclusionListSatisfied` **MUST** be `null`.
-
-4. An inclusion list verdict is specific to the supplied transactions, membership and claims, not just the execution block hash. After an `ACCEPTED` or `SYNCING` response, the consensus layer **MUST** retain these inputs for the relevant beacon block and repeat this method with them once execution validation can complete. `engine_forkchoiceUpdatedV5` does not return an inclusion list verdict.
+4. Unless execution is `INVALID`, client software **MUST** register an [inclusion-check context](#inclusion-check-contexts) and return its `inclusionListContextId`. For an `INVALID` response, this field **MUST** be `null`. The consensus layer can retrieve deferred results using `engine_getInclusionListStatusV1`, or `engine_forkchoiceUpdatedV5` when selecting that context's execution block as head.
 
 ### engine_getPayloadV7
 
@@ -209,12 +219,13 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
   1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#forkchoicestatev1).
   2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV5`](#payloadattributesv5) or `null`.
   3. `custodyColumns`: `DATA|null`, 16 Bytes - Interpreted as a bitarray of length `CELLS_PER_EXT_BLOB` indicating which column indices form the CL's custody set, or `null` if the CL does not provide custody services.
+  4. `inclusionListContextId`: `DATA|null`, 32 Bytes - Context to query for `forkchoiceState.headBlockHash`, or `null` (also the default if omitted).
 * timeout: 8s
 
 #### Response
 
 * result: `object`
-  - `payloadStatus`: `PayloadStatusV1`, with the same `status` value restrictions as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4).
+  - `payloadStatus`: [`PayloadStatusV2`](#payloadstatusv2), with the same `status` value restrictions as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4).
   - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
 * error: code and message set in case an exception happens while the validating payload, updating the forkchoice or initiating the payload build process.
 
@@ -222,11 +233,32 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4) with the following changes to the processing flow:
 
+Before processing forkchoice or payload attributes, a non-null `inclusionListContextId` **MUST** be checked: return `-38007: Unknown inclusion context` if unavailable, or `-32602: Invalid params` if bound to a block other than `headBlockHash`. These errors **MUST NOT** change forkchoice or start a payload build. The response echoes the requested context ID and reports its completed inclusion verdict only when `payloadStatus.status` is `VALID`; a pending check returns `null` without delaying forkchoice processing. When no context is requested, both inclusion fields **MUST** be `null`. Head inclusion inputs **MUST NOT** be taken from `payloadAttributes`, which describes a child build.
+
 1. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
 
     1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure and `payloadAttributes.inclusionListTransactions` and `payloadAttributes.inclusionListMembership` pass checks (2.1) through (2.3) of [`engine_newPayloadV6`](#engine_newpayloadv6), return `-38003: Invalid payload attributes` on failure. Invalid transaction encodings or transaction validity failures are handled by EIP-7805, not rejected as invalid attributes.
 
     2. `payloadAttributes.timestamp` falls within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
+
+### engine_getInclusionListStatusV1
+
+#### Request
+
+* method: `engine_getInclusionListStatusV1`
+* params:
+  1. `inclusionListContextId`: `DATA`, 32 Bytes - Identifier returned by `engine_newPayloadV6`.
+* timeout: 1s
+
+#### Response
+
+* result: [`PayloadStatusV2`](#payloadstatusv2)
+* error: code and message set in case an exception happens while retrieving the status.
+
+#### Specification
+
+1. Client software **MUST** return `-38007: Unknown inclusion context` if the context is unavailable.
+2. Otherwise, it **MUST** return the context's current execution status, echo its identifier, and set `inclusionListSatisfied` according to `engine_newPayloadV6` point (3). If execution has not completed and the required state is available, it **MUST** schedule validation. This method does not update forkchoice or initiate a payload build, and **MUST NOT** wait for pending validation or inclusion checking to finish.
 
 ### Update the methods of previous forks
 
