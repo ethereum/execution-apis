@@ -1108,10 +1108,10 @@
       required: true
       schema:
         $ref: '#/components/schemas/InclusionListMembershipsV1'
-    - name: Inclusion list claims
+    - name: Omission claims
       required: true
       schema:
-        $ref: '#/components/schemas/InclusionListClaimsV1'
+        $ref: '#/components/schemas/OmissionClaimsV1'
   result:
     name: Payload status
     schema:
@@ -1237,7 +1237,7 @@
         - blobsBundle
         - shouldOverrideBuilder
         - executionRequests
-        - inclusionListClaims
+        - omissionClaims
       properties:
         executionPayload:
           $ref: '#/components/schemas/ExecutionPayloadV4'
@@ -1251,8 +1251,8 @@
           type: array
           items:
             $ref: '#/components/schemas/bytes'
-        inclusionListClaims:
-          $ref: '#/components/schemas/InclusionListClaimsV1'
+        omissionClaims:
+          $ref: '#/components/schemas/OmissionClaimsV1'
   errors:
     - code: -38001
       message: Unknown payload

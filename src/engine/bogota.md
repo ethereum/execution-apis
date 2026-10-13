@@ -13,7 +13,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
-  - [InclusionListClaimV1](#inclusionlistclaimv1)
+  - [OmissionClaimV1](#omissionclaimv1)
 - [Routines](#routines)
   - [Inclusion-check contexts](#inclusion-check-contexts)
   - [Payload building](#payload-building)
@@ -49,7 +49,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | - | - |
 | `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
 | `INCLUSION_LIST_COMMITTEE_SIZE` | `uint64(16) = 2**4` |
-| `MAX_INCLUSION_LIST_CLAIMS` | `uint64(4096) = 2**12` |
+| `MAX_OMISSION_CLAIMS` | `uint64(4096) = 2**12` |
 | `MAX_VERIFY_GAS_PER_IL` | `uint64(1048576) = 2**20` |
 
 Both EIP-7805 profiles apply from Bogota activation. The VERIFY budget and claim cap are defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805#constants).
@@ -82,9 +82,9 @@ This structure has the syntax of `PayloadStatusV1` and appends `inclusionListSat
 - `inclusionListSatisfied`: `BOOLEAN|null` - the completed inclusion verdict for a `VALID` payload; `null` while either check is pending, if execution is invalid, or if no context was requested.
 - `inclusionListContextId`: `DATA|null`, 32 Bytes - opaque identifier of the inclusion-check context, or `null` if none was registered or requested.
 
-### InclusionListClaimV1
+### OmissionClaimV1
 
-This structure maps onto the inclusion list claim defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The fields are encoded as follows:
+This structure maps onto the omission claim defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The fields are encoded as follows:
 
 - `transactionHash`: `DATA`, 32 Bytes - `keccak256` of the claimed inclusion list transaction, `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
 - `evaluationIndex`: `QUANTITY`, 64 Bits - index in `executionPayload.transactions` at which the omission of the claimed transaction is evaluated.
@@ -95,7 +95,7 @@ Index zero is before the first transaction; `len(executionPayload.transactions)`
 
 ### Inclusion-check contexts
 
-An inclusion-check context binds an execution block hash to the exact `inclusionListTransactions`, `inclusionListMembership` and `inclusionListClaims` supplied to `engine_newPayloadV6`. Identifiers are issued by the execution layer, are local to the Engine API, and are not part of the execution payload or any consensus commitment. An identifier **MUST NOT** be rebound to different inputs, including across restarts. Clients **MAY** reuse an identifier for identical inputs and share execution data between contexts.
+An inclusion-check context binds an execution block hash to the exact `inclusionListTransactions`, `inclusionListMembership` and `omissionClaims` supplied to `engine_newPayloadV6`. Identifiers are issued by the execution layer, are local to the Engine API, and are not part of the execution payload or any consensus commitment. An identifier **MUST NOT** be rebound to different inputs, including across restarts. Clients **MAY** reuse an identifier for identical inputs and share execution data between contexts.
 
 Execution validation and inclusion checking may complete asynchronously. For a retained context, the execution layer **MUST** schedule inclusion checking once execution is `VALID`; it **MUST NOT** require resubmission to start that check. A completed verdict **MUST NOT** change for that context. Inclusion failure **MUST NOT** change execution validity or the processing of forkchoice or payload building.
 
@@ -105,13 +105,13 @@ Clients **MAY** bound retained contexts and evict them, including on restart. Qu
 
 This routine follows the same specification as [Payload building](./paris.md#payload-building) with the following changes to the processing flow:
 
-1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload`, together with the `inclusionListClaims` returned by [`engine_getPayloadV7`](#engine_getpayloadv7), **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` and `inclusionListMembership` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload`, together with the `omissionClaims` returned by [`engine_getPayloadV7`](#engine_getpayloadv7), **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` and `inclusionListMembership` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ## Methods
 
 ### engine_newPayloadV6
 
-Method parameter list is extended with `inclusionListTransactions`, `inclusionListMembership` and `inclusionListClaims`.
+Method parameter list is extended with `inclusionListTransactions`, `inclusionListMembership` and `omissionClaims`.
 
 #### Request
 
@@ -123,7 +123,7 @@ Method parameter list is extended with `inclusionListTransactions`, `inclusionLi
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
   5. `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
   6. `inclusionListMembership`: `Array of DATA`, 2 Bytes - Array of inclusion list memberships, one per element of `inclusionListTransactions` at the same position. Each element is a bitvector of length `INCLUSION_LIST_COMMITTEE_SIZE`, encoded as SSZ `Bitvector[INCLUSION_LIST_COMMITTEE_SIZE]`, in which bit `i` is set if and only if the inclusion list of the inclusion list committee member at committee position `i` carries the transaction.
-  7. `inclusionListClaims`: `Array of InclusionListClaimV1` - Array of inclusion list claims committed to by the builder of the payload, as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+  7. `omissionClaims`: `Array of OmissionClaimV1` - Array of omission claims committed to by the builder of the payload, as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 * timeout: 6s
 
 #### Response
@@ -145,7 +145,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
     3. For some committee position `i`, the sum of the byte lengths of the transactions whose membership has bit `i` set exceeds `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
-    4. `inclusionListClaims` has more than `MAX_INCLUSION_LIST_CLAIMS` elements or an element does not match `InclusionListClaimV1`, including a malformed hash or a noncanonical or overflowing `uint64` index.
+    4. `omissionClaims` has more than `MAX_OMISSION_CLAIMS` elements or an element does not match `OmissionClaimV1`, including a malformed hash or a noncanonical or overflowing `uint64` index.
 
    Otherwise well-formed transaction byte strings **MUST NOT** cause an RPC error solely because their transaction encoding or validity checks fail. Well-formed duplicate or unmatched claims, and indices above the payload transaction count, **MUST NOT** cause an RPC error: EIP-7805 ignores repeated transaction hashes and irrelevant claims, and clamps remaining indices to the end of the payload. Exceeding the VERIFY budget is likewise handled by EIP-7805's per-member fill, not as an RPC error.
 
@@ -155,7 +155,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 ### engine_getPayloadV7
 
-This method is updated to return `inclusionListClaims`.
+This method is updated to return `omissionClaims`.
 
 #### Request
 
@@ -172,7 +172,7 @@ This method is updated to return `inclusionListClaims`.
   - `blobsBundle`: [`BlobsBundleV2`](./osaka.md#blobsbundlev2) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
   - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
-  - `inclusionListClaims`: `Array of InclusionListClaimV1` - Inclusion list claims for transactions omitted from `executionPayload`.
+  - `omissionClaims`: `Array of OmissionClaimV1` - Omission claims for transactions omitted from `executionPayload`.
 * error: code and message set in case an exception happens while getting the payload.
 
 #### Specification
@@ -181,7 +181,7 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Bogota fork.
 
-2. `inclusionListClaims` **MUST NOT** have more than `MAX_INCLUSION_LIST_CLAIMS` elements. Each claim **MUST** identify a distinct omitted Profile 2 candidate from the `inclusionListTransactions` used to build the payload, with an index no greater than `len(executionPayload.transactions)` at which its omission is excused under EIP-7805.
+2. `omissionClaims` **MUST NOT** have more than `MAX_OMISSION_CLAIMS` elements. Each claim **MUST** identify a distinct omitted Profile 2 candidate from the `inclusionListTransactions` used to build the payload, with an index no greater than `len(executionPayload.transactions)` at which its omission is excused under EIP-7805.
 
 ### engine_getInclusionListV1
 
