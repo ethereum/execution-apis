@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/cespare/cp v1.1.1
-	github.com/ethereum/go-ethereum v1.17.8-0.20261007093754-defbdf7afbe1
+	github.com/ethereum/go-ethereum v1.17.9-0.20261013131904-653da5f614d0
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/spec-types/generated/packages/go v0.1.1
