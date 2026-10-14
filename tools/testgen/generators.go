@@ -937,7 +937,7 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 
 var estimateGasTestScript = `
 if (BigInt(messages[1].response.result) <= 5000) {
-    throw new Exception("invalid gas estimation result");
+    throw new Error("invalid gas estimation result");
 }
 `
 
