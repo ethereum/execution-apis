@@ -210,7 +210,7 @@ CallResultFailure:
             const: -32015
           message:
             type: string
-            pattern: "^vm execution error.*"
+            pattern: "^(vm execution error|out of gas).*"
 CallResultSuccess:
   title: Result of call success
   type: object
