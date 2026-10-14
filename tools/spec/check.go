@@ -164,6 +164,9 @@ func isStandardError(code int64) bool {
 	switch code {
 	case -32700 /* Parse Error */, -32600 /* Invalid Request */, -32602 /* Invalid Params */, -32603 /* Internal Error */ :
 		return true
+	case -32601 /* Method not found */ :
+		// This is treated as invalid because the tests should only call valid methods.
+		return false
 	case -32000 /* Server error */ :
 		// This case should be removed. A lot of methods use this error code by default,
 		// but it is meaningless, so it should be declared explicitly in the spec when it
