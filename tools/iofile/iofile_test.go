@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -145,5 +146,37 @@ openrpc.validate("#/components/schemas/AccessList", messages[1].send.invalid);
 	if !strings.Contains(err.Error(), "at schema.io:6:17") {
 		t.Fatalf("backtrace line not in error from schema validation: %v", err)
 	}
+}
 
+func TestValidationScriptIsValidException(t *testing.T) {
+	testFile := `
+>> {"valid": [{"address": "0xa02457e5dfd32bda5fc7e1f1b008aa5979568150", "storageKeys": ["0x0000000000000000000000000000000000000000000000000000000000000081"]}]}
+--
+openrpc.isValid("#/components/schemas/unknown", messages[0].send.valid);
+`
+	test, err := Load("schema.io", strings.NewReader(testFile))
+	if err != nil {
+		t.Fatal("load failed: ", test, err)
+	}
+
+	spec, err := spec.LoadString("test", `{
+  "openrpc": "1.4.1",
+  "methods": [],
+  "components": {
+    "schemas": {}
+  }
+}`)
+	if err != nil {
+		t.Fatalf("invalid spec: %v", err)
+	}
+
+	config := ScriptConfig{OpenRPC: spec}
+	err = test.RunScript(config, nil)
+	if err == nil {
+		t.Fatal("no error from script")
+	}
+	re := regexp.MustCompile("json-pointer in \".*\" not found")
+	if !re.MatchString(err.Error()) {
+		t.Fatalf("wrong error from schema validation: %v", err)
+	}
 }
