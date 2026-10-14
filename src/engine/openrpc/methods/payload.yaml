@@ -1100,14 +1100,10 @@
         type: array
         items:
           $ref: '#/components/schemas/bytes'
-    - name: Inclusion list transactions
+    - name: Inclusion lists
       required: true
       schema:
-        $ref: '#/components/schemas/InclusionListTransactionsV1'
-    - name: Inclusion list membership
-      required: true
-      schema:
-        $ref: '#/components/schemas/InclusionListMembershipsV1'
+        $ref: '#/components/schemas/InclusionListsV1'
     - name: Omission claims
       required: true
       schema:

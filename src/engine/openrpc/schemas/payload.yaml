@@ -56,7 +56,6 @@ PayloadStatusV2:
     - latestValidHash
     - validationError
     - inclusionListSatisfied
-    - inclusionListContextId
   properties:
     status:
       $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/status'
@@ -73,28 +72,6 @@ PayloadStatusV2:
       oneOf:
         - type: boolean
         - type: 'null'
-    inclusionListContextId:
-      title: Inclusion check context identifier
-      oneOf:
-        - $ref: '#/components/schemas/hash32'
-        - type: 'null'
-RestrictedPayloadStatusV2:
-  $ref: '#/components/schemas/PayloadStatusV2'
-  properties:
-    status:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/status'
-      enum:
-        - VALID
-        - INVALID
-        - SYNCING
-    latestValidHash:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/latestValidHash'
-    validationError:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/validationError'
-    inclusionListSatisfied:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/inclusionListSatisfied'
-    inclusionListContextId:
-      $ref: '#/components/schemas/PayloadStatusV2/properties/inclusionListContextId'
 ExecutionPayloadV1:
   title: Execution payload object V1
   type: object
@@ -463,23 +440,14 @@ InclusionListTransactionV1:
   type: string
   pattern: ^0x([0-9a-f]{2})+$
   maxLength: 16386
-InclusionListTransactionsV1:
-  title: Distinct inclusion list transaction bytes
+InclusionListsV1:
+  title: Inclusion lists by committee position
+  description: Preserve each selected IL, including duplicates; each list has an aggregate 8192-byte limit before deduplication.
   type: array
-  uniqueItems: true
-  maxItems: 131072
+  minItems: 16
+  maxItems: 16
   items:
-    $ref: '#/components/schemas/InclusionListTransactionV1'
-InclusionListMembershipV1:
-  title: Inclusion list membership bitvector over the inclusion list committee
-  description: SSZ Bitvector[16], with bit i in bit i modulo 8 of byte i divided by 8; positions 0 and 9 encode as 0x0102.
-  type: string
-  pattern: ^0x[0-9a-f]{4}$
-  not:
-    const: '0x0000'
-InclusionListMembershipsV1:
-  title: Membership per inclusion list transaction
-  type: array
-  maxItems: 131072
-  items:
-    $ref: '#/components/schemas/InclusionListMembershipV1'
+    type: array
+    maxItems: 8192
+    items:
+      $ref: '#/components/schemas/InclusionListTransactionV1'

@@ -60,16 +60,13 @@ getblobsv
 getclientversionv
 getinclusionlistv
 getInclusionListV
-getInclusionListStatusV
 graphql
 greppable
 gwei
 https
 OmissionClaimV
 OmissionClaimsV
-InclusionListMembershipV
-InclusionListMembershipsV
-InclusionListTransactionsV
+InclusionListsV
 interop
 ipc
 js
