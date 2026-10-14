@@ -13,6 +13,7 @@ import (
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/ethereum/execution-apis/tools/spec"
+	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 type scriptMessage struct {
@@ -210,7 +211,11 @@ func (m *openrpcModule) doValidate(call goja.FunctionCall) error {
 	if err := json.Unmarshal(valueJSON, &valueGo); err != nil {
 		throw(m.vm, "invalid JSON value: %v", err)
 	}
-	return m.spec.Validate(url, valueGo)
+	err = m.spec.Validate(url, valueGo)
+	if _, isV := errors.AsType[*jsonschema.ValidationError](err); err != nil && !isV {
+		throw(m.vm, "%v", err)
+	}
+	return err
 }
 
 func throw(runtime *goja.Runtime, format string, args ...any) {
