@@ -136,11 +136,11 @@ func (c *Checker) checkArguments(m *MethodSchema, arguments []any) error {
 // checkError verifies the error code is permitted by the schema.
 // It also checks the error data against the schema.
 func (c *Checker) checkError(m *MethodSchema, err *jsonrpcError) error {
-	if isStandardError(err.Code) {
-		return nil
-	}
 	errSchema := m.errors[err.Code]
 	if errSchema == nil {
+		if isStandardError(err.Code) {
+			return nil
+		}
 		return fmt.Errorf("response uses undefined error code %d for method %s", err.Code, m.name)
 	}
 	if !errSchema.hasDataSchema {
@@ -165,7 +165,9 @@ func isStandardError(code int64) bool {
 	case -32700 /* Parse Error */, -32600 /* Invalid Request */, -32602 /* Invalid Params */, -32603 /* Internal Error */ :
 		return true
 	case -32000 /* Server error */ :
-		// This case should be removed.
+		// This case should be removed. A lot of methods use this error code by default,
+		// but it is meaningless, so it should be declared explicitly in the spec when it
+		// is expected.
 		return true
 	default:
 		return false
