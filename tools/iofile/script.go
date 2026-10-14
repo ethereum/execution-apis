@@ -203,7 +203,7 @@ func (m *openrpcModule) doValidate(call goja.FunctionCall) error {
 	}
 
 	// Validate the value.
-	valueJSON, err := value.ToObject(m.vm).MarshalJSON()
+	valueJSON, err := json.Marshal(value.Export())
 	if err != nil {
 		throw(m.vm, "invalid JSON value: %v", err)
 	}
