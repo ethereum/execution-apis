@@ -169,7 +169,7 @@ func requireOpenrpcModule(spec *spec.Spec) require.ModuleLoader {
 }
 
 func enableOpenrpcModule(runtime *goja.Runtime) {
-	runtime.Set("jsonschema", require.Require(runtime, openrpcModuleName))
+	runtime.Set("openrpc", require.Require(runtime, openrpcModuleName))
 }
 
 // validate(path, value) validates against the JSON-Schema at 'path',

@@ -3,8 +3,10 @@ package spec
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	openrpc "github.com/open-rpc/spec-types/generated/packages/go/v1_4"
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -53,8 +55,21 @@ func Load(path string) (*Spec, error) {
 	return New(path, &doc)
 }
 
+// LoadString reads spec JSON from a string.
+func LoadString(fileName, specSource string) (*Spec, error) {
+	var doc openrpc.OpenrpcDocument
+	if err := json.NewDecoder(strings.NewReader(specSource)).Decode(&doc); err != nil {
+		return nil, err
+	}
+	return New(fileName, &doc)
+}
+
 // New indexes the methods and errors in the given OpenRPC spec.
 func New(fileName string, doc *openrpc.OpenrpcDocument) (*Spec, error) {
+	if doc.Methods == nil {
+		return nil, errors.New(`missing "methods" in spec`)
+	}
+
 	// Iterate over each method in the OpenRPC spec and pull out the parameter
 	// schema and result schema.
 	methods := make(map[string]*MethodSchema)

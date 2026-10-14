@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ethereum/execution-apis/tools/spec"
 )
 
 func TestValidationScript(t *testing.T) {
@@ -75,16 +77,17 @@ func TestValidationScriptSchema(t *testing.T) {
 >> {"valid": [{"address": "0xa02457e5dfd32bda5fc7e1f1b008aa5979568150", "storageKeys": ["0x0000000000000000000000000000000000000000000000000000000000000081"]}]}
 >> {"invalid": [{"address": "0xa02457e5dfd32bda5fc7e1f1b008aa5979568150", "storageKeys": ["0x00000000000000000000000000000000000000000000000000000000000000"]}]}
 --
-jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[0].send.valid);
-jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[1].send.invalid);
+openrpc.validate("#/components/schemas/AccessList", messages[0].send.valid);
+openrpc.validate("#/components/schemas/AccessList", messages[1].send.invalid);
 `
 	test, err := Load("schema.io", strings.NewReader(testFile))
 	if err != nil {
 		t.Fatal("load failed: ", test, err)
 	}
 
-	schema := json.RawMessage(`{
+	spec, err := spec.LoadString("test", `{
   "openrpc": "1.4.1",
+  "methods": [],
   "components": {
     "schemas": {
       "AccessList": {
@@ -127,7 +130,11 @@ jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[1].send
     }
   }
 }`)
-	config := ScriptConfig{OpenRPCSchema: schema}
+	if err != nil {
+		t.Fatalf("invalid spec: %v", err)
+	}
+
+	config := ScriptConfig{OpenRPC: spec}
 	err = test.RunScript(config, nil)
 	if err == nil {
 		t.Fatal("no error from script")
@@ -135,7 +142,7 @@ jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[1].send
 	if !strings.Contains(err.Error(), "jsonschema validation failed with") {
 		t.Fatalf("wrong error from schema validation: %v", err)
 	}
-	if !strings.Contains(err.Error(), "at schema.io:6:20") {
+	if !strings.Contains(err.Error(), "at schema.io:6:17") {
 		t.Fatalf("backtrace line not in error from schema validation: %v", err)
 	}
 
