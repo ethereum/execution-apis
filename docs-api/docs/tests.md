@@ -95,12 +95,20 @@ types, a `speconly` test would not be able to verify that a specific type was re
 To make it possible to verify such responses, the test script can access the OpenRPC
 specification and perform schema validation using a specific sub-schema element.
 
-Within the execution environment of the test script, the `openrpc` variable is bound to
-the spec document (`refs-openrpc.json`). The pre-loaded `jsonschema` module in the script
-environment allows validating against a schema component:
+Within the execution environment of the test script, the pre-loaded `openrpc` module
+allows such validation. The `validate` method indexes the OpenRPC spec document with the
+JSON-Pointer given as the first argument and performs JSON-Schema validation of the value.
 
 ```javascript
-jsonschema.validate(openrpc, "#/components/schemas/AccessList", messages[1].response.value);
+openrpc.validate("#/components/schemas/AccessList", messages[1].response.value);
+```
+
+There is also a boolean test:
+
+```javascript
+if (openrpc.isValid("#/components/schemas/AccessList", messages[1].response.value)) {
+    // value is valid
+}
 ```
 
 ## Generation

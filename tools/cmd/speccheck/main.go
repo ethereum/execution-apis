@@ -51,7 +51,6 @@ func run(args *Args) error {
 // checkSpec reads the schemas from the spec and test files, then validates
 // them against each other.
 func checkTests(s *spec.Spec, tests []iofile.Test, re *regexp.Regexp) error {
-	jsonSpec := s.JSON()
 	for _, test := range tests {
 		fmt.Println(test.Name)
 		// Check all calls and responses against the spec.
@@ -73,8 +72,9 @@ func checkTests(s *spec.Spec, tests []iofile.Test, re *regexp.Regexp) error {
 			return fmt.Errorf("%s has unanswered calls: %v", test.Name, dropped)
 		}
 
-		// Run validation script.
-		config := iofile.ScriptConfig{OpenRPCSchema: jsonSpec}
+		// Run validation script. Note that the 'responses' seen by the script
+		// are equal to the test's declared responses.
+		config := iofile.ScriptConfig{OpenRPC: s}
 		responses := test.Receives()
 		if err := test.RunScript(config, responses); err != nil {
 			return fmt.Errorf("%s: %v", test.Name, err)

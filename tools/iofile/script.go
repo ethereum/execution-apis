@@ -12,7 +12,7 @@ import (
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/console"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/santhosh-tekuri/jsonschema/v6"
+	"github.com/ethereum/execution-apis/tools/spec"
 )
 
 type scriptMessage struct {
@@ -23,9 +23,9 @@ type scriptMessage struct {
 
 // ScriptConfig holds settings for validation script execution.
 type ScriptConfig struct {
-	Log           TestLogger      // script console output is written here
-	Timeout       time.Duration   // execution timeout
-	OpenRPCSchema json.RawMessage // this is accessible to the script for validation purposes
+	Log     TestLogger    // script console output is written here
+	Timeout time.Duration // execution timeout
+	OpenRPC *spec.Spec    // this is accessible to the script for validation purposes
 }
 
 func (cfg ScriptConfig) withDefaults() ScriptConfig {
@@ -95,17 +95,10 @@ func runValidationScript(sourceFile string, source string, jsonMessages []byte, 
 	reg := new(require.Registry)
 	reg.Enable(vm)
 	reg.RegisterNativeModule(console.ModuleName, console.RequireWithPrinter(scriptPrinter{config.Log}))
-	reg.RegisterNativeModule(jsonschemaModuleName, requireJSONSchemaModule)
 	console.Enable(vm)
-	enableJSONSchemaModule(vm)
-
-	// Store the RPC schema into a global if configured.
-	if len(config.OpenRPCSchema) > 0 {
-		schema, err := parse(jsonObj, vm.ToValue(string(config.OpenRPCSchema)))
-		if err != nil {
-			return fmt.Errorf("invalid OpenRPC schema in ScriptConfig: %v", err)
-		}
-		vm.Set("openrpc", schema)
+	if config.OpenRPC != nil {
+		reg.RegisterNativeModule(openrpcModuleName, requireOpenrpcModule(config.OpenRPC))
+		enableOpenrpcModule(vm)
 	}
 
 	// Set up interrupt timeout.
@@ -157,27 +150,31 @@ func (p scriptPrinter) Error(msg string) {
 	p.w.Logf("error: %s", msg)
 }
 
-// -- JSON-Schema Module
+// -- OpenRPC Module
 
-const jsonschemaModuleName = "jsonschema"
+const openrpcModuleName = "openrpc"
 
-type jsonschemaModule struct {
-	vm *goja.Runtime
+type openrpcModule struct {
+	vm   *goja.Runtime
+	spec *spec.Spec
 }
 
-func requireJSONSchemaModule(runtime *goja.Runtime, module *goja.Object) {
-	m := jsonschemaModule{vm: runtime}
-	o := module.Get("exports").(*goja.Object)
-	o.Set("validate", m.validate)
-	o.Set("isValid", m.isValid)
+func requireOpenrpcModule(spec *spec.Spec) require.ModuleLoader {
+	return func(runtime *goja.Runtime, module *goja.Object) {
+		m := openrpcModule{vm: runtime, spec: spec}
+		o := module.Get("exports").(*goja.Object)
+		o.Set("validate", m.validate)
+		o.Set("isValid", m.isValid)
+	}
 }
 
-func enableJSONSchemaModule(runtime *goja.Runtime) {
-	runtime.Set("jsonschema", require.Require(runtime, jsonschemaModuleName))
+func enableOpenrpcModule(runtime *goja.Runtime) {
+	runtime.Set("jsonschema", require.Require(runtime, openrpcModuleName))
 }
 
-// validate(document, schemaPath, value), throws when invalid.
-func (m *jsonschemaModule) validate(call goja.FunctionCall) goja.Value {
+// validate(path, value) validates against the JSON-Schema at 'path',
+// throws when 'value' is invalid acc.
+func (m *openrpcModule) validate(call goja.FunctionCall) goja.Value {
 	err := m.doValidate(call)
 	if err != nil {
 		panic(m.vm.NewGoError(err))
@@ -185,51 +182,35 @@ func (m *jsonschemaModule) validate(call goja.FunctionCall) goja.Value {
 	return goja.Undefined()
 }
 
-// isValid(document, schemaPath, value) -> boolean
-func (m *jsonschemaModule) isValid(call goja.FunctionCall) goja.Value {
+// isValid(path, value) -> boolean
+func (m *openrpcModule) isValid(call goja.FunctionCall) goja.Value {
 	err := m.doValidate(call)
 	return m.vm.ToValue(err == nil)
 }
 
-func (m *jsonschemaModule) doValidate(call goja.FunctionCall) error {
-	if len(call.Arguments) != 3 {
-		throw(m.vm, "invalid number of arguments (%d), need (schema, path, value)", len(call.Arguments))
+func (m *openrpcModule) doValidate(call goja.FunctionCall) error {
+	if len(call.Arguments) != 2 {
+		throw(m.vm, "invalid number of arguments (%d), need (path, value)", len(call.Arguments))
 	}
-	doc := call.Arguments[0]
-	url, ok := call.Arguments[1].Export().(string)
+	url, ok := call.Arguments[0].Export().(string)
 	if !ok {
 		throw(m.vm, "invalid URL argument, expected string")
 	}
-	value := call.Arguments[2]
+	value := call.Arguments[1]
 	if goja.IsUndefined(value) {
 		throw(m.vm, "value to validate is undefined")
 	}
 
-	// convert schema document and value to Go via JSON.
-	docJSON, err := doc.ToObject(m.vm).MarshalJSON()
-	if err != nil {
-		throw(m.vm, "invalid JSON schema: %v", err)
-	}
+	// Validate the value.
 	valueJSON, err := value.ToObject(m.vm).MarshalJSON()
 	if err != nil {
-		throw(m.vm, "invalid JSON value: %v", err)
-	}
-	var docGo any
-	if err := json.Unmarshal(docJSON, &docGo); err != nil {
 		throw(m.vm, "invalid JSON value: %v", err)
 	}
 	var valueGo any
 	if err := json.Unmarshal(valueJSON, &valueGo); err != nil {
 		throw(m.vm, "invalid JSON value: %v", err)
 	}
-
-	c := jsonschema.NewCompiler()
-	c.AddResource("", docGo)
-	schemaGo, err := c.Compile(url)
-	if err != nil {
-		throw(m.vm, "invalid JSON schema: %v", err)
-	}
-	return schemaGo.Validate(valueGo)
+	return m.spec.Validate(url, valueGo)
 }
 
 func throw(runtime *goja.Runtime, format string, args ...any) {
