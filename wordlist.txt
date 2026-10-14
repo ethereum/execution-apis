@@ -60,6 +60,8 @@ getblobsv
 getclientversionv
 getinclusionlistv
 getInclusionListV
+getinclusionlistverdictv
+getInclusionListVerdictV
 graphql
 greppable
 gwei
@@ -131,3 +133,4 @@ yaml
 yParity
 ZkExecutionErrors
 ZK
+ILs
