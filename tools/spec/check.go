@@ -130,6 +130,9 @@ func (c *Checker) checkArguments(m *MethodSchema, arguments []any) error {
 			return err
 		}
 	}
+	if len(arguments) > len(m.params) {
+		return fmt.Errorf("call has %d parameters, spec declares only %d", len(arguments), len(m.params))
+	}
 	return nil
 }
 
