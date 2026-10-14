@@ -13,21 +13,31 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
+  - [OmissionClaimV1](#omissionclaimv1)
 - [Routines](#routines)
+  - [Deferred inclusion checking](#deferred-inclusion-checking)
   - [Payload building](#payload-building)
 - [Methods](#methods)
   - [engine_newPayloadV6](#engine_newpayloadv6)
     - [Request](#request)
     - [Response](#response)
     - [Specification](#specification)
-  - [engine_getInclusionListV1](#engine_getinclusionlistv1)
+  - [engine_getPayloadV7](#engine_getpayloadv7)
     - [Request](#request-1)
     - [Response](#response-1)
     - [Specification](#specification-1)
-  - [engine_forkchoiceUpdatedV5](#engine_forkchoiceupdatedv5)
+  - [engine_getInclusionListV1](#engine_getinclusionlistv1)
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_getInclusionListVerdictV1](#engine_getinclusionlistverdictv1)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
+  - [engine_forkchoiceUpdatedV5](#engine_forkchoiceupdatedv5)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Amsterdam API](#amsterdam-api)
 
@@ -38,12 +48,17 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | Name | Value |
 | - | - |
 | `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
+| `INCLUSION_LIST_COMMITTEE_SIZE` | `uint64(16) = 2**4` |
+| `MAX_OMISSION_CLAIMS` | `uint64(4096) = 2**12` |
+| `MAX_VERIFY_GAS_PER_IL` | `uint64(1048576) = 2**20` |
+
+Both EIP-7805 profiles apply from Bogota activation. The VERIFY budget and claim cap are defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805#constants).
 
 ## Structures
 
 ### PayloadAttributesV5
 
-This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloadattributesv4) and appends a single field: `inclusionListTransactions`.
+This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloadattributesv4) and appends `inclusionLists`.
 
 - `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
 - `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
@@ -52,30 +67,52 @@ This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloada
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
 - `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
-- `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+- `inclusionLists`: `Array of Array of DATA` - Exactly `INCLUSION_LIST_COMMITTEE_SIZE` transaction lists, in committee-position order. Each transaction is the exact nonempty EIP-2718 envelope or legacy RLP bytes. An empty list denotes no applicable IL at that position.
+
+The consensus layer selects valid, non-equivocating ILs under EIP-7805. A member holding several committee positions supplies the same list at each. Entries retain their order and duplicates; the per-list byte limit applies before deduplication. The execution layer fills each list's budget independently and may share decoding, signature verification and replay work across lists. The same rules apply to `engine_newPayloadV6`.
 
 ### PayloadStatusV2
 
-This structure has the syntax of `PayloadStatusV1` and appends a single field: `inclusionListSatisfied`
+This structure has the syntax of `PayloadStatusV1` and appends `inclusionListSatisfied` and `inclusionCheckId`.
 
 - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED"`
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
-- `inclusionListSatisfied`: `BOOLEAN|null` - whether the payload satisfied the inclusion list constraints if it is deemed `VALID`; `null` otherwise.
+- `inclusionListSatisfied`: `BOOLEAN|null` - the completed verdict for `inclusionCheckId`; `null` while pending or when execution is not `VALID`.
+- `inclusionCheckId`: `DATA|null`, 32 Bytes - identifier defined below, present exactly when execution is `VALID`, including for a completed check.
+
+### OmissionClaimV1
+
+This structure maps onto the omission claim defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The fields are encoded as follows:
+
+- `transactionHash`: `DATA`, 32 Bytes - Ordinary transaction hash of the claimed inclusion list transaction.
+- `evaluationIndex`: `QUANTITY`, 64 Bits - index in `executionPayload.transactions` at which the omission of the claimed transaction is evaluated.
+
+Index zero is before the first transaction; `len(executionPayload.transactions)` is the end of the payload. The claim list retains its committed order and duplicates. The consensus layer checks its commitment; the execution layer applies EIP-7805's evaluation rules.
 
 ## Routines
+
+### Deferred inclusion checking
+
+Execution validation and inclusion checking may complete asynchronously. Once execution is `VALID`, the EL **MUST** schedule inclusion checking and promptly return its identifier and current verdict without waiting for that check. The CL polls [`engine_getInclusionListVerdictV1`](#engine_getinclusionlistverdictv1); pending is never satisfaction. Inclusion failure **MUST NOT** change execution validity or forkchoice processing.
+
+The identifier is `keccak256(b"engine/inclusion-check/v1" || RLP([blockHash, inclusionLists, claims]))`, where `claims` is `[[transactionHash, evaluationIndex], ...]`. Hashes and transactions are byte strings; indices use canonical RLP unsigned integers. Preserve list boundaries, committee positions, transaction order, duplicate entries and claim order. `blockHash` is the validated execution payload hash; all other `newPayload` validation requirements still apply before issuing or reusing an identifier.
+
+An identifier names one check. Identical in-progress checks **MUST** share work and a completed verdict **MUST NOT** change. Implementations **MAY** share execution data across checks. If prior execution did not retain the required insertion states and both gas counters, checking may require re-execution; authenticated BAL-indexed reconstruction can avoid this only with the corresponding gas counters available.
+
+The CL **MUST** retain the original inputs until completion or abandonment and associate the identifier with its beacon block and frozen IL view. The EL **MAY** evict checks to bound local resources. After `Unknown inclusion check`, including after an EL restart, the CL **MAY** resubmit those original inputs; it **MUST NOT** substitute a later view. Polling itself never creates or restarts work. The identifier is local API state, not a consensus commitment.
 
 ### Payload building
 
 This routine follows the same specification as [Payload building](./paris.md#payload-building) with the following changes to the processing flow:
 
-1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload` **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+1. Client software **MUST** take `inclusionLists` into account during the payload build process. The built `ExecutionPayload`, together with the `omissionClaims` returned by [`engine_getPayloadV7`](#engine_getpayloadv7), **MUST** satisfy the inclusion list constraints with respect to `inclusionLists` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ## Methods
 
 ### engine_newPayloadV6
 
-Method parameter list is extended with `inclusionListTransactions`.
+Method parameter list is extended with `inclusionLists` and `omissionClaims`.
 
 #### Request
 
@@ -85,7 +122,8 @@ Method parameter list is extended with `inclusionListTransactions`.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
-  5. `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+  5. `inclusionLists`: `Array of Array of DATA` - Separate ILs as defined in [`PayloadAttributesV5`](#payloadattributesv5).
+  6. `omissionClaims`: `Array of OmissionClaimV1` - The ordered omission claims committed to by the builder, as defined in EIP-7805.
 * timeout: 6s
 
 #### Response
@@ -99,13 +137,45 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Bogota fork.
 
-2. Client software **MUST** set `inclusionListSatisfied` in the following way:
+2. Client software **MUST** return `-32602: Invalid params` error if any of the following holds:
 
-    1. If the payload is deemed `VALID`, `inclusionListSatisfied` **MUST** be set to whether the payload satisfied the inclusion list constraints.
+    1. `inclusionLists` does not have exactly `INCLUSION_LIST_COMMITTEE_SIZE` entries, an entry is not a list of nonempty byte strings, or the total transaction byte length of any entry exceeds `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
-    2. Otherwise, `inclusionListSatisfied` **MUST** be `null`.
+    2. `omissionClaims` has more than `MAX_OMISSION_CLAIMS` elements or an element does not match `OmissionClaimV1`, including a malformed hash or a noncanonical or overflowing `uint64` index.
 
-3. Client software **MUST** retain `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
+   Otherwise well-formed transaction byte strings **MUST NOT** cause an RPC error solely because their transaction encoding or validity checks fail. Well-formed duplicate or unmatched claims, and indices above the payload transaction count, **MUST NOT** cause an RPC error: EIP-7805 ignores repeated transaction hashes and irrelevant claims, and clamps remaining indices to the end of the payload. Exceeding the VERIFY budget is likewise handled by EIP-7805's per-member fill, not as an RPC error.
+
+3. Client software **MUST** evaluate inclusion against this call's inputs, even if execution validity is already known. It **MUST** return `inclusionListSatisfied` as the completed boolean verdict only if execution is `VALID`; otherwise, including while inclusion checking is pending, it **MUST** return `null`. It **MUST** return `inclusionCheckId` exactly when execution is `VALID`, following [Deferred inclusion checking](#deferred-inclusion-checking). Known execution validity **MUST NOT** be held until inclusion checking completes.
+
+### engine_getPayloadV7
+
+This method is updated to return `omissionClaims`.
+
+#### Request
+
+* method: `engine_getPayloadV7`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
+
+#### Response
+
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV4`](./amsterdam.md#executionpayloadv4)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
+  - `blobsBundle`: [`BlobsBundleV2`](./osaka.md#blobsbundlev2) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
+  - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
+  - `omissionClaims`: `Array of OmissionClaimV1` - Omission claims for transactions omitted from `executionPayload`.
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the Bogota fork.
+
+2. `omissionClaims` **MUST NOT** have more than `MAX_OMISSION_CLAIMS` elements. The EL **MUST** emit only claims it has verified: each identifies a distinct omitted Profile 2 candidate from the build's `inclusionLists`, with an index no greater than `len(executionPayload.transactions)` at which EIP-7805 excuses its omission.
 
 ### engine_getInclusionListV1
 
@@ -130,9 +200,32 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
     3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
+    4. The total VERIFY budget cost of the distinct Profile 2 candidates in the transaction list **SHOULD NOT** exceed `MAX_VERIFY_GAS_PER_IL`, using EIP-7805's candidate and cost definitions. This is a selection recommendation, not an inclusion list validity rule.
+
 2. The strategy for selecting transactions is implementation dependent.
 
+### engine_getInclusionListVerdictV1
+
+#### Request
+
+* method: `engine_getInclusionListVerdictV1`
+* params:
+  1. `inclusionCheckId`: `DATA`, 32 Bytes - Identifier returned by `engine_newPayloadV6`.
+* timeout: 1s
+
+#### Response
+
+* result: `BOOLEAN|null` - Completed verdict, or `null` while the identified check is pending.
+* error: `-38007: Unknown inclusion check` if the identifier is unknown or evicted.
+
+#### Specification
+
+1. Client software **MUST** return the current verdict promptly, without waiting for pending work or starting a new check.
+2. An unknown identifier **MUST** return the error above, not `null`.
+
 ### engine_forkchoiceUpdatedV5
+
+Compared with V4, only the payload attributes change to `PayloadAttributesV5`; the response remains `PayloadStatusV1`.
 
 #### Request
 
@@ -146,7 +239,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 #### Response
 
 * result: `object`
-  - `payloadStatus`: [`PayloadStatusV2`](#payloadstatusv2), with the same `status` value restrictions as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4).
+  - `payloadStatus`: [`PayloadStatusV1`](./paris.md#payloadstatusv1), with the same `status` value restrictions as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4).
   - `payloadId`: `DATA|null`, 8 Bytes - identifier of the payload build process or `null`
 * error: code and message set in case an exception happens while the validating payload, updating the forkchoice or initiating the payload build process.
 
@@ -154,19 +247,13 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4) with the following changes to the processing flow:
 
+This method reports execution validity only. Deferred inclusion results are obtained with `engine_getInclusionListVerdictV1`; `payloadAttributes` describes the child build and cannot supply the head's inclusion inputs.
+
 1. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
 
-    1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure, return `-38003: Invalid payload attributes` on failure.
+    1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure and `payloadAttributes.inclusionLists` passes check (2.1) of [`engine_newPayloadV6`](#engine_newpayloadv6), return `-38003: Invalid payload attributes` on failure. Invalid transaction encodings or transaction validity failures are handled by EIP-7805, not rejected as invalid attributes.
 
-    2. `payloadAttributes.timestamp` does not fall within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
-
-2. Extend point (9) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining `payloadStatus.inclusionListSatisfied`:
-
-    1. If the payload referenced by `forkchoiceState.headBlockHash` is deemed `VALID`, `payloadStatus.inclusionListSatisfied` **MUST** be set to whether the payload satisfied the inclusion list constraints.
-
-    2. Client software **MUST** use the retained `inclusionListTransactions` if it validates the payload and checks whether the payload satisfies the inclusion list constraints while processing the call.
-
-    3. Otherwise, `payloadStatus.inclusionListSatisfied` **MUST** be `null`.
+    2. `payloadAttributes.timestamp` falls within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
 
 ### Update the methods of previous forks
 
@@ -175,6 +262,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 For the following methods:
 
 - [`engine_newPayloadV5`](./amsterdam.md#engine_newpayloadv5)
+- [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6)
 - [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4)
 
 a validation **MUST** be added:
