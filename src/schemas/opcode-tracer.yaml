@@ -287,5 +287,7 @@ TraceCallConfig:
         blockOverrides:
           title: block overrides
           description: >-
-            Modifications to the block environment the call executes in.
+            Modifications to the block environment the call executes in. The
+            call runs alone, so withdrawals do not apply. A client MAY reject a
+            request that sets withdrawals.
           $ref: '#/components/schemas/BlockOverrides'

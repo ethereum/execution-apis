@@ -64,6 +64,11 @@
             type: object
             required:
               - txHash
+            anyOf:
+              - required:
+                  - result
+              - required:
+                  - error
             properties:
               txHash:
                 $ref: '#/components/schemas/hash32'
@@ -184,6 +189,11 @@
             type: object
             required:
               - txHash
+            anyOf:
+              - required:
+                  - result
+              - required:
+                  - error
             properties:
               txHash:
                 $ref: '#/components/schemas/hash32'
