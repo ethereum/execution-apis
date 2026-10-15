@@ -23,7 +23,7 @@
     - name: Payload attributes
       required: true
       schema:
-        title: PayloadAttributesV3
+        title: PayloadAttributesV4
         type: object
         properties:
           timestamp:
@@ -39,6 +39,8 @@
               $ref: '#/components/schemas/Withdrawal'
           parentBeaconBlockRoot:
             $ref: '#/components/schemas/hash32'
+          targetGasLimit:
+            $ref: '#/components/schemas/uint'
     - name: Transactions
       required: true
       description: |
@@ -106,6 +108,7 @@
             suggestedFeeRecipient: '0x0000000000000000000000000000000000000000'
             withdrawals: []
             parentBeaconBlockRoot: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822'
+            targetGasLimit: '0x1c9c380'
         - name: Transactions
           value: []
         - name: Extra data
