@@ -1,15 +1,20 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/alexflint/go-arg"
+	"github.com/ethereum/execution-apis/tools/iofile"
+	"github.com/ethereum/execution-apis/tools/spec"
 )
 
 type Args struct {
-	SpecPath   string `arg:"--spec" help:"path to client binary" default:"openrpc.json"`
+	SpecPath   string `arg:"--spec" help:"path to client binary" default:"refs-openrpc.json"`
 	TestsRoot  string `arg:"--tests" help:"path to tests directory" default:"tests"`
 	TestsRegex string `arg:"--regexp" help:"regular expression to match tests to check" deafult:".*"`
 	Verbose    bool   `arg:"-v,--verbose" help:"verbosity level of rpctestgen"`
@@ -30,18 +35,62 @@ func run(args *Args) error {
 	}
 
 	// Read all method schemas (params+result) from the OpenRPC spec.
-	methods, err := parseSpec(args.SpecPath)
+	s, err := spec.Load(args.SpecPath)
 	if err != nil {
 		return err
 	}
-
 	// Read all tests and parse out roundtrip HTTP exchanges so they can be validated.
-	rts, err := readRtts(args.TestsRoot, re)
+	tests, err := iofile.LoadDirectory(iofile.StdoutLogger, args.TestsRoot, re)
 	if err != nil {
 		return err
 	}
 
-	return checkSpec(methods, rts, re)
+	return checkTests(s, tests, re)
+}
+
+// checkSpec reads the schemas from the spec and test files, then validates
+// them against each other.
+func checkTests(s *spec.Spec, tests []iofile.Test, re *regexp.Regexp) error {
+	for _, test := range tests {
+		fmt.Println(test.Name)
+		// Check all calls and responses against the spec.
+		checker := spec.NewChecker(s)
+		checker.SetCheckArgs(!strings.Contains(test.Name, "invalid"))
+		for i, msg := range test.Messages {
+			var err error
+			if msg.Send {
+				err = checker.Request(msg.Data)
+			} else {
+				err = checker.Response(msg.Data)
+			}
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "message[%d]: %s\n", i, indent(msg.Data))
+				return fmt.Errorf("error: %v", err)
+			}
+		}
+		if dropped := checker.UnansweredCalls(); len(dropped) > 0 {
+			return fmt.Errorf("%s has unanswered calls: %v", test.Name, dropped)
+		}
+
+		// Run validation script. Note that the 'responses' seen by the script
+		// are equal to the test's declared responses.
+		config := iofile.ScriptConfig{OpenRPC: s}
+		responses := test.Receives()
+		if err := test.RunScript(config, responses); err != nil {
+			return fmt.Errorf("%s: %v", test.Name, err)
+		}
+	}
+	fmt.Println("all passing.")
+	return nil
+}
+
+func indent(msg []byte) []byte {
+	var buf bytes.Buffer
+	err := json.Indent(&buf, msg, "", "  ")
+	if err != nil {
+		return msg
+	}
+	return buf.Bytes()
 }
 
 func exit(err error) {

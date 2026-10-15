@@ -32,12 +32,22 @@ type T struct {
 	geth  *gethclient.Client
 	rpc   *rpc.Client
 	chain *Chain
+	test  *Test
 }
 
-func NewT(client *rpc.Client, chain *Chain) *T {
+func NewT(test *Test, client *rpc.Client, chain *Chain) *T {
 	eth := ethclient.NewClient(client)
 	geth := gethclient.New(client)
-	return &T{eth, geth, client, chain}
+	return &T{eth, geth, client, chain, test}
+}
+
+// SetValidationScript adds a script into the current test.
+//
+// While it is possible to set a script statically when declaring a Test
+// struct, some tests want to interpolate chain-related values into the
+// script, hence this method.
+func (t *T) SetValidationScript(source string) {
+	t.test.ValidationScript = source
 }
 
 // MethodTests is a collection of tests for a certain JSON-RPC method.
@@ -56,6 +66,13 @@ type Test struct {
 	// checked for spec validity only.
 	SpecOnly bool
 
+	// ValidationScript is JavaScript code that validates the response from the server.
+	// This is useful for SpecOnly tests where the schema alone cannot fully verify that
+	// the response matches the input. There is no need for a script on regular
+	// (SpecOnly==false) tests since their responses are compared literally.
+	ValidationScript string
+
+	// Run performs the method invocations.
 	Run func(context.Context, *T) error
 }
 
@@ -918,6 +935,12 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 	},
 }
 
+var estimateGasTestScript = `
+if (BigInt(messages[1].response.result) <= 5000) {
+    throw new Error("invalid gas estimation result");
+}
+`
+
 // EthEstimateGas stores a list of all tests against the method.
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
@@ -956,9 +979,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-successful-call",
-			About:    "estimates a successful contract call",
-			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
+			Name:             "estimate-successful-call",
+			About:            "estimates a successful contract call",
+			SpecOnly:         true, // EVM gas estimation is not required to be identical across clients
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				caller := common.Address{1, 2, 3}
 				callme := t.chain.txinfo.CallMeContract.Addr
@@ -1017,9 +1041,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-with-eip7702",
-			About:    "checks that including an EIP-7720 authorization in the message increases gas",
-			SpecOnly: true,
+			Name:             "estimate-with-eip7702",
+			About:            "checks that including an EIP-7720 authorization in the message increases gas",
+			SpecOnly:         true,
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				to := common.Address{0x01}
@@ -1061,9 +1086,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-with-eip4844",
-			About:    "checks gas estimation for blob transactions (EIP-4844)",
-			SpecOnly: true,
+			Name:             "estimate-with-eip4844",
+			About:            "checks gas estimation for blob transactions (EIP-4844)",
+			SpecOnly:         true,
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				to := common.Address{0x01}
@@ -2028,6 +2054,10 @@ var EthGasPrice = MethodTests{
 				}
 				return nil
 			},
+			ValidationScript: `
+				if (BigInt(messages[1].response.result) <= 0) {
+					throw new Error("gasprice too low");
+				}`,
 		},
 	},
 }
@@ -2118,15 +2148,17 @@ var EthCapabilities = MethodTests{
 				if err := t.rpc.CallContext(ctx, &result, "eth_capabilities"); err != nil {
 					return err
 				}
+
 				// The head must reflect the current chain head; number and hash
 				// are derived from the same header and must be consistent.
 				head := t.chain.Head()
-				if uint64(result.Head.Number) != head.NumberU64() {
-					return fmt.Errorf("unexpected head number (got: %d, want: %d)", uint64(result.Head.Number), head.NumberU64())
-				}
-				if result.Head.Hash != head.Hash() {
-					return fmt.Errorf("unexpected head hash (got: %s, want: %s)", result.Head.Hash, head.Hash())
-				}
+				t.SetValidationScript(fmt.Sprintf(`
+					let r = messages[1].response.result;
+					if (r.head.number !== "%#x")
+						throw new Error("incorrect head.number in response (want %#x)");
+					if (r.head.hash !== "%#x")
+						throw new Error("incorrect head.hash in response (want %#x)");
+                `, head.NumberU64(), head.NumberU64(), head.Hash(), head.Hash()))
 				return nil
 			},
 		},
@@ -2151,7 +2183,7 @@ var EthFeeHistory = MethodTests{
 					}
 					return false
 				})
-				got, err := t.eth.FeeHistory(ctx, 1, block.Number(), []float64{95, 99})
+				_, err := t.eth.FeeHistory(ctx, 1, block.Number(), []float64{95, 99})
 				if err != nil {
 					return err
 				}
@@ -2160,12 +2192,13 @@ var EthFeeHistory = MethodTests{
 					return fmt.Errorf("unable to get effective tip: %w", err)
 				}
 
-				if len(got.Reward) != 1 {
-					return fmt.Errorf("mismatch number of rewards (got: %d, want: 1", len(got.Reward))
-				}
-				if got.Reward[0][0].Cmp(tip) != 0 {
-					return fmt.Errorf("mismatch reward value (got: %d, want: %d)", got.Reward[0][0], tip)
-				}
+				t.SetValidationScript(fmt.Sprintf(`
+					let r = messages[1].response.result;
+					if (r.reward.length != 1)
+						throw new Error("expected exactly one reward");
+					if (r.reward[0][0] !== "%#x")
+                        throw new Error("wrong reward value in response");
+				`, tip))
 				return nil
 			},
 		},
