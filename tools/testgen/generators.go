@@ -3880,11 +3880,8 @@ var EthSimulateV1 = MethodTests{
 					Validation: false,
 				}
 				res := make([]blockResult, 0)
-				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
-					return err
-				}
-				if len(res) != len(params.BlockStateCalls) {
-					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err == nil {
+					return fmt.Errorf("expected an error for a sender nonce of 2^64-1 (EIP-2681)")
 				}
 				return nil
 			},
