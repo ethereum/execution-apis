@@ -152,6 +152,10 @@ func TestValidationScriptIsValidException(t *testing.T) {
 	testFile := `
 >> {"valid": [{"address": "0xa02457e5dfd32bda5fc7e1f1b008aa5979568150", "storageKeys": ["0x0000000000000000000000000000000000000000000000000000000000000081"]}]}
 --
+let hash = messages[0].send.valid[0].storageKeys[0];
+if (!openrpc.isValid("#/components/schemas/hash32", "0x")) {
+  console.log("hash-value-invalid");
+}
 openrpc.isValid("#/components/schemas/unknown", messages[0].send.valid);
 `
 	test, err := Load("schema.io", strings.NewReader(testFile))
@@ -163,17 +167,27 @@ openrpc.isValid("#/components/schemas/unknown", messages[0].send.valid);
   "openrpc": "1.4.1",
   "methods": [],
   "components": {
-    "schemas": {}
+    "schemas": {
+      "hash32": {
+        "pattern": "^0x[0-9a-f]{64}$",
+        "title": "32 byte hex value",
+        "type": "string"
+      }
+    }
   }
 }`)
 	if err != nil {
 		t.Fatalf("invalid spec: %v", err)
 	}
 
-	config := ScriptConfig{OpenRPC: spec}
+	var logbuffer bytes.Buffer
+	config := ScriptConfig{OpenRPC: spec, Log: Logger{&logbuffer}}
 	err = test.RunScript(config, nil)
 	if err == nil {
 		t.Fatal("no error from script")
+	}
+	if !strings.Contains(logbuffer.String(), "hash-value-invalid") {
+		t.Errorf("expected output not found in log")
 	}
 	re := regexp.MustCompile("json-pointer in \".*\" not found")
 	if !re.MatchString(err.Error()) {
