@@ -30,6 +30,7 @@ CLs
 configurationv
 CRC
 crypto
+devnet
 DocToc
 eg
 eip
@@ -52,6 +53,7 @@ exitv
 FCU
 FCUs
 feeRecipient
+FOCIL
 forkchoiceupdatedresponsev
 FP
 Fulu

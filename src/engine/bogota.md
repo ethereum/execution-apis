@@ -51,8 +51,11 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | `INCLUSION_LIST_COMMITTEE_SIZE` | `uint64(16) = 2**4` |
 | `MAX_OMISSION_CLAIMS` | `uint64(4096) = 2**12` |
 | `MAX_VERIFY_GAS_PER_IL` | `uint64(1048576) = 2**20` |
+| `MAX_VERIFY_GAS_PER_TX` | `uint64(262144) = 2**18` |
 
-Both EIP-7805 profiles apply from Bogota activation. The VERIFY budget and claim cap are defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805#constants).
+Both EIP-7805 profiles apply from Bogota activation. The VERIFY budgets and claim cap are defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805#constants).
+
+`engine_newPayloadV6`, `PayloadAttributesV5` and `engine_forkchoiceUpdatedV5` replace the earlier FOCIL devnet shapes in place: the flat `inclusionListTransactions` list becomes separate `inclusionLists` plus `omissionClaims`, and `engine_forkchoiceUpdatedV5` returns `PayloadStatusV1` again. Test fixtures and releases built for the earlier shapes **MUST** be regenerated.
 
 ## Structures
 
@@ -100,7 +103,11 @@ The identifier is `keccak256(b"engine/inclusion-check/v1" || RLP([blockHash, inc
 
 An identifier names one check. Identical in-progress checks **MUST** share work and a completed verdict **MUST NOT** change. Implementations **MAY** share execution data across checks. If prior execution did not retain the required insertion states and both gas counters, checking may require re-execution; authenticated BAL-indexed reconstruction can avoid this only with the corresponding gas counters available.
 
-The CL **MUST** retain the original inputs until completion or abandonment and associate the identifier with its beacon block and frozen IL view. The EL **MAY** evict checks to bound local resources. After `Unknown inclusion check`, including after an EL restart, the CL **MAY** resubmit those original inputs; it **MUST NOT** substitute a later view. Polling itself never creates or restarts work. The identifier is local API state, not a consensus commitment.
+If the EL cannot reconstruct the state or gas counters a check requires, the check stays pending; missing local data **MUST NOT** produce a verdict. The EL **MAY** complete the check once the data is available, or evict it; a resubmission **MAY** run the check again once the data is available. A check that stays pending at the proposal-slot parent decision gets the CL's empty-payload fallback defined by EIP-7805.
+
+The EL **SHOULD** retain a completed verdict at least until its block is finalized or pruned from fork choice, that is, until a finalized block reported through `engine_forkchoiceUpdated` has a block number at least that of the checked block. The EL **MAY** evict pending checks to bound local resources, and **MAY** evict a completed verdict earlier only under resource pressure. Eviction never changes a verdict; it only makes the identifier unknown.
+
+The CL **MUST** retain the original inputs until completion or abandonment and associate the identifier with its beacon block and frozen IL view. After `Unknown inclusion check`, including after an EL restart, the CL **MAY** resubmit those original inputs; it **MUST NOT** substitute a later view. Polling itself never creates or restarts work. The identifier is local API state, not a consensus commitment.
 
 ### Payload building
 
@@ -141,7 +148,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
     1. `inclusionLists` does not have exactly `INCLUSION_LIST_COMMITTEE_SIZE` entries, an entry is not a list of nonempty byte strings, or the total transaction byte length of any entry exceeds `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
-    2. `omissionClaims` has more than `MAX_OMISSION_CLAIMS` elements or an element does not match `OmissionClaimV1`, including a malformed hash or a noncanonical or overflowing `uint64` index.
+    2. `omissionClaims` has more than `MAX_OMISSION_CLAIMS` elements or an element does not match `OmissionClaimV1`, including a `transactionHash` that is not 32 bytes of `DATA`, or an `evaluationIndex` that does not follow the `QUANTITY` [encoding](./common.md#encoding) or exceeds `2**64 - 1`. For example, an `evaluationIndex` of `"0x01"`, `"0x"` or `"0x10000000000000000"` **MUST** return `-32602`.
 
    Otherwise well-formed transaction byte strings **MUST NOT** cause an RPC error solely because their transaction encoding or validity checks fail. Well-formed duplicate or unmatched claims, and indices above the payload transaction count, **MUST NOT** cause an RPC error: EIP-7805 ignores repeated transaction hashes and irrelevant claims, and clamps remaining indices to the end of the payload. Exceeding the VERIFY budget is likewise handled by EIP-7805's per-member fill, not as an RPC error.
 
