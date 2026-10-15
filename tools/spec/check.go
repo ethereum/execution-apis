@@ -27,7 +27,7 @@ type jsonrpcError struct {
 // Checker processes RPC messages and validates them against the spec.
 type Checker struct {
 	spec      *Spec
-	calls     map[string]*MethodSchema
+	calls     map[string]*methodSchema
 	history   map[string]struct{} // id of calls already performed
 	checkArgs bool
 }
@@ -35,7 +35,7 @@ type Checker struct {
 func NewChecker(spec *Spec) *Checker {
 	return &Checker{
 		spec:    spec,
-		calls:   make(map[string]*MethodSchema),
+		calls:   make(map[string]*methodSchema),
 		history: make(map[string]struct{}),
 	}
 }
@@ -115,7 +115,7 @@ func (c *Checker) UnansweredCalls() []string {
 	return slices.SortedFunc(maps.Keys(c.calls), strings.Compare)
 }
 
-func (c *Checker) checkArguments(m *MethodSchema, arguments []any) error {
+func (c *Checker) checkArguments(m *methodSchema, arguments []any) error {
 	// Validate each parameter value against their respective schema.
 	for i, cd := range m.params {
 		if len(arguments) <= i {
@@ -138,7 +138,7 @@ func (c *Checker) checkArguments(m *MethodSchema, arguments []any) error {
 
 // checkError verifies the error code is permitted by the schema.
 // It also checks the error data against the schema.
-func (c *Checker) checkError(m *MethodSchema, err *jsonrpcError) error {
+func (c *Checker) checkError(m *methodSchema, err *jsonrpcError) error {
 	errSchema := m.errors[err.Code]
 	if errSchema == nil {
 		if isStandardError(err.Code) {

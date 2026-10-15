@@ -12,37 +12,38 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
+// Spec wraps an OpenRPC spec for JSON-Schema validation.
 type Spec struct {
 	fileName string
 	doc      *openrpc.OpenrpcDocument
-	cdoc     any // JSON-marshaled version of spec document
-	jdoc     json.RawMessage
-	methods  map[string]*MethodSchema
+	cdoc     any             // JSON-marshaled version of spec document
+	jdoc     json.RawMessage // same but bytes
+	methods  map[string]*methodSchema
 }
 
-type ContentDescriptor struct {
+type contentDescriptor struct {
 	name     string
 	required bool
 	schema   openrpc.JSONSchemaObject
 }
 
-// MethodSchema stores all the schemas neccessary to validate a request or
+// methodSchema stores all the schemas neccessary to validate a request or
 // response corresponding to the method.
-type MethodSchema struct {
+type methodSchema struct {
 	name   string
 	index  int // array index in Spec.doc.methods
-	params []*ContentDescriptor
-	result *ContentDescriptor
-	errors map[int64]*ErrorSchema
+	params []*contentDescriptor
+	result *contentDescriptor
+	errors map[int64]*errorSchema
 }
 
-type ErrorSchema struct {
+type errorSchema struct {
 	index         int   // array index in Spec.doc.methods[*].errors
 	code          int64 // error code
 	hasDataSchema bool
 }
 
-// Load reads a spec file.
+// Load reads an OpenRPC spec file.
 func Load(path string) (*Spec, error) {
 	spec, err := os.ReadFile(path)
 	if err != nil {
@@ -55,7 +56,7 @@ func Load(path string) (*Spec, error) {
 	return New(path, &doc)
 }
 
-// LoadString reads spec JSON from a string.
+// LoadString reads OpenRPC spec JSON from a string.
 func LoadString(fileName, specSource string) (*Spec, error) {
 	var doc openrpc.OpenrpcDocument
 	if err := json.NewDecoder(strings.NewReader(specSource)).Decode(&doc); err != nil {
@@ -72,14 +73,14 @@ func New(fileName string, doc *openrpc.OpenrpcDocument) (*Spec, error) {
 
 	// Iterate over each method in the OpenRPC spec and pull out the parameter
 	// schema and result schema.
-	methods := make(map[string]*MethodSchema)
+	methods := make(map[string]*methodSchema)
 	for methodIndex, method := range *doc.Methods {
 		if method.ReferenceObject != nil {
 			return nil, fmt.Errorf("reference object not supported, %s", *method.ReferenceObject.Ref)
 		}
 		var (
 			method = method.MethodObject
-			ms     = MethodSchema{name: string(*method.Name), index: methodIndex}
+			ms     = methodSchema{name: string(*method.Name), index: methodIndex}
 		)
 		// Add parameter schemas.
 		for i, param := range *method.Params {
@@ -90,7 +91,7 @@ func New(fileName string, doc *openrpc.OpenrpcDocument) (*Spec, error) {
 			if param.ContentDescriptorObject.Required != nil && *param.ContentDescriptorObject.Required {
 				required = true
 			}
-			cd := &ContentDescriptor{
+			cd := &contentDescriptor{
 				name:     string(*param.ContentDescriptorObject.Name),
 				required: required,
 				schema:   *param.ContentDescriptorObject.Schema.JSONSchemaObject,
@@ -117,7 +118,7 @@ func New(fileName string, doc *openrpc.OpenrpcDocument) (*Spec, error) {
 
 		// Add error codes.
 		if method.Errors != nil {
-			ms.errors = make(map[int64]*ErrorSchema, len(*method.Errors))
+			ms.errors = make(map[int64]*errorSchema, len(*method.Errors))
 			for i, eref := range *method.Errors {
 				obj, err := checkEOR(eref)
 				if err != nil {
@@ -127,10 +128,10 @@ func New(fileName string, doc *openrpc.OpenrpcDocument) (*Spec, error) {
 				if ms.errors[code] != nil {
 					return nil, fmt.Errorf("errors[%d]: duplicate error code %d", i, code)
 				}
-				ms.errors[code] = &ErrorSchema{index: i, code: code, hasDataSchema: obj.Data != nil}
+				ms.errors[code] = &errorSchema{index: i, code: code, hasDataSchema: obj.Data != nil}
 			}
 		}
-		ms.result = &ContentDescriptor{
+		ms.result = &contentDescriptor{
 			name:     string(*obj.Name),
 			required: required,
 			schema:   *obj.Schema.JSONSchemaObject,
