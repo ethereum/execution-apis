@@ -979,8 +979,10 @@ The request must not fail merely because the sender cannot afford the client's f
 				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg, "latest"); err != nil {
 					return err
 				}
-				if uint64(got) != params.TxGas {
-					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				// post-Amsterdam (EIP-2780), a zero-value transfer costs 15000
+				want := uint64(15000)
+				if uint64(got) != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
@@ -1219,8 +1221,9 @@ request must not fail merely because the sender cannot afford those defaults.`,
 				if len(result.AccessList) != 0 {
 					return fmt.Errorf("expected empty access list, got %d entries", len(result.AccessList))
 				}
-				if result.GasUsed != 21000 {
-					return fmt.Errorf("unexpected gasUsed (got %d want 21000)", uint64(result.GasUsed))
+				// post-Amsterdam (EIP-2780), a zero-value transfer costs 15000
+				if result.GasUsed != 15000 {
+					return fmt.Errorf("unexpected gasUsed (got %d want 15000)", uint64(result.GasUsed))
 				}
 				return nil
 			},
