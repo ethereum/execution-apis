@@ -11,7 +11,6 @@ require (
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/spec-types/generated/packages/go v0.1.1
-	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
 	gopkg.in/yaml.v3 v3.0.1
