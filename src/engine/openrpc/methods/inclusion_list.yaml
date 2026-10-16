@@ -38,6 +38,11 @@
         oneOf:
           - $ref: '#/components/schemas/InclusionListProofV1'
           - type: 'null'
+    - name: Attestation deadline
+      required: true
+      schema:
+        title: Attestation deadline in Unix milliseconds
+        $ref: '#/components/schemas/uint64'
   result:
     name: Inclusion list proof status
     schema:
@@ -62,6 +67,8 @@
             depsHash: '0xf1a05553412fee67bfa84b3fa65697d8d9d752ca56158a416f53cf7664f79545'
         - name: Inclusion list proof
           value: null
+        - name: Attestation deadline
+          value: '0x18a282e3318'
       result:
         name: Inclusion list proof status
         value:
@@ -122,6 +129,11 @@
       required: true
       schema:
         $ref: '#/components/schemas/InclusionListProofV1'
+    - name: View freeze deadline
+      required: true
+      schema:
+        title: View freeze deadline in Unix milliseconds
+        $ref: '#/components/schemas/uint64'
   result:
     name: Inclusion list proof status
     schema:
@@ -143,6 +155,8 @@
             proofDeps:
               - '0x0000000000000000000000000000000000000000000000000000000000000010f3bc792f5a550e9e8271695b0d0c1ee9b8d42b9071976b6447658021b3d8099f0000000000000000000000000000000000000000000000000000000000000002'
               - '0x000000000000000000000000000000000000000000000000000000000000001006eaaa302366a2b8e60080fe649cb019814b843b9bd681df41d60bde4badd3790000000000000000000000000000000000000000000000000000000000000001'
+        - name: View freeze deadline
+          value: '0x18a282e17c0'
       result:
         name: Inclusion list proof status
         value:

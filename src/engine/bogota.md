@@ -104,7 +104,7 @@ An `InclusionListProofV1` matches a `RecursiveStarkV1` if `keccak256(starkProof)
 - `status`: `enum` - `"VALID" | "INVALID" | "PROOF_UNKNOWN"`
 - `validationError`: `String|null` - a message providing additional details on the validation error if the status is `INVALID`.
 
-`PROOF_UNKNOWN` means the execution layer holds no verdict for the committed proof and was given no matching proof. It is distinct from `SYNCING`: the execution layer lacks one proof, not the chain.
+`PROOF_UNKNOWN` means the execution layer does not hold the committed proof's bytes and was given no matching proof. It is distinct from `SYNCING`: the execution layer lacks one proof, not the chain.
 
 ## Routines
 
@@ -118,9 +118,15 @@ This routine follows the same specification as [Payload building](./paris.md#pay
 
 An aggregate-proof verdict is the result, `VALID` or `INVALID`, of verifying an aggregate proof against a dependency digest under an `AGGREGATED_VK`, keyed `(keccak256(starkProof), depsHash, AGGREGATED_VK)`. The *target fork* of a call is the fork at its `timestamp`, the timestamp of the block the inclusion list constrains, and fixes the `AGGREGATED_VK` and static validity rules the call applies.
 
-Client software *holds a verified proof* under `(starkProofHash, depsHash)` for a target fork if it holds a `VALID` verdict keyed with that fork's `AGGREGATED_VK`, together with a `proofDeps` such that `get_deps_hash(proofDeps) == depsHash`. It obtains both from a fully validated EIP-8288 mode-1 mempool wrapper, whose `deps` is `proofDeps`, or from an `InclusionListProofV1`. Holding a verified proof does not require the proof bytes; they are needed only to serve the proof through [`engine_getInclusionListProofV1`](#engine_getinclusionlistproofv1) and to merge it into another aggregate.
+Client software *holds a verified proof* under `(starkProofHash, depsHash)` for a target fork if it has the proof bytes hashing to `starkProofHash` with a `VALID` verdict keyed with that fork's `AGGREGATED_VK`, together with a `proofDeps` such that `get_deps_hash(proofDeps) == depsHash`. It obtains them from a fully validated EIP-8288 mode-1 mempool wrapper, whose `deps` is `proofDeps`, or from an `InclusionListProofV1`. A verdict without the proof bytes is not a held proof: the verdict cache only avoids verifying the same proof again.
 
-Client software **MUST** retain proofs, verdicts and `proofDeps` as specified in the Proof Availability section of EIP-8288. With `T` the target block's timestamp and `L` the current slot length, `(head.timestamp - parent.timestamp) / (head.slotNumber - parent.slotNumber)` for the local head and its parent, it takes the EIP-7805 view freeze deadline of the list's slot as `T - L / 4` and the attestation deadline of the target block's slot as `T + L / 3`. A retention requirement whose deadline has already passed imposes no retention. Across a slot-length change, client software errs toward retaining longer.
+Client software **MUST** retain proofs as specified in the Proof Availability section of EIP-8288, until deadlines the consensus layer supplies as Unix time in milliseconds:
+
+1. The proof bytes, `proofDeps` and verdict of a proof submitted through [`engine_submitInclusionListProofV1`](#engine_submitinclusionlistproofv1) until that call's `viewFreezeDeadlineMs`.
+
+2. The proof bytes and `proofDeps` of a proof for which [`engine_verifyInclusionListProofV1`](#engine_verifyinclusionlistproofv1) returned `VALID` until that call's `attestationDeadlineMs`.
+
+A retention requirement whose deadline has already passed imposes no retention. Client software does not derive these deadlines from slot lengths. It **MAY** keep a verdict after releasing the proof bytes, to avoid verifying the proof again if it is supplied again.
 
 ## Methods
 
@@ -229,6 +235,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
   2. `transactions`: `Array of DATA` - the inclusion list's transactions, each a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
   3. `recursiveStark`: [`RecursiveStarkV1`](#recursivestarkv1) - the inclusion list's non-null commitment.
   4. `ilProof`: `Object|null` - an instance of [`InclusionListProofV1`](#inclusionlistproofv1), or `null`.
+  5. `attestationDeadlineMs`: `QUANTITY`, 64 Bits - the EIP-7805 attestation deadline of the target block's slot, as Unix time in milliseconds.
 * timeout: 1s
 
 #### Response
@@ -254,11 +261,11 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     4. A matching `ilProof` fails verification under the target fork's `AGGREGATED_VK`.
 
-5. Client software **MUST** return `{status: VALID, validationError: null}` if `deps` is nonempty, it holds a verified proof under `(recursiveStark.starkProofHash, recursiveStark.depsHash)` for the target fork or a matching `ilProof` verifies under the target fork's `AGGREGATED_VK`, and every dependency in `deps` is in that proof's `proofDeps`. When it already holds the verdict and `proofDeps`, this is a lookup with no proof verification, whether or not it still holds the proof bytes.
+5. Client software **MUST** return `{status: VALID, validationError: null}` if `deps` is nonempty, it holds a verified proof under `(recursiveStark.starkProofHash, recursiveStark.depsHash)` for the target fork or a matching `ilProof` verifies under the target fork's `AGGREGATED_VK`, every dependency in `deps` is in that proof's `proofDeps`, and it retains the proof bytes and `proofDeps` until `attestationDeadlineMs`. When it already holds the proof, this is a lookup with no proof verification. A supplied `ilProof` matching a cached `VALID` verdict is checked against `recursiveStark` and not verified again.
 
-6. Client software **MUST** return `{status: PROOF_UNKNOWN, validationError: null}` if `deps` is nonempty, it holds no verdict under the pair for the target fork, and no matching `ilProof` was supplied.
+6. Client software **MUST** return `{status: PROOF_UNKNOWN, validationError: null}` if `deps` is nonempty, it does not hold the proof under the pair for the target fork, including when it holds a `VALID` verdict but no longer the proof bytes, and no matching `ilProof` was supplied.
 
-7. Client software **MUST** record the verdict of a supplied `ilProof` it verifies, keyed with the target fork's `AGGREGATED_VK`, and on `VALID` keep `proofDeps` with it.
+7. Client software **MUST** record the verdict of a supplied `ilProof` it verifies, keyed with the target fork's `AGGREGATED_VK`, and on `VALID` keep the proof bytes and `proofDeps` with it.
 
 ### engine_getInclusionListProofV1
 
@@ -291,6 +298,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 * params:
   1. `timestamp`: `QUANTITY`, 64 Bits - the `timestamp` of the block constrained by the inclusion lists of the proof's slot.
   2. `ilProof`: [`InclusionListProofV1`](#inclusionlistproofv1) - the `il_proof` of a `SignedInclusionListProof` received on the EIP-8288 proof topic.
+  3. `viewFreezeDeadlineMs`: `QUANTITY`, 64 Bits - the EIP-7805 view freeze deadline of the proof's slot, as Unix time in milliseconds.
 * timeout: 1s
 
 #### Response
@@ -304,7 +312,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 2. Client software **MUST** return `{status: INVALID, validationError: errorMessage | null}`, without verifying the proof, if `starkProof` is longer than `MAX_AGGREGATE_PROOF_BYTES`, or if `proofDeps` is not sorted without duplicates or has more than `MAX_DEPS_PER_AGGREGATE_WRAPPER` entries.
 
-3. Otherwise client software **MUST** verify `starkProof` against `get_deps_hash(proofDeps)` under the target fork's `AGGREGATED_VK`, return `VALID` or `INVALID`, and record the verdict keyed `(keccak256(starkProof), get_deps_hash(proofDeps), AGGREGATED_VK)`. On `VALID` it **MUST** keep `proofDeps` with the verdict, so that a later [`engine_verifyInclusionListProofV1`](#engine_verifyinclusionlistproofv1) call for a list committing to the pair under that fork is a lookup.
+3. Otherwise client software **MUST** verify `starkProof` against `get_deps_hash(proofDeps)` under the target fork's `AGGREGATED_VK`, return `VALID` or `INVALID`, and record the verdict keyed `(keccak256(starkProof), get_deps_hash(proofDeps), AGGREGATED_VK)`. On `VALID` it **MUST** keep the proof bytes and `proofDeps` with the verdict until at least `viewFreezeDeadlineMs`, so that a later [`engine_verifyInclusionListProofV1`](#engine_verifyinclusionlistproofv1) call for a list committing to the pair under that fork is a lookup.
 
 4. If client software already holds a verdict under the same key, it **MAY** return it without verifying the proof again.
 
