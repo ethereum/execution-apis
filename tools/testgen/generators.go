@@ -1472,16 +1472,20 @@ request must not fail merely because the sender cannot afford those defaults.`,
 					"from":     sender,
 					"to":       emitContract,
 					"nonce":    hexutil.Uint64(nonce),
-					"gas":      hexutil.Uint64(60000),
+					"gas":      hexutil.Uint64(200000),
 					"gasPrice": (*hexutil.Big)(gasprice),
 					"input":    "0x010203040506",
 				}
 				var result struct {
 					AccessList types.AccessList
+					Error      string
 				}
 				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
 				if err != nil {
 					return err
+				}
+				if result.Error != "" {
+					return fmt.Errorf("unexpected error: %s", result.Error)
 				}
 				if len(result.AccessList) == 0 {
 					return fmt.Errorf("empty access list")
@@ -1507,17 +1511,21 @@ This invocation uses EIP-1559 fields to specify the gas price.`,
 					"from":                 sender,
 					"to":                   emitContract,
 					"nonce":                hexutil.Uint64(nonce),
-					"gas":                  hexutil.Uint64(60000),
+					"gas":                  hexutil.Uint64(200000),
 					"maxFeePerGas":         (*hexutil.Big)(gasprice),
 					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(3)),
 					"input":                "0x010203040506",
 				}
 				var result struct {
 					AccessList types.AccessList
+					Error      string
 				}
 				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
 				if err != nil {
 					return err
+				}
+				if result.Error != "" {
+					return fmt.Errorf("unexpected error: %s", result.Error)
 				}
 				if len(result.AccessList) == 0 {
 					return fmt.Errorf("empty access list")
