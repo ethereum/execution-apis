@@ -25,6 +25,8 @@ import (
 var (
 	emitContract = common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df")
 	nonAccount   = common.HexToAddress("0xc1cadaffffffffffffffffffffffffffffffffff")
+
+	ethTransferLogAddress = params.SystemAddress
 )
 
 type T struct {
@@ -32,12 +34,22 @@ type T struct {
 	geth  *gethclient.Client
 	rpc   *rpc.Client
 	chain *Chain
+	test  *Test
 }
 
-func NewT(client *rpc.Client, chain *Chain) *T {
+func NewT(test *Test, client *rpc.Client, chain *Chain) *T {
 	eth := ethclient.NewClient(client)
 	geth := gethclient.New(client)
-	return &T{eth, geth, client, chain}
+	return &T{eth, geth, client, chain, test}
+}
+
+// SetValidationScript adds a script into the current test.
+//
+// While it is possible to set a script statically when declaring a Test
+// struct, some tests want to interpolate chain-related values into the
+// script, hence this method.
+func (t *T) SetValidationScript(source string) {
+	t.test.ValidationScript = source
 }
 
 // MethodTests is a collection of tests for a certain JSON-RPC method.
@@ -56,6 +68,13 @@ type Test struct {
 	// checked for spec validity only.
 	SpecOnly bool
 
+	// ValidationScript is JavaScript code that validates the response from the server.
+	// This is useful for SpecOnly tests where the schema alone cannot fully verify that
+	// the response matches the input. There is no need for a script on regular
+	// (SpecOnly==false) tests since their responses are compared literally.
+	ValidationScript string
+
+	// Run performs the method invocations.
 	Run func(context.Context, *T) error
 }
 
@@ -765,6 +784,25 @@ var EthCall = MethodTests{
 	"eth_call",
 	[]Test{
 		{
+			Name: "call-unfunded-sender",
+			About: `Performs a call with a zero-value transfer from an unfunded sender with all gas fee
+fields omitted. The request must not fail merely because the sender cannot afford the client's fee defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var result hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				if len(result) != 0 {
+					return fmt.Errorf("unexpected return data: %x", result)
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "call-contract",
 			About: "performs a basic contract call with default settings",
 			Run: func(ctx context.Context, t *T) error {
@@ -937,10 +975,37 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 	},
 }
 
+var estimateGasTestScript = `
+if (BigInt(messages[1].response.result) <= 5000) {
+    throw new Error("invalid gas estimation result");
+}
+`
+
 // EthEstimateGas stores a list of all tests against the method.
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
 	[]Test{
+		{
+			Name: "estimate-unfunded-sender",
+			About: `Estimates a zero-value transfer from an unfunded sender with all gas fee fields omitted.
+The request must not fail merely because the sender cannot afford the client's fee defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var got hexutil.Uint64
+				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg, "latest"); err != nil {
+					return err
+				}
+				// post-Amsterdam (EIP-2780), a zero-value transfer costs 15000
+				want := uint64(15000)
+				if uint64(got) != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
+				}
+				return nil
+			},
+		},
 		{
 			Name:  "estimate-simple-transfer",
 			About: "estimates a simple transfer",
@@ -950,8 +1015,10 @@ var EthEstimateGas = MethodTests{
 				if err != nil {
 					return err
 				}
-				if got != params.TxGas {
-					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				// post-Amsterdam (EIP-2780), a zero-value transfer to an existing account costs 15000
+				want := uint64(15000)
+				if got != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
@@ -968,16 +1035,19 @@ var EthEstimateGas = MethodTests{
 				if err := t.rpc.CallContext(ctx, &got, "eth_estimateGas", msg, t.chain.Head().Hash()); err != nil {
 					return err
 				}
-				if uint64(got) != params.TxGas {
-					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, params.TxGas)
+				// post-Amsterdam (EIP-2780), a zero-value transfer to an existing account costs 15000
+				want := uint64(15000)
+				if uint64(got) != want {
+					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
 				return nil
 			},
 		},
 		{
-			Name:     "estimate-successful-call",
-			About:    "estimates a successful contract call",
-			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
+			Name:             "estimate-successful-call",
+			About:            "estimates a successful contract call",
+			SpecOnly:         true, // EVM gas estimation is not required to be identical across clients
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				caller := common.Address{1, 2, 3}
 				callme := t.chain.txinfo.CallMeContract.Addr
@@ -992,7 +1062,7 @@ var EthEstimateGas = MethodTests{
 				if err != nil {
 					return err
 				}
-				want := uint64(21270)
+				want := uint64(15288)
 				if got != want {
 					return fmt.Errorf("unexpected return value (got: %d, want: %d)", got, want)
 				}
@@ -1036,9 +1106,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-with-eip7702",
-			About:    "checks that including an EIP-7720 authorization in the message increases gas",
-			SpecOnly: true,
+			Name:             "estimate-with-eip7702",
+			About:            "checks that including an EIP-7720 authorization in the message increases gas",
+			SpecOnly:         true,
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				to := common.Address{0x01}
@@ -1080,9 +1151,10 @@ var EthEstimateGas = MethodTests{
 			},
 		},
 		{
-			Name:     "estimate-with-eip4844",
-			About:    "checks gas estimation for blob transactions (EIP-4844)",
-			SpecOnly: true,
+			Name:             "estimate-with-eip4844",
+			About:            "checks gas estimation for blob transactions (EIP-4844)",
+			SpecOnly:         true,
+			ValidationScript: estimateGasTestScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, nonce := t.chain.GetSender(0)
 				to := common.Address{0x01}
@@ -1146,6 +1218,33 @@ var EthCreateAccessList = MethodTests{
 				}
 				result := make(map[string]any)
 				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, t.chain.Head().Hash())
+			},
+		},
+		{
+			Name: "create-al-unfunded-sender",
+			About: `Creates an access list for a zero-value transfer from an unfunded sender with all gas fee
+fields omitted. The client selects implementation-defined fee defaults for simulation, and the
+request must not fail merely because the sender cannot afford those defaults.`,
+			Run: func(ctx context.Context, t *T) error {
+				msg := map[string]any{
+					"from": common.Address{0xaa},
+					"to":   common.Address{0xbb},
+				}
+				var result struct {
+					AccessList types.AccessList `json:"accessList"`
+					GasUsed    hexutil.Uint64   `json:"gasUsed"`
+				}
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest"); err != nil {
+					return err
+				}
+				if len(result.AccessList) != 0 {
+					return fmt.Errorf("expected empty access list, got %d entries", len(result.AccessList))
+				}
+				// post-Amsterdam (EIP-2780), a zero-value transfer costs 15000
+				if result.GasUsed != 15000 {
+					return fmt.Errorf("unexpected gasUsed (got %d want 15000)", uint64(result.GasUsed))
+				}
+				return nil
 			},
 		},
 		{
@@ -2078,6 +2177,10 @@ var EthGasPrice = MethodTests{
 				}
 				return nil
 			},
+			ValidationScript: `
+				if (BigInt(messages[1].response.result) <= 0) {
+					throw new Error("gasprice too low");
+				}`,
 		},
 	},
 }
@@ -2168,15 +2271,17 @@ var EthCapabilities = MethodTests{
 				if err := t.rpc.CallContext(ctx, &result, "eth_capabilities"); err != nil {
 					return err
 				}
+
 				// The head must reflect the current chain head; number and hash
 				// are derived from the same header and must be consistent.
 				head := t.chain.Head()
-				if uint64(result.Head.Number) != head.NumberU64() {
-					return fmt.Errorf("unexpected head number (got: %d, want: %d)", uint64(result.Head.Number), head.NumberU64())
-				}
-				if result.Head.Hash != head.Hash() {
-					return fmt.Errorf("unexpected head hash (got: %s, want: %s)", result.Head.Hash, head.Hash())
-				}
+				t.SetValidationScript(fmt.Sprintf(`
+					let r = messages[1].response.result;
+					if (r.head.number !== "%#x")
+						throw new Error("incorrect head.number in response (want %#x)");
+					if (r.head.hash !== "%#x")
+						throw new Error("incorrect head.hash in response (want %#x)");
+                `, head.NumberU64(), head.NumberU64(), head.Hash(), head.Hash()))
 				return nil
 			},
 		},
@@ -2201,7 +2306,7 @@ var EthFeeHistory = MethodTests{
 					}
 					return false
 				})
-				got, err := t.eth.FeeHistory(ctx, 1, block.Number(), []float64{95, 99})
+				_, err := t.eth.FeeHistory(ctx, 1, block.Number(), []float64{95, 99})
 				if err != nil {
 					return err
 				}
@@ -2210,12 +2315,13 @@ var EthFeeHistory = MethodTests{
 					return fmt.Errorf("unable to get effective tip: %w", err)
 				}
 
-				if len(got.Reward) != 1 {
-					return fmt.Errorf("mismatch number of rewards (got: %d, want: 1", len(got.Reward))
-				}
-				if got.Reward[0][0].Cmp(tip) != 0 {
-					return fmt.Errorf("mismatch reward value (got: %d, want: %d)", got.Reward[0][0], tip)
-				}
+				t.SetValidationScript(fmt.Sprintf(`
+					let r = messages[1].response.result;
+					if (r.reward.length != 1)
+						throw new Error("expected exactly one reward");
+					if (r.reward[0][0] !== "%#x")
+                        throw new Error("wrong reward value in response");
+				`, tip))
 				return nil
 			},
 		},
@@ -2966,6 +3072,11 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
+				}
+
 				// Use sender index 2 so nonce matches geth state: index 0 (and 3) are used by
 				// eth_sendRawTransaction tests which call IncNonce, so they diverge from geth when run in full suite.
 				sender, nonce := t.chain.GetSender(2)
@@ -3055,6 +3166,11 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
+				}
+
 				extraData := hexutil.Encode([]byte{})
 				var result map[string]interface{}
 				err := t.rpc.CallContext(ctx, &result, "testing_buildBlockV1",
@@ -3107,6 +3223,11 @@ var TestingBuildBlockV1 = MethodTests{
 				if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 					beaconRoot := common.Hash{0xcf, 0x8e, 0x0d, 0x4e, 0x95, 0x87, 0x36, 0x9b, 0x23, 0x01, 0xd0, 0x79, 0x03, 0x47, 0x32, 0x03, 0x02, 0xcc, 0x09, 0x43, 0xd5, 0xa1, 0x88, 0x43, 0x65, 0x14, 0x9a, 0x42, 0x21, 0x2e, 0x88, 0x22}
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+				}
+
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 				}
 
 				// Add a transaction to the mempool first
@@ -3191,6 +3312,11 @@ var TestingBuildBlockV1 = MethodTests{
 					payloadAttrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
 				}
 
+				if slot := parentBlock.SlotNumber(); slot != nil {
+					payloadAttrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+					payloadAttrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
+				}
+
 				// Use an invalid nonce (e.g. 999) so the tx cannot be applied; client MUST fail.
 				sender, _ := t.chain.GetSender(2)
 				basefee := parentBlock.BaseFee()
@@ -3263,6 +3389,10 @@ func commitBlockV1PayloadAttrs(t *T, parentBlock *types.Block, salt string) map[
 	if t.chain.Config().IsCancun(parentBlock.Number(), parentBlock.Time()) {
 		beaconRoot := common.HexToHash("0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884365149a42212e8822")
 		attrs["parentBeaconBlockRoot"] = beaconRoot.Hex()
+	}
+	if slot := parentBlock.SlotNumber(); slot != nil {
+		attrs["slotNumber"] = hexutil.Uint64(*slot + 1)
+		attrs["targetGasLimit"] = hexutil.Uint64(parentBlock.GasLimit())
 	}
 	_ = salt
 	return attrs
@@ -3897,11 +4027,8 @@ var EthSimulateV1 = MethodTests{
 					Validation: false,
 				}
 				res := make([]blockResult, 0)
-				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
-					return err
-				}
-				if len(res) != len(params.BlockStateCalls) {
-					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err == nil {
+					return fmt.Errorf("expected an error for a sender nonce of 2^64-1 (EIP-2681)")
 				}
 				return nil
 			},
@@ -4829,10 +4956,10 @@ var EthSimulateV1 = MethodTests{
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
 				if len(res[0].Calls[0].Logs) != 1 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 1)
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, the EIP-7708 transfer log replaces the simulated one)", len(res[0].Calls[0].Logs), 1)
 				}
-				if res[0].Calls[0].Logs[0].Address.String() != "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" {
-					return fmt.Errorf("unexpected log address (have: %s, want: %s)", res[0].Calls[0].Logs[0].Address.String(), "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
+				if got := res[0].Calls[0].Logs[0].Address; got != ethTransferLogAddress {
+					return fmt.Errorf("unexpected log address (have: %s, want: %s)", got, ethTransferLogAddress)
 				}
 				return nil
 			},
@@ -4978,7 +5105,7 @@ var EthSimulateV1 = MethodTests{
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
 				if len(res[0].Calls[0].Logs) != 2 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 2)
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, one EIP-7708 transfer log per hop)", len(res[0].Calls[0].Logs), 2)
 				}
 				return nil
 			},
@@ -5018,7 +5145,7 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name:  "ethSimulate-eth-send-should-not-produce-logs-by-default",
-			About: "when sending eth we should not get ETH logs by default",
+			About: "when sending eth we should not get simulated ETH transfer logs by default",
 			Run: func(ctx context.Context, t *T) error {
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
@@ -5039,8 +5166,11 @@ var EthSimulateV1 = MethodTests{
 				if len(res) != len(params.BlockStateCalls) {
 					return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(res), len(params.BlockStateCalls))
 				}
-				if len(res[0].Calls[0].Logs) != 0 {
-					return fmt.Errorf("unexpected number of logs (have: %d, want: %d)", len(res[0].Calls[0].Logs), 0)
+				if len(res[0].Calls[0].Logs) != 1 {
+					return fmt.Errorf("unexpected number of logs (have: %d, want: %d, the EIP-7708 transfer log)", len(res[0].Calls[0].Logs), 1)
+				}
+				if got := res[0].Calls[0].Logs[0].Address; got != ethTransferLogAddress {
+					return fmt.Errorf("unexpected log address (have: %s, want: %s, simulated transfer logs must be off by default)", got, ethTransferLogAddress)
 				}
 				return nil
 			},
@@ -5708,6 +5838,8 @@ var EthSimulateV1 = MethodTests{
 						StateOverrides: &StateOverride{
 							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(900001000)},
 							common.Address{0xc1}: OverrideAccount{Balance: newRPCBalance(900002000)},
+							// post-Amsterdam, creating 0xc2... would cost state gas beyond the 21000 limit
+							common.Address{0xc2}: OverrideAccount{Balance: newRPCBalance(900003000)},
 						},
 						Calls: []TransactionArgs{
 							{

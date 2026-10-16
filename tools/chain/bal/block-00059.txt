@@ -1,0 +1,145 @@
+block 59 (0x6e3bd94343c61839a0044d28115f28a7dd4f6a2b2add2335991e9520adcd3d18), timestamp 590
+header blockAccessListHash: 0xd829a006931d81f3c6b14e4dd9a909fb76e3d1a9e108d2b869abc47197d9e1b1
+hash of list below:         0xd829a006931d81f3c6b14e4dd9a909fb76e3d1a9e108d2b869abc47197d9e1b1
+
+0000000000000000000000000000000000000000:
+    storage changes:
+    storage reads:
+    balance changes:
+        1: 142312500000106307554
+        2: 142312500000106634501
+        3: 142312500000106734501
+        4: 142312500000106755501
+    nonce changes:
+    code changes:
+0000000000000000000000000000000000000004:
+    storage changes:
+    storage reads:
+    balance changes:
+    nonce changes:
+    code changes:
+00000961ef480eb55e80d19ad83579a64c007002:
+    storage changes:
+    storage reads:
+        0x0
+        0x1
+        0x2
+        0x3
+    balance changes:
+    nonce changes:
+    code changes:
+000064d678505ad48f8ccb093bc65613800e8282:
+    storage changes:
+    storage reads:
+        0x0
+        0x1
+        0x2
+        0x3
+    balance changes:
+    nonce changes:
+    code changes:
+0000bbddc7ce488642fb579f8b00f3a590007251:
+    storage changes:
+    storage reads:
+        0x0
+        0x1
+        0x2
+        0x3
+    balance changes:
+    nonce changes:
+    code changes:
+0000bff46984e3725691fa540a8c7589300d8282:
+    storage changes:
+    storage reads:
+        0x0
+        0x1
+        0x2
+        0x3
+    balance changes:
+    nonce changes:
+    code changes:
+0000f90827f1c53a10cb7a02335b175320002935:
+    storage changes:
+        0x3a:
+            0: 0x2c0947b32708a79fc87079eeaf420742175d4097d234e39b8380bccc24d53be
+    storage reads:
+    balance changes:
+    nonce changes:
+    code changes:
+000f3df6d732807ef1319fb7b8bb8522d0beac02:
+    storage changes:
+        0x24e:
+            0: 0x24e
+        0x224d:
+            0: 0x6d19894928a3ab44077bb85dcb47e0865ce1c4c187bba26bad059aa774c03cfe
+    storage reads:
+    balance changes:
+    nonce changes:
+    code changes:
+7435ed30a8b4aeb0877cef0c6e8cffe834eb865f:
+    storage changes:
+    storage reads:
+    balance changes:
+        1: 999999999999999998998182909020805401
+        2: 999999999999999998998178295617506763
+        3: 999999999999999998998176884562106763
+        4: 999999999999999998998176588240472762
+    nonce changes:
+        1: 266
+        2: 267
+        3: 268
+        4: 269
+    code changes:
+7dcd17433742f4c0ca53122ab541d0ba67fc27df:
+    storage changes:
+    storage reads:
+        0x0
+        0x93e49bbd0e156d6293b71176d5a32aedfc2b133b57811bd2762906ec17fff1a1
+    balance changes:
+    nonce changes:
+    code changes:
+9dcd17433742f4c0ca53122ab541d0ba67fc27d0:
+    storage changes:
+        0x0:
+            2: 0xb
+        0xe8e77626586f73b955364c7b4bbf0bb7f7685ebd40e852b164633a4acbd3244c:
+            2: 0xa
+    storage reads:
+    balance changes:
+        2: 999999989
+    nonce changes:
+        2: 11
+    code changes:
+9dcd17433742f4c0ca53122ab541d0ba67fc27d1:
+    storage changes:
+    storage reads:
+    balance changes:
+        2: 11
+    nonce changes:
+    code changes:
+9dcd17433742f4c0ca53122ab541d0ba67fc27d2:
+    storage changes:
+    storage reads:
+    balance changes:
+    nonce changes:
+    code changes:
+9dcd17433742f4c0ca53122ab541d0ba67fc27d3:
+    storage changes:
+    storage reads:
+        0x42ff
+    balance changes:
+    nonce changes:
+    code changes:
+bf79160577ba6bf100945a715642008636c5d9d4:
+    storage changes:
+    storage reads:
+    balance changes:
+    nonce changes:
+    code changes:
+d803681e487e6ac18053afc5a6cd813c86ec3e4d:
+    storage changes:
+    storage reads:
+    balance changes:
+        4: 1000000000000000000000000000000000003
+    nonce changes:
+    code changes:
