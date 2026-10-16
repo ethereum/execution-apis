@@ -11,7 +11,7 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | mixHash | `0x0000000000000000000000000000000000000000000000000000000000000000` |
 | nonce | `0x0` |
 | extraData | `0x0000000000000000000000000000000000000000000000000000000000000000` |
-| difficulty | The same as the base block defined as the second parameter in the call |
+| difficulty | Before the merge, the same as the base block defined as the second parameter in the call. After the merge, `0` |
 | gasLimit | The same as the base block defined as the second parameter in the call |
 | hash | Calculated normally |
 | parentHash | Previous blocks hash |
@@ -93,6 +93,8 @@ The default values of blocks and transactions can be overridden. For Transaction
 },
 ```
 All the other fields are computed automatically (e.g. `stateRoot` and `gasUsed`) or kept as their default values (e.g. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, new empty blocks are generated in between.
+
+A client rejects a key in `blockOverrides` or in a `stateOverrides` account object that it does not support, with error code `-32602`. A client can treat a key that differs from a spec key only in case, such as `Code`, as the spec key. It then applies the key, and rejects two keys that differ only in case and name the same spec key, with error code `-32602`. A client can support other keys that the spec does not define. After the merge, a simulated block always has difficulty `0`, and a client rejects a `difficulty` override for such a block with error code `-32602`.
 
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 

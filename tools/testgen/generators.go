@@ -7656,6 +7656,56 @@ var EthSimulateV1 = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "ethSimulate-unknown-block-override-key-32602",
+			About: "rejects a block override key that the spec does not define (-32602)",
+			Run: func(ctx context.Context, t *T) error {
+				params := map[string]any{
+					"blockStateCalls": []any{map[string]any{
+						"blockOverrides": map[string]any{"bogusField": "0x1"},
+						"calls":          []any{map[string]any{"from": common.Address{0xc0}, "to": common.Address{0xc1}}},
+					}},
+				}
+				if err := t.rpc.Call(nil, "eth_simulateV1", params, "latest"); err == nil {
+					return fmt.Errorf("expected error for unknown block override key")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-unknown-account-override-key-32602",
+			About: "rejects an account override key that the spec does not define (-32602)",
+			Run: func(ctx context.Context, t *T) error {
+				params := map[string]any{
+					"blockStateCalls": []any{map[string]any{
+						"stateOverrides": map[string]any{
+							common.Address{0xc1}.Hex(): map[string]any{"balance": "0x1", "bogusField": "0x1"},
+						},
+						"calls": []any{map[string]any{"from": common.Address{0xc0}, "to": common.Address{0xc1}}},
+					}},
+				}
+				if err := t.rpc.Call(nil, "eth_simulateV1", params, "latest"); err == nil {
+					return fmt.Errorf("expected error for unknown account override key")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-difficulty-override-after-merge-32602",
+			About: "rejects a difficulty override for a block after the merge (-32602)",
+			Run: func(ctx context.Context, t *T) error {
+				params := map[string]any{
+					"blockStateCalls": []any{map[string]any{
+						"blockOverrides": map[string]any{"difficulty": "0x1"},
+						"calls":          []any{map[string]any{"from": common.Address{0xc0}, "to": common.Address{0xc1}}},
+					}},
+				}
+				if err := t.rpc.Call(nil, "eth_simulateV1", params, "latest"); err == nil {
+					return fmt.Errorf("expected error for difficulty override after the merge")
+				}
+				return nil
+			},
+		},
 	},
 }
 

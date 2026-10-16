@@ -60,7 +60,9 @@ StateOverrides:
   additionalProperties: false
 AccountOverride:
   title: Details of an account to be overridden
-  description: It is possible to override any kind of address (EOA's, contracts and precompiles)
+  description: |-
+    It is possible to override any kind of address (EOA's, contracts and precompiles).
+    A client MUST reject a key that it does not support with error code -32602. A client MAY treat a key that differs from a key defined in this schema only in case as that defined key. It MUST then apply the key, and MUST reject two keys that differ only in case and name the same defined key with error code -32602. A client MAY support other keys that this schema does not define.
   type: object
   not:
     required:
@@ -97,6 +99,9 @@ AccountStorage:
   additionalProperties: false
 BlockOverrides:
   title: Context fields related to the block being executed
+  description: |-
+    A client MUST reject a key that it does not support with error code -32602. A client MAY treat a key that differs from a key defined in this schema only in case as that defined key. It MUST then apply the key, and MUST reject two keys that differ only in case and name the same defined key with error code -32602. A client MAY support other keys that this schema does not define.
+    After the merge, the difficulty of a block is 0. A client that supports a `difficulty` key MUST reject it with error code -32602 for a block after the merge.
   type: object
   properties:
     number:
