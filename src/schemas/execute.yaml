@@ -60,15 +60,12 @@ StateOverrides:
   additionalProperties: false
 AccountOverride:
   title: Details of an account to be overridden
-  type: object
-  oneOf:
-    - $ref: '#/components/schemas/AccountOverrideState'
-    - $ref: '#/components/schemas/AccountOverrideStateDiff'
-AccountOverrideState:
-  title: Account override with whole storage replacement
   description: It is possible to override any kind of address (EOA's, contracts and precompiles)
-  required:
-    - state
+  type: object
+  not:
+    required:
+      - state
+      - stateDiff
   properties:
     nonce:
       title: Nonce
@@ -81,30 +78,12 @@ AccountOverrideState:
       $ref: '#/components/schemas/bytes'
     movePrecompileToAddress:
       title: MovePrecompileToAddress
-      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. When the specified address is not a precompile, the behaviour is undefined and different clients might behave differently.
+      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. Can only move precompiles. The move does not change the EIP-2929 set of addresses that are warm at the start of each call. That set keeps the precompile addresses of the active fork, and the destination address is not warm because of the move.
       $ref: '#/components/schemas/address'
     state:
       title: Storage
       description: Key-value mapping to override all slots in the account storage before executing the call. This functions similar to eth_call's state parameter.
       $ref: '#/components/schemas/AccountStorage'
-AccountOverrideStateDiff:
-  title: Account override with partial storage modification
-  required:
-    - stateDiff
-  properties:
-    nonce:
-      title: Nonce
-      $ref: '#/components/schemas/uint64'
-    balance:
-      title: Balance
-      $ref: '#/components/schemas/uint256'
-    code:
-      title: Code
-      $ref: '#/components/schemas/bytes'
-    movePrecompileToAddress:
-      title: MovePrecompileToAddress
-      $ref: '#/components/schemas/address'
-      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. Can only move precompiles. The move does not change the EIP-2929 set of addresses that are warm at the start of each call. That set keeps the precompile addresses of the active fork, and the destination address is not warm because of the move.
     stateDiff:
       title: Storage difference
       description: Key-value mapping to override individual slots in the account storage before executing the call. This functions similar to eth_call's state parameter.
