@@ -39,6 +39,14 @@
               $ref: '#/components/schemas/Withdrawal'
           parentBeaconBlockRoot:
             $ref: '#/components/schemas/hash32'
+          slotNumber:
+            title: Slot number
+            description: Value for the slotNumber field of the built block. Required when building post-Amsterdam blocks.
+            $ref: '#/components/schemas/uint64'
+          targetGasLimit:
+            title: Target gas limit
+            description: Target value for the gasLimit field of the built block. Required when building post-Amsterdam blocks.
+            $ref: '#/components/schemas/uint64'
     - name: Transactions
       required: true
       description: |
@@ -74,7 +82,10 @@
       properties:
         executionPayload:
           title: Execution payload
-          $ref: '#/components/schemas/ExecutionPayloadV3'
+          description: ExecutionPayloadV4 for a post-Amsterdam block, ExecutionPayloadV3 otherwise.
+          anyOf:
+            - $ref: '#/components/schemas/ExecutionPayloadV4'
+            - $ref: '#/components/schemas/ExecutionPayloadV3'
         blockValue:
           title: Expected block value
           $ref: '#/components/schemas/uint256'
