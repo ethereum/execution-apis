@@ -56,7 +56,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
-      description: "default: 'latest'. The state is the one after the block has been executed."
+      description: "The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -97,7 +97,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
-      description: "default: 'latest'. The state is the one after the block has been executed."
+      description: "The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
