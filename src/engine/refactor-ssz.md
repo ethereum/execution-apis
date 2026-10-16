@@ -71,11 +71,11 @@
 | Constant | Value | Source |
 | - | - | - |
 | `MAX_BYTES_PER_TX` | `2**30` (1,073,741,824) | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
-| `MAX_TXS_PER_PAYLOAD` | `2**20` (1,048,576) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
-| `MAX_WITHDRAWALS_PER_PAYLOAD` | `2**4` (16) | [Capella](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md) |
-| `BYTES_PER_LOGS_BLOOM` | `256` | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
-| `MAX_EXTRA_DATA_BYTES` | `2**5` (32) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
-| `MAX_BLOB_COMMITMENTS_PER_BLOCK` | `2**12` (4,096) | [Deneb](https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md) |
+| `MAX_TXS_PER_PAYLOAD` | `2**20` (1,048,576) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md) |
+| `MAX_WITHDRAWALS_PER_PAYLOAD` | `2**4` (16) | [Capella](https://github.com/ethereum/consensus-specs/blob/master/specs/capella/beacon-chain.md) |
+| `BYTES_PER_LOGS_BLOOM` | `256` | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md) |
+| `MAX_EXTRA_DATA_BYTES` | `2**5` (32) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md) |
+| `MAX_BLOB_COMMITMENTS_PER_BLOCK` | `2**12` (4,096) | [Deneb](https://github.com/ethereum/consensus-specs/blob/master/specs/deneb/beacon-chain.md) |
 | `FIELD_ELEMENTS_PER_BLOB` | `4096` | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
 | `BYTES_PER_FIELD_ELEMENT` | `32` | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
 | `BYTES_PER_BLOB` | `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT` (131,072) | derived |
