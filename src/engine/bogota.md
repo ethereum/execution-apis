@@ -97,7 +97,7 @@ This structure is an inclusion list proof, the `il_proof` of [EIP-8288](https://
 - `starkProof`: `DATA`, at most `MAX_AGGREGATE_PROOF_BYTES` bytes - the serialized recursive aggregate proof
 - `proofDeps`: `Array of DATA`, 96 Bytes each - the proof's dependency list, each entry in the EIP-8288 96-byte dependency encoding, sorted in ascending byte order without duplicates, at most `MAX_DEPS_PER_AGGREGATE_WRAPPER` entries
 
-The size bounds are checked by the methods, which return `INVALID` for a proof that exceeds them; they are not schema constraints. An `InclusionListProofV1` matches a `RecursiveStarkV1` if `keccak256(starkProof) == starkProofHash` and `get_deps_hash(proofDeps) == depsHash`.
+The size bounds are checked by the methods after parameter decoding, not by the schema. A `proofDeps` entry that is not exactly 96 bytes is a parameter decoding error. An `InclusionListProofV1` matches a `RecursiveStarkV1` if `keccak256(starkProof) == starkProofHash` and `get_deps_hash(proofDeps) == depsHash`.
 
 ### InclusionListProofStatusV1
 
@@ -269,7 +269,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 7. Client software **MUST** record the verdict of a matching `ilProof` it verifies or rejects under step 4, keyed with the target fork's `AGGREGATED_VK`, and on `VALID` keep the proof bytes and `proofDeps` with it.
 
-8. Client software **MUST NOT** return an error for an `ilProof` that exceeds the bounds of [`InclusionListProofV1`](#inclusionlistproofv1): it is `INVALID` if it matches and ignored otherwise.
+8. After successful parameter decoding, a supplied `ilProof` that matches `recursiveStark` but fails the proof-shape checks of step 4.5 returns `INVALID`; a nonmatching `ilProof` is ignored. Malformed parameters, such as missing fields, wrong types or invalid hex, still return `-32602: Invalid params`.
 
 ### engine_getInclusionListProofV1
 
