@@ -20,11 +20,11 @@ InclusionListProofV1:
   properties:
     starkProof:
       title: Aggregate proof
-      description: At most MAX_AGGREGATE_PROOF_BYTES bytes
+      description: At most MAX_AGGREGATE_PROOF_BYTES bytes, checked by the method rather than the schema
       $ref: '#/components/schemas/bytes'
     proofDeps:
       title: Dependency list of the aggregate proof
-      description: 96-byte dependency encodings, sorted in ascending order without duplicates, at most MAX_DEPS_PER_AGGREGATE_WRAPPER entries
+      description: 96-byte dependency encodings, sorted in ascending order without duplicates, at most MAX_DEPS_PER_AGGREGATE_WRAPPER entries, checked by the method rather than the schema
       type: array
       items:
         $ref: '#/components/schemas/bytes96'

@@ -97,7 +97,7 @@ This structure is an inclusion list proof, the `il_proof` of [EIP-8288](https://
 - `starkProof`: `DATA`, at most `MAX_AGGREGATE_PROOF_BYTES` bytes - the serialized recursive aggregate proof
 - `proofDeps`: `Array of DATA`, 96 Bytes each - the proof's dependency list, each entry in the EIP-8288 96-byte dependency encoding, sorted in ascending byte order without duplicates, at most `MAX_DEPS_PER_AGGREGATE_WRAPPER` entries
 
-An `InclusionListProofV1` matches a `RecursiveStarkV1` if `keccak256(starkProof) == starkProofHash` and `get_deps_hash(proofDeps) == depsHash`.
+The size bounds are checked by the methods, which return `INVALID` for a proof that exceeds them; they are not schema constraints. An `InclusionListProofV1` matches a `RecursiveStarkV1` if `keccak256(starkProof) == starkProofHash` and `get_deps_hash(proofDeps) == depsHash`.
 
 ### InclusionListProofStatusV1
 
@@ -261,11 +261,15 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     4. A matching `ilProof` fails verification under the target fork's `AGGREGATED_VK`.
 
+    5. A matching `ilProof` fails, without verification, the checks of step 2 of [`engine_submitInclusionListProofV1`](#engine_submitinclusionlistproofv1).
+
 5. Client software **MUST** return `{status: VALID, validationError: null}` if `deps` is nonempty, it holds a verified proof under `(recursiveStark.starkProofHash, recursiveStark.depsHash)` for the target fork or a matching `ilProof` verifies under the target fork's `AGGREGATED_VK`, every dependency in `deps` is in that proof's `proofDeps`, and it retains the proof bytes and `proofDeps` until `attestationDeadlineMs`. When it already holds the proof, this is a lookup with no proof verification. A supplied `ilProof` matching a cached `VALID` verdict is checked against `recursiveStark` and not verified again.
 
 6. Client software **MUST** return `{status: PROOF_UNKNOWN, validationError: null}` if `deps` is nonempty, it does not hold the proof under the pair for the target fork, including when it holds a `VALID` verdict but no longer the proof bytes, and no matching `ilProof` was supplied.
 
-7. Client software **MUST** record the verdict of a supplied `ilProof` it verifies, keyed with the target fork's `AGGREGATED_VK`, and on `VALID` keep the proof bytes and `proofDeps` with it.
+7. Client software **MUST** record the verdict of a matching `ilProof` it verifies or rejects under step 4, keyed with the target fork's `AGGREGATED_VK`, and on `VALID` keep the proof bytes and `proofDeps` with it.
+
+8. Client software **MUST NOT** return an error for an `ilProof` that exceeds the bounds of [`InclusionListProofV1`](#inclusionlistproofv1): it is `INVALID` if it matches and ignored otherwise.
 
 ### engine_getInclusionListProofV1
 
@@ -310,7 +314,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the target fork does not activate EIP-8288.
 
-2. Client software **MUST** return `{status: INVALID, validationError: errorMessage | null}`, without verifying the proof, if `starkProof` is longer than `MAX_AGGREGATE_PROOF_BYTES`, or if `proofDeps` is not sorted without duplicates or has more than `MAX_DEPS_PER_AGGREGATE_WRAPPER` entries.
+2. Client software **MUST** return `{status: INVALID, validationError: errorMessage | null}`, without verifying the proof, if `starkProof` is longer than `MAX_AGGREGATE_PROOF_BYTES`, or if `proofDeps` is not sorted without duplicates, has more than `MAX_DEPS_PER_AGGREGATE_WRAPPER` entries or has an entry whose scheme is outside the target fork's `ENABLED_SCHEMES`.
 
 3. Otherwise client software **MUST** verify `starkProof` against `get_deps_hash(proofDeps)` under the target fork's `AGGREGATED_VK`, return `VALID` or `INVALID`, and record the verdict keyed `(keccak256(starkProof), get_deps_hash(proofDeps), AGGREGATED_VK)`. On `VALID` it **MUST** keep the proof bytes and `proofDeps` with the verdict until at least `viewFreezeDeadlineMs`, so that a later [`engine_verifyInclusionListProofV1`](#engine_verifyinclusionlistproofv1) call for a list committing to the pair under that fork is a lookup.
 
