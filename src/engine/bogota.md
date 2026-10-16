@@ -120,7 +120,7 @@ An aggregate-proof verdict is the result, `VALID` or `INVALID`, of verifying an 
 
 Client software *holds a verified proof* under `(starkProofHash, depsHash)` for a target fork if it holds a `VALID` verdict keyed with that fork's `AGGREGATED_VK`, together with a `proofDeps` such that `get_deps_hash(proofDeps) == depsHash`. It obtains both from a fully validated EIP-8288 mode-1 mempool wrapper, whose `deps` is `proofDeps`, or from an `InclusionListProofV1`. Holding a verified proof does not require the proof bytes; they are needed only to serve the proof through [`engine_getInclusionListProofV1`](#engine_getinclusionlistproofv1) and to merge it into another aggregate.
 
-Client software **MUST** retain proofs, verdicts and `proofDeps` as specified in the Proof Availability section of EIP-8288. With `T` the target block's timestamp, it takes the EIP-7805 view freeze deadline of the list's slot as `T - SECONDS_PER_SLOT / 4` and the attestation deadline of the target block's slot as `T + SECONDS_PER_SLOT / 3`. A retention requirement whose deadline has already passed imposes no retention.
+Client software **MUST** retain proofs, verdicts and `proofDeps` as specified in the Proof Availability section of EIP-8288. With `T` the target block's timestamp and `L` the current slot length, `(head.timestamp - parent.timestamp) / (head.slotNumber - parent.slotNumber)` for the local head and its parent, it takes the EIP-7805 view freeze deadline of the list's slot as `T - L / 4` and the attestation deadline of the target block's slot as `T + L / 3`. A retention requirement whose deadline has already passed imposes no retention. Across a slot-length change, client software errs toward retaining longer.
 
 ## Methods
 
