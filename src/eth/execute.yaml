@@ -1,5 +1,12 @@
 - name: eth_call
   summary: Executes a new message call immediately without creating a transaction on the block chain.
+  description: |
+    Executes a new message call immediately without creating a transaction on the block chain.
+
+    When the gas fee fields (`gasPrice`, `maxFeePerGas`, `maxPriorityFeePerGas`) are omitted, the
+    client MAY select implementation-defined fee values for the simulation. The request MUST NOT
+    fail solely because the sender cannot afford the gas fees implied by those client-selected
+    defaults. This does not waive balance requirements for a non-zero transaction `value`.
   params:
     - name: Transaction
       required: true
@@ -7,6 +14,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -34,6 +42,13 @@
 
 - name: eth_estimateGas
   summary: Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+  description: |
+    Generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
+
+    When the gas fee fields (`gasPrice`, `maxFeePerGas`, `maxPriorityFeePerGas`) are omitted, the
+    client MAY select implementation-defined fee values for the simulation. The request MUST NOT
+    fail solely because the sender cannot afford the gas fees implied by those client-selected
+    defaults. This does not waive balance requirements for a non-zero transaction `value`.
   params:
     - name: Transaction
       required: true
@@ -41,6 +56,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -67,6 +83,13 @@
 
 - name: eth_createAccessList
   summary: Generates an access list for a transaction.
+  description: |
+    Generates an access list for a transaction.
+
+    When the gas fee fields (`gasPrice`, `maxFeePerGas`, `maxPriorityFeePerGas`) are omitted, the
+    client MAY select implementation-defined fee values for the simulation. The request MUST NOT
+    fail solely because the sender cannot afford the gas fees implied by those client-selected
+    defaults. This does not waive balance requirements for a non-zero transaction `value`.
   params:
     - name: Transaction
       required: true
@@ -74,6 +97,7 @@
         $ref: '#/components/schemas/GenericTransaction'
     - name: Block
       required: false
+      description: "The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:
@@ -119,7 +143,7 @@
         $ref: '#/components/schemas/EthSimulatePayload'
     - name: Block tag
       required: false
-      description: "default: 'latest'"
+      description: "default: 'latest'. The base block. The simulated blocks start from the state after this block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
   result:

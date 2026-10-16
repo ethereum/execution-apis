@@ -141,10 +141,12 @@ Test fixture generator. Runs test definitions against a client (default: geth)
 and records the request-response exchange. See [rpctestgen (fill)](#rpctestgen-fill)
 above.
 
-### Fixture format
+### Fixture format (.io files)
 
-Fixtures use a simple line-delimited format. `>>` denotes a request;
-`<<` denotes the response.
+Test fixtures use a simple line-delimited format.
+
+- `>>` denotes a request sent to the server
+- `<<` denotes a response receive.
 
 ```javascript
 >> {"jsonrpc":"2.0","id":1,"method":"eth_blockNumber"}

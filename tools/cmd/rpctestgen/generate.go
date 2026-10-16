@@ -66,8 +66,8 @@ func runGenerator(ctx context.Context) error {
 				return err
 			}
 
-			// Write the exchange for each test in a separte file.
-			handler.RotateLog(filename)
+			// Write the exchange for each test in a separate file.
+			handler.NewTest(filename)
 			if test.About != "" {
 				handler.WriteComment(test.About)
 			}
@@ -82,12 +82,15 @@ func runGenerator(ctx context.Context) error {
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
 
-			err = test.Run(ctx, testgen.NewT(handler.rpc, chain))
+			err = test.Run(ctx, testgen.NewT(&test, handler.rpc, chain))
 			if err != nil {
 				fmt.Println(" fail.")
 				fmt.Fprintf(os.Stderr, "failed to fill %s/%s: %s\n", methodTest.Name, test.Name, err)
 				fails++
 				continue
+			}
+			if test.ValidationScript != "" {
+				handler.WriteValidationScript(test.ValidationScript)
 			}
 			fmt.Println("  done.")
 			handler.Close()
