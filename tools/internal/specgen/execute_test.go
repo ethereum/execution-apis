@@ -1,12 +1,13 @@
 package specgen
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 // TestAccountOverride validates the component directly because the simulation
@@ -36,7 +37,15 @@ func TestAccountOverride(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	validator, err := jsonschema.CompileString("account-override.json", string(encoded))
+	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(encoded))
+	if err != nil {
+		t.Fatal(err)
+	}
+	compiler := jsonschema.NewCompiler()
+	if err := compiler.AddResource("account-override.json", doc); err != nil {
+		t.Fatal(err)
+	}
+	validator, err := compiler.Compile("account-override.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,11 +84,11 @@ func TestAccountOverride(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var value any
-			if err := json.Unmarshal([]byte(tt.input), &value); err != nil {
+			value, err := jsonschema.UnmarshalJSON(bytes.NewReader([]byte(tt.input)))
+			if err != nil {
 				t.Fatal(err)
 			}
-			err := validator.Validate(value)
+			err = validator.Validate(value)
 			if (err == nil) != tt.valid {
 				t.Errorf("valid=%t, want %t: %v", err == nil, tt.valid, err)
 			}
