@@ -269,7 +269,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 7. Client software **MUST** record the verdict of a matching `ilProof` it verifies or rejects under step 4, keyed with the target fork's `AGGREGATED_VK`, and on `VALID` keep the proof bytes and `proofDeps` with it.
 
-8. After successful parameter decoding, a supplied `ilProof` that matches `recursiveStark` but fails the proof-shape checks of step 4.5 returns `INVALID`; a nonmatching `ilProof` is ignored. Malformed parameters, such as missing fields, wrong types or invalid hex, still return `-32602: Invalid params`.
+8. After successful parameter decoding, a supplied `ilProof` that matches `recursiveStark` but fails the proof-shape checks of step 4, item 5, returns `INVALID`; a nonmatching `ilProof` is ignored. Malformed parameters, such as missing fields, wrong types or invalid hex, still return `-32602: Invalid params`.
 
 ### engine_getInclusionListProofV1
 
