@@ -13,7 +13,14 @@ CallFrame:
     Gas semantics: on the root frame, gas MUST be the transaction gas limit and
     gasUsed MUST equal the receipt gasUsed (including intrinsic gas and
     refunds). On nested frames, gas is the gas available to that frame and
-    gasUsed is the gas consumed by it.
+    gasUsed is the gas consumed by it. A nested frame that fails with an
+    error other than REVERT (e.g. out of gas, an invalid opcode, a
+    write-protection violation, a failed precompile or a CREATE/CREATE2
+    address collision) consumes all of its gas, so its gasUsed MUST equal its
+    gas. The exception is a frame that fails the call depth limit or the
+    balance check before execution starts: it consumes none of its gas, so its
+    gasUsed MUST be 0x0. SELFDESTRUCT frames MUST report gas and gasUsed as
+    0x0; the opcode's cost is part of the parent frame.
 
     The calls array references this schema through its $id. In
     refs-openrpc.json that reference is #/components/schemas/CallFrame and the
@@ -97,11 +104,11 @@ CallFrame:
     revertReason:
       title: decoded revert reason
       description: >-
-        The human-readable revert reason, present only when the frame reverted
-        and its revert data decodes as the standard Error(string) or
-        Panic(uint256) ABI encoding. For Error(string) it is the decoded
-        string. For Panic(uint256) it is a short description of the panic
-        code; the exact text is client-defined.
+        The human-readable revert reason. MUST be present if and only if the
+        frame reverted and its revert data decodes as the standard
+        Panic(uint256) ABI encoding, or as Error(string) with a non-empty
+        string. For Error(string) it is the decoded string. For Panic(uint256) it is a short description of
+        the panic code; the exact text is client-defined.
       type: string
     calls:
       title: nested calls
