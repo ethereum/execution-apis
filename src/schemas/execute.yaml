@@ -160,7 +160,7 @@ CallResults:
       - $ref: '#/components/schemas/CallResultSuccess'
 CallResultFailure:
   title: Result of call failure
-  description: The error messages are suggestions, and clients might implement different error messages. However, the error codes are enforced by the spec.
+  description: The error codes are enforced by the spec. A revert message starts with "execution reverted". Other error messages are client-specific text.
   type: object
   required:
     - status
@@ -197,7 +197,7 @@ CallResultFailure:
             const: -32015
           message:
             type: string
-            pattern: "^(vm execution error|out of gas).*"
+        required: [code, message]
 CallResultSuccess:
   title: Result of call success
   type: object
