@@ -321,9 +321,8 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-revert",
-			About:            "traces a call that reverts with Error(string); the revert MUST be reported in the frame, not as a JSON-RPC error",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-revert",
+			About: "traces a call that reverts with Error(string); the revert MUST be reported in the frame, not as a JSON-RPC error",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -349,9 +348,8 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-only-top-call",
-			About:            "traces a call to the calltree contract with onlyTopCall; only the root frame is returned",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-only-top-call",
+			About: "traces a call to the calltree contract with onlyTopCall; only the root frame is returned",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -375,9 +373,8 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-state-override",
-			About:            "traces a call with stateOverrides replacing the callee code; the trace reflects the overridden code",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-state-override",
+			About: "traces a call with stateOverrides replacing the callee code; the trace reflects the overridden code",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				overrideTarget := "0x00000000000000000000000000000000000000c0"
@@ -415,9 +412,8 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-block-param-hash",
-			About:            "traces a call with the block given by hash",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-block-param-hash",
+			About: "traces a call with the block given by hash",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{

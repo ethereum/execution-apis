@@ -437,7 +437,6 @@ function diff(want, got, path) {
 }
 
 var (
-	callFrameScript        = traceScript("CallFrame", false, false)
 	callFrameCompareScript = traceScript("CallFrame", false, true)
 	callBlockCompareScript = traceScript("CallTracerBlockEntry", true, true)
 	opcodeScript           = traceScript("OpcodeTransactionTrace", false, false)
@@ -449,9 +448,8 @@ var DebugTraceTransaction = MethodTests{
 	"debug_traceTransaction",
 	[]Test{
 		{
-			Name:             "trace-legacy-transfer",
-			About:            "traces a legacy EOA-to-EOA value transfer; structLogs must be empty since no EVM code runs",
-			ValidationScript: opcodeScript,
+			Name:  "trace-legacy-transfer",
+			About: "traces a legacy EOA-to-EOA value transfer; structLogs must be empty since no EVM code runs",
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.txinfo.LegacyTransfers[0]
 				var result map[string]interface{}
@@ -505,9 +503,8 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-simple-transfer",
-			About:            "traces a legacy EOA-to-EOA value transfer with the callTracer; a single frame with empty input and no calls or logs",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-simple-transfer",
+			About: "traces a legacy EOA-to-EOA value transfer with the callTracer; a single frame with empty input and no calls or logs",
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.txinfo.LegacyTransfers[0]
 				var result map[string]interface{}
@@ -527,9 +524,8 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-contract-call",
-			About:            "traces a log-emitting contract call with the callTracer default config; logs must be absent without withLog",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-contract-call",
+			About: "traces a log-emitting contract call with the callTracer default config; logs must be absent without withLog",
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.DynamicFeeEmit[0]
 				var result map[string]interface{}
@@ -609,9 +605,8 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-with-log-index",
-			About:            "traces a log-emitting transaction preceded by another log-emitting transaction in the same block, with withLog; each log index MUST equal the logIndex in the receipt",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-with-log-index",
+			About: "traces a log-emitting transaction preceded by another log-emitting transaction in the same block, with withLog; each log index MUST equal the logIndex in the receipt",
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.DynamicFeeEmit[0]
 				cfg := callTracerCfgWith(map[string]interface{}{"withLog": true})
@@ -647,9 +642,8 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-only-top-call",
-			About:            "traces a calltree contract invocation with onlyTopCall; only the root frame is returned",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-only-top-call",
+			About: "traces a calltree contract invocation with onlyTopCall; only the root frame is returned",
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true})
@@ -668,9 +662,8 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-only-top-call-with-log",
-			About:            "traces a calltree contract invocation with onlyTopCall and withLog; the root log keeps its receipt logIndex although the nested logs that precede it are not reported",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-only-top-call-with-log",
+			About: "traces a calltree contract invocation with onlyTopCall and withLog; the root log keeps its receipt logIndex although the nested logs that precede it are not reported",
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true, "withLog": true})
@@ -716,9 +709,8 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-revert-reason",
-			About:            "traces a whole-transaction revert; the root frame carries error, raw revert output and the decoded revertReason",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-revert-reason",
+			About: "traces a whole-transaction revert; the root frame carries error, raw revert output and the decoded revertReason",
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallRevertTxs[0]
 				var result map[string]interface{}
@@ -738,9 +730,8 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "calltracer-create",
-			About:            "traces a contract deployment transaction; the root frame is CREATE with the initcode as input and the deployed code as output",
-			ValidationScript: callFrameScript,
+			Name:  "calltracer-create",
+			About: "traces a contract deployment transaction; the root frame is CREATE with the initcode as input and the deployed code as output",
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallMeContract
 				block := t.chain.GetBlock(int(info.Block))

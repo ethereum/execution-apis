@@ -14,8 +14,8 @@ import (
 
 const testsDir = "../../tests"
 
-// Without a script, a trace fixture is checked only against an anyOf that
-// accepts any value.
+// Without a script, a speconly trace response is checked only against an anyOf
+// that accepts any value.
 func TestTraceFixturesHaveScripts(t *testing.T) {
 	tests, err := iofile.LoadDirectory(t, testsDir, regexp.MustCompile(`^debug_trace`))
 	if err != nil {
@@ -38,7 +38,7 @@ func TestTraceFixturesHaveScripts(t *testing.T) {
 		if err := json.Unmarshal(test.Receives()[0], &resp); err != nil {
 			t.Fatalf("%s: %v", test.Name, err)
 		}
-		if resp.Result == nil {
+		if resp.Result == nil || !test.SpecOnly {
 			continue
 		}
 		cfgIndex := 1
@@ -58,7 +58,7 @@ func TestTraceFixturesHaveScripts(t *testing.T) {
 		if !strings.Contains(test.Script, schema) {
 			t.Errorf("%s: script does not validate against a %s* schema", test.Name, schema)
 		}
-		if test.SpecOnly && cfg.Tracer == "callTracer" && !strings.Contains(test.Script, "m.expected") {
+		if cfg.Tracer == "callTracer" && !strings.Contains(test.Script, "m.expected") {
 			t.Errorf("%s: speconly callTracer fixture does not compare with the recorded response", test.Name)
 		}
 	}
