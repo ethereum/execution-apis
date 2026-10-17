@@ -10,3 +10,155 @@
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+- name: engine_verifyInclusionListProofV1
+  summary: Checks an inclusion list's recursive STARK commitment against held or supplied proofs
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_verifyinclusionlistproofv1
+  params:
+    - name: Timestamp
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint64'
+    - name: Inclusion list transactions
+      required: true
+      schema:
+        title: Inclusion list transactions
+        type: array
+        items:
+          $ref: '#/components/schemas/bytes'
+    - name: Recursive STARK commitment
+      required: true
+      schema:
+        $ref: '#/components/schemas/RecursiveStarkV1'
+    - name: Inclusion list proof
+      required: true
+      schema:
+        title: Inclusion list proof or null
+        oneOf:
+          - $ref: '#/components/schemas/InclusionListProofV1'
+          - type: 'null'
+    - name: Attestation deadline
+      required: true
+      schema:
+        title: Attestation deadline in Unix milliseconds
+        $ref: '#/components/schemas/uint64'
+  result:
+    name: Inclusion list proof status
+    schema:
+      $ref: '#/components/schemas/InclusionListProofStatusV1'
+  errors:
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork
+  examples:
+    - name: engine_verifyInclusionListProofV1 example
+      description: A non-null commitment on a list without dependencies is invalid whatever proof it names
+      params:
+        - name: Timestamp
+          value: '0x64e7785b'
+        - name: Inclusion list transactions
+          value:
+            - '0x02f86c0701843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a039409b4e5603dd8c3cf38232348661a8e99ac518396eeaa128ec9ec2a3eb8127a06b21ab956f5f138cb44fda1a9055bd08980ea4f8040d877c00dac025608d0d95'
+        - name: Recursive STARK commitment
+          value:
+            starkProofHash: '0xb74da14078c7293345fc8d63e3963a54d648795d5abcc1f1150f8bdd70f2a5f1'
+            depsHash: '0xf1a05553412fee67bfa84b3fa65697d8d9d752ca56158a416f53cf7664f79545'
+        - name: Inclusion list proof
+          value: null
+        - name: Attestation deadline
+          value: '0x18a282e3318'
+      result:
+        name: Inclusion list proof status
+        value:
+          status: INVALID
+          validationError: Commitment on an inclusion list without dependencies
+- name: engine_getInclusionListProofV1
+  summary: Returns a held inclusion list proof by its proof hash
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_getinclusionlistproofv1
+  params:
+    - name: Timestamp
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint64'
+    - name: Proof hash
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+  result:
+    name: Inclusion list proof
+    schema:
+      title: Inclusion list proof or null
+      oneOf:
+        - $ref: '#/components/schemas/InclusionListProofV1'
+        - type: 'null'
+  errors:
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork
+  examples:
+    - name: engine_getInclusionListProofV1 example
+      description: Proof bytes are illustrative
+      params:
+        - name: Timestamp
+          value: '0x64e7785b'
+        - name: Proof hash
+          value: '0xb74da14078c7293345fc8d63e3963a54d648795d5abcc1f1150f8bdd70f2a5f1'
+      result:
+        name: Inclusion list proof
+        value:
+          starkProof: '0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40'
+          proofDeps:
+            - '0x000000000000000000000000000000000000000000000000000000000000001006eaaa302366a2b8e60080fe649cb019814b843b9bd681df41d60bde4badd3790000000000000000000000000000000000000000000000000000000000000001'
+            - '0x0000000000000000000000000000000000000000000000000000000000000010f3bc792f5a550e9e8271695b0d0c1ee9b8d42b9071976b6447658021b3d8099f0000000000000000000000000000000000000000000000000000000000000002'
+- name: engine_submitInclusionListProofV1
+  summary: Verifies an inclusion list proof received on the proof topic and records its verdict
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_submitinclusionlistproofv1
+  params:
+    - name: Timestamp
+      required: true
+      schema:
+        $ref: '#/components/schemas/uint64'
+    - name: Inclusion list proof
+      required: true
+      schema:
+        $ref: '#/components/schemas/InclusionListProofV1'
+    - name: View freeze deadline
+      required: true
+      schema:
+        title: View freeze deadline in Unix milliseconds
+        $ref: '#/components/schemas/uint64'
+  result:
+    name: Inclusion list proof status
+    schema:
+      $ref: '#/components/schemas/RestrictedInclusionListProofStatusV1'
+  errors:
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork
+  examples:
+    - name: engine_submitInclusionListProofV1 example
+      description: Dependencies out of order are rejected without verifying the proof
+      params:
+        - name: Timestamp
+          value: '0x64e7785b'
+        - name: Inclusion list proof
+          value:
+            starkProof: '0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f40'
+            proofDeps:
+              - '0x0000000000000000000000000000000000000000000000000000000000000010f3bc792f5a550e9e8271695b0d0c1ee9b8d42b9071976b6447658021b3d8099f0000000000000000000000000000000000000000000000000000000000000002'
+              - '0x000000000000000000000000000000000000000000000000000000000000001006eaaa302366a2b8e60080fe649cb019814b843b9bd681df41d60bde4badd3790000000000000000000000000000000000000000000000000000000000000001'
+        - name: View freeze deadline
+          value: '0x18a282e17c0'
+      result:
+        name: Inclusion list proof status
+        value:
+          status: INVALID
+          validationError: Dependency list is not sorted
