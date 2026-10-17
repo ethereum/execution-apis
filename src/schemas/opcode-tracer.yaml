@@ -191,6 +191,9 @@ StructLog:
 
         This field is only populated at SLOAD and SSTORE opcodes.
         At all other opcodes, this field MUST be absent (not an empty object).
+        An SLOAD or SSTORE step that halts with an error does not execute the
+        opcode, so this field MUST be absent at that step, and the step MUST
+        NOT add or update the slot in the snapshot of later steps.
         This field is absent when disableStorage is true.
       type: object
       additionalProperties:
