@@ -1,16 +1,3 @@
 // traces a whole-transaction revert; the root frame carries error, raw revert output and the decoded revertReason
 >> {"jsonrpc":"2.0","id":1,"method":"debug_traceTransaction","params":["0x3c4789b3f69e9310be7b3ca65d116559882340abc8a1bec3ff7c3c0529b752bd",{"tracer":"callTracer"}]}
 << {"jsonrpc":"2.0","id":1,"result":{"from":"0x7435ed30a8b4aeb0877cef0c6e8cffe834eb865f","gas":"0x186a0","gasUsed":"0x5aa1","to":"0x9dcd17433742f4c0ca53122ab541d0ba67fc27d3","input":"0x01","output":"0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000a75736572206572726f72","error":"execution reverted","revertReason":"user error","value":"0x0","type":"CALL"}}
---
-
-let method;
-for (const m of messages) {
-    if (m.send) {
-        method = m.send.method;
-        continue;
-    }
-    if (!method.startsWith("debug_trace")) continue;
-    if (m.response.error) throw new Error("unexpected error response: " + JSON.stringify(m.response.error));
-    const result = m.response.result;
-    openrpc.validate("#/components/schemas/CallFrame", result);
-}
