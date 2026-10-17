@@ -371,14 +371,87 @@ func validateStorageSnapshotProgression(logs []interface{}) error {
 	return nil
 }
 
+// traceScript validates against the tracer's own schema because the method's
+// anyOf result has a named-tracer branch that accepts any value. compare also
+// requires the recorded result, except for values the spec leaves to clients.
+func traceScript(schema string, block, compare bool) string {
+	pointer := "#/components/schemas/" + schema
+	validate := fmt.Sprintf("openrpc.validate(%q, result);", pointer)
+	if block {
+		validate = fmt.Sprintf("for (const entry of result) openrpc.validate(%q, entry);", pointer)
+	}
+	script := `
+let method;
+for (const m of messages) {
+	if (m.send) {
+		method = m.send.method;
+		continue;
+	}
+	if (!method.startsWith("debug_trace")) continue;
+	if (m.response.error) throw new Error("unexpected error response: " + JSON.stringify(m.response.error));
+	const result = m.response.result;
+	` + validate
+	if !compare {
+		return script + "\n}\n"
+	}
+	return script + `
+	const d = diff(mask(m.expected.result), mask(result), "result");
+	if (d) throw new Error("response differs from the fixture at " + d);
+}
+
+// Clears what the spec leaves to the client: callTracer error text other than
+// REVERT and the text of a Panic revertReason.
+function mask(v) {
+	if (Array.isArray(v)) {
+		v.forEach(mask);
+	} else if (v !== null && typeof v === "object") {
+		if (typeof v.error === "string" && v.error !== "execution reverted") v.error = "*";
+		if (typeof v.revertReason === "string" && /^0x4e487b71/.test(v.output)) v.revertReason = "*";
+		Object.values(v).forEach(mask);
+	}
+	return v;
+}
+
+function diff(want, got, path) {
+	if (Array.isArray(want) || Array.isArray(got)) {
+		if (!Array.isArray(want) || !Array.isArray(got)) return path + ": got " + JSON.stringify(got);
+		if (want.length !== got.length) return path + ": got " + got.length + " items, want " + want.length;
+		for (let i = 0; i < want.length; i++) {
+			const d = diff(want[i], got[i], path + "[" + i + "]");
+			if (d) return d;
+		}
+		return "";
+	}
+	if (want !== null && got !== null && typeof want === "object" && typeof got === "object") {
+		for (const k of new Set(Object.keys(want).concat(Object.keys(got)))) {
+			if (!(k in got)) return path + "." + k + ": missing";
+			if (!(k in want)) return path + "." + k + ": unexpected field";
+			const d = diff(want[k], got[k], path + "." + k);
+			if (d) return d;
+		}
+		return "";
+	}
+	return want === got ? "" : path + ": got " + JSON.stringify(got) + ", want " + JSON.stringify(want);
+}
+`
+}
+
+var (
+	callFrameScript        = traceScript("CallFrame", false, false)
+	callFrameCompareScript = traceScript("CallFrame", false, true)
+	callBlockCompareScript = traceScript("CallTracerBlockEntry", true, true)
+	opcodeScript           = traceScript("OpcodeTransactionTrace", false, false)
+	opcodeBlockScript      = traceScript("OpcodeBlockTransactionTrace", true, false)
+)
+
 // DebugTraceTransaction tests the debug_traceTransaction method.
 var DebugTraceTransaction = MethodTests{
 	"debug_traceTransaction",
 	[]Test{
 		{
-			Name:     "trace-legacy-transfer",
-			About:    "traces a legacy EOA-to-EOA value transfer; structLogs must be empty since no EVM code runs",
-			SpecOnly: true,
+			Name:             "trace-legacy-transfer",
+			About:            "traces a legacy EOA-to-EOA value transfer; structLogs must be empty since no EVM code runs",
+			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.txinfo.LegacyTransfers[0]
 				var result map[string]interface{}
@@ -397,9 +470,10 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-contract-call",
-			About:    "traces a contract call transaction; validates spec compliance of structLogs including stack encoding, error field behavior, and optional storage encoding",
-			SpecOnly: true,
+			Name:             "trace-contract-call",
+			About:            "traces a contract call transaction; validates spec compliance of structLogs including stack encoding, error field behavior, and optional storage encoding",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("legacy tx with input data", matchLegacyTxWithInput)
 				var result map[string]interface{}
@@ -431,8 +505,9 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-simple-transfer",
-			About: "traces a legacy EOA-to-EOA value transfer with the callTracer; a single frame with empty input and no calls or logs",
+			Name:             "calltracer-simple-transfer",
+			About:            "traces a legacy EOA-to-EOA value transfer with the callTracer; a single frame with empty input and no calls or logs",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.txinfo.LegacyTransfers[0]
 				var result map[string]interface{}
@@ -452,8 +527,9 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-contract-call",
-			About: "traces a log-emitting contract call with the callTracer default config; logs must be absent without withLog",
+			Name:             "calltracer-contract-call",
+			About:            "traces a log-emitting contract call with the callTracer default config; logs must be absent without withLog",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.DynamicFeeEmit[0]
 				var result map[string]interface{}
@@ -470,9 +546,10 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:     "calltracer-nested-calls",
-			About:    "traces a calltree contract invocation covering all call frame types: nested calls, inner revert with reason, staticcall write-protection failure, delegatecall, callcode, precompile call, create and selfdestruct",
-			SpecOnly: true,
+			Name:             "calltracer-nested-calls",
+			About:            "traces a calltree contract invocation covering all call frame types: nested calls, inner revert with reason, staticcall write-protection failure, delegatecall, callcode, precompile call, create and selfdestruct",
+			SpecOnly:         true,
+			ValidationScript: callFrameCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				var result map[string]interface{}
@@ -510,9 +587,10 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:     "calltracer-with-log",
-			About:    "traces a calltree contract invocation with withLog; logs carry address, topics, data and position, and reverted frames have no logs",
-			SpecOnly: true,
+			Name:             "calltracer-with-log",
+			About:            "traces a calltree contract invocation with withLog; logs carry address, topics, data and position, and reverted frames have no logs",
+			SpecOnly:         true,
+			ValidationScript: callFrameCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				cfg := callTracerCfgWith(map[string]interface{}{"withLog": true})
@@ -531,8 +609,9 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-with-log-index",
-			About: "traces a log-emitting transaction preceded by another log-emitting transaction in the same block, with withLog; each log index MUST equal the logIndex in the receipt",
+			Name:             "calltracer-with-log-index",
+			About:            "traces a log-emitting transaction preceded by another log-emitting transaction in the same block, with withLog; each log index MUST equal the logIndex in the receipt",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.DynamicFeeEmit[0]
 				cfg := callTracerCfgWith(map[string]interface{}{"withLog": true})
@@ -568,8 +647,9 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-only-top-call",
-			About: "traces a calltree contract invocation with onlyTopCall; only the root frame is returned",
+			Name:             "calltracer-only-top-call",
+			About:            "traces a calltree contract invocation with onlyTopCall; only the root frame is returned",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true})
@@ -588,8 +668,9 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-only-top-call-with-log",
-			About: "traces a calltree contract invocation with onlyTopCall and withLog; the root log keeps its receipt logIndex although the nested logs that precede it are not reported",
+			Name:             "calltracer-only-top-call-with-log",
+			About:            "traces a calltree contract invocation with onlyTopCall and withLog; the root log keeps its receipt logIndex although the nested logs that precede it are not reported",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true, "withLog": true})
@@ -635,8 +716,9 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-revert-reason",
-			About: "traces a whole-transaction revert; the root frame carries error, raw revert output and the decoded revertReason",
+			Name:             "calltracer-revert-reason",
+			About:            "traces a whole-transaction revert; the root frame carries error, raw revert output and the decoded revertReason",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallRevertTxs[0]
 				var result map[string]interface{}
@@ -656,8 +738,9 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-create",
-			About: "traces a contract deployment transaction; the root frame is CREATE with the initcode as input and the deployed code as output",
+			Name:             "calltracer-create",
+			About:            "traces a contract deployment transaction; the root frame is CREATE with the initcode as input and the deployed code as output",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallMeContract
 				block := t.chain.GetBlock(int(info.Block))
@@ -703,9 +786,10 @@ var DebugTraceBlockByNumber = MethodTests{
 	"debug_traceBlockByNumber",
 	[]Test{
 		{
-			Name:     "trace-block-with-transactions",
-			About:    "traces a block containing transactions; validates that each entry has txHash and a spec-compliant result",
-			SpecOnly: true,
+			Name:             "trace-block-with-transactions",
+			About:            "traces a block containing transactions; validates that each entry has txHash and a spec-compliant result",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				blockNum := hexutil.EncodeUint64(block.NumberU64())
@@ -721,9 +805,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-memory-encoding",
-			About:    "traces block 0x1 with memory enabled; memory chunks must be 0x-prefixed bytes32 values",
-			SpecOnly: true,
+			Name:             "trace-block-memory-encoding",
+			About:            "traces block 0x1 with memory enabled; memory chunks must be 0x-prefixed bytes32 values",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
 					"disableStack":     false,
@@ -744,9 +829,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-storage-encoding",
-			About:    "traces block 0x2 with storage enabled; storage keys and values must be 0x-prefixed bytes32 values",
-			SpecOnly: true,
+			Name:             "trace-block-storage-encoding",
+			About:            "traces block 0x2 with storage enabled; storage keys and values must be 0x-prefixed bytes32 values",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
 					"disableStack":     false,
@@ -767,9 +853,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-storage-snapshot-timing",
-			About:    "traces block 0x2 and validates cumulative storage snapshots across repeated SSTORE operations",
-			SpecOnly: true,
+			Name:             "trace-block-storage-snapshot-timing",
+			About:            "traces block 0x2 and validates cumulative storage snapshots across repeated SSTORE operations",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
 					"disableStack":     false,
@@ -796,9 +883,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-return-data-behavior",
-			About:    "traces a block with returnData disabled and enabled to validate returnData field gating and encoding",
-			SpecOnly: true,
+			Name:             "trace-block-return-data-behavior",
+			About:            "traces a block with returnData disabled and enabled to validate returnData field gating and encoding",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				blockNum := hexutil.EncodeUint64(1)
 
@@ -873,9 +961,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "calltracer-block-with-transactions",
-			About:    "traces the block containing a calltree invocation with the callTracer; every entry pairs txHash with a CallFrame result",
-			SpecOnly: true,
+			Name:             "calltracer-block-with-transactions",
+			About:            "traces the block containing a calltree invocation with the callTracer; every entry pairs txHash with a CallFrame result",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				blockNum := hexutil.Uint64(info.Block).String()
@@ -890,9 +979,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "calltracer-block-with-log",
-			About:    "traces a block with the callTracer and withLog; log objects carry position and the reverted transactions carry no logs",
-			SpecOnly: true,
+			Name:             "calltracer-block-with-log",
+			About:            "traces a block with the callTracer and withLog; log objects carry position and the reverted transactions carry no logs",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				blockNum := hexutil.Uint64(info.Block).String()
@@ -905,9 +995,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "calltracer-block-with-reverted-tx",
-			About:    "traces the block containing a reverted transaction with the callTracer; the reverted entry carries error and revertReason",
-			SpecOnly: true,
+			Name:             "calltracer-block-with-reverted-tx",
+			About:            "traces the block containing a reverted transaction with the callTracer; the reverted entry carries error and revertReason",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallRevertTxs[0]
 				blockNum := hexutil.Uint64(info.Block).String()
@@ -943,9 +1034,10 @@ var DebugTraceBlockByHash = MethodTests{
 	"debug_traceBlockByHash",
 	[]Test{
 		{
-			Name:     "trace-block-with-transactions",
-			About:    "traces a block containing transactions by hash; validates that each entry has txHash and a spec-compliant result",
-			SpecOnly: true,
+			Name:             "trace-block-with-transactions",
+			About:            "traces a block containing transactions by hash; validates that each entry has txHash and a spec-compliant result",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				var result []map[string]interface{}
@@ -983,9 +1075,10 @@ var DebugTraceBlockByHash = MethodTests{
 			},
 		},
 		{
-			Name:     "calltracer-block-with-transactions",
-			About:    "traces the block containing a calltree invocation by hash with the callTracer",
-			SpecOnly: true,
+			Name:             "calltracer-block-with-transactions",
+			About:            "traces the block containing a calltree invocation by hash with the callTracer",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				info := t.chain.txinfo.CallTreeTxs[0]
 				block := t.chain.GetBlock(int(info.Block))
