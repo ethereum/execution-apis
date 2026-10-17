@@ -22,6 +22,15 @@ CallFrame:
     gasUsed MUST be 0x0. SELFDESTRUCT frames MUST report gas and gasUsed as
     0x0; the opcode's cost is part of the parent frame.
 
+    Frame presence: a frame is reported for each call or create that the
+    parent opcode makes, including one that then fails the call depth limit
+    or, for CALL and CALLCODE, the balance check. A CREATE or CREATE2 that
+    fails the call depth, balance or nonce check is reported as a frame
+    before Amsterdam. Since Amsterdam (EIP-8037) the CREATE opcode makes
+    these checks itself, so no frame is reported. An opcode that halts
+    before it makes the call, for example a CALL that transfers value in a
+    static context, reports no frame.
+
     The calls array references this schema through its $id. In
     refs-openrpc.json that reference is #/components/schemas/CallFrame and the
     $id is removed. In the dereferenced openrpc.json the $id URI is an
