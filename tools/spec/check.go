@@ -27,21 +27,15 @@ type jsonrpcError struct {
 // Checker processes RPC messages and validates them against the spec.
 type Checker struct {
 	spec      *Spec
-	calls     map[string]*pendingCall
+	calls     map[string]*methodSchema
 	history   map[string]struct{} // id of calls already performed
 	checkArgs bool
-}
-
-type pendingCall struct {
-	method    *methodSchema
-	resultURL string
-	itemURL   string // per-element schema of an array result, if narrowed
 }
 
 func NewChecker(spec *Spec) *Checker {
 	return &Checker{
 		spec:    spec,
-		calls:   make(map[string]*pendingCall),
+		calls:   make(map[string]*methodSchema),
 		history: make(map[string]struct{}),
 	}
 }
@@ -83,12 +77,8 @@ func (c *Checker) Request(rawmsg json.RawMessage) error {
 			return err
 		}
 	}
-	resultURL, itemURL, err := c.spec.resultSchemaURL(m, arguments)
-	if err != nil {
-		return err
-	}
 	// Store the call to active call map.
-	c.calls[string(msg.ID)] = &pendingCall{method: m, resultURL: resultURL, itemURL: itemURL}
+	c.calls[string(msg.ID)] = m
 	return nil
 }
 
@@ -108,26 +98,16 @@ func (c *Checker) Response(rawmsg json.RawMessage) error {
 	}
 
 	// Find matching call.
-	call, ok := c.calls[string(msg.ID)]
+	callmethod, ok := c.calls[string(msg.ID)]
 	if !ok {
 		return fmt.Errorf("invalid response message: no matching call for ID %s", msg.ID)
 	}
 	defer delete(c.calls, string(msg.ID))
 	if msg.Error != nil {
-		return c.checkError(call.method, msg.Error)
+		return c.checkError(callmethod, msg.Error)
 	}
-	if err := c.spec.Validate(call.resultURL, msg.Result); err != nil {
-		return err
-	}
-	if call.itemURL != "" {
-		items, _ := msg.Result.([]any)
-		for _, item := range items {
-			if err := c.spec.Validate(call.itemURL, item); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	url := fmt.Sprintf("#/methods/%d/result/schema", callmethod.index)
+	return c.spec.Validate(url, msg.Result)
 }
 
 // UnansweredCalls returns the message IDs of all calls that haven't received a response.
