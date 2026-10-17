@@ -255,9 +255,10 @@ var DebugTraceCall = MethodTests{
 	"debug_traceCall",
 	[]Test{
 		{
-			Name:     "trace-call-opcode-default",
-			About:    "traces a simple call with the default opcode tracer",
-			SpecOnly: true,
+			Name:             "trace-call-opcode-default",
+			About:            "traces a simple call with the default opcode tracer",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -274,9 +275,10 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-call-omitted-block",
-			About:    "traces a call with the block parameter omitted; the trace runs at the latest block",
-			SpecOnly: true,
+			Name:             "trace-call-omitted-block",
+			About:            "traces a call with the block parameter omitted; the trace runs at the latest block",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -293,9 +295,10 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:     "calltracer-nested",
-			About:    "traces a call to the calltree contract with the callTracer; the frame tree must contain every call type",
-			SpecOnly: true,
+			Name:             "calltracer-nested",
+			About:            "traces a call to the calltree contract with the callTracer; the frame tree must contain every call type",
+			SpecOnly:         true,
+			ValidationScript: callFrameCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -318,8 +321,9 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-revert",
-			About: "traces a call that reverts with Error(string); the revert MUST be reported in the frame, not as a JSON-RPC error",
+			Name:             "calltracer-revert",
+			About:            "traces a call that reverts with Error(string); the revert MUST be reported in the frame, not as a JSON-RPC error",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -345,8 +349,9 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-only-top-call",
-			About: "traces a call to the calltree contract with onlyTopCall; only the root frame is returned",
+			Name:             "calltracer-only-top-call",
+			About:            "traces a call to the calltree contract with onlyTopCall; only the root frame is returned",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -370,8 +375,9 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-state-override",
-			About: "traces a call with stateOverrides replacing the callee code; the trace reflects the overridden code",
+			Name:             "calltracer-state-override",
+			About:            "traces a call with stateOverrides replacing the callee code; the trace reflects the overridden code",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				overrideTarget := "0x00000000000000000000000000000000000000c0"
@@ -409,8 +415,9 @@ var DebugTraceCall = MethodTests{
 			},
 		},
 		{
-			Name:  "calltracer-block-param-hash",
-			About: "traces a call with the block given by hash",
+			Name:             "calltracer-block-param-hash",
+			About:            "traces a call with the block given by hash",
+			ValidationScript: callFrameScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
