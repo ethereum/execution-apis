@@ -138,6 +138,8 @@ func main() {
 		if err := sg.Dereference(); err != nil {
 			log.Fatal(err)
 		}
+	} else {
+		sg.LocalizeIDRefs()
 	}
 
 	// Write output.
