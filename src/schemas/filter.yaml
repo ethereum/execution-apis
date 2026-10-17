@@ -58,6 +58,76 @@ Filter:
       required:
         - blockHash
 
+BlockRef:
+  title: Block reference
+  type: object
+  required:
+    - number
+    - hash
+    - parentHash
+  additionalProperties: false
+  properties:
+    number:
+      title: block number
+      $ref: '#/components/schemas/uint'
+    hash:
+      title: block hash
+      $ref: '#/components/schemas/hash32'
+    parentHash:
+      title: parent hash
+      $ref: '#/components/schemas/hash32'
+
+LogsV2Filter:
+  title: Logs V2 filter
+  type: object
+  required:
+    - fromBlockHash
+  additionalProperties: false
+  properties:
+    fromBlockHash:
+      title: from block hash
+      description: Hash of the block to start scanning from, inclusive.
+      $ref: '#/components/schemas/hash32'
+    toBlock:
+      title: to block
+      description: Inclusive upper bound for the scan. Accepts a block number or tag. If omitted, defaults to latest.
+      $ref: '#/components/schemas/BlockNumberOrTagForRange'
+    address:
+      title: Address(es)
+      oneOf:
+        - title: Any Address
+          type: 'null'
+        - title: Address
+          $ref: '#/components/schemas/address'
+        - title: Addresses
+          $ref: '#/components/schemas/addresses'
+    topics:
+      title: Topics
+      $ref: '#/components/schemas/FilterTopics'
+
+LogsV2Result:
+  title: Logs V2 result
+  type: object
+  required:
+    - logs
+    - cursorBlock
+    - headBlock
+  additionalProperties: false
+  properties:
+    logs:
+      title: logs
+      type: array
+      items:
+        $ref: '#/components/schemas/Log'
+    cursorBlock:
+      title: cursor block
+      description: The last block the server scanned, inclusive. Pass its hash as fromBlockHash in the next request to resume pagination without gaps or overlaps.
+      $ref: '#/components/schemas/BlockRef'
+    headBlock:
+      title: head block
+      description: The canonical head at the time the server executed this query.
+      $ref: '#/components/schemas/BlockRef'
+
 FilterTopics:
   title: Filter Topics
   oneOf:
