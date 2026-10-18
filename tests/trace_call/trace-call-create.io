@@ -1,0 +1,3 @@
+// simulates a creation whose initcode returns one byte of code
+>> {"jsonrpc":"2.0","id":1,"method":"trace_call","params":[{"from":"0x7435ed30a8b4aeb0877cef0c6e8cffe834eb865f","gas":"0x927c0","input":"0x60fe60005360016000f3","value":"0x0"},["trace"],"0x35"]}
+<< {"jsonrpc":"2.0","id":1,"result":{"output":"0xfe","trace":[{"action":{"from":"0x7435ed30a8b4aeb0877cef0c6e8cffe834eb865f","gas":"0x8582e","init":"0x60fe60005360016000f3","value":"0x0","creationMethod":"create"},"result":{"gasUsed":"0xda","address":"0xb1917d669e2a9307d342d04ab74e68ea94c4d11c","code":"0xfe"},"subtraces":0,"traceAddress":[],"type":"create"}],"stateDiff":null,"vmTrace":null}}
