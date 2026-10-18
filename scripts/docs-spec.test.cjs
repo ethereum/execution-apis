@@ -69,7 +69,8 @@ test('actual generated trace pages retain array, variant fields and localization
   assert.doesNotMatch(get, /TraceRewardAction/);
   const call = pages.find(page => page.methodName === 'trace_call').markdown;
   assert.match(call, /Recursive instance of \[?https:\/\/ethereum.github.io\/execution-apis\/schemas\/trace-vm.json/);
-  assert.doesNotMatch(call, /\*\*blockHash\*\*/);
+  // The block parameter may name a blockHash (EIP-1898); envelope frames carry no localization.
+  assert.doesNotMatch(call.split('## Result')[1], /\*\*blockHash\*\*/);
   for (const field of ['chainId', 'authorizationList', 'blobVersionedHashes', 'maxFeePerBlobGas']) {
     assert.ok(call.includes(`**${field}**`), `standard call field ${field} must be visible`);
   }
