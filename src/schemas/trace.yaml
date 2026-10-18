@@ -138,7 +138,7 @@ TraceFilter:
       - type: 'null'
       description: Selects exactly the canonical block with this hash (H33). Mutually exclusive with non-null
         fromBlock and toBlock (-32602 recommended); null is omitted. An unknown, noncanonical, unexecuted or
-        unavailable hash returns an error (-32001 recommended; 4444 for pruned history), never [].
+        unavailable hash returns an error (-32001; 4444 recommended for pruned history), never [].
     fromBlock: &rangeBound
       anyOf:
       - allOf:
@@ -206,8 +206,8 @@ TraceFilter:
     return an error (4444 recommended) if required history is unavailable. count limits results, not scan or replay work.
     A non-null blockHash is mutually exclusive with non-null bounds (-32602 recommended) and selects
     exactly that canonical block; the result, including [], is for that block, and each record carries
-    its hash. An unknown, noncanonical, unexecuted or otherwise unavailable hash returns an error (-32001
-    recommended; 4444 for pruned history), never [] or another block's records. Resolve the hash and
+    its hash. An unknown, noncanonical, unexecuted or otherwise unavailable hash returns an error (-32001;
+    4444 recommended for pruned history), never [] or another block's records. Resolve the hash and
     trace the block in one chain view, never substituting a block by height (H03,H04,H06,H23,H27,H30,H32,H33).
   title: TraceFilter
 TraceCallAction:
@@ -358,8 +358,8 @@ TraceFrame:
     creating frame with "Out of gas". The designated invalid instruction 0xFE is an undefined opcode,
     so its frame fails with "Bad instruction". Any other error string is an extension that consumers
     treat as a generic failure. revertReason is not part of this profile; raw revert bytes live in
-    result.output. A suicide frame records the SELFDESTRUCT opcode and its transfer, not account
-    deletion (H05,H09,H10,H24).'
+    result.output. Suicide and reward records carry result null. A suicide frame records the
+    SELFDESTRUCT opcode and its transfer, not account deletion (H05,H09,H10,H24).'
   oneOf:
   - type: object
     required:
@@ -475,6 +475,7 @@ TraceFrame:
     - action
     - subtraces
     - traceAddress
+    - result
     properties:
       subtraces: *count
       traceAddress: *id005
@@ -490,6 +491,7 @@ TraceFrame:
     - action
     - subtraces
     - traceAddress
+    - result
     properties:
       subtraces: *count
       traceAddress: *id005

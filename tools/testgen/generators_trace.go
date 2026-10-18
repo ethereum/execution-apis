@@ -113,14 +113,15 @@ var TraceBlock = MethodTests{
 		},
 		{
 			Name:  "trace-block-unknown",
-			About: "traces a block number past the head, which is unknown; the result is null or an error (-32001 recommended)",
+			About: "traces a block number past the head, which is unknown; the error is -32001",
 			Run: func(ctx context.Context, t *T) error {
-				err := traceNull(ctx, t, "trace_block", hexutil.EncodeUint64(t.chain.Head().NumberU64()+1000))
+				var result json.RawMessage
+				err := t.rpc.CallContext(ctx, &result, "trace_block", hexutil.EncodeUint64(t.chain.Head().NumberU64()+1000))
 				var rpcErr rpc.Error
-				if errors.As(err, &rpcErr) {
-					return nil
+				if !errors.As(err, &rpcErr) || rpcErr.ErrorCode() != -32001 {
+					return fmt.Errorf("unknown block: want error -32001, got %s, %v", result, err)
 				}
-				return err
+				return nil
 			},
 		},
 	},
@@ -355,9 +356,9 @@ var TraceRawTransaction = MethodTests{
 			Name:  "trace-raw-transfer",
 			About: "traces a signed value transfer at the head without submitting it",
 			Run: func(ctx context.Context, t *T) error {
-				// The last prefunded account by address without code; its state nonce is
-				// used, so transactions other tests submit to the pool do not shift it.
-				// The recipient exists, so no account is created at the Amsterdam head.
+				// The last prefunded account by address without code. No other test
+				// sends from it, so its nonce is the same on every head the commits
+				// leave. The recipient exists, so no account is created at the head.
 				var sender common.Address
 				for i := len(t.chain.senders) - 1; i >= 0; i-- {
 					if sender, _ = t.chain.GetSender(i); len(t.chain.state[sender].Code) == 0 {
@@ -365,12 +366,14 @@ var TraceRawTransaction = MethodTests{
 					}
 				}
 				recipient, _ := t.chain.GetSender(0)
+				// The committed blocks may move the base fee; three times the static
+				// head's covers them, and keeps the signed bytes deterministic.
 				head := t.chain.Head()
 				tx := t.chain.MustSignTx(sender, &types.DynamicFeeTx{
 					ChainID:   t.chain.config.ChainID,
 					Nonce:     t.chain.state[sender].Nonce,
 					GasTipCap: big.NewInt(params.GWei),
-					GasFeeCap: new(big.Int).Add(new(big.Int).Mul(head.BaseFee(), big.NewInt(2)), big.NewInt(params.GWei)),
+					GasFeeCap: new(big.Int).Add(new(big.Int).Mul(head.BaseFee(), big.NewInt(3)), big.NewInt(params.GWei)),
 					Gas:       21000,
 					To:        &recipient,
 					Value:     big.NewInt(params.GWei),
@@ -379,7 +382,9 @@ var TraceRawTransaction = MethodTests{
 				if err != nil {
 					return err
 				}
-				_, err = traceCall(ctx, t, "trace_rawTransaction", hexutil.Bytes(raw), []string{"trace", "stateDiff"})
+				// Only the trace: a stateDiff would include the fee recipient of a head
+				// that the last commit test builds from the mempool nondeterministically.
+				_, err = traceCall(ctx, t, "trace_rawTransaction", hexutil.Bytes(raw), []string{"trace"})
 				return err
 			},
 		},

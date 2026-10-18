@@ -24,7 +24,8 @@ incomplete success. Explicit pagination through `count` and `after` retains its 
 
 ## Error responses
 
-Error codes named in this profile are recommended; conformance requires the error response itself.
+Error codes named in this profile are recommended, except the code for an unknown block, which is
+required; conformance requires the error response itself.
 Where the profile requires an error, a client returns one complete JSON-RPC error response, never a
 result, `null`, `[]`, a clamped or partial result, or a malformed or aborted response. What is
 required is the behavior: whether a request executes or is rejected, whether an answer is an error,
@@ -34,7 +35,8 @@ not for insufficient funds of the different sender that its signature then recov
 rules are violated, the precedence stated below decides which violation a rejection reports. The
 recommended codes reuse the standard JSON-RPC and `eth_simulateV1` codes, the `eth_sendRawTransaction`
 error groups and the pruned-history code, so callers can branch without parsing messages, but a different code is not a
-conformance failure. Only the JSON-RPC 2.0 base protocol is exempt: a request that is not valid JSON
+conformance failure. An unknown block, by number, tag or hash, in any method is -32001 (Resource not
+found). Only the JSON-RPC 2.0 base protocol is exempt: a request that is not valid JSON
 returns -32700 (Parse error), a method a client does not serve returns -32601 (Method not found), and
 an internal error (-32603) reports a server failure, not a rejection, so it never serves as the
 required error. Malformed parameters recommend the standard -32602 (Invalid params) without requiring
@@ -45,8 +47,10 @@ it, because clients reject some malformed input through their own validation pat
 - The nine methods are one contract, with no optional subset or discovery mechanism: a client
   that serves the trace namespace implements every method. A method a client does not serve
   returns -32601, never an empty result (H01).
-- An explicit `null` for an optional parameter or an optional member of a parameter object is the
-  same as omitting it: the default applies. Clients already treat `null` this way in `eth_call`,
+- An explicit `null` for an optional parameter, or for an optional member of a call object or a
+  `trace_filter` object, is the same as omitting it: the default applies. Objects reused from
+  `eth_call` and `eth_simulateV1`, such as EIP-1898 block selectors and block overrides, keep their
+  own schemas. Clients already treat `null` this way in `eth_call`,
   `eth_estimateGas` and `eth_getLogs` fields. `null` keeps its own meaning only where the schema
   gives it one: a null `to` creates a contract (H14).
 - Query path inputs use hex quantities for caller compatibility; traceAddress outputs retain JSON
@@ -104,7 +108,7 @@ it, because clients reject some malformed input through their own validation pat
   `[]`, is for that block and each record carries its hash. Address matching, `mode` (including reward
   matching), ordering and `after`/`count` then apply as for a single-block range. The block must be
   canonical in the request's chain view and executed: an unknown, noncanonical, not-yet-executed or
-  otherwise unavailable hash returns an error (-32001 recommended; 4444 for pruned history), never
+  otherwise unavailable hash returns an error (-32001; 4444 recommended for pruned history), never
   `[]` or another block's records. Resolve the hash and trace the block in one chain view, never
   resolving it to a number and scanning that number in a newer view, and validate the selector before
   any `count: 0` shortcut. This narrows EIP-234, which also serves noncanonical blocks: serving a side
@@ -232,7 +236,7 @@ caller as `from` and the target as `to`; DELEGATECALL and CALLCODE report the ex
 the code address. DELEGATECALL `value` is the inherited value and STATICCALL `value` is 0. Create
 actions require `creationMethod` (`create` or `create2`). A `suicide` frame records the opcode and
 its transfer, not account deletion. A CALL-family call that fails its precheck (depth limit,
-insufficient balance) emits a frame with its action and error, no `result` and no subtraces; the
+insufficient balance) emits a frame with its action and error, `result: null` and no subtraces; the
 forwarded gas returns to the caller, which continues after pushing 0. A CREATE or CREATE2 that fails
 its precheck (depth limit, insufficient balance, nonce overflow) emits the same kind of frame before
 Amsterdam; from Amsterdam the check runs in the creating opcode and no frame is emitted. This follows

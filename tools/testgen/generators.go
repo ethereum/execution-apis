@@ -115,15 +115,6 @@ var AllMethods = []MethodTests{
 	DebugTraceTransaction,
 	DebugTraceBlockByNumber,
 	DebugTraceBlockByHash,
-	TraceBlock,
-	TraceTransaction,
-	TraceGet,
-	TraceReplayTransaction,
-	TraceReplayBlockTransactions,
-	TraceFilter,
-	TraceCall,
-	TraceCallMany,
-	TraceRawTransaction,
 	EthBaseFee,
 	EthBlobBaseFee,
 	EthConfig,
@@ -138,6 +129,18 @@ var AllMethods = []MethodTests{
 	// txpool_*). It advances the canonical head, so it must also come after every
 	// read-only test that assumes the static chain head.
 	TestingCommitBlockV1,
+
+	// trace_* sorts between testing_* and txpool_*, so it runs on the head the
+	// commits above advanced, as in hive's lexical replay order.
+	TraceBlock,
+	TraceTransaction,
+	TraceGet,
+	TraceReplayTransaction,
+	TraceReplayBlockTransactions,
+	TraceFilter,
+	TraceCall,
+	TraceCallMany,
+	TraceRawTransaction,
 
 	TxpoolStatus,
 	TxpoolContent,

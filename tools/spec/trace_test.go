@@ -112,8 +112,8 @@ func TestTraceContracts(t *testing.T) {
 	create["type"] = "create"
 	create["action"] = traceObject{"from": address, "gas": "0x100", "init": "0x00", "value": "0x0", "creationMethod": "create"}
 	create["result"] = traceObject{"gasUsed": "0x0", "address": address, "code": "0x"}
-	suicide := traceObject{"type": "suicide", "action": traceObject{"address": address, "refundAddress": address, "balance": "0x0"}, "subtraces": 0, "traceAddress": []any{}}
-	reward := traceObject{"type": "reward", "action": traceObject{"author": address, "rewardType": "block", "value": "0x1"}, "subtraces": 0, "traceAddress": []any{}}
+	suicide := traceObject{"type": "suicide", "action": traceObject{"address": address, "refundAddress": address, "balance": "0x0"}, "subtraces": 0, "traceAddress": []any{}, "result": nil}
+	reward := traceObject{"type": "reward", "action": traceObject{"author": address, "rewardType": "block", "value": "0x1"}, "subtraces": 0, "traceAddress": []any{}, "result": nil}
 	local := func(frame traceObject) traceObject {
 		x := traceCopy(t, frame)
 		x["blockHash"] = hash
@@ -353,8 +353,15 @@ func TestTraceContracts(t *testing.T) {
 	for _, method := range []string{"trace_get", "trace_transaction", "trace_replayTransaction"} {
 		add("missing transaction", method, -1, nil, true)
 	}
+	// An unknown block is an error, never a null result.
 	for _, method := range []string{"trace_block", "trace_replayBlockTransactions"} {
-		add("missing block", method, -1, nil, true)
+		add("missing block", method, -1, nil, false)
+	}
+	for _, frame := range []traceObject{local(suicide), historicalReward} {
+		add(frame["type"].(string)+" with result", "trace_block", -1, []any{frame}, true)
+		omitted := traceCopy(t, frame)
+		delete(omitted, "result")
+		add(frame["type"].(string)+" without result", "trace_block", -1, []any{omitted}, false)
 	}
 	// A deeply malformed child must fail through the actual speccheck serialization path.
 	vm := traceObject{"code": "0x00", "ops": []any{}}

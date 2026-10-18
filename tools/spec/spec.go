@@ -67,15 +67,18 @@ func parse(fileName string, data []byte) (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	var cdoc any
-	if err := json.Unmarshal(data, &cdoc); err != nil {
+	// Keep numbers exact, so bounds such as the uint64 maximum are enforced.
+	cdoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(data))
+	if err != nil {
 		return nil, err
 	}
 	s.cdoc, s.jdoc = cdoc, bytes.Clone(data)
 	return s, nil
 }
 
-// New indexes the methods and errors in the given OpenRPC spec.
+// New indexes the methods and errors in the given OpenRPC spec. It validates
+// against the document marshaled from the generated OpenRPC types, which rewrite
+// tuple `items`; Load and LoadString validate against the document as written.
 func New(fileName string, doc *openrpc.OpenrpcDocument) (*Spec, error) {
 	if doc.Methods == nil {
 		return nil, errors.New(`missing "methods" in spec`)
