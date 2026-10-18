@@ -28,8 +28,8 @@ github.com/allegro/bigcache v1.2.1-0.20190218064605-e24eb225f156 h1:eMwmnE/GDgah
 github.com/allegro/bigcache v1.2.1-0.20190218064605-e24eb225f156/go.mod h1:Cb/ax3seSYIx7SuZdm2G2xzfwmv3TPSk2ucNfQESPXM=
 github.com/attestantio/go-eth2-client v0.30.1 h1:OqAzTr4UFVGKTQ1XCeZaOJ6VyD5P7p5bEU2YsVXxYB8=
 github.com/attestantio/go-eth2-client v0.30.1/go.mod h1:IcbypY5iD/c/T5OLWVuZyWS8kM8HXkGc0ZW12uikfys=
-github.com/banteg/go-ethereum v1.17.6-0.20261018130105-fdbb46a5039c h1:AQLTKXx+EU6PWjtzYcKyUVOVzfRyDeTfOsq8/yAU5wU=
-github.com/banteg/go-ethereum v1.17.6-0.20261018130105-fdbb46a5039c/go.mod h1:RDnI/uaBp0lGdh3YftAFxMxLgba1I1QosRI/iC6hEak=
+github.com/banteg/go-ethereum v1.17.6-0.20261018152201-a15b96ff3773 h1:kbD4/vP0IRuMkgGLjdu/hjt81L/qjXqxwEDKwchsOLY=
+github.com/banteg/go-ethereum v1.17.6-0.20261018152201-a15b96ff3773/go.mod h1:RDnI/uaBp0lGdh3YftAFxMxLgba1I1QosRI/iC6hEak=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bits-and-blooms/bitset v1.20.0 h1:2F+rfL86jE2d/bmw7OhqUg2Sj/1rURkBn3MdfoPyRVU=

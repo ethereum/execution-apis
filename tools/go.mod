@@ -166,4 +166,4 @@ tool (
 	honnef.co/go/tools/cmd/staticcheck
 )
 
-replace github.com/ethereum/go-ethereum => github.com/banteg/go-ethereum v1.17.6-0.20261018130105-fdbb46a5039c
+replace github.com/ethereum/go-ethereum => github.com/banteg/go-ethereum v1.17.6-0.20261018152201-a15b96ff3773
