@@ -202,13 +202,13 @@ func TestTraceContracts(t *testing.T) {
 		add("halt null result "+kind, "trace_call", -1, envelope(failed), true)
 		failed = traceCopy(t, failed)
 		delete(failed, "result")
-		add("halt missing result "+kind, "trace_call", -1, envelope(failed), true)
+		add("halt missing result "+kind, "trace_call", -1, envelope(failed), false)
 		failed = traceCopy(t, failed)
 		failed["result"] = traceObject{"gasUsed": "0x1", "output": "0x"}
 		add("halt with result "+kind, "trace_call", -1, envelope(failed), false)
 		failed = traceCopy(t, failed)
 		failed["error"] = "vendor detail"
-		delete(failed, "result")
+		failed["result"] = nil
 		add("extension error label "+kind, "trace_call", -1, envelope(failed), true)
 	}
 	failedCreate := traceCopy(t, create)
@@ -225,7 +225,7 @@ func TestTraceContracts(t *testing.T) {
 	add("failed create mixed result", "trace_call", -1, envelope(failedCreate), false)
 	collision := traceCopy(t, create)
 	collision["error"] = "Contract address collision"
-	delete(collision, "result")
+	collision["result"] = nil
 	add("create collision", "trace_call", -1, envelope(collision), true)
 	for _, method := range []any{nil, "create3"} {
 		bad := traceCopy(t, create)
@@ -359,7 +359,7 @@ func TestTraceContracts(t *testing.T) {
 	// A deeply malformed child must fail through the actual speccheck serialization path.
 	vm := traceObject{"code": "0x00", "ops": []any{}}
 	for range 5 {
-		vm = traceObject{"code": "0x00", "ops": []any{traceObject{"pc": 0, "cost": 0, "ex": traceObject{"used": 0, "push": []any{}, "mem": nil, "store": nil}, "sub": vm}}}
+		vm = traceObject{"code": "0x00", "ops": []any{traceObject{"pc": 0, "cost": 0, "op": "CALL", "ex": traceObject{"used": 0, "push": []any{}, "mem": nil, "store": nil}, "sub": vm}}}
 	}
 	e := envelope(call)
 	e["vmTrace"] = vm
@@ -446,11 +446,13 @@ func TestTraceVmResource(t *testing.T) {
 			valid bool
 		}{
 			{`{"code":"0x","ops":[]}`, true},
-			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":{"used":0,"push":["0x1"],"mem":{"off":0,"data":"0x00"},"store":{"key":"0x0","val":"0x1"}},"sub":{"code":"0x","ops":[]}}]}`, true},
-			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":null,"sub":{"code":"bad","ops":[]}}]}`, false},
-			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":{"used":0,"push":["0x00"],"mem":null,"store":null},"sub":null}]}`, false},
-			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":null,"sub":null}]}`, true},
-			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":null,"sub":{"code":"0x","ops":[]}}]}`, false},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"op":"SSTORE","ex":{"used":0,"push":["0x1"],"mem":{"off":0,"data":"0x00"},"store":{"key":"0x0","val":"0x1"}},"sub":{"code":"0x","ops":[]}}]}`, true},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"op":"SSTORE","ex":null,"sub":{"code":"bad","ops":[]}}]}`, false},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"op":"SSTORE","ex":{"used":0,"push":["0x00"],"mem":null,"store":null},"sub":null}]}`, false},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"op":"SSTORE","ex":null,"sub":null}]}`, true},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"op":"SSTORE","ex":null,"sub":{"code":"0x","ops":[]}}]}`, false},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"ex":null,"sub":null}]}`, false},
+			{`{"code":"0x","ops":[{"pc":0,"cost":0,"op":"STOP","idx":"0","ex":null,"sub":null}]}`, false},
 		} {
 			var input any
 			if err := json.Unmarshal([]byte(tc.input), &input); err != nil {

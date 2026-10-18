@@ -70,9 +70,8 @@ it, because clients reject some malformed input through their own validation pat
 - Empty trace selection is valid. The envelope always preserves output.
 - Where clients already agree, the draft keeps their answer (H06). Unknown transactions and valid but
   absent tree paths return null, as Parity did and as `eth_getTransactionByHash` does. Unknown blocks
-  in `trace_block` and `trace_replayBlockTransactions` return null or an error, preserving both
-  established client conventions. An unknown simulation block always returns an error, as `eth_call`
-  does. A successful collection never represents an unknown block. -32001 (Resource not found) is recommended:
+  return an error in every method, as an unknown simulation block does in `eth_call`; a successful
+  collection or null never represents an unknown block. The code is -32001 (Resource not found):
   in `trace_call` and `trace_callMany` clients use -32000 for transaction-validation failures, so a
   dedicated code lets callers tell an unknown block from an invalid call without parsing messages. Known blocks with pruned required state return an error, with 4444 recommended. If pruned
   indexing prevents establishing whether a hash is absent, return an error (4444 recommended) rather than claiming a
@@ -241,8 +240,8 @@ the call tracers of Geth, Erigon, Reth and Besu, which record the rejected attem
 collision emits a create frame with error `Contract address collision`.
 
 `error` alone determines failure. A REVERT frame has error `Reverted` and requires
-`result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt may
-omit `result` or set it to null. Erigon and Reth already emit REVERT results; the new part is the
+`result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt has
+`result: null`. Erigon and Reth already emit REVERT results; the new part is the
 failed-CREATE shape, which must not report the would-be address. No contract exists at that
 address, which is also why a failed CREATE has no created-address match in `trace_filter` (H23).
 Failure labels are `Reverted`, `Out of gas`, `Bad instruction`, `Bad jump destination`,
@@ -299,8 +298,8 @@ unchanged. A selected `vmTrace` is always an object. An operation that entered a
 including a precompile or empty-code target, has that frame’s trace as `sub`
 (`{code: "0x", ops: []}` if no instruction ran); others have `sub: null`. These deltas do not
 independently encode allocated memory size. `pc`, `cost`, `ex.used` and output trace paths remain
-JSON integers; stack words use hex quantities. Optional `idx` needs a declared numbering convention
-to be checked.
+JSON integers; stack words use hex quantities. Each operation carries its mnemonic as `op`, and
+operations have no other members.
 
 Filter membership describes actions, not necessarily committed transfers. A record matches only
 addresses it reports. A failed CREATE reports no created address, because its result has no address

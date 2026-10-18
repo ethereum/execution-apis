@@ -330,13 +330,15 @@ TraceRevertedCreateResult:
   title: TraceRevertedCreateResult
 TraceFrame:
   title: Flat call trace record
-  description: 'Preorder traversal. Retain root precompile calls regardless of value. Omit nested precompile
+  description: 'Preorder traversal. The transaction and every CALL-family or CREATE-family operation
+    that targets an account outside the precompile set emit a frame, whether they succeed, revert or
+    halt. Retain root precompile calls regardless of value. Omit nested precompile
     frames with zero value; retain nested frames with nonzero transferred or inherited value, whether
     successful or failed. A precompile is an address in the precompile set active at the executing
     block''s fork. traceAddress gives child ordinals and subtraces counts direct children in the
     emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM
     return-memory effects. A CALL-family call that fails its precheck (call depth limit or
-    insufficient balance) emits a frame with its action and error, no result and no subtraces; the
+    insufficient balance) emits a frame with its action and error, a null result and no subtraces; the
     forwarded gas returns to the caller. A CREATE or CREATE2 that fails its precheck (call depth limit,
     insufficient balance or nonce overflow) emits the same kind of frame before Amsterdam; from
     Amsterdam the check runs in the creating opcode and no frame is emitted. A CREATE whose address
@@ -346,7 +348,7 @@ TraceFrame:
     error alone determines failure. A REVERT frame has error "Reverted" and a required result
     {gasUsed, output} carrying its revert bytes, for CREATE too, without address or code: no contract
     exists at the would-be address. An exceptional halt consumes the frame''s action gas; its result
-    may be omitted or null. Failure labels are "Reverted", "Out of gas", "Bad instruction", "Bad jump
+    is null. Failure labels are "Reverted", "Out of gas", "Bad instruction", "Bad jump
     destination", "Stack underflow", "Out of stack", "Mutable Call In Static Context", "Built-in
     failed" and "Out of bounds". As in Parity and OpenEthereum, a code-deposit failure, including code
     above the EIP-170 size limit, is "Out of gas", and returned code starting with 0xEF (EIP-3541) is
@@ -405,9 +407,10 @@ TraceFrame:
         result:
           $ref: '#/components/schemas/TraceCallResult'
     - title: Halted CALL
-      description: Exceptional halt; result is omitted or null.
+      description: Exceptional halt; result is null.
       required:
       - error
+      - result
       properties:
         error: &haltError
           not:
@@ -458,9 +461,10 @@ TraceFrame:
         result:
           $ref: '#/components/schemas/TraceRevertedCreateResult'
     - title: Halted CREATE
-      description: Exceptional halt, including an address collision; result is omitted or null.
+      description: Exceptional halt, including an address collision; result is null.
       required:
       - error
+      - result
       properties:
         error: *haltError
         result:
@@ -776,8 +780,10 @@ TraceVm:
         required:
         - pc
         - cost
+        - op
         - ex
         - sub
+        additionalProperties: false
         properties:
           pc: *id004
           cost: *id004
@@ -824,8 +830,6 @@ TraceVm:
             - type: 'null'
           op:
             type: string
-          idx:
-            type: string
         if:
           required: [ex]
           properties:
@@ -858,8 +862,8 @@ TraceVm:
     quantities, whenever the SSTORE completes, even if the value is unchanged; TSTORE and SLOAD
     never set it. sub is the trace of the child frame this operation entered, including precompile
     and empty-code targets, which give {code: 0x, ops: []} when no instruction ran; it is null when
-    the operation entered no frame, such as a failed precheck or SELFDESTRUCT. op and idx are
-    optional annotations (H19-H21).'
+    the operation entered no frame, such as a failed precheck or SELFDESTRUCT. op is the operation''s
+    mnemonic, such as PUSH1 or SSTORE.'
 TraceExecution:
   type: object
   required:

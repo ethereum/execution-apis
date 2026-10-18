@@ -62,7 +62,7 @@ test('actual generated trace pages retain array, variant fields and localization
   assert.match(block, /Halted CREATE/);
   assert.match(block, /error must be absent/);
   assert.match(block, /result carries the frame's gas and revert bytes/);
-  assert.match(block, /result is omitted or null/);
+  assert.match(block, /result is null/);
   assert.match(block, /\*\*creationMethod\*\* [^\n]+\*required\*/);
   assert.match(block, /\*\*transactionHash\*\* `null` \*required\*/);
   const get = pages.find(page => page.methodName === 'trace_get').markdown;
