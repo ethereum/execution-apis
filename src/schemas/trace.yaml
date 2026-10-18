@@ -630,8 +630,12 @@ TraceStorageChange:
     required:
     - +
     properties:
-      +: &id010
-        $ref: '#/components/schemas/bytes32'
+      +:
+        allOf:
+        - &id010
+          $ref: '#/components/schemas/bytes32'
+        - not:
+            pattern: ^0x0{64}$
     additionalProperties: false
   - type: object
     required:
@@ -731,7 +735,7 @@ TraceAccountDiff:
 TraceStateDiff:
   type: object
   patternProperties:
-    ^0x[0-9a-f]{40}$:
+    ^0x[0-9a-fA-F]{40}$:
       $ref: '#/components/schemas/TraceAccountDiff'
   additionalProperties: false
   description: 'Net committed state changes for this execution, comparing the execution endpoints. An
@@ -903,7 +907,7 @@ TraceOverrideConfig:
   properties:
     stateOverrides:
       anyOf:
-      - $ref: '#/components/schemas/TraceStateOverrides'
+      - $ref: '#/components/schemas/StateOverrides'
       - type: 'null'
     blockOverrides:
       anyOf:
@@ -917,44 +921,3 @@ TraceOverrideConfig:
     instead of the preferred positional state map. Other configuration entries remain extension
     fields. A successful decode does not establish support; accepted override members must take
     effect, and unsupported non-null shapes must be rejected (H15).
-
-TraceStateOverrides:
-  title: Optional trace state overrides
-  type: object
-  patternProperties:
-    ^0x[a-fA-F0-9]{40}$:
-      type: object
-      properties:
-        nonce:
-          title: Nonce
-          $ref: '#/components/schemas/uint64'
-        balance:
-          title: Balance
-          $ref: '#/components/schemas/uint256'
-        code:
-          title: Code
-          $ref: '#/components/schemas/bytes'
-        movePrecompileToAddress:
-          title: MovePrecompileToAddress
-          $ref: '#/components/schemas/address'
-          description: Moves addresses precompile into the specified address. This move is done before
-            the 'code' override is set. Can only move precompiles.
-        state:
-          title: Storage
-          description: Key-value mapping to override all slots in the account storage before executing
-            the call. This functions similar to eth_call's state parameter.
-          $ref: '#/components/schemas/AccountStorage'
-        stateDiff:
-          title: Storage difference
-          description: Key-value mapping to override individual slots in the account storage before executing
-            the call. This functions similar to eth_call's state parameter.
-          $ref: '#/components/schemas/AccountStorage'
-      not:
-        required:
-        - state
-        - stateDiff
-      additionalProperties: false
-  additionalProperties: false
-  description: The StateOverrides fields with optional storage, preserving existing balance/code/nonce-only
-    trace and eth_call overrides. State and stateDiff are mutually exclusive. Accepted contents must take
-    effect (H15).

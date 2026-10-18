@@ -330,6 +330,10 @@ func TestTraceContracts(t *testing.T) {
 	}
 	add("born account", "trace_call", -1, born(traceObject{slot: traceObject{"+": hash}}), true)
 	add("born account changed slot", "trace_call", -1, born(traceObject{slot: traceObject{"*": traceObject{"from": slot, "to": hash}}}), false)
+	add("born account zero slot", "trace_call", -1, born(traceObject{slot: traceObject{"+": slot}}), false)
+	checksummed := envelope(call)
+	checksummed["stateDiff"] = traceObject{"0x" + strings.Repeat("aB", 20): traceObject{"balance": changed, "nonce": "=", "code": "=", "storage": traceObject{}}}
+	add("checksummed account key", "trace_call", -1, checksummed, true)
 	add("born account unchanged nonce", "trace_call", -1, accountDiff(traceObject{"+": "0x1"}, "=", traceObject{"+": "0x"}, traceObject{}), false)
 	died := func(storage traceObject) traceObject {
 		return accountDiff(traceObject{"-": "0x0"}, traceObject{"-": "0x1"}, traceObject{"-": "0x00"}, storage)

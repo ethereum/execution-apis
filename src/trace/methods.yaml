@@ -76,7 +76,7 @@
     schema:
       title: Optional state overrides
       anyOf:
-      - $ref: '#/components/schemas/TraceStateOverrides'
+      - $ref: '#/components/schemas/StateOverrides'
       - $ref: '#/components/schemas/TraceOverrideConfig'
       - type: 'null'
   - &blockOverrides
@@ -158,6 +158,7 @@
   - name: Calls
     required: true
     schema:
+      title: Calls with their trace types
       type: array
       items:
         $ref: '#/components/schemas/TraceCallManyEntry'
@@ -167,6 +168,7 @@
   result:
     name: Result
     schema:
+      title: Execution results in call order
       type: array
       items:
         $ref: '#/components/schemas/TraceExecution'
@@ -301,6 +303,7 @@
   result:
     name: Result
     schema:
+      title: Replay envelope, or null for an unknown transaction
       anyOf:
       - $ref: '#/components/schemas/TraceReplay'
       - type: 'null'
@@ -347,6 +350,7 @@
   result:
     name: Result
     schema:
+      title: Replay envelopes in transaction order
       anyOf:
       - type: array
         items:
@@ -393,6 +397,7 @@
   result:
     name: Result
     schema:
+      title: Localized traces of the block, or null when it is unknown
       anyOf:
       - $ref: '#/components/schemas/TraceLocalizedFrames'
       - type: 'null'
@@ -418,6 +423,7 @@
   result:
     name: Result
     schema:
+      title: Localized traces of the transaction, or null when it is unknown
       anyOf:
       - $ref: '#/components/schemas/TraceLocalizedTransactionFrames'
       - type: 'null'
@@ -454,6 +460,7 @@
   result:
     name: Result
     schema:
+      title: Trace at the path, or null when there is none
       anyOf:
       - $ref: '#/components/schemas/TraceLocalizedTransactionFrame'
       - type: 'null'
