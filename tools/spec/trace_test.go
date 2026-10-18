@@ -1,7 +1,6 @@
-package main
+package spec
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,17 +10,16 @@ import (
 	"testing"
 
 	"github.com/ethereum/execution-apis/tools/internal/specgen"
-	schema5 "github.com/santhosh-tekuri/jsonschema/v5"
 	schema6 "github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 type traceObject = map[string]any
 
 // Build from the real YAML, so tests also run on a clean checkout without make.
-func traceDocuments(t *testing.T) (traceObject, traceObject, map[string]*methodSchema) {
+func traceDocuments(t *testing.T) (traceObject, traceObject, *Spec) {
 	t.Helper()
 	g := specgen.New()
-	paths, err := filepath.Glob("../../../src/schemas/*.yaml")
+	paths, err := filepath.Glob("../../src/schemas/*.yaml")
 	if err != nil || len(paths) == 0 {
 		t.Fatalf("schema files: %v", err)
 	}
@@ -34,7 +32,7 @@ func traceDocuments(t *testing.T) (traceObject, traceObject, map[string]*methodS
 			t.Fatal(err)
 		}
 	}
-	data, err := os.ReadFile("../../../src/trace/methods.yaml")
+	data, err := os.ReadFile("../../src/trace/methods.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +60,7 @@ func traceDocuments(t *testing.T) (traceObject, traceObject, map[string]*methodS
 	if err := os.WriteFile(path, data, 0600); err != nil {
 		t.Fatal(err)
 	}
-	parsed, err := parseSpec(path)
+	parsed, err := Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,6 +75,25 @@ func traceJSON(t *testing.T, value any) []byte {
 	}
 	return data
 }
+func traceValue(t *testing.T, value any) any {
+	t.Helper()
+	var decoded any
+	if err := json.Unmarshal(traceJSON(t, value), &decoded); err != nil {
+		t.Fatal(err)
+	}
+	return decoded
+}
+
+// validateMethod checks a value against a method's parameter (or, for a
+// negative index, its result) as speccheck does.
+func validateMethod(s *Spec, method string, param int, value any) error {
+	m := s.methods[method]
+	if param < 0 {
+		return s.Validate(fmt.Sprintf("#/methods/%d/result/schema", m.index), value)
+	}
+	return s.Validate(fmt.Sprintf("#/methods/%d/params/%d/schema", m.index, param), value)
+}
+
 func traceCopy(t *testing.T, value traceObject) traceObject {
 	t.Helper()
 	var copy traceObject
@@ -374,17 +391,17 @@ func TestTraceContracts(t *testing.T) {
 					}
 					root := traceCopy(t, schema)
 					root["components"] = artifact.doc["components"]
-					for _, draft := range []*schema5.Draft{schema5.Draft7, schema5.Draft2019} {
-						compiler := schema5.NewCompiler()
-						compiler.Draft = draft
-						if err := compiler.AddResource("https://example.test/trace.json", bytes.NewReader(traceJSON(t, root))); err != nil {
+					for _, draft := range []*schema6.Draft{schema6.Draft7, schema6.Draft2019} {
+						compiler := schema6.NewCompiler()
+						compiler.DefaultDraft(draft)
+						if err := compiler.AddResource("https://example.test/trace.json", traceValue(t, root)); err != nil {
 							t.Fatal(err)
 						}
 						compiled, err := compiler.Compile("https://example.test/trace.json")
 						if err != nil {
 							t.Fatal(err)
 						}
-						err = compiled.Validate(tc.value)
+						err = compiled.Validate(traceValue(t, tc.value))
 						if (err == nil) != tc.valid {
 							t.Fatalf("valid=%v: %v", tc.valid, err)
 						}
@@ -392,12 +409,8 @@ func TestTraceContracts(t *testing.T) {
 				})
 			}
 			t.Run("speccheck", func(t *testing.T) {
-				cd := parsed[tc.method].result
-				if tc.param >= 0 {
-					cd = parsed[tc.method].params[tc.param]
-				}
-				err := validate(cd.schema, traceJSON(t, tc.value), "https://example.test/speccheck.json")
-				var validationErr *schema5.ValidationError
+				err := validateMethod(parsed, tc.method, tc.param, traceValue(t, tc.value))
+				var validationErr *schema6.ValidationError
 				if err != nil && !errors.As(err, &validationErr) {
 					t.Fatalf("compile/serialization error: %v", err)
 				}
@@ -457,16 +470,16 @@ func TestTraceExamples(t *testing.T) {
 			t.Run(name+"/"+example["name"].(string), func(t *testing.T) {
 				for i, entry := range example["params"].([]any) {
 					param := entry.(traceObject)
-					descriptor := methods[name].params[i]
+					descriptor := methods.methods[name].params[i]
 					if param["name"] != descriptor.name {
 						t.Fatalf("example parameter %d has wrong name", i)
 					}
-					if err := validate(descriptor.schema, traceJSON(t, param["value"]), "https://example.test/parameter.json"); err != nil {
+					if err := validateMethod(methods, name, i, traceValue(t, param["value"])); err != nil {
 						t.Fatal(err)
 					}
 				}
 				result := example["result"].(traceObject)
-				if err := validate(methods[name].result.schema, traceJSON(t, result["value"]), "https://example.test/result.json"); err != nil {
+				if err := validateMethod(methods, name, -1, traceValue(t, result["value"])); err != nil {
 					t.Fatal(err)
 				}
 			})
