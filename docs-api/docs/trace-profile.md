@@ -1,14 +1,9 @@
-# Proposed Parity trace profile
+# Parity trace profile
 
-This branch is a draft for client review, not adopted RPC policy. It proposes the nine
-traditional trace methods and three output families. A client that serves the trace
-namespace implements all nine methods (H01). Geth support is not assumed.
-
-The companion [trace-interop project](https://github.com/banteg/trace-interop) retains
-client observations, reproducible cases and per-client impact reports.
-Observed agreement is not a correctness oracle. Recommendations below are proposals.
-The target is a useful, precise contract; historical implementations explain compatibility
-costs but do not decide it. Intentional departures are called out below.
+This profile specifies the nine traditional trace methods and their three output families.
+A client that serves the trace namespace implements all nine methods. The target is a useful,
+precise contract; historical implementations explain compatibility costs but do not decide it.
+Intentional departures from Parity are called out below.
 
 ## Storage and resource policy
 
@@ -42,17 +37,17 @@ an internal error (-32603) reports a server failure, not a rejection, so it neve
 required error. Malformed parameters recommend the standard -32602 (Invalid params) without requiring
 it, because clients reject some malformed input through their own validation paths.
 
-## Explicit choices in this draft
+## Design choices
 
 - The nine methods are one contract, with no optional subset or discovery mechanism: a client
   that serves the trace namespace implements every method. A method a client does not serve
-  returns -32601, never an empty result (H01).
+  returns -32601, never an empty result.
 - An explicit `null` for an optional parameter, or for an optional member of a call object or a
   `trace_filter` object, is the same as omitting it: the default applies. Objects reused from
   `eth_call` and `eth_simulateV1`, such as EIP-1898 block selectors and block overrides, keep their
   own schemas. Clients already treat `null` this way in `eth_call`,
   `eth_estimateGas` and `eth_getLogs` fields. `null` keeps its own meaning only where the schema
-  gives it one: a null `to` creates a contract (H14).
+  gives it one: a null `to` creates a contract.
 - Query path inputs use hex quantities for caller compatibility; traceAddress outputs retain JSON
   integers. Convert each output integer to a minimal hex quantity before passing it to trace_get.
   Integer path entries are rejected with an error (-32602 recommended), rather than null.
@@ -72,7 +67,7 @@ it, because clients reject some malformed input through their own validation pat
   extension is outside this baseline, not a conformance failure. The third selector existed in
   Parity’s implementation, although its guide omitted it.
 - Empty trace selection is valid. The envelope always preserves output.
-- Where clients already agree, the draft keeps their answer (H06). Unknown transactions and valid but
+- Where clients already agree, this profile keeps their answer. Unknown transactions and valid but
   absent tree paths return null, as Parity did and as `eth_getTransactionByHash` does. Unknown blocks
   return an error in every method, as an unknown simulation block does in `eth_call`; a successful
   collection or null never represents an unknown block. The code is -32001 (Resource not found):
@@ -80,8 +75,7 @@ it, because clients reject some malformed input through their own validation pat
   dedicated code lets callers tell an unknown block from an invalid call without parsing messages. Known blocks with pruned required state return an error, with 4444 recommended. If pruned
   indexing prevents establishing whether a hash is absent, return an error (4444 recommended) rather than claiming a
   definitive not-found result. This extends the pruned-history code adopted for eth/debug methods in
-  [#636](https://github.com/ethereum/execution-apis/pull/636) to trace methods and execution state;
-  that extension remains a proposal.
+  [#636](https://github.com/ethereum/execution-apis/pull/636) to trace methods and execution state.
 - `trace_filter` ranges follow `eth_getLogs`
   ([#875](https://github.com/ethereum/execution-apis/pull/875)): if either bound resolves beyond
   the current head, or `fromBlock` resolves above `toBlock`, return an error (-32602, Invalid params,
@@ -99,12 +93,11 @@ it, because clients reject some malformed input through their own validation pat
   callers searching history must state `fromBlock`. This follows Parity’s original
   `trace_filter` default and the `eth_getLogs` convention. Query limits produce an explicit error,
   never an incomplete success. `count` limits returned records, not scan or replay work.
-  [H30](https://github.com/banteg/trace-interop/blob/main/reports/decisions/H30.md)
 - `trace_filter` takes a `blockHash` member (a 32-byte hash), as `eth_getLogs` does under EIP-234.
-  It is part of the method contract, like the other filter members (H01): callers may omit it, and
+  It is part of the method contract, like the other filter members: callers may omit it, and
   clients implement it rather than reject or ignore it. A non-null `blockHash` is mutually exclusive
   with non-null `fromBlock` and `toBlock` (-32602 recommended); an explicit null for any of the three
-  is the same as omitting it (H14). It selects exactly the block with that hash: the result, including
+  is the same as omitting it. It selects exactly the block with that hash: the result, including
   `[]`, is for that block and each record carries its hash. Address matching, `mode` (including reward
   matching), ordering and `after`/`count` then apply as for a single-block range. The block must be
   canonical in the request's chain view and executed: an unknown, noncanonical, not-yet-executed or
@@ -113,19 +106,19 @@ it, because clients reject some malformed input through their own validation pat
   resolving it to a number and scanning that number in a newer view, and validate the selector before
   any `count: 0` shortcut. This narrows EIP-234, which also serves noncanonical blocks: serving a side
   chain needs its body, its parent's state and its branch environment, which canonical history
-  retention does not provide. Side-chain selection is left to a possible later extension (H33).
+  retention does not provide. Side-chain selection is left to a possible later extension.
 - Existing correct hash-string and EIP-1898 selector forms on other trace methods remain optional
   extensions beyond the baseline selector schemas. An accepted selector must preserve its requested
   identity. Accepting `requireCanonical: true` must enforce canonicality or reject the request;
   ignoring it is not grandfathered. Method-specific legacy acceptance does not require every client
-  to implement every selector form (H33).
+  to implement every selector form.
 - `pending` selects the client's pending block: the next block number, built on `latest` with the
   client's pending transactions. `trace_block`, `trace_replayBlockTransactions`, `trace_call` and
   `trace_callMany` accept it only when the client has such a pending environment; a simulation then
   runs on the pending block's post-state and environment. A client without one rejects it
   (-32602 recommended) rather than evaluate `latest` or another block. Records traced from the pending block carry its number and
   the hash of the block the client built, which is not canonical; all other localized records carry
-  canonical block hashes. `trace_filter` bounds reject `pending`, with -32602 recommended (H32).
+  canonical block hashes. `trace_filter` bounds reject `pending`, with -32602 recommended.
 
 ## Blocks, rewards and pagination
 
@@ -156,7 +149,7 @@ field the schema defines either takes effect with its `eth_call` meaning or caus
 outside the schema are ignored. A supplied nonce is accepted but neither validated nor
 used, so CREATE addresses derive from the state nonce. `gas` is a uint64.
 
-Ordinary execution fees follow `eth_call` (H15). Omitted execution-fee fields default to zero. The zero-fee
+Ordinary execution fees follow `eth_call`. Omitted execution-fee fields default to zero. The zero-fee
 rule applies to the effective gas price after defaulting: a zero price means GASPRICE 0 and BASEFEE
 0. The blob fee is decided independently of the execution fee. A blob call carries a
 non-empty `blobVersionedHashes` list; when its `maxFeePerBlobGas` is omitted, null or zero, it
@@ -164,7 +157,7 @@ runs with BLOBBASEFEE 0 and pays no blob fee, so an explicit zero is accepted, m
 `eth_call` defaults and the `eth_simulateV1` schema default of 0. A positive `maxFeePerBlobGas` is validated against
 the selected block’s blob base fee and charged. Calls without blob fields keep the selected block’s
 BLOBBASEFEE. Defined blob fields must take effect or cause rejection, never be ignored: a `maxFeePerBlobGas`
-without `blobVersionedHashes` is rejected (H14). Execution-fee validation is skipped only when both execution fee caps are zero.
+without `blobVersionedHashes` is rejected. Execution-fee validation is skipped only when both execution fee caps are zero.
 Positive prices are validated against the base fee, funded and charged, with refunds, base-fee burn
 and tips simulated. This removes Parity’s virtual balance top-up for unsigned calls.
 
@@ -236,7 +229,8 @@ caller as `from` and the target as `to`; DELEGATECALL and CALLCODE report the ex
 the code address. DELEGATECALL `value` is the inherited value and STATICCALL `value` is 0. Create
 actions require `creationMethod` (`create` or `create2`). A `suicide` frame records the opcode and
 its transfer, not account deletion. A CALL-family call that fails its precheck (depth limit,
-insufficient balance) emits a frame with its action and error, `result: null` and no subtraces; the
+insufficient balance) emits a frame with its action and error, `result: null` and no subtraces,
+unless it is a nested zero-value precompile call, which is omitted like any other; the
 forwarded gas returns to the caller, which continues after pushing 0. A CREATE or CREATE2 that fails
 its precheck (depth limit, insufficient balance, nonce overflow) emits the same kind of frame before
 Amsterdam; from Amsterdam the check runs in the creating opcode and no frame is emitted. This follows
@@ -247,7 +241,7 @@ collision emits a create frame with error `Contract address collision`.
 `result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt has
 `result: null`. Erigon and Reth already emit REVERT results; the new part is the
 failed-CREATE shape, which must not report the would-be address. No contract exists at that
-address, which is also why a failed CREATE has no created-address match in `trace_filter` (H23).
+address, which is also why a failed CREATE has no created-address match in `trace_filter`.
 Failure labels are `Reverted`, `Out of gas`, `Bad instruction`, `Bad jump destination`,
 `Stack underflow`, `Out of stack`, `Mutable Call In Static Context`, `Built-in failed` and
 `Out of bounds`. As in Parity and OpenEthereum, a code-deposit failure, including code above the
@@ -307,7 +301,7 @@ operations have no other members.
 
 Filter membership describes actions, not necessarily committed transfers. A record matches only
 addresses it reports. A failed CREATE reports no created address, because its result has no address
-(H09), so it can match its creator but never a populated recipient list, even when a client knows
+, so it can match its creator but never a populated recipient list, even when a client knows
 the would-be address; an explicit union may still retain the creator match. SELFDESTRUCT matches the
 executing (self-destructing) account and the beneficiary; after EIP-6780 the account usually
 survives. Range results must match
@@ -323,10 +317,11 @@ than append a second error envelope or finish a partial result as success. An ab
 request is incomplete, not a successful trace or a complete JSON-RPC error. Tests must
 distinguish deliberate transport termination from malformed completed responses.
 
-## Precompile frames (H29)
+## Precompile frames
 
 All methods that return call frames use the same inclusion rule: retain root precompile
-calls regardless of value. Omit nested precompile frames with zero value, and retain
+calls regardless of value. Omit nested precompile frames with zero value, including one whose
+call fails its depth or balance precheck, and retain
 those with nonzero transferred or inherited value, whether successful or failed.
 A precompile is an address in the precompile set active at the executing block’s fork.
 For CALL and CALLCODE, use the explicit value operand, not the parent transaction value.
@@ -338,16 +333,16 @@ records available to `trace_filter`. An omitted frame must not suppress its call
 VM return-memory effects. Errors belong to the frame that failed; a handled precompile
 failure does not make its successful caller fail.
 
-This is a compatibility choice, subject to client review. Parity's trace database
+This is a compatibility choice. Parity's trace database
 [omitted nested built-ins to avoid denial-of-service from trace volume](https://github.com/openethereum/parity-ethereum/blob/66477a9476200aaf7e933a52dc64676154adfb2b/ethcore/src/executive.rs#L266),
 then [retained actual value transfers](https://github.com/openethereum/parity-ethereum/blob/4255d4c46436d2740c4afb521b773cb95072c7cc/ethcore/src/executive.rs#L431) while citing heavy `IDENTITY` use. The inherited-value
-case above follows [current client behavior](https://github.com/banteg/trace-interop/blob/main/reports/decisions/H29.md), not Parity's original
+case above follows current client behavior, not Parity's original
 transfer-only rationale. JSON Schema alone cannot enforce this rule; the companion
 precompile fixtures check inclusion and path numbering.
 
 ## Signed transaction validation
 
-H13 proposes execution validity at the selected state for signed raw transactions:
+Signed raw transactions must be valid for execution at the selected state:
 signature, chain identity, nonce equality, balance for value and upfront gas, intrinsic
 gas, fees and the selected fork's sender-code restrictions, including EIP-7702's
 delegation exception. Each rejection reports the rule the transaction violates: a
@@ -370,23 +365,16 @@ execution belongs in explicitly documented simulation facilities. Erigon's
 supports strict validation despite the compatibility cost; this is not unanimous client
 approval. Malformed JSON on rejection is independently a reporting defect.
 
-## Open details requiring focused review
+## Extensions
 
-The value of client execution caps; the shared semantics of a raw-transaction block selector
-(H12); and simulation extensions beyond the reserved override positions need further agreement.
-Clients must declare supported extensions rather than relying on a successful response as feature
-detection. Full semantic conformance cannot be inferred from schema validity.
+Client execution caps are server policy. A raw-transaction block selector and simulation
+extensions beyond the reserved override positions are outside this profile. Clients must declare
+supported extensions rather than relying on a successful response as feature detection. Full
+semantic conformance cannot be inferred from schema validity.
 
 The VM schema has its own JSON Schema resource identity and a local self-reference,
 so nested execution receives the same validation as the root. Build tooling preserves
 that bounded self-reference while still rejecting cyclic component expansion.
-
-## Decisions and client impact
-
-The [decision ledger](https://github.com/banteg/trace-interop/blob/main/decisions/README.md)
-contains the rationale, evidence and open questions for each decision. The
-[client impact tables](https://github.com/banteg/trace-interop/blob/main/reports/README.md)
-show the changes required by each tested build, with individual requests and responses.
 
 ## Recursive schema rendering
 

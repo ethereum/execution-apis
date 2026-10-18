@@ -12,7 +12,7 @@ TraceTypes:
     - trace
     - stateDiff
     - vmTrace
-  description: An empty array is valid and requests execution output only (H11).
+  description: An empty array is valid and requests execution output only.
 TraceCall:
   type: object
   required: []
@@ -88,7 +88,7 @@ TraceCall:
     when the selected fork does not support the field, such as authorizationList before Prague); a client
     MUST NOT silently ignore a
     defined field. Only fields outside this schema are ignored, and accepting
-    them does not establish extension support (H14). An explicit null for any field other than to is the
+    them does not establish extension support. An explicit null for any field other than to is the
     same as omitting it. Omitted or null to creates a contract. Defaults: from
     zero address, value zero, input empty; omitted gas follows the client eth_call default at the selected
     state, bounded by the execution cap, while an explicit gas of 0 is a supplied zero limit that
@@ -98,8 +98,8 @@ TraceCall:
     carrying a non-empty blobVersionedHashes list) whose maxFeePerBlobGas is omitted, null or 0 runs
     with BLOBBASEFEE 0 and pays no blob fee; a positive maxFeePerBlobGas is validated against the
     selected block''s blob base fee and charged. Calls without blob fields keep the selected block''s
-    BLOBBASEFEE (H15). A maxFeePerBlobGas without blobVersionedHashes, or an empty blobVersionedHashes
-    list, is rejected at every fork (H14). Legacy gasPrice and dynamic
+    BLOBBASEFEE. A maxFeePerBlobGas without blobVersionedHashes, or an empty blobVersionedHashes
+    list, is rejected at every fork. Legacy gasPrice and dynamic
     fee fields MUST
     NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including
     CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match
@@ -123,7 +123,7 @@ TracePosition:
   type: array
   items:
     $ref: '#/components/schemas/uint64'
-  description: 'One path into the call tree: [] selects the root, ["0x0"] its first child (H02). Output
+  description: 'One path into the call tree: [] selects the root, ["0x0"] its first child. Output
     traceAddress uses JSON integers; the input path uses hex quantities for compatibility with existing
     callers. Convert each output integer to a minimal hex quantity before querying. Integer path entries
     are rejected as invalid parameters (-32602 recommended), not treated as missing paths.'
@@ -136,7 +136,7 @@ TraceFilter:
       anyOf:
       - $ref: '#/components/schemas/hash32'
       - type: 'null'
-      description: Selects exactly the canonical block with this hash (H33). Mutually exclusive with non-null
+      description: Selects exactly the canonical block with this hash. Mutually exclusive with non-null
         fromBlock and toBlock (-32602 recommended); null is omitted. An unknown, noncanonical, unexecuted or
         unavailable hash returns an error (-32001; 4444 recommended for pruned history), never [].
     fromBlock: &rangeBound
@@ -188,11 +188,11 @@ TraceFilter:
   description: An explicit null member is the same as an omitted one. Callers use the member names
     exactly as defined; a server may match them case-insensitively, but every member takes effect as
     the member it matches or is rejected (-32602 recommended), never ignored, so an unknown member is
-    rejected (H14). Inclusive block range; defaults
+    rejected. Inclusive block range; defaults
     omitted fromBlock and toBlock to the same latest head,
     after 0, count unlimited subject to an explicit server limit. Bounds are numbers and the earliest,
     latest, safe and finalized tags; pending, block-hash strings and EIP-1898 block-hash objects are
-    rejected (-32602 recommended); numeric bounds fit uint64 (H32). Unresolvable safe or finalized tags
+    rejected (-32602 recommended); numeric bounds fit uint64. Unresolvable safe or finalized tags
     return an error, never head substitution or an empty result. If either bound resolves beyond the current head
     block, or fromBlock resolves above
     toBlock, return an error (-32602 recommended); an explicit toBlock before an omitted latest start is
@@ -208,7 +208,7 @@ TraceFilter:
     exactly that canonical block; the result, including [], is for that block, and each record carries
     its hash. An unknown, noncanonical, unexecuted or otherwise unavailable hash returns an error (-32001;
     4444 recommended for pruned history), never [] or another block's records. Resolve the hash and
-    trace the block in one chain view, never substituting a block by height (H03,H04,H06,H23,H27,H30,H32,H33).
+    trace the block in one chain view, never substituting a block by height.
   title: TraceFilter
 TraceCallAction:
   type: object
@@ -236,7 +236,7 @@ TraceCallAction:
     is the executing address, to the code address. value is the transferred value; DELEGATECALL reports
     the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including
     access-list and authorization costs. Nested gas is the gas forwarded after the EIP-150 63/64 cap,
-    plus the 2300 stipend for a value transfer (H09,H29).'
+    plus the 2300 stipend for a value transfer.'
   title: TraceCallAction
 TraceCreateAction:
   type: object
@@ -258,7 +258,7 @@ TraceCreateAction:
       - create2
   description: from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic
     gas; nested gas is all but 1/64 of the caller's remaining gas. creationMethod distinguishes CREATE
-    from CREATE2 and is required on every create action (H10).
+    from CREATE2 and is required on every create action.
   title: TraceCreateAction
 TraceSuicideAction:
   type: object
@@ -288,7 +288,7 @@ TraceRewardAction:
       - block
       - uncle
   description: A historical PoW block or uncle reward paid to author. Withdrawals and system operations
-    are not reward records (H05).
+    are not reward records.
   title: TraceRewardAction
 TraceCallResult:
   type: object
@@ -312,8 +312,7 @@ TraceCreateResult:
     address: *id001
     code: *id003
   description: Successful creation. gasUsed is execution gas before refunds, including the code deposit;
-    for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode
-    (H10).
+    for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
   title: TraceCreateResult
 TraceRevertedCreateResult:
   type: object
@@ -326,18 +325,18 @@ TraceRevertedCreateResult:
     - required: [address]
     - required: [code]
   description: A reverted creation reports its gas and revert bytes, never an address or deployed code,
-    because no contract exists at the would-be address (H09,H23).
+    because no contract exists at the would-be address.
   title: TraceRevertedCreateResult
 TraceFrame:
   title: Flat call trace record
   description: 'Preorder traversal. The transaction and every CALL-family or CREATE-family operation
     that targets an account outside the precompile set emit a frame, whether they succeed, revert or
     halt. Retain root precompile calls regardless of value. Omit nested precompile
-    frames with zero value; retain nested frames with nonzero transferred or inherited value, whether
+    frames with zero value, including one whose call fails its precheck; retain nested frames with nonzero transferred or inherited value, whether
     successful or failed. A precompile is an address in the precompile set active at the executing
     block''s fork. traceAddress gives child ordinals and subtraces counts direct children in the
-    emitted tree, excluding omitted frames (H29). Omitting a call frame must not omit its caller VM
-    return-memory effects. A CALL-family call that fails its precheck (call depth limit or
+    emitted tree, excluding omitted frames. Omitting a call frame must not omit its caller VM
+    return-memory effects. Any other CALL-family call that fails its precheck (call depth limit or
     insufficient balance) emits a frame with its action and error, a null result and no subtraces; the
     forwarded gas returns to the caller. A CREATE or CREATE2 that fails its precheck (call depth limit,
     insufficient balance or nonce overflow) emits the same kind of frame before Amsterdam; from
@@ -359,7 +358,7 @@ TraceFrame:
     so its frame fails with "Bad instruction". Any other error string is an extension that consumers
     treat as a generic failure. revertReason is not part of this profile; raw revert bytes live in
     result.output. Suicide and reward records carry result null. A suicide frame records the
-    SELFDESTRUCT opcode and its transfer, not account deletion (H05,H09,H10,H24).'
+    SELFDESTRUCT opcode and its transfer, not account deletion.'
   oneOf:
   - type: object
     required:
@@ -666,7 +665,7 @@ TraceStorageChange:
   description: '+ lists a nonzero post-state slot of a born account. * changes a slot of an account that
     exists at both endpoints, with 32-byte from and to words, including zero words. Slots never use =.
     A deleted account may optionally list old slot values with -; account deletion implies all storage is
-    wiped whether or not slots are listed (H17,H26).'
+    wiped whether or not slots are listed.'
   title: TraceStorageChange
 TraceAccountDiff:
   type: object
@@ -759,7 +758,7 @@ TraceStateDiff:
     fees are burned or credited to a chain-defined collector, and the tip goes to the fee recipient.
     Block-level operations (EIP-4788 and EIP-2935 pre-block calls, withdrawals, EIP-7002 and EIP-7251
     post-block calls, rewards) belong to no transaction''s diff, so concatenated diffs do not
-    reconstruct the block post-state (H16-H18,H26).'
+    reconstruct the block post-state.'
   title: TraceStateDiff
 TraceVm:
   $id: https://ethereum.github.io/execution-apis/schemas/trace-vm.json
@@ -887,7 +886,7 @@ TraceExecution:
       - type: 'null'
   description: output always contains actual return bytes, including when only stateDiff is selected.
     Unrequested trace is [], stateDiff and vmTrace are null. A selected vmTrace is always an object, even
-    for an EOA or precompile target (H08,H20).
+    for an EOA or precompile target.
   title: TraceExecution
 TraceReplay:
   type: object
@@ -904,7 +903,7 @@ TraceReplay:
     vmTrace: *id013
     transactionHash:
       $ref: '#/components/schemas/hash32'
-  description: Execution envelope with the replayed transaction hash (H07).
+  description: Execution envelope with the replayed transaction hash.
   title: TraceReplay
 
 TraceOverrideConfig:
@@ -926,4 +925,4 @@ TraceOverrideConfig:
   description: Existing recognized configuration wrappers with override members may be accepted
     instead of the preferred positional state map. Other configuration entries remain extension
     fields. A successful decode does not establish support; accepted override members must take
-    effect, and unsupported non-null shapes must be rejected (H15).
+    effect, and unsupported non-null shapes must be rejected.

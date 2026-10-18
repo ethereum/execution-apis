@@ -7,11 +7,11 @@
     is not canonical, as in eth_call; with requireCanonical true a noncanonical hash returns an error (-32001).
     pending selects the client's pending block, the next block number built on latest with its
     pending transactions, and is accepted only when the client has such a pending environment; a client
-    without one rejects it (-32602 recommended) rather than substitute another block (H32). Ordinary
-    execution fees follow eth_call (H15). Omitted execution-fee fields default to 0. The effective gas
+    without one rejects it (-32602 recommended) rather than substitute another block. Ordinary
+    execution fees follow eth_call. Omitted execution-fee fields default to 0. The effective gas
     price is gasPrice, or
     min(maxPriorityFeePerGas + base fee, maxFeePerGas), computed after defaulting; when it is 0, GASPRICE
-    and BASEFEE are both 0 and no gas fee is paid. The blob fee is decided independently (H15). A blob
+    and BASEFEE are both 0 and no gas fee is paid. The blob fee is decided independently. A blob
     call carries a non-empty blobVersionedHashes list, and when its maxFeePerBlobGas is omitted, null
     or 0 it runs with BLOBBASEFEE 0 and pays no blob fee, so an explicit zero is accepted. A positive
     maxFeePerBlobGas is validated against the selected block's blob base fee and charged. Calls without
@@ -35,7 +35,7 @@
     type adds no requirement of its own. An access list before Berlin, maxFeePerGas or
     maxPriorityFeePerGas before London, blob fields before Cancun and an authorizationList before Prague
     are rejected (-32003 recommended), even with zero or empty values, since no transaction at the
-    selected fork can carry them (H14). A maxFeePerBlobGas without blobVersionedHashes, or an empty
+    selected fork can carry them. A maxFeePerBlobGas without blobVersionedHashes, or an empty
     blobVersionedHashes list, is rejected at every fork, since a blob transaction carries at least one
     versioned hash.
     Unsigned calls skip the EIP-3607 sender-code check, as eth_call does.
@@ -50,10 +50,8 @@
     shape (-32602 recommended), never silently treat a state map as an empty configuration. Block
     overrides replace fields of the selected block environment, and the zero-fee rule then uses the
     overridden base fee. Simulated changes are
-    discarded. EVM failure is trace output; invalid parameters or unavailable state are RPC errors
-    (H08,H11,H14,H15,H28). Error codes named in this profile are recommended, except -32001 for an unknown block; conformance requires the
-    error response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
-    decision references.
+    discarded. EVM failure is trace output; invalid parameters or unavailable state are RPC errors. Error codes named in this profile are recommended, except -32001 for an unknown block; conformance requires the
+    error response itself. See docs-api/docs/trace-profile.md.
   params:
   - name: Call
     required: true
@@ -154,9 +152,8 @@
     canonical state. Empty input returns []. Block is resolved as for trace_call, including pending,
     unknown, noncanonical and pruned blocks, and defaults to latest; preferred positional overrides or
     recognized existing override wrappers are optional, and accepted overrides apply once, before the
-    first item, as for trace_call (H15,H16,H25,H31). Error codes named in this
-    profile are recommended, except -32001 for an unknown block; conformance requires the error response itself. This is a provisional trace
-    profile; see docs-api/docs/trace-profile.md and its decision references.
+    first item, as for trace_call. Error codes named in this
+    profile are recommended, except -32001 for an unknown block; conformance requires the error response itself. See docs-api/docs/trace-profile.md.
   params:
   - name: Calls
     required: true
@@ -224,7 +221,7 @@
 - name: trace_rawTransaction
   summary: Simulates a signed transaction at latest state.
   description: Decode the signed transaction and validate it for execution against latest state before
-    simulating it (H13). Apply the transaction validity rules of the selected fork, including signature,
+    simulating it. Apply the transaction validity rules of the selected fork, including signature,
     chain identity, nonce equality, sufficient balance for value and upfront gas, intrinsic gas, fees and
     sender-code restrictions (including permitted EIP-7702 delegation). Reject both low and high nonces;
     do not replace signed fields, override the sender nonce or top up its balance. This is execution
@@ -239,10 +236,8 @@
     exceptionally halts returns an execution trace, not a validation error. The portable baseline
     defines two parameters and latest state. An explicitly supplied block-selector extension is outside
     this baseline; accepting it is not a baseline failure. Extension semantics require separate
-    agreement. Validation failure returns a complete JSON-RPC error, not a partially serialized result
-    (H12-H14,H25). Error codes named in this profile are recommended; conformance requires the error
-    response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md and its
-    decision references.
+    agreement. Validation failure returns a complete JSON-RPC error, not a partially serialized result. Error codes named in this profile are recommended; conformance requires the error
+    response itself. See docs-api/docs/trace-profile.md.
   params:
   - name: Transaction
     required: true
@@ -293,9 +288,8 @@
     post-block state, applying this block's pre-transaction system operations and then its preceding
     transactions, under this block's fork rules. Return null for a transaction that is not in a
     canonical block; error for unavailable history. Report the transaction's actual committed state
-    transition; block-level operations belong to no transaction's stateDiff (H06,H07,H16,H18,H28). Error
-    codes named in this profile are recommended; conformance requires the error response itself. This
-    is a provisional trace profile; see docs-api/docs/trace-profile.md and its decision references.
+    transition; block-level operations belong to no transaction's stateDiff. Error
+    codes named in this profile are recommended; conformance requires the error response itself. See docs-api/docs/trace-profile.md.
   params:
   - &id005
     name: TransactionHash
@@ -339,11 +333,8 @@
     post-state. Block accepts pending only when the client has a pending block (the next block number
     with its pending transactions); otherwise pending is rejected (-32602 recommended). An unknown selected block returns
     an error (-32001, Resource not found); a known block whose required state is
-    pruned returns an error (4444 recommended)
-    (H05,H07,H16,H28,H32). Where an error is required, codes named in this profile are recommended,
-    except -32001 for an unknown block. This
-    is a provisional trace profile; see
-    docs-api/docs/trace-profile.md and its decision references.'
+    pruned returns an error (4444 recommended). Where an error is required, codes named in this profile are recommended,
+    except -32001 for an unknown block. See docs-api/docs/trace-profile.md.'
   params:
   - &historicalBlock
     name: Block
@@ -390,11 +381,8 @@
     (-32602 recommended). Records from the pending block carry its number and the hash of the block the client built,
     which is not canonical; all other records carry canonical block hashes. An unknown selected block
     returns an error (-32001, Resource not found); a known block whose required
-    state is pruned returns an error (4444 recommended)
-    (H05,H06,H27,H28,H32). Where an error is required, codes named in this profile are recommended,
-    except -32001 for an unknown block. This
-    is a provisional trace profile; see docs-api/docs/trace-profile.md and
-    its decision references.
+    state is pruned returns an error (4444 recommended). Where an error is required, codes named in this profile are recommended,
+    except -32001 for an unknown block. See docs-api/docs/trace-profile.md.
   params:
   - *historicalBlock
   result:
@@ -415,10 +403,8 @@
 - name: trace_transaction
   summary: Returns localized call traces for a mined transaction.
   description: Return a flat preorder tree, including the root. A transaction that is not in a canonical
-    block returns null; unavailable state is an error. traceAddress is a path, not a flat list index
-    (H02,H06). Error codes named in this profile are recommended; conformance requires the error
-    response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md and its decision
-    references.
+    block returns null; unavailable state is an error. traceAddress is a path, not a flat list index. Error codes named in this profile are recommended; conformance requires the error
+    response itself. See docs-api/docs/trace-profile.md.
   params:
   - *id005
   result:
@@ -450,8 +436,8 @@
     the first child of child six. Return one localized object, or null if the transaction is not in a
     canonical block or the path does not exist. Integer path entries are rejected (-32602 recommended),
     not treated as missing paths; convert traceAddress integers to hex quantities. Unavailable state is
-    an error (H02,H06). Error codes named in this profile are recommended; conformance requires the
-    error response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md and its decision references.'
+    an error. Error codes named in this profile are recommended; conformance requires the
+    error response itself. See docs-api/docs/trace-profile.md.'
   params:
   - *id005
   - name: Position
@@ -493,7 +479,7 @@
     narrowed selection or an incomplete success. Explicit pagination retains its defined meaning.
     The blockHash member selects exactly one block by hash, as in eth_getLogs (EIP-234); callers may
     omit it and clients implement it. A non-null blockHash is mutually exclusive with non-null range
-    bounds (-32602 recommended); null is omitted (H14). The result, including [], is for that block, and
+    bounds (-32602 recommended); null is omitted. The result, including [], is for that block, and
     each record carries its hash; address matching, mode, ordering and after/count apply as for a
     single-block range. The block must be canonical and executed; an unknown, noncanonical, unexecuted
     or otherwise unavailable hash returns an error (-32001; 4444 recommended for pruned history), never
@@ -522,10 +508,9 @@
     then preorder, with each block's rewards after its transaction records (block reward, then uncle
     rewards in ommer order). Filter first, then skip after records and take count. Offsets are stable
     only for a fixed selection. Capture one coherent snapshot for the request; numeric and tag ranges
-    select its canonical blocks (H03-H06,H23,H27,H30,H32,H33). Error codes named in this profile are
+    select its canonical blocks. Error codes named in this profile are
     recommended, except -32001 for an unknown block; conformance requires
-    the error response itself. This is a provisional trace profile; see docs-api/docs/trace-profile.md
-    and its decision references.
+    the error response itself. See docs-api/docs/trace-profile.md.
   params:
   - name: Filter
     required: true
