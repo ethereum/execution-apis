@@ -104,7 +104,7 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 
 #### Response
 
-* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2) or `null` in case of any missing blobs.
+* result: `(Array of BlobAndProofV2) | null` - Array of [`BlobAndProofV2`](#BlobAndProofV2) or `null` in case of any missing blobs.
 * error: code and message set in case an error occurs during processing of the request.
 
 #### Specification
@@ -132,7 +132,7 @@ Consensus layer clients **MAY** use this method to fetch blobs from the executio
 
 #### Response
 
-* result: `Array of BlobAndProofV2` - Array of [`BlobAndProofV2`](#BlobAndProofV2), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
+* result: `(Array of BlobAndProofV2) | null` - Array of [`BlobAndProofV2`](#BlobAndProofV2), inserting `null` only at the positions of the missing blobs, or a `null` literal in the designated cases specified below.
 * error: code and message set in case an error occurs during processing of the request.
 
 #### Specification
