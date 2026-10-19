@@ -1481,9 +1481,8 @@ request must not fail merely because the sender cannot afford those defaults.`,
 			},
 		},
 		{
-			Name:     "create-al-omitted-block",
-			About:    "creates an access list without the optional block parameter, which defaults to latest",
-			SpecOnly: true,
+			Name:  "create-al-omitted-block",
+			About: "creates an access list without the optional block parameter, which defaults to latest",
 			Run: func(ctx context.Context, t *T) error {
 				gasprice := t.chain.Head().BaseFee()
 				sender, nonce := t.chain.GetSender(0)
@@ -1491,16 +1490,20 @@ request must not fail merely because the sender cannot afford those defaults.`,
 					"from":     sender,
 					"to":       emitContract,
 					"nonce":    hexutil.Uint64(nonce),
-					"gas":      hexutil.Uint64(60000),
+					"gas":      hexutil.Uint64(200000),
 					"gasPrice": (*hexutil.Big)(gasprice),
 					"input":    "0x010203040506",
 				}
 				var result struct {
 					AccessList types.AccessList
+					Error      string
 				}
 				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg)
 				if err != nil {
 					return err
+				}
+				if result.Error != "" {
+					return fmt.Errorf("unexpected error: %s", result.Error)
 				}
 				if len(result.AccessList) == 0 {
 					return fmt.Errorf("empty access list")
