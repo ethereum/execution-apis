@@ -20,7 +20,7 @@
 ## Table of contents
 
 - [Primitive aliases](#primitive-aliases)
-- [`MAX_*` constants](#max-constants)
+- [`MAX_*` constants](#max_-constants)
 - [Shared structures](#shared-structures)
   - [`Withdrawal`](#withdrawal)
   - [`ExecutionPayload` (Amsterdam)](#executionpayload-amsterdam)
@@ -521,7 +521,7 @@ BuiltPayloadAmsterdam {
 ```
 
 The Amsterdam variant is the one shown in the
-[endpoint section below](#get-forkpayloadspayloadid).
+[endpoint section below](#get-payloadspayloadid).
 
 ### `ExecutionPayloadEnvelope` per fork
 
