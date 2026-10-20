@@ -174,12 +174,6 @@
     limit the number of keys above that. For a request over the limit, or for
     a storage key that is not hex or has more than 64 hex digits, clients MUST
     return the `-32602: Invalid params` error.
-
-    For a block whose state proofs the client does not serve, clients MUST
-    return the `4444: Pruned history unavailable` error, and MUST NOT return a
-    proof for the state of a different block. `eth_capabilities` reports the
-    served range as `stateproofs`. The same error applies when pruning or a
-    proof window limits the range, and when proofs are disabled.
   params:
     - name: Address
       required: true
