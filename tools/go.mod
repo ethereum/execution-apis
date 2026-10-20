@@ -7,7 +7,7 @@ require (
 	github.com/cespare/cp v1.1.1
 	github.com/dop251/goja v0.0.0-20260911104922-fabc3b8078ad
 	github.com/dop251/goja_nodejs v0.0.0-20260212111938-1f56ff5bcf14
-	github.com/ethereum/go-ethereum v1.17.9-0.20261016132101-028ea5cdc70b
+	github.com/ethereum/go-ethereum v1.17.9-0.20261020131409-bd14ba80c6a7
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/spec-types/generated/packages/go v0.1.1
