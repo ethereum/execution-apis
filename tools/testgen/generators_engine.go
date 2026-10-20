@@ -22,13 +22,15 @@ var EngineForkchoiceUpdatedV4 = MethodTests{
 
 func targetGasLimitTest(name, target string) Test {
 	return Test{
-		Name: name,
+		Name:             name,
+		SpecOnly:         true,
+		ValidationScript: targetGasLimitValidationScript,
 		About: "Accepts targetGasLimit " + target + " and starts payload building at the known Amsterdam head. " +
-			"The non-null payloadId is client-specific; Hive checks its 8-byte DATA format and compares all other fields exactly.",
+			"The validation script checks the client-specific payloadId as 8-byte DATA and compares all other fields exactly.",
 		Run: func(ctx context.Context, t *T) error {
 			head := t.chain.Head()
 			if !t.chain.Config().IsAmsterdam(head.Number(), head.Time()) {
-				return fmt.Errorf("FCUv4 fixtures require an Amsterdam test chain (execution-apis#867)")
+				return fmt.Errorf("FCUv4 fixtures require an Amsterdam test chain")
 			}
 			slot := head.SlotNumber()
 			if slot == nil {
@@ -65,3 +67,33 @@ func targetGasLimitTest(name, target string) Test {
 		},
 	}
 }
+
+// Only the opaque payload ID bytes may vary across clients. Use the fixture
+// script mechanism so the Hive runner needs no Engine-specific comparison.
+const targetGasLimitValidationScript = `
+const expected = messages[1].expected;
+const response = messages[1].response;
+const id = response.result && response.result.payloadId;
+if (typeof id !== "string" || !/^0x[0-9a-f]{16}$/.test(id)) {
+    throw new Error("expected a non-null 8-byte payloadId");
+}
+response.result.payloadId = expected.result.payloadId;
+assertEqual(response, expected, "response");
+
+function assertEqual(actual, expected, path) {
+    if (actual === expected) return;
+    if (actual === null || expected === null ||
+        typeof actual !== "object" || typeof expected !== "object" ||
+        Array.isArray(actual) !== Array.isArray(expected)) {
+        throw new Error(path + " differs from the expected response");
+    }
+    const actualKeys = Object.keys(actual).sort();
+    const expectedKeys = Object.keys(expected).sort();
+    if (JSON.stringify(actualKeys) !== JSON.stringify(expectedKeys)) {
+        throw new Error(path + " has unexpected or missing fields");
+    }
+    for (const key of expectedKeys) {
+        assertEqual(actual[key], expected[key], path + "." + key);
+    }
+}
+`

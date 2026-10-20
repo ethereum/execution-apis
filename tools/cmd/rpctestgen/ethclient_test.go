@@ -38,7 +38,7 @@ func TestAuthenticatedFixtureRecording(t *testing.T) {
 	defer handler.rpc.Close()
 	defer handler.Close()
 	file := filepath.Join(t.TempDir(), "engine.io")
-	if err := handler.RotateLog(file); err != nil {
+	if err := handler.NewTest(file); err != nil {
 		t.Fatal(err)
 	}
 	var result []string
