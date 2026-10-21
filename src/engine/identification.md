@@ -36,6 +36,7 @@ This enum defines a standard for specifying a client with just two letters. Clie
  - `EX`: ethrex
  - `GE`: go-ethereum
  - `GR`: grandine
+ - `LA`: ethlambda
  - `LH`: lighthouse
  - `LS`: lodestar
  - `NM`: nethermind
