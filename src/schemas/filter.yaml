@@ -104,6 +104,18 @@ LogsV2Filter:
     topics:
       title: Topics
       $ref: '#/components/schemas/FilterTopics'
+    referenceHead:
+      title: reference head
+      description: Recent block hash the client already knows. When provided, the server anchors an EIP-8304 proof to that block's state root and returns it in the proof field.
+      $ref: '#/components/schemas/hash32'
+    limitLatest:
+      title: limit latest
+      description: Maximum number of most recent matching results to return.
+      $ref: '#/components/schemas/uint'
+    limitOldest:
+      title: limit oldest
+      description: Maximum number of oldest matching results to return.
+      $ref: '#/components/schemas/uint'
 
 LogsV2Result:
   title: Logs V2 result
@@ -127,6 +139,12 @@ LogsV2Result:
       title: head block
       description: The canonical head at the time the server executed this query.
       $ref: '#/components/schemas/BlockRef'
+    proof:
+      title: proof
+      description: EIP-8304 proof anchored to the referenceHead state root. Null until EIP-8304 is deployed.
+      oneOf:
+        - type: 'null'
+        - type: object
 
 FilterTopics:
   title: Filter Topics

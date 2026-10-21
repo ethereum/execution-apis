@@ -13,6 +13,15 @@
     To detect a reorg between pages, compare `fromBlockHash` in the new request against
     `cursorBlock.hash` from the previous response: a mismatch means the chain has been
     reorganized and the client must re-anchor.
+
+
+    To cap results by count rather than block range, set `limitLatest` or `limitOldest`
+    to the maximum number of results wanted. These are mutually exclusive.
+
+
+    To request an EIP-8304 proof, set `referenceHead` to a recent block hash the client
+    already knows. The server anchors the proof to that block's state root and returns it
+    in the `proof` field. The `proof` field is `null` until EIP-8304 is deployed.
   params:
     - name: Filter
       schema:
