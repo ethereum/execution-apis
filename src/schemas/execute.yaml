@@ -30,27 +30,29 @@ BlockStateCalls:
   title: Array of block state calls to be executed at specific, optional block/state.
   description: "The size of this array may be limited depending on the client as a DOS protection. 256 is a common/recommended limit as it is the same limit used by BLOCKHASH opcode."
   type: array
-  properties:
-    blockOverrides:
-      title: Block overrides
-      description: |-
-        Block overrides can be used to replace fields in a block.
-        default: no block override.
-      $ref: '#/components/schemas/BlockOverrides'
-    stateOverrides:
-      title: State overrides
-      description: |-
-        State overrides can be used to replace existing blockchain state with new state.
-        Default: no state overrides
-      $ref: '#/components/schemas/StateOverrides'
-    calls:
-      type: array
-      title: calls
-      description: |-
-        List of transactions to execute at this block/state.
-        Default: []
-      items:
-        $ref: '#/components/schemas/GenericCallTransaction'
+  items:
+    type: object
+    properties:
+      blockOverrides:
+        title: Block overrides
+        description: |-
+          Block overrides can be used to replace fields in a block.
+          default: no block override.
+        $ref: '#/components/schemas/BlockOverrides'
+      stateOverrides:
+        title: State overrides
+        description: |-
+          State overrides can be used to replace existing blockchain state with new state.
+          Default: no state overrides
+        $ref: '#/components/schemas/StateOverrides'
+      calls:
+        type: array
+        title: calls
+        description: |-
+          List of transactions to execute at this block/state.
+          Default: []
+        items:
+          $ref: '#/components/schemas/GenericCallTransaction'
 StateOverrides:
   title: Dictionary of addresses in the state to be overridden
   type: object
