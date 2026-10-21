@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
@@ -1186,7 +1187,125 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 				return nil
 			},
 		},
+		gasScheduleTest(
+			"call-gas-schedule-berlin",
+			"at the Berlin fork block. KZG, BLS12 and P256VERIFY are not yet precompiles, so calls to them cost the same as a call to a missing account.",
+			func(c *Chain) *types.Block { return c.GetBlock(int(c.Config().BerlinBlock.Int64())) },
+			gasSchedule{
+				SloadCold: params.ColdSloadCostEIP2929, SloadWarm: params.WarmStorageReadCostEIP2929,
+				Balance: params.ColdAccountAccessCostEIP2929, Sstore: params.SstoreSetGasEIP2200,
+				CallMissing: params.ColdAccountAccessCostEIP2929, Modexp: params.WarmStorageReadCostEIP2929 + 200,
+				KZG: params.ColdAccountAccessCostEIP2929, BLS: params.ColdAccountAccessCostEIP2929, P256: params.ColdAccountAccessCostEIP2929,
+			},
+		),
+		gasScheduleTest(
+			"call-gas-schedule-before-prague",
+			"at the last block before Prague. The KZG precompile fails on empty input and consumes the call gas; BLS12 and P256VERIFY are not yet precompiles.",
+			func(c *Chain) *types.Block {
+				return c.GetBlock(int(c.BlockAtTime(*c.Config().PragueTime).NumberU64()) - 1)
+			},
+			gasSchedule{
+				SloadCold: params.ColdSloadCostEIP2929, SloadWarm: params.WarmStorageReadCostEIP2929,
+				Balance: params.ColdAccountAccessCostEIP2929, Sstore: params.SstoreSetGasEIP2200,
+				CallMissing: params.ColdAccountAccessCostEIP2929, Modexp: params.WarmStorageReadCostEIP2929 + 200,
+				KZG: params.WarmStorageReadCostEIP2929 + gasScheduleCallGas, BLS: params.ColdAccountAccessCostEIP2929, P256: params.ColdAccountAccessCostEIP2929,
+			},
+		),
+		gasScheduleTest(
+			"call-gas-schedule-before-amsterdam",
+			"at the last block before Amsterdam. All precompiles are active, MODEXP has the Osaka minimum cost, and SSTORE has no Amsterdam state gas.",
+			func(c *Chain) *types.Block {
+				return c.GetBlock(int(c.BlockAtTime(*c.Config().AmsterdamTime).NumberU64()) - 1)
+			},
+			gasSchedule{
+				SloadCold: params.ColdSloadCostEIP2929, SloadWarm: params.WarmStorageReadCostEIP2929,
+				Balance: params.ColdAccountAccessCostEIP2929, Sstore: params.SstoreSetGasEIP2200,
+				CallMissing: params.ColdAccountAccessCostEIP2929, Modexp: params.WarmStorageReadCostEIP2929 + 500,
+				KZG: params.WarmStorageReadCostEIP2929 + gasScheduleCallGas, BLS: params.WarmStorageReadCostEIP2929 + gasScheduleCallGas,
+				P256: params.WarmStorageReadCostEIP2929 + params.P256VerifyGas,
+			},
+		),
 	},
+}
+
+type gasSchedule struct {
+	SloadCold, SloadWarm, Balance, Sstore uint64
+	CallMissing, Modexp, KZG, BLS, P256   uint64
+}
+
+const gasScheduleCallGas = 10000
+
+// gasScheduleCode is initcode that reads GAS around each operation of gasSchedule,
+// in field order, and returns the readings as 32-byte words.
+func gasScheduleCode(account common.Address) []byte {
+	var code []byte
+	words := 0
+	mark := func() {
+		code = append(code, byte(vm.GAS), byte(vm.PUSH2), byte(words*32>>8), byte(words*32), byte(vm.MSTORE))
+		words++
+	}
+	call := func(target []byte) {
+		code = append(code, byte(vm.PUSH1), 0, byte(vm.PUSH1), 0, byte(vm.PUSH1), 0, byte(vm.PUSH1), 0, byte(vm.PUSH1), 0)
+		code = append(code, byte(vm.PUSH1)+byte(len(target)-1))
+		code = append(code, target...)
+		code = append(code, byte(vm.PUSH2), byte(gasScheduleCallGas>>8), byte(gasScheduleCallGas&0xff), byte(vm.CALL), byte(vm.POP))
+		mark()
+	}
+	mark()
+	code = append(code, byte(vm.PUSH1), 0, byte(vm.SLOAD), byte(vm.POP))
+	mark()
+	code = append(code, byte(vm.PUSH1), 0, byte(vm.SLOAD), byte(vm.POP))
+	mark()
+	code = append(append(code, byte(vm.PUSH20)), account.Bytes()...)
+	code = append(code, byte(vm.BALANCE), byte(vm.POP))
+	mark()
+	code = append(code, byte(vm.PUSH1), 1, byte(vm.PUSH1), 0, byte(vm.SSTORE))
+	mark()
+	call([]byte{0xde, 0xad})
+	call([]byte{0x05})
+	call([]byte{0x0a})
+	call([]byte{0x0b})
+	call([]byte{0x01, 0x00})
+	code = append(code, byte(vm.PUSH2), byte(words*32>>8), byte(words*32), byte(vm.PUSH1), 0, byte(vm.RETURN))
+	return code
+}
+
+func gasScheduleTest(name, about string, block func(*Chain) *types.Block, want gasSchedule) Test {
+	return Test{
+		Name:  name,
+		About: "Measures the gas of storage, account and precompile operations with the GAS opcode, " + about,
+		Run: func(ctx context.Context, t *T) error {
+			sender, _ := t.chain.GetSender(0)
+			msg := map[string]any{
+				"from":  sender,
+				"gas":   hexutil.Uint64(1000000),
+				"input": hexutil.Bytes(gasScheduleCode(t.chain.txinfo.CallMeContract.Addr)),
+			}
+			var result hexutil.Bytes
+			if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, hexutil.Uint64(block(t.chain).NumberU64())); err != nil {
+				return err
+			}
+			if len(result) != 10*32 {
+				return fmt.Errorf("unexpected result length %d", len(result))
+			}
+			var readings [10]uint64
+			for i := range readings {
+				readings[i] = new(big.Int).SetBytes(result[i*32 : (i+1)*32]).Uint64()
+			}
+			// Each difference also pays for the operation's pushes and POP, for the
+			// PUSH2 and MSTORE that store the reading with one word of memory
+			// expansion, and for the next GAS.
+			cost := func(i int, overhead uint64) uint64 { return readings[i] - readings[i+1] - overhead }
+			got := gasSchedule{
+				SloadCold: cost(0, 16), SloadWarm: cost(1, 16), Balance: cost(2, 16), Sstore: cost(3, 17),
+				CallMissing: cost(4, 34), Modexp: cost(5, 34), KZG: cost(6, 34), BLS: cost(7, 34), P256: cost(8, 34),
+			}
+			if got != want {
+				return fmt.Errorf("unexpected gas schedule\n got: %+v\nwant: %+v", got, want)
+			}
+			return nil
+		},
+	}
 }
 
 var estimateGasTestScript = `
@@ -1560,7 +1679,50 @@ in the "error" field.`,
 				return nil
 			},
 		},
+		calldataAccessListTest(
+			"create-al-calldata-before-prague",
+			"at the last block before Prague. gasUsed is the EIP-2028 intrinsic gas.",
+			func(c *Chain) *types.Block {
+				return c.GetBlock(int(c.BlockAtTime(*c.Config().PragueTime).NumberU64()) - 1)
+			},
+			params.TxGas+1000*params.TxDataNonZeroGasEIP2028,
+		),
+		calldataAccessListTest(
+			"create-al-calldata-prague",
+			"at the Prague fork block. gasUsed is the EIP-7623 calldata floor, which is above the EIP-2028 intrinsic gas.",
+			func(c *Chain) *types.Block { return c.BlockAtTime(*c.Config().PragueTime) },
+			params.TxGas+1000*params.TxTokenPerNonZeroByte*params.TxCostFloorPerToken,
+		),
 	},
+}
+
+func calldataAccessListTest(name, about string, block func(*Chain) *types.Block, wantGas uint64) Test {
+	return Test{
+		Name:  name,
+		About: "Creates an access list for a call with 1000 nonzero calldata bytes to an account without code, " + about,
+		Run: func(ctx context.Context, t *T) error {
+			sender, _ := t.chain.GetSender(0)
+			msg := map[string]any{
+				"from":  sender,
+				"to":    common.Address{0xee},
+				"input": hexutil.Bytes(bytes.Repeat([]byte{0xff}, 1000)),
+			}
+			var result struct {
+				AccessList types.AccessList `json:"accessList"`
+				GasUsed    hexutil.Uint64   `json:"gasUsed"`
+			}
+			if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, hexutil.Uint64(block(t.chain).NumberU64())); err != nil {
+				return err
+			}
+			if len(result.AccessList) != 0 {
+				return fmt.Errorf("unexpected access list %v", result.AccessList)
+			}
+			if uint64(result.GasUsed) != wantGas {
+				return fmt.Errorf("unexpected gasUsed %d, want %d", result.GasUsed, wantGas)
+			}
+			return nil
+		},
+	}
 }
 
 // EthGetBlockTransactionCountByNumber stores a list of all tests against the method.
