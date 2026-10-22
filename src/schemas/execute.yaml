@@ -61,7 +61,7 @@ StateOverrides:
 AccountOverride:
   title: Details of an account to be overridden
   description: |-
-    It is possible to override any kind of address (EOA's, contracts and precompiles).
+    It is possible to override any kind of address (EOA's, contracts and precompiles). A `code` override on a precompile address replaces the precompile.
     A client MUST reject a key that it does not support with error code -32602. A client MAY treat a key that differs from a key defined in this schema only in case as that defined key. It MUST then apply the key, and MUST reject two keys that differ only in case and name the same defined key with error code -32602. A client MAY support other keys that this schema does not define.
   type: object
   not:
