@@ -52,7 +52,7 @@ This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloada
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
 - `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
-- `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+- `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`).
 
 ### PayloadStatusV2
 
@@ -85,7 +85,7 @@ Method parameter list is extended with `inclusionListTransactions`.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
-  5. `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+  5. `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`).
 * timeout: 6s
 
 #### Response
