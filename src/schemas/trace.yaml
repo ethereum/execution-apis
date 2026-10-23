@@ -87,21 +87,31 @@ TraceCall:
     request to be rejected (recommended: -32602 for a malformed field or impossible combination, or -32003
     when the selected fork does not support the field, such as authorizationList before Prague); a client
     MUST NOT silently ignore a
-    defined field. Only fields outside this schema are ignored, and accepting
-    them does not establish extension support. An explicit null for any field other than to is the
+    defined field. Only fields outside this schema are ignored; accepting such a field does not
+    mean the client supports it. An explicit null for any field other than to is the
     same as omitting it. Omitted or null to creates a contract. Defaults: from
     zero address, value zero, input empty; omitted gas follows the client eth_call default at the selected
     state, bounded by the execution cap, while an explicit gas of 0 is a supplied zero limit that
     fails the intrinsic-gas check (-38013 recommended). A block limit or sender allowance may lower the budget;
     supplied gas above the cap uses the cap. Supply gas explicitly for a portable budget. Omitted
-    gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call. A blob call (one
+    gasPrice, maxFeePerGas and maxPriorityFeePerGas default to 0 as in eth_call. The effective gas
+    price is gasPrice, or min(maxPriorityFeePerGas + base fee, maxFeePerGas), computed after
+    defaulting; when it is 0 (the zero-fee rule), GASPRICE and BASEFEE are both 0 and no gas fee is
+    paid. A blob call (one
     carrying a non-empty blobVersionedHashes list) whose maxFeePerBlobGas is omitted, null or 0 runs
     with BLOBBASEFEE 0 and pays no blob fee; a positive maxFeePerBlobGas is validated against the
     selected block''s blob base fee and charged. Calls without blob fields keep the selected block''s
     BLOBBASEFEE. A maxFeePerBlobGas without blobVersionedHashes, or an empty blobVersionedHashes
     list, is rejected at every fork. Legacy gasPrice and dynamic
     fee fields MUST
-    NOT be combined. A supplied nonce is accepted but neither validated nor used: execution, including
+    NOT be combined. A legacy gasPrice otherwise serves as both maxFeePerGas and
+    maxPriorityFeePerGas, also with an authorizationList, whose authorizations apply, or with blob
+    fields, whose blob fee is priced on its own. For transaction types 0x0 to 0x4, type never changes
+    execution; the fields present decide, no supplied field is dropped because of it, and the type
+    adds no requirement of its own. An access list before Berlin, maxFeePerGas or
+    maxPriorityFeePerGas before London, blob fields before Cancun and an authorizationList before
+    Prague are rejected (-32003 recommended), even with zero or empty values, since no transaction
+    at the selected fork can carry them. A supplied nonce is accepted but neither validated nor used: execution, including
     CREATE address derivation, uses the sender nonce in the selected state. A supplied chainId must match
     the chain.'
   title: TraceCall
@@ -118,15 +128,12 @@ TraceAddress:
   items: &id004
     type: integer
     minimum: 0
+  description: A path of child ordinals from the root, not a flat list index.
   title: TraceAddress
 TracePosition:
   type: array
   items:
     $ref: '#/components/schemas/uint64'
-  description: 'One path into the call tree: [] selects the root, ["0x0"] its first child. Output
-    traceAddress uses JSON integers; the input path uses hex quantities for compatibility with existing
-    callers. Convert each output integer to a minimal hex quantity before querying. Integer path entries
-    are rejected as invalid parameters (-32602 recommended), not treated as missing paths.'
   title: TracePosition
 TraceFilter:
   type: object
@@ -136,15 +143,32 @@ TraceFilter:
       anyOf:
       - $ref: '#/components/schemas/hash32'
       - type: 'null'
-      description: Selects exactly the canonical block with this hash. Mutually exclusive with non-null
-        fromBlock and toBlock (-32602 recommended); null is omitted. An unknown, noncanonical, unexecuted or
-        unavailable hash returns an error (-32001; 4444 recommended for pruned history), never [].
+      description: >-
+        Selects exactly one block by hash, as in eth_getLogs (EIP-234); callers may omit it and
+        clients implement it. A non-null blockHash is mutually exclusive with non-null fromBlock
+        and toBlock (-32602 recommended); null is omitted. The result, including [], is for that
+        block, and each record carries its hash; address matching, mode, ordering and after/count
+        apply as for a single-block range. The block must be canonical and executed; an unknown,
+        noncanonical, unexecuted or otherwise unavailable hash returns an error (-32001; 4444
+        recommended for pruned history), never [] or another block's records. Resolve the hash and
+        trace the block in one chain view, never substituting a block by height.
     fromBlock: &rangeBound
       anyOf:
       - allOf:
         - $ref: '#/components/schemas/BlockNumberOrTagForRange'
         - maxLength: 18
       - type: 'null'
+      description: >-
+        Inclusive block range bound. The filter defaults omitted fromBlock and toBlock to the same
+        latest head, so historical searches must explicitly set fromBlock. Bounds are numbers and
+        the earliest, latest, safe and finalized tags; pending, block-hash strings and block-hash
+        objects are rejected (-32602 recommended); numeric bounds fit uint64. Unresolvable safe or
+        finalized tags return an error, never head substitution or an empty result. If either bound
+        resolves beyond the current head block, or fromBlock resolves above toBlock, return an error
+        (-32602 recommended); an explicit toBlock before an omitted latest start is such a reversed
+        range. Never clamp the range or return a partial result. earliest is the lowest available
+        block; never replace an explicit endpoint with a retention boundary, and return an error
+        (4444 recommended) if required history is unavailable.
     toBlock: *rangeBound
     fromAddress:
       anyOf:
@@ -172,6 +196,11 @@ TraceFilter:
         minimum: 0
         maximum: 18446744073709551615
       - type: 'null'
+      description: >-
+        after skips that many matching records and count limits how many are returned; both are
+        JSON integers bounded by uint64. after defaults to 0, and count is unlimited subject to an
+        explicit server limit. Apply filtering before pagination. count limits results, not scan or
+        replay work. Offsets are stable only for a fixed selection.
     count: *pageSize
   additionalProperties: false
   if:
@@ -185,30 +214,21 @@ TraceFilter:
         type: 'null'
       toBlock:
         type: 'null'
-  description: An explicit null member is the same as an omitted one. Callers use the member names
-    exactly as defined; a server may match them case-insensitively, but every member takes effect as
-    the member it matches or is rejected (-32602 recommended), never ignored, so an unknown member is
-    rejected. Inclusive block range; defaults
-    omitted fromBlock and toBlock to the same latest head,
-    after 0, count unlimited subject to an explicit server limit. Bounds are numbers and the earliest,
-    latest, safe and finalized tags; pending, block-hash strings and EIP-1898 block-hash objects are
-    rejected (-32602 recommended); numeric bounds fit uint64. Unresolvable safe or finalized tags
-    return an error, never head substitution or an empty result. If either bound resolves beyond the current head
-    block, or fromBlock resolves above
-    toBlock, return an error (-32602 recommended); an explicit toBlock before an omitted latest start is
-    such a reversed range. Never clamp the range.
-    OR within each address list; AND between lists by default, as eth_getLogs composes topic positions.
-    Missing, null or empty lists are unrestricted. mode union matches either populated list instead.
-    Compare address bytes independently of hex letter case. Resolve tags once per request. Apply
-    filtering before pagination; validate selectors before count 0 returns []. after and count are JSON integers bounded by
-    uint64. Return an error rather than silently truncate when a server limit is exceeded. earliest is
-    the lowest available block; never replace an explicit endpoint with a retention boundary, and
-    return an error (4444 recommended) if required history is unavailable. count limits results, not scan or replay work.
-    A non-null blockHash is mutually exclusive with non-null bounds (-32602 recommended) and selects
-    exactly that canonical block; the result, including [], is for that block, and each record carries
-    its hash. An unknown, noncanonical, unexecuted or otherwise unavailable hash returns an error (-32001;
-    4444 recommended for pruned history), never [] or another block's records. Resolve the hash and
-    trace the block in one chain view, never substituting a block by height.
+  description: >-
+    An explicit null member is the same as an omitted one. Callers use the member names exactly as
+    defined; a server may match them case-insensitively, but every member takes effect as the
+    member it matches or is rejected (-32602 recommended), never ignored, so an unknown member is
+    rejected. Resolve tags once per request. Capture one coherent snapshot for the request; numeric
+    and tag ranges select its canonical blocks. Validate selectors before count 0 returns []. OR
+    within each address list; AND between lists by default, as eth_getLogs composes topic
+    positions. Missing, null or empty lists are unrestricted. mode union matches either populated
+    list instead. Compare address bytes independently of hex letter case. Match CALL
+    sender/recipient, CREATE creator/created address and SELFDESTRUCT executing (self-destructing)
+    account/beneficiary; after EIP-6780 that account usually survives. A record matches only
+    addresses it reports; a failed CREATE reports no created address, so it has no created-address
+    match. A reward matches toAddress by author and has no from side; in intersection mode it is
+    excluded whenever fromAddress is populated, while in union mode a toAddress match suffices.
+    Return an error rather than silently truncate when a server limit is exceeded.
   title: TraceFilter
 TraceCallAction:
   type: object
@@ -288,7 +308,7 @@ TraceRewardAction:
       - block
       - uncle
   description: A historical PoW block or uncle reward paid to author. Withdrawals and system operations
-    are not reward records.
+    are not reward records, and no synthetic zero PoW rewards are emitted after the Merge.
   title: TraceRewardAction
 TraceCallResult:
   type: object
@@ -355,9 +375,9 @@ TraceFrame:
     frame for a failed precheck, use "Contract address collision", "Nonce overflow", "Insufficient
     balance for transfer" and "Max call depth exceeded". EIP-3860 oversized initcode aborts the
     creating frame with "Out of gas". The designated invalid instruction 0xFE is an undefined opcode,
-    so its frame fails with "Bad instruction". Any other error string is an extension that consumers
-    treat as a generic failure. revertReason is not part of this profile; raw revert bytes live in
-    result.output. Suicide and reward records carry result null. A suicide frame records the
+    so its frame fails with "Bad instruction". Clients may report other error strings, which consumers
+    treat as a generic failure. revertReason is not defined by this specification; raw revert bytes
+    live in result.output. Suicide and reward records carry result null. A suicide frame records the
     SELFDESTRUCT opcode and its transfer, not account deletion.'
   oneOf:
   - type: object
@@ -923,6 +943,6 @@ TraceOverrideConfig:
   - required: [blockOverrides]
   additionalProperties: true
   description: Existing recognized configuration wrappers with override members may be accepted
-    instead of the preferred positional state map. Other configuration entries remain extension
-    fields. A successful decode does not establish support; accepted override members must take
+    instead of the preferred positional state map. This specification does not define other
+    configuration entries. A successful decode does not establish support; accepted override members must take
     effect, and unsupported non-null shapes must be rejected.

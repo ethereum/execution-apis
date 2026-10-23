@@ -86,7 +86,7 @@ test('actual generated trace pages retain array, variant fields and localization
   assert.match(filter, /callers may omit it and clients implement it/);
   assert.match(filter, /The block must be canonical and executed/);
   assert.doesNotMatch(filter, /orphan/);
-  assert.match(get, /Integer path entries are rejected \(-32602 recommended\)/);
+  assert.match(get, /Integer path entries are rejected as invalid parameters \(-32602 recommended\)/);
 
   assert.equal(JSON.stringify(input), before);
 });
