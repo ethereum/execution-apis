@@ -45,6 +45,8 @@ type ChainTxInfo struct {
 	CallMeContract      *ContractInfo `json:"deploy-callme"`
 	CallEnvContract     *ContractInfo `json:"deploy-callenv"`
 	CallRevertContract  *ContractInfo `json:"deploy-callrevert"`
+	CallTree            []TxInfo      `json:"tx-calltree"`
+	CallRevert          []TxInfo      `json:"tx-callrevert"`
 	EIP7702             *EIP7702Info  `json:"tx-eip7702"`
 	EIP7002             *EIP7002Info  `json:"tx-request-eip7002"`
 }

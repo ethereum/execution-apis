@@ -1,0 +1,3 @@
+// gets the root frame of a call tree with an empty path
+>> {"jsonrpc":"2.0","id":1,"method":"trace_get","params":["0x1f334b4fa2fd8f9774c2845f112dd9c7955ee8704341a084d5cb84c193e34fca",[]]}
+<< {"jsonrpc":"2.0","id":1,"result":{"action":{"callType":"call","from":"0x7435ed30a8b4aeb0877cef0c6e8cffe834eb865f","to":"0x9dcd17433742f4c0ca53122ab541d0ba67fc27d0","gas":"0x8d5b8","input":"0x","value":"0x0"},"result":{"gasUsed":"0x1fc63","output":"0xffee"},"subtraces":7,"traceAddress":[],"type":"call","blockHash":"0x2b0de1a9c9f7495835091f0dc78b79960ada2fa90d57e6375cc88355588bcebb","blockNumber":54,"transactionHash":"0x1f334b4fa2fd8f9774c2845f112dd9c7955ee8704341a084d5cb84c193e34fca","transactionPosition":0}}

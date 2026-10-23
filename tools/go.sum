@@ -28,6 +28,8 @@ github.com/allegro/bigcache v1.2.1-0.20190218064605-e24eb225f156 h1:eMwmnE/GDgah
 github.com/allegro/bigcache v1.2.1-0.20190218064605-e24eb225f156/go.mod h1:Cb/ax3seSYIx7SuZdm2G2xzfwmv3TPSk2ucNfQESPXM=
 github.com/attestantio/go-eth2-client v0.30.1 h1:OqAzTr4UFVGKTQ1XCeZaOJ6VyD5P7p5bEU2YsVXxYB8=
 github.com/attestantio/go-eth2-client v0.30.1/go.mod h1:IcbypY5iD/c/T5OLWVuZyWS8kM8HXkGc0ZW12uikfys=
+github.com/banteg/go-ethereum v1.17.6-0.20261023193311-a5ddcb4fcffd h1:KjKalDVya8J+yXeiGj0KvQWVuQdN3Pj7G4/qrKtdJok=
+github.com/banteg/go-ethereum v1.17.6-0.20261023193311-a5ddcb4fcffd/go.mod h1:7ruvgGPsxGXtaSFJQKkSGwbKghz8V/G1xuDVY8NqQQM=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bits-and-blooms/bitset v1.20.0 h1:2F+rfL86jE2d/bmw7OhqUg2Sj/1rURkBn3MdfoPyRVU=
@@ -98,8 +100,6 @@ github.com/ethereum/c-kzg-4844/v2 v2.1.8 h1:oQ48q/TMe2SKU8qBE3N7e4/HlG3EpJftom6E
 github.com/ethereum/c-kzg-4844/v2 v2.1.8/go.mod h1:8HMkUZ5JRv4hpw/XUrYWSQNAUzhHMg2UDb/U+5m+XNw=
 github.com/ethereum/go-bigmodexpfix v0.0.0-20250911101455-f9e208c548ab h1:rvv6MJhy07IMfEKuARQ9TKojGqLVNxQajaXEp/BoqSk=
 github.com/ethereum/go-bigmodexpfix v0.0.0-20250911101455-f9e208c548ab/go.mod h1:IuLm4IsPipXKF7CW5Lzf68PIbZ5yl7FFd74l/E0o9A8=
-github.com/ethereum/go-ethereum v1.17.9-0.20261016054055-6d9b792191ce h1:frRblyTmtRvd7X4VowrTfeEVkwe7cKS+CK0D0VMbZ4I=
-github.com/ethereum/go-ethereum v1.17.9-0.20261016054055-6d9b792191ce/go.mod h1:RDnI/uaBp0lGdh3YftAFxMxLgba1I1QosRI/iC6hEak=
 github.com/ethereum/hid v1.0.1-0.20260421154323-c2ab8d9bf68a h1:eIFUceK3U/z9UV0D/kAI6cxA27eH7MPqt2ks7fbzj/k=
 github.com/ethereum/hid v1.0.1-0.20260421154323-c2ab8d9bf68a/go.mod h1:nABYy4hsKZpuN0mu0uybdjrIOuGb1eE7b1lci/ezUAo=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=
