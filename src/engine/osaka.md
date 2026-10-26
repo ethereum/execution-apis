@@ -62,7 +62,6 @@ This method is updated in a backward incompatible way. Instead of returning `blo
 * method: `engine_getPayloadV5`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 
