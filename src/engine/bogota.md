@@ -126,7 +126,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
     1. Every transaction **MUST** have non-zero length (at least 1 byte).
 
-    2. The transaction list **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction).
+    2. The transaction list **SHOULD NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction).
 
     3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
