@@ -280,7 +280,9 @@ This method follows the same specification as [`engine_getInclusionListV1`](#eng
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the EIP-8288 fork is not scheduled.
 
-2. `recursiveStark` **MUST** be an empty proof, `starkProof` of `"0x"` and `proofDeps` of `[]`, or a proof that verifies, as defined in [Inclusion list proof obligations](#inclusion-list-proof-obligations), and whose `proofDeps` contain the dependencies of every transaction in `transactions`.
+2. `recursiveStark` **MUST** be an empty proof, `starkProof` of `"0x"` and `proofDeps` of `[]`, or a proof that verifies, as defined in [Inclusion list proof obligations](#inclusion-list-proof-obligations) under the fork of the payload the list constrains, and whose `proofDeps` contain the dependencies of every transaction in `transactions`.
+
+3. Client software **MAY** reuse a proof it holds, such as a verified mempool wrapper proof, whose `proofDeps` also contain dependencies of no transaction in `transactions`. Client software **SHOULD NOT** delay the response beyond the timeout to produce a proof, and **SHOULD** leave out a transaction with a dependency verification frame that `recursiveStark` does not cover, as it is not obligated.
 
 ### engine_forkchoiceUpdatedV6
 
