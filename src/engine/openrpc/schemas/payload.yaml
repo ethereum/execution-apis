@@ -56,7 +56,6 @@ PayloadStatusV2:
     - latestValidHash
     - validationError
     - inclusionListSatisfied
-    - inclusionCheckId
   properties:
     status:
       $ref: '#/components/schemas/PayloadStatusNoInvalidBlockHash/properties/status'
@@ -69,14 +68,9 @@ PayloadStatusV2:
         - string
         - 'null'
     inclusionListSatisfied:
-      title: Whether the payload satisfied the inclusion list constraints
+      title: Completed inclusion verdict for VALID execution, otherwise null
       oneOf:
         - type: boolean
-        - type: 'null'
-    inclusionCheckId:
-      title: Identifier of the inclusion check for a VALID payload
-      oneOf:
-        - $ref: '#/components/schemas/hash32'
         - type: 'null'
 ExecutionPayloadV1:
   title: Execution payload object V1

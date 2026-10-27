@@ -63,7 +63,6 @@ getclientversionv
 getinclusionlistv
 getInclusionListV
 getinclusionlistverdictv
-getInclusionListVerdictV
 graphql
 greppable
 gwei

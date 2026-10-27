@@ -15,7 +15,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
   - [PayloadStatusV2](#payloadstatusv2)
   - [OmissionClaimV1](#omissionclaimv1)
 - [Routines](#routines)
-  - [Deferred inclusion checking](#deferred-inclusion-checking)
+  - [Inclusion checking](#inclusion-checking)
   - [Payload building](#payload-building)
 - [Methods](#methods)
   - [engine_newPayloadV6](#engine_newpayloadv6)
@@ -30,14 +30,10 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
-  - [engine_getInclusionListVerdictV1](#engine_getinclusionlistverdictv1)
+  - [engine_forkchoiceUpdatedV5](#engine_forkchoiceupdatedv5)
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
-  - [engine_forkchoiceUpdatedV5](#engine_forkchoiceupdatedv5)
-    - [Request](#request-4)
-    - [Response](#response-4)
-    - [Specification](#specification-4)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Amsterdam API](#amsterdam-api)
 
@@ -76,13 +72,12 @@ The consensus layer selects valid, non-equivocating ILs under EIP-7805. A member
 
 ### PayloadStatusV2
 
-This structure has the syntax of `PayloadStatusV1` and appends `inclusionListSatisfied` and `inclusionCheckId`.
+This structure has the syntax of `PayloadStatusV1` and appends `inclusionListSatisfied`.
 
 - `status`: `enum` - `"VALID" | "INVALID" | "SYNCING" | "ACCEPTED"`
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
-- `inclusionListSatisfied`: `BOOLEAN|null` - the completed verdict for `inclusionCheckId`; `null` while pending or when execution is not `VALID`.
-- `inclusionCheckId`: `DATA|null`, 32 Bytes - identifier defined below, present exactly when execution is `VALID`, including for a completed check.
+- `inclusionListSatisfied`: `BOOLEAN|null` - the completed inclusion verdict when `status` is `VALID`; `null` otherwise.
 
 ### OmissionClaimV1
 
@@ -95,19 +90,11 @@ Index zero is before the first transaction; `len(executionPayload.transactions)`
 
 ## Routines
 
-### Deferred inclusion checking
+### Inclusion checking
 
-Execution validation and inclusion checking may complete asynchronously. Once execution is `VALID`, the EL **MUST** schedule inclusion checking and promptly return its identifier and current verdict without waiting for that check. The CL polls [`engine_getInclusionListVerdictV1`](#engine_getinclusionlistverdictv1); pending is never satisfaction. Inclusion failure **MUST NOT** change execution validity or forkchoice processing.
+A `VALID` response to `engine_newPayloadV6` **MUST** include the completed inclusion verdict for that call's separate ILs and omission claims. An unsatisfied inclusion list **MUST NOT** change execution validity or forkchoice processing. Forkchoice responses do not report inclusion satisfaction.
 
-The identifier is `keccak256(b"engine/inclusion-check/v1" || RLP([blockHash, inclusionLists, claims]))`, where `claims` is `[[transactionHash, evaluationIndex], ...]`. Hashes and transactions are byte strings; indices use canonical RLP unsigned integers. Preserve list boundaries, committee positions, transaction order, duplicate entries and claim order. `blockHash` is the validated execution payload hash; all other `newPayload` validation requirements still apply before issuing or reusing an identifier.
-
-An identifier names one check. Identical in-progress checks **MUST** share work and a completed verdict **MUST NOT** change. Implementations **MAY** share execution data across checks. If prior execution did not retain the required insertion states and both gas counters, checking may require re-execution; authenticated BAL-indexed reconstruction can avoid this only with the corresponding gas counters available.
-
-If the EL cannot reconstruct the state or gas counters a check requires, the check stays pending; missing local data **MUST NOT** produce a verdict. The EL **MAY** complete the check once the data is available, or evict it; a resubmission **MAY** run the check again once the data is available. A check that stays pending at the proposal-slot parent decision gets the CL's empty-payload fallback defined by EIP-7805.
-
-The EL **SHOULD** retain a completed verdict at least until its block is finalized or pruned from fork choice, that is, until a finalized block reported through `engine_forkchoiceUpdated` has a block number at least that of the checked block. The EL **MAY** evict pending checks to bound local resources, and **MAY** evict a completed verdict earlier only under resource pressure. Eviction never changes a verdict; it only makes the identifier unknown.
-
-The CL **MUST** retain the original inputs until completion or abandonment and associate the identifier with its beacon block and frozen IL view. After `Unknown inclusion check`, including after an EL restart, the CL **MAY** resubmit those original inputs; it **MUST NOT** substitute a later view. Polling itself never creates or restarts work. The identifier is local API state, not a consensus commitment.
+Checking may require re-execution if prior execution did not retain the required insertion states and both gas counters. Authenticated BAL-indexed reconstruction can avoid this only with the corresponding gas counters available. Missing local data **MUST NOT** excuse an omission or produce a `VALID` response before inclusion checking completes; normal execution-sync statuses and RPC timeout/error handling apply.
 
 ### Payload building
 
@@ -152,7 +139,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
    Otherwise well-formed transaction byte strings **MUST NOT** cause an RPC error solely because their transaction encoding or validity checks fail. Well-formed duplicate or unmatched claims, and indices above the payload transaction count, **MUST NOT** cause an RPC error: EIP-7805 ignores repeated transaction hashes and irrelevant claims, and clamps remaining indices to the end of the payload. Exceeding the VERIFY budget is likewise handled by EIP-7805's per-member fill, not as an RPC error.
 
-3. Client software **MUST** evaluate inclusion against this call's inputs, even if execution validity is already known. It **MUST** return `inclusionListSatisfied` as the completed boolean verdict only if execution is `VALID`; otherwise, including while inclusion checking is pending, it **MUST** return `null`. It **MUST** return `inclusionCheckId` exactly when execution is `VALID`, following [Deferred inclusion checking](#deferred-inclusion-checking). Known execution validity **MUST NOT** be held until inclusion checking completes.
+3. Client software **MUST** evaluate inclusion against this call's inputs, even if execution validity is already known. It **MUST** complete inclusion checking before returning `VALID`, with `inclusionListSatisfied` set to the boolean verdict. For any other execution status, `inclusionListSatisfied` **MUST** be `null`.
 
 ### engine_getPayloadV7
 
@@ -211,25 +198,6 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
 2. The strategy for selecting transactions is implementation dependent.
 
-### engine_getInclusionListVerdictV1
-
-#### Request
-
-* method: `engine_getInclusionListVerdictV1`
-* params:
-  1. `inclusionCheckId`: `DATA`, 32 Bytes - Identifier returned by `engine_newPayloadV6`.
-* timeout: 1s
-
-#### Response
-
-* result: `BOOLEAN|null` - Completed verdict, or `null` while the identified check is pending.
-* error: `-38007: Unknown inclusion check` if the identifier is unknown or evicted.
-
-#### Specification
-
-1. Client software **MUST** return the current verdict promptly, without waiting for pending work or starting a new check.
-2. An unknown identifier **MUST** return the error above, not `null`.
-
 ### engine_forkchoiceUpdatedV5
 
 Compared with V4, only the payload attributes change to `PayloadAttributesV5`; the response remains `PayloadStatusV1`.
@@ -254,7 +222,7 @@ Compared with V4, only the payload attributes change to `PayloadAttributesV5`; t
 
 This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./amsterdam.md#engine_forkchoiceupdatedv4) with the following changes to the processing flow:
 
-This method reports execution validity only. Deferred inclusion results are obtained with `engine_getInclusionListVerdictV1`; `payloadAttributes` describes the child build and cannot supply the head's inclusion inputs.
+This method reports execution validity only. Inclusion results are returned by `engine_newPayloadV6`; `payloadAttributes` describes the child build and cannot supply the head's inclusion inputs.
 
 1. Extend point (8) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining the following sequence of checks that **MUST** be run over `payloadAttributes`:
 

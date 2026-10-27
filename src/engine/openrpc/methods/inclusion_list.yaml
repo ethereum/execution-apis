@@ -11,22 +11,3 @@
       maxItems: 8192
       items:
         $ref: '#/components/schemas/InclusionListTransactionV1'
-- name: engine_getInclusionListVerdictV1
-  summary: Obtains the current verdict of an existing inclusion check
-  externalDocs:
-    description: Method specification
-    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_getinclusionlistverdictv1
-  params:
-    - name: inclusionCheckId
-      required: true
-      schema:
-        $ref: '#/components/schemas/hash32'
-  result:
-    name: Inclusion list verdict
-    schema:
-      oneOf:
-        - type: boolean
-        - type: 'null'
-  errors:
-    - code: -38007
-      message: Unknown inclusion check
