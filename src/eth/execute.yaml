@@ -7,6 +7,20 @@
     client MAY select implementation-defined fee values for the simulation. The request MUST NOT
     fail solely because the sender cannot afford the gas fees implied by those client-selected
     defaults. This does not waive balance requirements for a non-zero transaction `value`.
+
+    A transaction field whose EIP is not active at the target block makes the request invalid,
+    and the client MUST reject it. This applies even when the field has a zero value or is an
+    empty list. These fields are `accessList` before Berlin (EIP-2930), `maxFeePerGas` and
+    `maxPriorityFeePerGas` before London (EIP-1559), `blobVersionedHashes` before Cancun
+    (EIP-4844) and `authorizationList` before Prague (EIP-7702). `gasPrice` without the
+    EIP-1559 fields is valid at every fork.
+
+    A blob transaction carries at least one blob versioned hash (EIP-4844). The client MUST
+    reject a request with an empty `blobVersionedHashes` list at every fork. The client MUST
+    also reject a request with `maxFeePerBlobGas` but without `blobVersionedHashes`.
+
+    The client MUST ignore the `type` field. The other fields decide how the request runs,
+    so a request with any valid `type` value gives the same result as the same request without it.
   params:
     - name: Transaction
       required: true
@@ -49,6 +63,20 @@
     client MAY select implementation-defined fee values for the simulation. The request MUST NOT
     fail solely because the sender cannot afford the gas fees implied by those client-selected
     defaults. This does not waive balance requirements for a non-zero transaction `value`.
+
+    A transaction field whose EIP is not active at the target block makes the request invalid,
+    and the client MUST reject it. This applies even when the field has a zero value or is an
+    empty list. These fields are `accessList` before Berlin (EIP-2930), `maxFeePerGas` and
+    `maxPriorityFeePerGas` before London (EIP-1559), `blobVersionedHashes` before Cancun
+    (EIP-4844) and `authorizationList` before Prague (EIP-7702). `gasPrice` without the
+    EIP-1559 fields is valid at every fork.
+
+    A blob transaction carries at least one blob versioned hash (EIP-4844). The client MUST
+    reject a request with an empty `blobVersionedHashes` list at every fork. The client MUST
+    also reject a request with `maxFeePerBlobGas` but without `blobVersionedHashes`.
+
+    The client MUST ignore the `type` field. The other fields decide how the request runs,
+    so a request with any valid `type` value gives the same result as the same request without it.
   params:
     - name: Transaction
       required: true
@@ -90,6 +118,22 @@
     client MAY select implementation-defined fee values for the simulation. The request MUST NOT
     fail solely because the sender cannot afford the gas fees implied by those client-selected
     defaults. This does not waive balance requirements for a non-zero transaction `value`.
+
+    A transaction field whose EIP is not active at the target block makes the request invalid,
+    and the client MUST reject it. This applies even when the field has a zero value or is an
+    empty list. These fields are `accessList` before Berlin (EIP-2930), `maxFeePerGas` and
+    `maxPriorityFeePerGas` before London (EIP-1559), `blobVersionedHashes` before Cancun
+    (EIP-4844) and `authorizationList` before Prague (EIP-7702). `gasPrice` without the
+    EIP-1559 fields is valid at every fork.
+
+    A blob transaction carries at least one blob versioned hash (EIP-4844). The client MUST
+    reject a request with an empty `blobVersionedHashes` list at every fork. The client MUST
+    also reject a request with `maxFeePerBlobGas` but without `blobVersionedHashes`.
+
+    The client MUST ignore the `type` field. The other fields decide how the request runs,
+    so a request with any valid `type` value gives the same result as the same request without it.
+
+    If Berlin (EIP-2930) is not active at the target block, the client MUST reject the request.
   params:
     - name: Transaction
       required: true
