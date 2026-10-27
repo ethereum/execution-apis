@@ -13,7 +13,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
-  - [RecursiveStarkV1](#recursivestarkv1)
+  - [InclusionListProofCommitmentV1](#inclusionlistproofcommitmentv1)
   - [InclusionListProofV1](#inclusionlistproofv1)
   - [InclusionListProofStatusV1](#inclusionlistproofstatusv1)
 - [Routines](#routines)
@@ -83,9 +83,9 @@ This structure has the syntax of `PayloadStatusV1` and appends a single field: `
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
 - `inclusionListSatisfied`: `BOOLEAN|null` - whether the payload satisfied the inclusion list constraints if it is deemed `VALID`; `null` otherwise.
 
-### RecursiveStarkV1
+### InclusionListProofCommitmentV1
 
-This structure is the `recursive_stark` commitment of an inclusion list, as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288).
+This structure is an inclusion list's commitment to its aggregate proof, as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288).
 
 - `starkProofHash`: `DATA`, 32 Bytes - `keccak256` of the committed aggregate proof
 - `depsHash`: `DATA`, 32 Bytes - `get_deps_hash` of the committed proof's dependency list
@@ -97,7 +97,7 @@ This structure is an inclusion list proof, the `il_proof` of [EIP-8288](https://
 - `starkProof`: `DATA`, at most `MAX_AGGREGATE_PROOF_BYTES` bytes - the serialized recursive aggregate proof
 - `proofDeps`: `Array of DATA`, 96 Bytes each - the proof's dependency list, each entry in the EIP-8288 96-byte dependency encoding, sorted in ascending byte order without duplicates, at most `MAX_DEPS_PER_AGGREGATE_WRAPPER` entries
 
-The size bounds are checked by the methods after parameter decoding, not by the schema. A `proofDeps` entry that is not exactly 96 bytes is a parameter decoding error. An `InclusionListProofV1` matches a `RecursiveStarkV1` if `keccak256(starkProof) == starkProofHash` and `get_deps_hash(proofDeps) == depsHash`.
+The size bounds are checked by the methods after parameter decoding, not by the schema. A `proofDeps` entry that is not exactly 96 bytes is a parameter decoding error. An `InclusionListProofV1` matches an `InclusionListProofCommitmentV1` if `keccak256(starkProof) == starkProofHash` and `get_deps_hash(proofDeps) == depsHash`.
 
 ### InclusionListProofStatusV1
 
@@ -233,7 +233,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 * params:
   1. `timestamp`: `QUANTITY`, 64 Bits - the `timestamp` of the block the inclusion list constrains.
   2. `transactions`: `Array of DATA` - the inclusion list's transactions, each a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
-  3. `recursiveStark`: [`RecursiveStarkV1`](#recursivestarkv1) - the inclusion list's non-null commitment.
+  3. `proofCommitment`: [`InclusionListProofCommitmentV1`](#inclusionlistproofcommitmentv1) - the inclusion list's non-null proof commitment.
   4. `ilProof`: `Object|null` - an instance of [`InclusionListProofV1`](#inclusionlistproofv1), or `null`.
   5. `attestationDeadlineMs`: `QUANTITY`, 64 Bits - the EIP-7805 attestation deadline of the target block's slot, as Unix time in milliseconds.
 * timeout: 1s
@@ -249,27 +249,27 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 2. Client software **MUST** derive `deps`, the sorted, deduplicated union of the dependencies of the `transactions` that decode and pass static validity for the target fork, as specified by EIP-8288. Other transactions contribute no dependencies.
 
-3. Client software **MUST** ignore an `ilProof` that does not match `recursiveStark`.
+3. Client software **MUST** ignore an `ilProof` that does not match `proofCommitment`.
 
 4. Client software **MUST** return `{status: INVALID, validationError: errorMessage | null}` if any of the following holds:
 
     1. `deps` is empty.
 
-    2. A `proofDeps` known for `recursiveStark.depsHash` omits a dependency in `deps`.
+    2. A `proofDeps` known for `proofCommitment.depsHash` omits a dependency in `deps`. A `proofDeps` is known for a `depsHash` only if it is the `proofDeps` of a matching `ilProof`, of a held verified proof, or of a proof client software has verified as `VALID` against that `depsHash`.
 
-    3. It holds an `INVALID` verdict keyed `(recursiveStark.starkProofHash, recursiveStark.depsHash, AGGREGATED_VK)` with the target fork's `AGGREGATED_VK`, whether or not `ilProof` is supplied.
+    3. It holds an `INVALID` verdict keyed `(proofCommitment.starkProofHash, proofCommitment.depsHash, AGGREGATED_VK)` with the target fork's `AGGREGATED_VK`, whether or not `ilProof` is supplied.
 
     4. A matching `ilProof` fails verification under the target fork's `AGGREGATED_VK`.
 
     5. A matching `ilProof` fails, without verification, the checks of step 2 of [`engine_submitInclusionListProofV1`](#engine_submitinclusionlistproofv1).
 
-5. Client software **MUST** return `{status: VALID, validationError: null}` if `deps` is nonempty, it holds a verified proof under `(recursiveStark.starkProofHash, recursiveStark.depsHash)` for the target fork or a matching `ilProof` verifies under the target fork's `AGGREGATED_VK`, every dependency in `deps` is in that proof's `proofDeps`, and it retains the proof bytes and `proofDeps` until `attestationDeadlineMs`. When it already holds the proof, this is a lookup with no proof verification. A supplied `ilProof` matching a cached `VALID` verdict is checked against `recursiveStark` and not verified again.
+5. Client software **MUST** return `{status: VALID, validationError: null}` if `deps` is nonempty, it holds a verified proof under `(proofCommitment.starkProofHash, proofCommitment.depsHash)` for the target fork or a matching `ilProof` verifies under the target fork's `AGGREGATED_VK`, and every dependency in `deps` is in that proof's `proofDeps`. On `VALID`, it **MUST** retain the proof bytes and `proofDeps` until `attestationDeadlineMs`, as specified in [Inclusion list proof verdicts and retention](#inclusion-list-proof-verdicts-and-retention). When it already holds the proof, this is a lookup with no proof verification. A supplied `ilProof` matching a cached `VALID` verdict is checked against `proofCommitment` and not verified again.
 
 6. Client software **MUST** return `{status: PROOF_UNKNOWN, validationError: null}` if `deps` is nonempty, it does not hold the proof under the pair for the target fork, including when it holds a `VALID` verdict but no longer the proof bytes, and no matching `ilProof` was supplied.
 
 7. Client software **MUST** record the verdict of a matching `ilProof` it verifies or rejects under step 4, keyed with the target fork's `AGGREGATED_VK`, and on `VALID` keep the proof bytes and `proofDeps` with it.
 
-8. After successful parameter decoding, a supplied `ilProof` that matches `recursiveStark` but fails the proof-shape checks of step 4, item 5, returns `INVALID`; a nonmatching `ilProof` is ignored. Malformed parameters, such as missing fields, wrong types or invalid hex, still return `-32602: Invalid params`.
+8. After successful parameter decoding, a supplied `ilProof` that matches `proofCommitment` but fails the proof-shape checks of step 4, item 5, returns `INVALID`; a nonmatching `ilProof` is ignored. Malformed parameters, such as missing fields, wrong types or invalid hex, still return `-32602: Invalid params`.
 
 ### engine_getInclusionListProofV1
 

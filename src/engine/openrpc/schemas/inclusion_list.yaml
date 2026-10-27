@@ -1,5 +1,5 @@
-RecursiveStarkV1:
-  title: Recursive STARK commitment object V1
+InclusionListProofCommitmentV1:
+  title: Inclusion list proof commitment object V1
   type: object
   required:
     - starkProofHash

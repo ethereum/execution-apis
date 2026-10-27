@@ -11,7 +11,7 @@
       items:
         $ref: '#/components/schemas/bytes'
 - name: engine_verifyInclusionListProofV1
-  summary: Checks an inclusion list's recursive STARK commitment against held or supplied proofs
+  summary: Checks an inclusion list's proof commitment against held or supplied proofs
   externalDocs:
     description: Method specification
     url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_verifyinclusionlistproofv1
@@ -27,10 +27,10 @@
         type: array
         items:
           $ref: '#/components/schemas/bytes'
-    - name: Recursive STARK commitment
+    - name: Inclusion list proof commitment
       required: true
       schema:
-        $ref: '#/components/schemas/RecursiveStarkV1'
+        $ref: '#/components/schemas/InclusionListProofCommitmentV1'
     - name: Inclusion list proof
       required: true
       schema:
@@ -61,7 +61,7 @@
         - name: Inclusion list transactions
           value:
             - '0x02f86c0701843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a039409b4e5603dd8c3cf38232348661a8e99ac518396eeaa128ec9ec2a3eb8127a06b21ab956f5f138cb44fda1a9055bd08980ea4f8040d877c00dac025608d0d95'
-        - name: Recursive STARK commitment
+        - name: Inclusion list proof commitment
           value:
             starkProofHash: '0xb74da14078c7293345fc8d63e3963a54d648795d5abcc1f1150f8bdd70f2a5f1'
             depsHash: '0xf1a05553412fee67bfa84b3fa65697d8d9d752ca56158a416f53cf7664f79545'

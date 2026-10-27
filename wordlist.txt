@@ -68,6 +68,7 @@ graphql
 greppable
 gwei
 https
+InclusionListProofCommitmentV
 InclusionListProofV
 interop
 ipc
@@ -95,7 +96,6 @@ prevrandao
 PRs
 pyspelling
 randao
-RecursiveStarkV
 rlp
 RLP's
 rpc
