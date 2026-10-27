@@ -62,14 +62,12 @@ getblobsv
 getclientversionv
 getInclusionListV
 getinclusionlistv
-getInclusionListProofV
-getinclusionlistproofv
 graphql
 greppable
 gwei
 https
-InclusionListProofCommitmentV
-InclusionListProofV
+InclusionListV
+inclusionlistv
 interop
 ipc
 js
@@ -96,6 +94,8 @@ prevrandao
 PRs
 pyspelling
 randao
+RecursiveStarkV
+recursivestarkv
 rlp
 RLP's
 rpc
@@ -111,8 +111,6 @@ SSTORE
 ssz
 statev
 statusv
-submitInclusionListProofV
-submitinclusionlistproofv
 TCP
 teku
 TLS
@@ -128,8 +126,6 @@ url
 UTF
 UX
 validator
-verifyInclusionListProofV
-verifyinclusionlistproofv
 VM
 wei
 withdrawalv

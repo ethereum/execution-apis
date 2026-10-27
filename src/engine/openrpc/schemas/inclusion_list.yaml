@@ -1,17 +1,4 @@
-InclusionListProofCommitmentV1:
-  title: Inclusion list proof commitment object V1
-  type: object
-  required:
-    - starkProofHash
-    - depsHash
-  properties:
-    starkProofHash:
-      title: Hash of the aggregate proof
-      $ref: '#/components/schemas/hash32'
-    depsHash:
-      title: Dependency digest of the aggregate proof
-      $ref: '#/components/schemas/hash32'
-InclusionListProofV1:
+RecursiveStarkV1:
   title: Inclusion list proof object V1
   type: object
   required:
@@ -20,40 +7,25 @@ InclusionListProofV1:
   properties:
     starkProof:
       title: Aggregate proof
-      description: At most MAX_AGGREGATE_PROOF_BYTES bytes, checked by the method rather than the schema
+      description: Empty for an empty proof
       $ref: '#/components/schemas/bytes'
     proofDeps:
-      title: Dependency list of the aggregate proof
-      description: 96-byte dependency encodings, sorted in ascending order without duplicates, at most MAX_DEPS_PER_AGGREGATE_WRAPPER entries, checked by the method rather than the schema
+      title: Dependencies claimed by the aggregate proof
+      description: 96-byte dependency encodings, empty for an empty proof; with starkProof, at most MAX_IL_PROOF_BYTES once SSZ serialized
       type: array
       items:
         $ref: '#/components/schemas/bytes96'
-InclusionListProofStatusV1:
-  title: Inclusion list proof status object V1
+InclusionListV1:
+  title: Inclusion list object V1
   type: object
   required:
-    - status
+    - transactions
+    - recursiveStark
   properties:
-    status:
-      title: Inclusion list proof status
-      type: string
-      enum:
-        - VALID
-        - INVALID
-        - PROOF_UNKNOWN
-    validationError:
-      title: Validation error message
-      oneOf:
-        - type: string
-        - type: 'null'
-RestrictedInclusionListProofStatusV1:
-  $ref: '#/components/schemas/InclusionListProofStatusV1'
-  properties:
-    status:
-      $ref: '#/components/schemas/InclusionListProofStatusV1/properties/status'
-      description: Set of possible values is restricted to VALID, INVALID
-      enum:
-        - VALID
-        - INVALID
-    validationError:
-      $ref: '#/components/schemas/InclusionListProofStatusV1/properties/validationError'
+    transactions:
+      title: Inclusion list transactions
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    recursiveStark:
+      $ref: '#/components/schemas/RecursiveStarkV1'
