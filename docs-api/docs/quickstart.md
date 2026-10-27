@@ -114,7 +114,7 @@ are planned so hive can target specific execution-apis versions. See the
 
 ## GraphQL
 
-[View the spec][graphql-schema]
+[View the GraphQL schema (graphql.json)][graphql-schema]
 
 [EIP-1767][eip-1767] proposed a GraphQL schema for interacting with Ethereum
 clients. Since then Besu and Geth have implemented the interface. This repo
@@ -188,7 +188,7 @@ This repository is licensed under [CC0][license].
 
 [playground]: https://ethereum.github.io/execution-apis
 [openrpc]: https://open-rpc.org
-[graphql-schema]: http://graphql-schema.ethdevops.io/?url=https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
+[graphql-schema]: https://raw.githubusercontent.com/ethereum/execution-apis/main/graphql.json
 [eip-1767]: https://eips.ethereum.org/EIPS/eip-1767
 [contributors-guide]: https://github.com/ethereum/execution-apis/blob/main/docs-api/docs/contributors-guide.md
 [json-schema]: https://json-schema.org
