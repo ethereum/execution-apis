@@ -420,3 +420,16 @@ BlobsBundleV2:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+InclusionListExemptionV1:
+  title: Inclusion list exemption object V1
+  type: object
+  required:
+    - transactionHash
+    - transactionIndex
+  properties:
+    transactionHash:
+      title: Hash of the inclusion list transaction that is exempted
+      $ref: '#/components/schemas/hash32'
+    transactionIndex:
+      title: Index in the execution payload at which the transaction is evaluated
+      $ref: '#/components/schemas/uint64'
