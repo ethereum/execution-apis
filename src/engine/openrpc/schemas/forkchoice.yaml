@@ -136,7 +136,7 @@ PayloadAttributesV5:
     - parentBeaconBlockRoot
     - slotNumber
     - targetGasLimit
-    - inclusionListTransactions
+    - inclusionLists
   properties:
     timestamp:
       $ref: '#/components/schemas/PayloadAttributesV4/properties/timestamp'
@@ -152,8 +152,10 @@ PayloadAttributesV5:
       $ref: '#/components/schemas/PayloadAttributesV4/properties/slotNumber'
     targetGasLimit:
       $ref: '#/components/schemas/PayloadAttributesV4/properties/targetGasLimit'
-    inclusionListTransactions:
-      title: Inclusion list transactions
+    inclusionLists:
+      title: Inclusion lists
       type: array
       items:
-        $ref: '#/components/schemas/bytes'
+        type: array
+        items:
+          $ref: '#/components/schemas/bytes'
