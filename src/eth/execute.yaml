@@ -178,7 +178,7 @@
     - code: -38020
       message: Block number in sequence did not increase
     - code: -38021
-      message: Block timestamp in sequence did not increase or stay the same
+      message: Block timestamp in sequence did not increase
     - code: -38022
       message: MovePrecompileToAddress referenced itself in replacement
     - code: -38023
