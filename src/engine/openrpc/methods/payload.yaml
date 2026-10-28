@@ -1115,6 +1115,47 @@
       message: Invalid params
     - code: -38005
       message: Unsupported fork
+- name: engine_newPayloadV7
+  summary: Runs execution payload validation
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_newpayloadv7
+  params:
+    - name: Execution payload
+      required: true
+      schema:
+        $ref: '#/components/schemas/ExecutionPayloadV4'
+    - name: Expected blob versioned hashes
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/hash32'
+    - name: Parent beacon block root
+      required: true
+      schema:
+        $ref: '#/components/schemas/hash32'
+    - name: Execution requests
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/bytes'
+    - name: Inclusion lists
+      required: true
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/InclusionListV1'
+  result:
+    name: Payload status
+    schema:
+      $ref: '#/components/schemas/PayloadStatusV2'
+  errors:
+    - code: -32602
+      message: Invalid params
+    - code: -38005
+      message: Unsupported fork
 - name: engine_getPayloadV6
   summary: Obtains execution payload from payload build process
   externalDocs:

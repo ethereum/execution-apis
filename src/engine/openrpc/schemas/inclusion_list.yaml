@@ -1,0 +1,31 @@
+RecursiveStarkV1:
+  title: Inclusion list proof object V1
+  type: object
+  required:
+    - starkProof
+    - proofDeps
+  properties:
+    starkProof:
+      title: Aggregate proof
+      description: Empty for an empty proof
+      $ref: '#/components/schemas/bytes'
+    proofDeps:
+      title: Dependencies claimed by the aggregate proof
+      description: 96-byte dependency encodings, empty for an empty proof; with starkProof, at most MAX_IL_PROOF_BYTES once SSZ serialized
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes96'
+InclusionListV1:
+  title: Inclusion list object V1
+  type: object
+  required:
+    - transactions
+    - recursiveStark
+  properties:
+    transactions:
+      title: Inclusion list transactions
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
+    recursiveStark:
+      $ref: '#/components/schemas/RecursiveStarkV1'

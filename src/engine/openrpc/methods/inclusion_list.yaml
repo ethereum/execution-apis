@@ -10,3 +10,27 @@
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+- name: engine_getInclusionListV2
+  summary: Obtains an inclusion list with its proof based on the local view of the mempool
+  externalDocs:
+    description: Method specification
+    url: https://github.com/ethereum/execution-apis/blob/main/src/engine/bogota.md#engine_getinclusionlistv2
+  params: []
+  result:
+    name: Inclusion list
+    schema:
+      $ref: '#/components/schemas/InclusionListV1'
+  errors:
+    - code: -38005
+      message: Unsupported fork
+  examples:
+    - name: engine_getInclusionListV2 example
+      params: []
+      result:
+        name: Inclusion list
+        value:
+          transactions:
+            - '0x02f86c0701843b9aca008506fc23ac00830124f89402020202020202020202020202020202020202020180c080a039409b4e5603dd8c3cf38232348661a8e99ac518396eeaa128ec9ec2a3eb8127a06b21ab956f5f138cb44fda1a9055bd08980ea4f8040d877c00dac025608d0d95'
+          recursiveStark:
+            starkProof: '0x'
+            proofDeps: []
