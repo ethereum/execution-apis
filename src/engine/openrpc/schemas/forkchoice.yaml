@@ -15,6 +15,9 @@ ForkchoiceStateV1:
     finalizedBlockHash:
       title: Finalized block hash
       $ref: '#/components/schemas/hash32'
+    confirmedBlockHash:
+      title: Confirmed block hash
+      $ref: '#/components/schemas/hash32'
 ForkchoiceUpdatedResponseV1:
   title: Forkchoice updated response object V1
   type: object
