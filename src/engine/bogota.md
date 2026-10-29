@@ -71,6 +71,8 @@ This routine follows the same specification as [Payload building](./paris.md#pay
 
 1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload` **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
+2. If the given `PayloadAttributesV5` differ from the payload attributes of an existing build process only in `inclusionListTransactions`, client software **SHOULD** start the new build process from the most recent payload of the existing build process and append the inclusion list transactions required to satisfy the inclusion list constraints, as described in the [Payload Construction](https://eips.ethereum.org/EIPS/eip-7805#payload-construction) section of EIP-7805, instead of building the payload from scratch. The new build process is still identified by a new `payloadId` as required by point (5) of [Payload building](./paris.md#payload-building).
+
 ## Methods
 
 ### engine_newPayloadV6
