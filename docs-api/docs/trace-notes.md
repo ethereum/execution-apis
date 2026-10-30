@@ -342,20 +342,23 @@ by uint64. Offsets are stable only for a fixed, numerically resolved range.
 
 Frame numbers follow Parity. The root `action.gas` is the transaction gas minus intrinsic gas,
 including access-list and authorization costs. The root `result.gasUsed` is execution gas before
-refunds, excluding intrinsic gas and the EIP-7623 floor. A nested CALL-family `action.gas` is the gas
-forwarded after the 63/64 cap plus the 2300 stipend for a value transfer. CREATE `gasUsed` includes
-the code deposit, and an exceptional halt consumes `action.gas`. CALL and STATICCALL report the
-caller as `from` and the target as `to`; DELEGATECALL and CALLCODE report the executing address and
-the code address. DELEGATECALL `value` is the inherited value and STATICCALL `value` is 0. Create
-actions require `creationMethod` (`create` or `create2`). A `suicide` frame records the opcode and
-its transfer, not account deletion. A CALL-family call that fails its precheck (depth limit,
-insufficient balance) emits a frame with its action and error, `result: null` and no subtraces,
-unless it is a nested zero-value precompile call, which is omitted like any other; the forwarded
-gas returns to the caller, which continues after pushing 0. A CREATE or CREATE2 that fails its
-precheck (depth limit, insufficient balance, nonce overflow) emits the same kind of frame before
-Amsterdam; from Amsterdam the check runs in the creating opcode and no frame is emitted. This
-follows the call tracers of Geth, Erigon, Reth and Besu, which record the rejected attempt. A
-CREATE address collision emits a create frame with error `Contract address collision`.
+refunds, excluding intrinsic gas and the EIP-7623 floor. A nested CALL-family `action.gas` is the
+gas forwarded to the child plus the 2300 stipend for a value transfer: from EIP-150 the requested
+gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas. A nested
+CREATE-family `action.gas` is all but 1/64 of the caller's remaining gas from EIP-150, and all of it
+before. CREATE `gasUsed` includes the code deposit, and an exceptional halt consumes `action.gas`.
+CALL and STATICCALL report the caller as `from` and the target as `to`; DELEGATECALL and CALLCODE
+report the executing address and the code address. DELEGATECALL `value` is the inherited value and
+STATICCALL `value` is 0. Create actions require `creationMethod` (`create` or `create2`). A
+`suicide` frame records the opcode and its transfer, not account deletion. A CALL-family call that
+fails its precheck (depth limit, insufficient balance) emits a frame with its action and error,
+`result: null` and no subtraces, unless it is a nested zero-value precompile call, which is omitted
+like any other; the forwarded gas returns to the caller, which continues after pushing 0. A CREATE
+or CREATE2 that fails its precheck (depth limit, insufficient balance, nonce overflow) emits the
+same kind of frame before Amsterdam; from Amsterdam the check runs in the creating opcode and no
+frame is emitted. This follows the call tracers of Geth, Erigon, Reth and Besu, which record the
+rejected attempt. A CREATE address collision emits a create frame with error `Contract address
+collision`.
 
 `error` alone determines failure. A REVERT frame has error `Reverted` and requires
 `result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt has
@@ -364,8 +367,9 @@ shape, which must not report the would-be address. No contract exists at that ad
 also why a failed CREATE has no created-address match in `trace_filter`. Failure labels are
 `Reverted`, `Out of gas`, `Bad instruction`, `Bad jump destination`, `Stack underflow`,
 `Out of stack`, `Mutable Call In Static Context`, `Built-in failed` and `Out of bounds`. As in
-Parity and OpenEthereum, a code-deposit failure, including code above the EIP-170 size limit, is
-`Out of gas`, and returned code starting with 0xEF (EIP-3541) is `Invalid code`. Beyond Parity,
+Parity and OpenEthereum, a code-deposit failure from Homestead (EIP-2), including code above the
+EIP-170 size limit, is `Out of gas`; before Homestead the creation succeeds with empty code and no
+deposit charge. Returned code starting with 0xEF (EIP-3541) is `Invalid code`. Beyond Parity,
 which reported an address collision as `Out of gas` and emitted no frame for a failed precheck, this
 specification distinguishes `Contract address collision`, `Nonce overflow`,
 `Insufficient balance for transfer` and `Max call depth exceeded`. EIP-3860 oversized initcode
@@ -426,22 +430,22 @@ collector, and the tip goes to the fee recipient.
 
 ## VM traces
 
-VM `mem` is the post-operation contents of the memory range the opcode’s operands designate:
-MSTORE and MLOAD `[off, off+32)`, MSTORE8 `[off, off+1)`, the destination of CALLDATACOPY,
-CODECOPY, EXTCODECOPY, RETURNDATACOPY and MCOPY; for the CALL family, starting at the output offset,
-either the full output window (preferred) or exactly the bytes copied from return data. It is null
-when that range is empty or the opcode has none (RETURN, REVERT, LOG, KECCAK256, CREATE). This
-matches Parity, Erigon, Nethermind and Besu for MLOAD. The CALL-family range may be the full window
-(Parity, Erigon) or the copied prefix (Besu, revm-inspectors): both reconstruct memory exactly when
-applied as a write, and no known consumer distinguishes them. Consumers must not infer returned-data
-length from `mem`. `cost` is the total gas deducted from the caller when the operation starts,
-including gas made available to a child frame (the 63/64-capped forwarded gas for the CALL family,
-excluding the value stipend; all but 1/64 for the CREATE family), also when the call or creation
-fails its balance or depth precheck and that gas is returned immediately. `ex.used` is the caller's
-remaining gas after the operation, including unused child gas returned. An operation that began
-executing and halted exceptionally has `ex: null` and `sub: null`; its `cost` is an
-implementation-defined non-negative integer, since where an interpreter detects the fault varies
-and a halted frame returns no gas.
+VM `mem` is the post-operation contents of the memory range the opcode’s operands designate: MSTORE
+and MLOAD `[off, off+32)`, MSTORE8 `[off, off+1)`, the destination of CALLDATACOPY, CODECOPY,
+EXTCODECOPY, RETURNDATACOPY and MCOPY; for the CALL family, starting at the output offset, either
+the full output window (preferred) or exactly the bytes copied from return data. It is null when
+that range is empty or the opcode has none (RETURN, REVERT, LOG, KECCAK256, CREATE). This matches
+Parity, Erigon, Nethermind and Besu for MLOAD. The CALL-family range may be the full window (Parity,
+Erigon) or the copied prefix (Besu, revm-inspectors): both reconstruct memory exactly when applied
+as a write, and no known consumer distinguishes them. Consumers must not infer returned-data length
+from `mem`. `cost` is the total gas deducted from the caller when the operation starts, including
+gas made available to a child frame (the forwarded gas for the CALL family, excluding the value
+stipend, and the gas given to the child for the CREATE family, as for `action.gas`), also when the
+call or creation fails its balance or depth precheck and that gas is returned immediately. `ex.used`
+is the caller's remaining gas after the operation, including unused child gas returned. An operation
+that began executing and halted exceptionally has `ex: null` and `sub: null`; its `cost` is an
+implementation-defined non-negative integer, since where an interpreter detects the fault varies and
+a halted frame returns no gas.
 
 Operations rejected before execution are omitted, and no synthetic STOP is added, so every `pc`
 lies inside `code`. `push` is the top k stack words after execution, deepest first, where k is the

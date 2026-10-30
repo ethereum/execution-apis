@@ -255,8 +255,9 @@ TraceCallAction:
   description: 'CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from
     is the executing address, to the code address. value is the transferred value; DELEGATECALL reports
     the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including
-    access-list and authorization costs. Nested gas is the gas forwarded after the EIP-150 63/64 cap,
-    plus the 2300 stipend for a value transfer.'
+    access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300
+    stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the
+    caller''s remaining gas, before EIP-150 the requested gas.'
   title: TraceCallAction
 TraceCreateAction:
   type: object
@@ -277,8 +278,8 @@ TraceCreateAction:
       - create
       - create2
   description: from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic
-    gas; nested gas is all but 1/64 of the caller's remaining gas. creationMethod distinguishes CREATE
-    from CREATE2 and is required on every create action.
+    gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before.
+    creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
   title: TraceCreateAction
 TraceSuicideAction:
   type: object
@@ -369,11 +370,12 @@ TraceFrame:
     exists at the would-be address. An exceptional halt consumes the frame''s action gas; its result
     is null. Failure labels are "Reverted", "Out of gas", "Bad instruction", "Bad jump
     destination", "Stack underflow", "Out of stack", "Mutable Call In Static Context", "Built-in
-    failed" and "Out of bounds". As in Parity and OpenEthereum, a code-deposit failure, including code
-    above the EIP-170 size limit, is "Out of gas", and returned code starting with 0xEF (EIP-3541) is
-    "Invalid code". Beyond Parity, which reported an address collision as "Out of gas" and emitted no
-    frame for a failed precheck, use "Contract address collision", "Nonce overflow", "Insufficient
-    balance for transfer" and "Max call depth exceeded". EIP-3860 oversized initcode aborts the
+    failed" and "Out of bounds". As in Parity and OpenEthereum, a code-deposit failure from Homestead
+    (EIP-2), including code above the EIP-170 size limit, is "Out of gas"; before Homestead the
+    creation succeeds with empty code and no deposit charge. Returned code starting with 0xEF
+    (EIP-3541) is "Invalid code". Beyond Parity, which reported an address collision as "Out of
+    gas" and emitted no frame for a failed precheck, use "Contract address collision", "Nonce
+    overflow", "Insufficient balance for transfer" and "Max call depth exceeded". EIP-3860 oversized initcode aborts the
     creating frame with "Out of gas". The designated invalid instruction 0xFE is an undefined opcode,
     so its frame fails with "Bad instruction". Clients may report other error strings, which consumers
     treat as a generic failure. revertReason is not defined by this specification; raw revert bytes
@@ -865,10 +867,11 @@ TraceVm:
     (undefined opcodes including the designated invalid 0xFE, stack underflow or overflow) are
     omitted, and there is no synthetic STOP, so every pc lies inside code. cost is the total gas
     deducted from the caller when the operation starts, including gas made available to a child
-    frame: the 63/64-capped forwarded gas for the CALL family, excluding the value stipend, and all
-    but 1/64 for the CREATE family; this also holds when the call or creation fails its balance or
-    depth precheck and the gas is returned immediately. ex records same-step effects; ex.used is the
-    caller''s remaining gas after the operation, including unused gas returned by a child. An
+    frame: the forwarded gas for the CALL family, excluding the value stipend, and the gas given to
+    the child for the CREATE family, as for action gas; this also holds when the call or creation
+    fails its balance or depth precheck and the gas is returned immediately. ex records same-step
+    effects; ex.used is the caller''s remaining gas after the operation, including unused gas
+    returned by a child. An
     operation that halted exceptionally has ex null and sub null; its cost is an
     implementation-defined non-negative integer. push is the top k stack words after execution,
     deepest first, as minimal quantities, where k is the number of words the opcode leaves in place
