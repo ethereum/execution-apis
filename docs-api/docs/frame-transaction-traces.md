@@ -9,8 +9,10 @@ putting every frame under one synthetic root call. Tooling that walks `calls`
 or `traceAddress` recursively therefore picks up all frames with no change.
 
 The per-frame fields of the receipt (`payer`, `frameReceipts`) are the source of
-truth for frame status, payer, and per-dimension gas. A trace does not repeat
-them. A consumer joins frame `i` of the trace to `frameReceipts[i]` by index.
+truth for frame status, payer, and per-dimension gas. A trace repeats only the
+execution gas of each frame. A consumer joins frame `i` of the trace to
+`frameReceipts[i]` by index. `calls[i].gasUsed` is not `frameReceipts[i].gasUsed`,
+which also includes state gas.
 
 ## Terms
 
@@ -18,9 +20,19 @@ them. A consumer joins frame `i` of the trace to `frameReceipts[i]` by index.
   EIP-8141.
 - The resolved target of a frame is `frame.target`, or `tx.sender` when
   `frame.target` is empty.
-- The gas limit of a frame is `frame.limits.execution + frame.limits.state`.
+- The gas limit of a frame is `frame.limits.execution`.
+- The gas used by a frame is its `gas_used.execution` in EIP-8141, as reported
+  in `frameReceipts[i].executionGasUsed`. It does not change after the frame
+  completes. State gas is not part of a frame's trace
+  gas; it stays in `frameReceipts[i].stateGasUsed`.
+- Below the root, every gas quantity a tracer reports, including each call's
+  `gas` and `gasUsed`, each `vmTrace` operation's `cost` and `ex.used`, and
+  each `structLogs` step's `gas` and `gasCost`, MUST count execution gas only. State gas,
+  including the state part of a code deposit or of an account creation, is
+  drawn from the frame's state gas and appears in no call.
 - The transaction gas limit is the maximum gas EIP-8141 lets the transaction
-  use: the intrinsic cost plus every frame limit, or the calldata floor plus
+  use: the intrinsic cost plus every frame's `limits.execution` and
+  `limits.state`, or the calldata floor plus
   every state limit when that is higher. It is not the sum of the frame limits
   alone, which would be lower than the receipt `gasUsed` of a transaction that
   spends its full budget.
@@ -44,6 +56,11 @@ The root call frame of a frame transaction MUST be:
 | `gas` | the transaction gas limit |
 | `gasUsed` | the receipt `gasUsed` |
 
+The root does not count execution gas only. Its `gas` is the transaction gas
+limit. Its `gasUsed` is the receipt `gasUsed`, which includes state gas and is
+taken after the refund and the calldata floor are applied. The root `gasUsed`
+can therefore be less than the sum of `calls[i].gasUsed`.
+
 The root `calls` MUST have exactly one entry per entry of `tx.frames`, in frame
 order. `calls[i]` is frame `i`:
 
@@ -55,7 +72,7 @@ order. `calls[i]` is frame `i`:
 | `value` | `frame.value`, omitted for a static frame |
 | `input` | `frame.data` |
 | `gas` | the gas limit of the frame |
-| `gasUsed` | `frameReceipts[i].gasUsed` |
+| `gasUsed` | the gas used by the frame |
 
 Calls made by the frame are nested under `calls[i]` as for any call frame.
 
@@ -65,6 +82,11 @@ Status and errors:
   `1`.
 - A skipped frame (`frameReceipts[i].status` is `2`) has `error` set to
   `frame skipped`, `gasUsed` `0x0`, and no `calls`.
+- A transaction that is invalid, for example because no frame approved a
+  payer or a `VERIFY` frame failed, has no receipt. A method that traces this
+  transaction alone, such as `trace_rawTransaction`, returns an error, not a
+  trace. A method that traces a block returns that error in the entry of this
+  transaction.
 - A frame that fails before it enters the EVM is still rendered from the
   transaction fields, with the error that ended it.
 - A frame that succeeds without entering the EVM, such as a `VERIFY` frame
@@ -95,9 +117,9 @@ The same tree is used in parity encoding:
 - For frame `i`, `callType` is `staticcall` for a static frame and `call`
   otherwise. `from`, `to`, `input`, and `action.gas` follow the `callTracer`
   rules above, `value` is `frame.value` (`0x0` for a static frame, as for any
-  `staticcall`), and `result.gasUsed` is `frameReceipts[i].gasUsed`.
+  `staticcall`), and `result.gasUsed` is the gas used by the frame.
 - A frame that reverts has `error` `Reverted` and keeps its `result`, with
-  `result.gasUsed` equal to `frameReceipts[i].gasUsed` and `result.output`
+  `result.gasUsed` equal to the gas used by the frame and `result.output`
   equal to its revert data.
 - A skipped frame, or a frame that fails before it enters the EVM, has its
   `action` and `error`, no `result`, and no subtraces, as for a call that fails
@@ -118,9 +140,11 @@ frame except `SENDER` frames.
 In `vmTrace`, the root has `code` `0x` and one synthetic operation per frame
 that entered the EVM, in frame order. The `pc` of a synthetic operation is the
 frame index, not a position in code, its `cost` is the frame gas limit, its
-`ex.used` is `cost` minus `frameReceipts[i].gasUsed`, and its `sub` is the
-frame's own `vmTrace`. These operations are the only exception to the rule that
-every `pc` lies inside the executed code. A frame that did not enter the EVM,
+`ex.used` is `cost` minus the gas used by the frame, and its `sub` is the
+frame's own `vmTrace`. Its `op` is `STATICCALL` for a static frame and
+`CALL` otherwise, its `ex.push` is `[]`, and its `ex.mem` and `ex.store` are
+`null`. Its `pc` is not a code position, and its `ex.used` is
+the frame's own unused execution gas rather than the root's remaining gas. A frame that did not enter the EVM,
 whether skipped, failed, or run as default code, has no operation.
 
 In `stateDiff`, the transaction is one unit: it includes the payer's fee debit,
@@ -168,8 +192,8 @@ for the payer, and a `SENDER` frame that reverts:
   "from": "0x1111111111111111111111111111111111111111",
   "to": "0x00000000000000000000000000000000000000aa",
   "value": "0x0",
-  "gas": "0x7d000",
-  "gasUsed": "0x1f7a4",
+  "gas": "0x8b9a1",
+  "gasUsed": "0x12ff1",
   "input": "0x",
   "error": "frame failed",
   "calls": [
@@ -203,5 +227,10 @@ for the payer, and a `SENDER` frame that reverts:
 }
 ```
 
-Its receipt has `payer` `0x2222...2222` and `frameReceipts[2].status` `0`. The
+The transaction carries two `SECP256K1` signatures, each with a 20-byte signer,
+an empty `msg`, and a 65-byte signature, so its intrinsic cost is `21809`. The
+frame limits are `[200000, 0]`, `[200000, 0]`, and `[100000, 50000]`. The
+reverted frame keeps no state gas and no refund, so the receipt `gasUsed` is
+`21809 + 56000`. Its receipt has `payer` `0x2222...2222` and
+`frameReceipts[2].status` `0`. The
 root `error` message is not specified; `frame failed` is illustrative.
