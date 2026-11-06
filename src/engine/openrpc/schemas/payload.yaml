@@ -338,6 +338,73 @@ ExecutionPayloadV4:
     slotNumber:
       title: Slot number
       $ref: '#/components/schemas/uint64'
+ExecutionPayloadV5:
+  title: Execution payload object V5
+  type: object
+  required:
+    - parentHash
+    - feeRecipient
+    - stateRoot
+    - receiptsRoot
+    - logsBloom
+    - prevRandao
+    - blockNumber
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - baseFeePerGas
+    - blockHash
+    - transactions
+    - withdrawals
+    - blobGasUsed
+    - excessBlobGas
+    - blockAccessList
+    - slotNumber
+    - starkProof
+  properties:
+    parentHash:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/parentHash'
+    feeRecipient:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/feeRecipient'
+    stateRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/stateRoot'
+    receiptsRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/receiptsRoot'
+    logsBloom:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/logsBloom'
+    prevRandao:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/prevRandao'
+    blockNumber:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blockNumber'
+    gasLimit:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/gasLimit'
+    gasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/gasUsed'
+    timestamp:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/timestamp'
+    extraData:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/extraData'
+    baseFeePerGas:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/baseFeePerGas'
+    blockHash:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blockHash'
+    transactions:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/transactions'
+    withdrawals:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/withdrawals'
+    blobGasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blobGasUsed'
+    excessBlobGas:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/excessBlobGas'
+    blockAccessList:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blockAccessList'
+    slotNumber:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/slotNumber'
+    starkProof:
+      title: STARK proof
+      description: The EIP-8288 block body stark_proof, empty if the payload has no dependencies
+      $ref: '#/components/schemas/bytes'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object
@@ -371,6 +438,24 @@ ExecutionPayloadBodyV2:
     blockAccessList:
       title: Block access list
       description: RLP-encoded block access list as defined in EIP-7928, or null if unavailable
+      oneOf:
+        - $ref: '#/components/schemas/bytes'
+        - type: 'null'
+ExecutionPayloadBodyV3:
+  title: Execution payload body object V3
+  type: object
+  required:
+    - transactions
+  properties:
+    transactions:
+      $ref: '#/components/schemas/ExecutionPayloadV1/properties/transactions'
+    withdrawals:
+      $ref: '#/components/schemas/ExecutionPayloadBodyV2/properties/withdrawals'
+    blockAccessList:
+      $ref: '#/components/schemas/ExecutionPayloadBodyV2/properties/blockAccessList'
+    starkProof:
+      title: STARK proof
+      description: The EIP-8288 block body stark_proof, or null for blocks before the EIP-8288 fork
       oneOf:
         - $ref: '#/components/schemas/bytes'
         - type: 'null'
