@@ -13,8 +13,14 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
+  - [RecursiveStarkV1](#recursivestarkv1)
+  - [InclusionListV1](#inclusionlistv1)
+  - [PayloadAttributesV6](#payloadattributesv6)
+  - [ExecutionPayloadV5](#executionpayloadv5)
+  - [ExecutionPayloadBodyV3](#executionpayloadbodyv3)
 - [Routines](#routines)
   - [Payload building](#payload-building)
+  - [Inclusion list proof obligations](#inclusion-list-proof-obligations)
 - [Methods](#methods)
   - [engine_newPayloadV6](#engine_newpayloadv6)
     - [Request](#request)
@@ -28,8 +34,33 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_newPayloadV7](#engine_newpayloadv7)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
+  - [engine_getInclusionListV2](#engine_getinclusionlistv2)
+    - [Request](#request-4)
+    - [Response](#response-4)
+    - [Specification](#specification-4)
+  - [engine_forkchoiceUpdatedV6](#engine_forkchoiceupdatedv6)
+    - [Request](#request-5)
+    - [Response](#response-5)
+    - [Specification](#specification-5)
+  - [engine_getPayloadV7](#engine_getpayloadv7)
+    - [Request](#request-6)
+    - [Response](#response-6)
+    - [Specification](#specification-6)
+  - [engine_getPayloadBodiesByHashV3](#engine_getpayloadbodiesbyhashv3)
+    - [Request](#request-7)
+    - [Response](#response-7)
+    - [Specification](#specification-7)
+  - [engine_getPayloadBodiesByRangeV3](#engine_getpayloadbodiesbyrangev3)
+    - [Request](#request-8)
+    - [Response](#response-8)
+    - [Specification](#specification-8)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Amsterdam API](#amsterdam-api)
+    - [Bogota API](#bogota-api)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -38,6 +69,9 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | Name | Value |
 | - | - |
 | `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
+| `MAX_IL_PROOF_BYTES` | `uint64(1310720) = 5 * 2**18` |
+
+`MAX_IL_PROOF_BYTES` is the [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288) constant of the same name and is provisional there. The *EIP-8288 fork* is the fork activating EIP-8288.
 
 ## Structures
 
@@ -63,6 +97,71 @@ This structure has the syntax of `PayloadStatusV1` and appends a single field: `
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
 - `inclusionListSatisfied`: `BOOLEAN|null` - whether the payload satisfied the inclusion list constraints if it is deemed `VALID`; `null` otherwise.
 
+### RecursiveStarkV1
+
+This structure is the `InclusionListProof` that [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288) appends to a signed inclusion list.
+
+- `starkProof`: `DATA` - the serialized recursive aggregate proof, or `"0x"` for an empty proof
+- `proofDeps`: `Array of DATA`, 96 Bytes each - the dependencies the proof claims, each in the EIP-8288 96-byte dependency encoding, or `[]` for an empty proof
+
+The SSZ serialization of the corresponding `InclusionListProof`, `8 + len(starkProof) + 96 * len(proofDeps)` bytes, **MUST NOT** exceed `MAX_IL_PROOF_BYTES`.
+
+### InclusionListV1
+
+This structure is one inclusion list counted by [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805), with its EIP-8288 proof.
+
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+- `recursiveStark`: [`RecursiveStarkV1`](#recursivestarkv1) - the proof of the signed inclusion list, passed unchanged even if it does not verify.
+
+### PayloadAttributesV6
+
+This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloadattributesv4) and appends a single field: `inclusionLists`.
+
+- `timestamp`: `QUANTITY`, 64 Bits - value for the `timestamp` field of the new payload
+- `prevRandao`: `DATA`, 32 Bytes - value for the `prevRandao` field of the new payload
+- `suggestedFeeRecipient`: `DATA`, 20 Bytes - suggested value for the `feeRecipient` field of the new payload
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+- `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
+- `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
+- `inclusionLists`: `Array of InclusionListV1` - the counted inclusion lists in committee-position order, each an `OBJECT` containing the fields of an [`InclusionListV1`](#inclusionlistv1) structure.
+
+### ExecutionPayloadV5
+
+This structure has the syntax of [`ExecutionPayloadV4`](./amsterdam.md#executionpayloadv4) and appends a single field: `starkProof`.
+
+- `parentHash`: `DATA`, 32 Bytes
+- `feeRecipient`:  `DATA`, 20 Bytes
+- `stateRoot`: `DATA`, 32 Bytes
+- `receiptsRoot`: `DATA`, 32 Bytes
+- `logsBloom`: `DATA`, 256 Bytes
+- `prevRandao`: `DATA`, 32 Bytes
+- `blockNumber`: `QUANTITY`, 64 Bits
+- `gasLimit`: `QUANTITY`, 64 Bits
+- `gasUsed`: `QUANTITY`, 64 Bits
+- `timestamp`: `QUANTITY`, 64 Bits
+- `extraData`: `DATA`, 0 to 32 Bytes
+- `baseFeePerGas`: `QUANTITY`, 256 Bits
+- `blockHash`: `DATA`, 32 Bytes
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `blobGasUsed`: `QUANTITY`, 64 Bits
+- `excessBlobGas`: `QUANTITY`, 64 Bits
+- `blockAccessList`: `DATA` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928)
+- `slotNumber`: `QUANTITY`, 64 Bits
+- `starkProof`: `DATA` - the block body's `stark_proof` as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288), `"0x"` if the payload has no dependencies
+
+The header fields `stark_proof_hash` and `block_deps_hash` of EIP-8288 are not sent. Client software derives `stark_proof_hash` as `keccak256(starkProof)` and `block_deps_hash` as `get_deps_hash(dependencies(block))` from `transactions`, and includes both when it computes `blockHash`.
+
+### ExecutionPayloadBodyV3
+
+This structure has the syntax of [`ExecutionPayloadBodyV2`](./amsterdam.md#executionpayloadbodyv2) and appends a single field: `starkProof`.
+
+- `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
+- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
+- `blockAccessList`: `DATA|null` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928). Value is `null` for blocks produced before Amsterdam or if the data has been pruned.
+- `starkProof`: `DATA|null` - the block body's `stark_proof` as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288). Value is `null` for blocks produced before the EIP-8288 fork.
+
 ## Routines
 
 ### Payload building
@@ -70,6 +169,18 @@ This structure has the syntax of `PayloadStatusV1` and appends a single field: `
 This routine follows the same specification as [Payload building](./paris.md#payload-building) with the following changes to the processing flow:
 
 1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload` **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+
+2. With [`PayloadAttributesV6`](#payloadattributesv6), the constraints apply to the transactions that `inclusionLists` obligate, as defined in [Inclusion list proof obligations](#inclusion-list-proof-obligations). Client software **MAY** aggregate the proofs that verify there into the payload's recursive STARK, discarding the dependencies absent from the payload.
+
+### Inclusion list proof obligations
+
+Client software evaluates each [`InclusionListV1`](#inclusionlistv1) independently under the fork at the payload's `timestamp`, which fixes the static validity rules and the `AGGREGATED_VK`.
+
+1. `recursiveStark` verifies if `starkProof` is nonempty, `proofDeps` is sorted in ascending byte order without duplicates, every scheme in `proofDeps` is in `ENABLED_SCHEMES`, and `starkProof` verifies against `get_deps_hash(proofDeps)` under the `AGGREGATED_VK`, as defined in EIP-8288.
+
+2. A transaction without a dependency verification frame is obligated. A transaction with one is obligated if it passes the static validity rules of EIP-8141 and EIP-8288, `recursiveStark` verifies, and every dependency of the transaction is in `proofDeps`.
+
+3. The inclusion list constraints of EIP-7805 apply to the union of the obligated transactions of all lists, assuming the dependencies of an obligated transaction are satisfied. A transaction that does not decode and a `recursiveStark` that does not verify affect only their own list, and are not an error.
 
 ## Methods
 
@@ -168,6 +279,160 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     3. Otherwise, `payloadStatus.inclusionListSatisfied` **MUST** be `null`.
 
+### engine_newPayloadV7
+
+Method parameter list replaces `inclusionListTransactions` with `inclusionLists`.
+
+#### Request
+
+* method: `engine_newPayloadV7`
+* params:
+  1. `executionPayload`: [`ExecutionPayloadV5`](#executionpayloadv5).
+  2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
+  3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
+  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests, as in [`engine_newPayloadV6`](#engine_newpayloadv6).
+  5. `inclusionLists`: `Array of InclusionListV1` - the counted inclusion lists in committee-position order, each an `OBJECT` containing the fields of an [`InclusionListV1`](#inclusionlistv1) structure.
+* timeout: 6s
+
+#### Response
+
+* result: [`PayloadStatusV2`](#payloadstatusv2)
+* error: code and message set in case an exception happens while processing the payload.
+
+#### Specification
+
+This method follows the same specification as [`engine_newPayloadV6`](#engine_newpayloadv6) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the EIP-8288 fork.
+
+2. Client software **MUST** return `-32602: Invalid params` error if `inclusionLists` has more than the EIP-7805 `IL_COMMITTEE_SIZE` entries, or if an entry's `transactions` exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` bytes or its `recursiveStark` exceeds `MAX_IL_PROOF_BYTES`.
+
+3. Client software **MUST** set `inclusionListSatisfied` with respect to the transactions that `inclusionLists` obligate, as defined in [Inclusion list proof obligations](#inclusion-list-proof-obligations).
+
+4. Client software **MUST** retain `inclusionLists` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
+
+5. Client software **MUST** return `-32602: Invalid params` error if the `starkProof` field is missing. A `starkProof` longer than the EIP-8288 `MAX_STARK_PROOF_BYTES` makes the payload `INVALID`.
+
+### engine_getInclusionListV2
+
+#### Request
+
+* method: `engine_getInclusionListV2`
+* params: []
+* timeout: 1s
+
+#### Response
+
+* result: [`InclusionListV1`](#inclusionlistv1)
+* error: code and message set in case an exception happens while getting the inclusion list.
+
+#### Specification
+
+This method follows the same specification as [`engine_getInclusionListV1`](#engine_getinclusionlistv1) for `transactions`, with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the EIP-8288 fork is not scheduled. Once it is scheduled, the method is available whatever the current timestamp, as the request does not carry the timestamp of the payload the list constrains.
+
+2. Consensus layer client software **MUST** use this method for an inclusion list that constrains a payload within the time frame of the EIP-8288 fork, including the list built in the slot before the fork activates, and [`engine_getInclusionListV1`](#engine_getinclusionlistv1) for a list that constrains an earlier payload. Client software computes `recursiveStark` under the EIP-8288 fork in both cases, so a list built before activation carries a proof that verifies for the first payload of the fork.
+
+3. `recursiveStark` **MUST** be an empty proof, `starkProof` of `"0x"` and `proofDeps` of `[]`, or a proof that verifies, as defined in [Inclusion list proof obligations](#inclusion-list-proof-obligations) under the fork of the payload the list constrains, and whose `proofDeps` contain the dependencies of every transaction in `transactions`.
+
+4. Client software **MAY** reuse a proof it holds, such as a verified mempool wrapper proof, whose `proofDeps` also contain dependencies of no transaction in `transactions`. Client software **SHOULD NOT** delay the response beyond the timeout to produce a proof, and **SHOULD** leave out a transaction with a dependency verification frame that `recursiveStark` does not cover, as it is not obligated.
+
+### engine_forkchoiceUpdatedV6
+
+#### Request
+
+* method: `engine_forkchoiceUpdatedV6`
+* params:
+  1. `forkchoiceState`: [`ForkchoiceStateV1`](./paris.md#forkchoicestatev1).
+  2. `payloadAttributes`: `Object|null` - Instance of [`PayloadAttributesV6`](#payloadattributesv6) or `null`.
+  3. `custodyColumns`: `DATA|null`, 16 Bytes - as in [`engine_forkchoiceUpdatedV5`](#engine_forkchoiceupdatedv5).
+* timeout: 8s
+
+#### Response
+
+Refer to the response for [`engine_forkchoiceUpdatedV5`](#engine_forkchoiceupdatedv5).
+
+#### Specification
+
+This method follows the same specification as [`engine_forkchoiceUpdatedV5`](#engine_forkchoiceupdatedv5) with the following changes to the processing flow:
+
+1. Replace the checks of point (1) of [`engine_forkchoiceUpdatedV5`](#engine_forkchoiceupdatedv5) with:
+
+    1. `payloadAttributes` matches the [`PayloadAttributesV6`](#payloadattributesv6) structure and the bounds of point (2) of [`engine_newPayloadV7`](#engine_newpayloadv7), return `-38003: Invalid payload attributes` on failure.
+
+    2. `payloadAttributes.timestamp` does not fall within the time frame of the EIP-8288 fork, return `-38005: Unsupported fork` on failure.
+
+2. Client software **MUST** use the retained `inclusionLists` in place of `inclusionListTransactions` when it checks whether the payload referenced by `forkchoiceState.headBlockHash` satisfies the inclusion list constraints.
+
+### engine_getPayloadV7
+
+This method is updated to return the new `ExecutionPayloadV5` structure.
+
+#### Request
+
+* method: `engine_getPayloadV7`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
+* timeout: 1s
+
+#### Response
+
+* result: `object`
+  - `executionPayload`: [`ExecutionPayloadV5`](#executionpayloadv5)
+  - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
+  - `blobsBundle`: [`BlobsBundleV2`](./osaka.md#blobsbundlev2) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
+  - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
+* error: code and message set in case an exception happens while getting the payload.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6) with the following changes:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the built payload does not fall within the time frame of the EIP-8288 fork.
+
+### engine_getPayloadBodiesByHashV3
+
+#### Request
+
+* method: `engine_getPayloadBodiesByHashV3`
+* params:
+  1. `blockHashes`: `Array of DATA`, 32 Bytes - Array of block hashes to retrieve payload bodies for
+* timeout: 10s
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV3` - Array of [`ExecutionPayloadBodyV3`](#executionpayloadbodyv3) objects or `null` for blocks that are unavailable
+* error: code and message set in case an exception happens while getting the payload bodies.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadBodiesByHashV2`](./amsterdam.md#engine_getpayloadbodiesbyhashv2) with the following addition:
+
+1. Client software **MUST** set the `starkProof` field to `null` for blocks that predate the EIP-8288 fork activation.
+
+### engine_getPayloadBodiesByRangeV3
+
+#### Request
+
+* method: `engine_getPayloadBodiesByRangeV3`
+* params:
+  1. `start`: `QUANTITY`, 64 Bits - Starting block number
+  2. `count`: `QUANTITY`, 64 Bits - Number of blocks to retrieve payload bodies for
+* timeout: 10s
+
+#### Response
+
+* result: `Array of ExecutionPayloadBodyV3` - Array of [`ExecutionPayloadBodyV3`](#executionpayloadbodyv3) objects or `null` for blocks that are unavailable
+* error: code and message set in case an exception happens while getting the payload bodies.
+
+#### Specification
+
+This method follows the same specification as [`engine_getPayloadBodiesByRangeV2`](./amsterdam.md#engine_getpayloadbodiesbyrangev2) with the following addition:
+
+1. Client software **MUST** set the `starkProof` field to `null` for blocks that predate the EIP-8288 fork activation.
+
 ### Update the methods of previous forks
 
 #### Amsterdam API
@@ -180,3 +445,15 @@ For the following methods:
 a validation **MUST** be added:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload is greater than or equal to the Bogota activation timestamp.
+
+#### Bogota API
+
+For the following methods:
+
+- [`engine_newPayloadV6`](#engine_newpayloadv6)
+- [`engine_forkchoiceUpdatedV5`](#engine_forkchoiceupdatedv5)
+- [`engine_getPayloadV6`](./amsterdam.md#engine_getpayloadv6)
+
+a validation **MUST** be added:
+
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload is greater than or equal to the EIP-8288 fork activation timestamp.
