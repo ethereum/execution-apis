@@ -49,6 +49,19 @@
     client MAY select implementation-defined fee values for the simulation. The request MUST NOT
     fail solely because the sender cannot afford the gas fees implied by those client-selected
     defaults. This does not waive balance requirements for a non-zero transaction `value`.
+
+    The returned gas limit MUST be one at which the transaction does not fail and at which no
+    more of its nested calls and contract creations fail (run out of gas, revert or halt
+    exceptionally) than in the reference execution. A limit at which the transaction succeeds
+    only because a nested call failed and the caller caught the failure is not sufficient, since
+    the caller may then commit an outcome the sender did not intend.
+
+    The reference execution is the transaction executed with the highest gas limit the client
+    considers. From the Amsterdam fork, gas above `TX_MAX_GAS_LIMIT` (2^24, EIP-7825) only funds
+    the state gas reservoir (EIP-8037). If that highest limit is above `TX_MAX_GAS_LIMIT` and the
+    transaction does not fail when executed with exactly `TX_MAX_GAS_LIMIT`, the number of failed
+    nested calls allowed is the larger of the two executions' counts, so that the estimate does
+    not exceed `TX_MAX_GAS_LIMIT` only to let a nested call draw on the reservoir.
   params:
     - name: Transaction
       required: true
