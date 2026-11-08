@@ -1195,6 +1195,52 @@ if (BigInt(messages[1].response.result) <= 5000) {
 }
 `
 
+// Init code for the nested-creation estimate tests.
+var (
+	// nestedCreationIgnored creates a child whose init code loops 30000 times
+	// (about 780,000 gas) and deploys nothing. The creation gets all but 1/64
+	// of the gas left, and its result is ignored:
+	//   PUSH13 child PUSH1 0 MSTORE PUSH1 13 PUSH1 19 PUSH1 0 CREATE POP STOP
+	// where child is
+	//   PUSH2 30000 JUMPDEST PUSH1 1 SWAP1 SUB DUP1 PUSH1 3 JUMPI STOP
+	nestedCreationIgnored = common.FromHex("0x6c6175305b600190038060035700600052600d60136000f05000")
+
+	// nestedCreationChecked is nestedCreationIgnored, but reverts when the
+	// child creation fails. Its lowest passing gas limit is the lowest at which
+	// the child creation succeeds:
+	//   ... CREATE PUSH1 31 JUMPI PUSH1 0 DUP1 REVERT JUMPDEST STOP
+	nestedCreationChecked = common.FromHex("0x6c6175305b600190038060035700600052600d60136000f0601f57600080fd5b00")
+
+	// nestedCreationReverting creates a child whose init code always reverts
+	// and ignores the result:
+	//   PUSH4 child PUSH1 0 MSTORE PUSH1 4 PUSH1 28 PUSH1 0 CREATE POP STOP
+	// where child is PUSH1 0 DUP1 REVERT.
+	nestedCreationReverting = common.FromHex("0x63600080fd6000526004601c6000f05000")
+)
+
+const (
+	// nestedCreationMinGas is the lowest passing gas limit of
+	// nestedCreationChecked, found by bisecting eth_call.
+	nestedCreationMinGas = 1_196_078
+
+	// nestedCreationBound is far above what nestedCreationReverting needs. An
+	// estimator that tried to make the always-failing child succeed would
+	// return close to its upper search bound instead.
+	nestedCreationBound = 1_000_000
+)
+
+var nestedCreationScript = `
+if (BigInt(messages[1].response.result) < %dn) {
+    throw new Error("gas estimate starves the nested creation");
+}
+`
+
+var estimateGasBelowScript = `
+if (BigInt(messages[1].response.result) >= %dn) {
+    throw new Error("gas estimate grew on a nested call that always fails");
+}
+`
+
 // EthEstimateGas stores a list of all tests against the method.
 var EthEstimateGas = MethodTests{
 	"eth_estimateGas",
@@ -1389,6 +1435,40 @@ The request must not fail merely because the sender cannot afford the client's f
 				}
 				if gas < 21000 {
 					return fmt.Errorf("expected blob tx to require more than base gas, got %d", gas)
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "estimate-nested-creation-starved",
+			About:    "estimates a contract creation that ignores a failed nested creation; the estimate must leave the nested creation enough gas to succeed",
+			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
+			Run: func(ctx context.Context, t *T) error {
+				t.SetValidationScript(fmt.Sprintf(nestedCreationScript, nestedCreationMinGas))
+				msg := ethereum.CallMsg{From: common.Address{1, 2, 3}, Data: nestedCreationIgnored}
+				got, err := t.eth.EstimateGas(ctx, msg)
+				if err != nil {
+					return err
+				}
+				if got < nestedCreationMinGas {
+					return fmt.Errorf("estimate %d starves the nested creation, which needs %d", got, nestedCreationMinGas)
+				}
+				return nil
+			},
+		},
+		{
+			Name:     "estimate-nested-creation-always-fails",
+			About:    "estimates a contract creation that ignores a nested creation which fails at any gas limit; the estimate must not grow because of it",
+			SpecOnly: true, // EVM gas estimation is not required to be identical across clients
+			Run: func(ctx context.Context, t *T) error {
+				t.SetValidationScript(fmt.Sprintf(estimateGasBelowScript, nestedCreationBound))
+				msg := ethereum.CallMsg{From: common.Address{1, 2, 3}, Data: nestedCreationReverting}
+				got, err := t.eth.EstimateGas(ctx, msg)
+				if err != nil {
+					return err
+				}
+				if got >= nestedCreationBound {
+					return fmt.Errorf("estimate %d grows on a nested creation that always fails", got)
 				}
 				return nil
 			},
