@@ -111,7 +111,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 3. Client software **MUST** retain `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
 
 4. Client software **MUST NOT** reject a payload solely because `inclusionListTransactions` contains a malformed transaction
-(e.g., an arbitrary byte string). Such transactions must be tolerated in accordance with [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
+(e.g., an arbitrary byte string). Such transactions must be tolerated in accordance with [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ### engine_getInclusionListV1
 
