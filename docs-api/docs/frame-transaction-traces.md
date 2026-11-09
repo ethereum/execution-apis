@@ -24,7 +24,10 @@ which also includes state gas.
 - The gas used by a frame is its `gas_used.execution` in EIP-8141, as reported
   in `frameReceipts[i].executionGasUsed`. It does not change after the frame
   completes. State gas is not part of a frame's trace
-  gas; it stays in `frameReceipts[i].stateGasUsed`.
+  gas; it stays in `frameReceipts[i].stateGasUsed`. A frame's state gas is
+  final only when the transaction ends, because EIP-8141 lets a later frame
+  reduce an earlier frame's `gas_used.state`, and the `GAS` opcode never
+  observes state gas.
 - Below the root, every gas quantity a tracer reports, including each call's
   `gas` and `gasUsed`, each `vmTrace` operation's `cost` and `ex.used`, and
   each `structLogs` step's `gas` and `gasCost`, MUST count execution gas only. State gas,
@@ -89,9 +92,14 @@ Status and errors:
   transaction.
 - A frame that fails before it enters the EVM is still rendered from the
   transaction fields, with the error that ended it.
-- A frame that succeeds without entering the EVM, such as a `VERIFY` frame
-  whose target runs default code, is rendered from the transaction fields with
-  no `output` and no `calls`.
+- A frame that succeeds without entering the EVM is rendered from the
+  transaction fields with no `output` and no `calls`. A frame whose resolved
+  target has the empty code hash runs default code in every mode, so it does
+  not enter the EVM. This includes a `SENDER` or `DEFAULT` frame that calls an
+  address with no code.
+- A frame that halts exceptionally after it enters the EVM, for example out of
+  gas, has `gasUsed` equal to its gas limit, because EIP-8141 consumes its
+  entire execution gas pool.
 - The root has an `error` if and only if the receipt `status` is `0`. Its
   message is not specified.
 
@@ -127,6 +135,9 @@ The same tree is used in parity encoding:
   the `trace_*` failure labels for frame transactions only.
 - A frame that succeeds without entering the EVM has its `action` and
   `result`, with `result.output` `0x`, and no subtraces.
+- A frame that halts exceptionally after it enters the EVM, for example out of
+  gas, has its `action` and `error`, and no `result`, as for any call that
+  halts exceptionally.
 - The root has an `error` if and only if the receipt `status` is `0`, as in
   `callTracer`. Its message is not specified. A failed root keeps its
   `result`, with `result.gasUsed` equal to the receipt `gasUsed` and
@@ -180,6 +191,13 @@ In `diffMode`, the payer's fee debit appears in `pre` and `post` as the fee
 debit of any other transaction's sender does. A keyed nonce consumed by the
 transaction appears as a change to its `NONCE_MANAGER` slot, not to the nonce
 of `tx.sender`.
+
+## Transaction object
+
+Wherever a frame transaction is returned as a transaction object, such as by
+`eth_getTransactionByHash` or by `eth_getBlockByHash` with full transactions,
+its `gas` MUST be the transaction gas limit. It therefore equals the root
+`gas` of the transaction's `callTracer` trace.
 
 ## Example
 
