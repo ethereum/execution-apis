@@ -71,7 +71,7 @@ This routine follows the same specification as [Payload building](./paris.md#pay
 
 1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload` **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
-2. Client software **MUST NOT** reject a payload solely because `inclusionlisttransactions` contains a malformed transaction
+2. Client software **MUST NOT** reject a payload solely because `inclusionlistTransactions` contains a malformed transaction
 (e.g., an arbitrary byte string). Such transactions must be tolerated in accordance with [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685).
 
 ## Methods
