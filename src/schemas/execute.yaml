@@ -114,7 +114,7 @@ BlockOverrides:
     time:
       title: Time
       $ref: '#/components/schemas/uint64'
-      description: Time must either increase or remain constant relative to the previous block. If time is not specified, it's incremented by one for each block.
+      description: Time must increase relative to the previous block. Equal timestamps are rejected. If time is not specified, it is the previous block's time plus 12.
     gasLimit:
       title: Gas limit
       $ref: '#/components/schemas/uint64'
