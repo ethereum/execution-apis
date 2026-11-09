@@ -130,6 +130,18 @@ var AllMethods = []MethodTests{
 	// read-only test that assumes the static chain head.
 	TestingCommitBlockV1,
 
+	// trace_* sorts between testing_* and txpool_*, so it runs on the head the
+	// commits above advanced, as in hive's lexical replay order.
+	TraceBlock,
+	TraceTransaction,
+	TraceGet,
+	TraceReplayTransaction,
+	TraceReplayBlockTransactions,
+	TraceFilter,
+	TraceCall,
+	TraceCallMany,
+	TraceRawTransaction,
+
 	TxpoolStatus,
 	TxpoolContent,
 	TxpoolContentFrom,

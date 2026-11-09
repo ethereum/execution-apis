@@ -146,7 +146,8 @@ func (s *Generator) ResolveErrorGroups() error {
 	return nil
 }
 
-// Dereference removes all $ref pointers and ensures the spec and does not use the `allOf`
+// Dereference expands component references (preserving resource-local recursion) and removes `allOf`.
+// The spec does not otherwise use the `allOf`
 // schema feature. This exists to simplify the spec for compatibility with some tools.
 func (s *Generator) Dereference() error {
 	// Pre-resolve all type schemas: dereference $ref and merge allOf.

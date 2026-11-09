@@ -30,6 +30,7 @@ jobs:
       - name: Test build website (no versions)
         run: |
           npm run build:spec
+          npm run test:docs
           npm run build:docs
 
       - name: Test versioned build (synthesized snapshot)

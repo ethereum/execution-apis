@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	openrpc "github.com/open-rpc/spec-types/generated/packages/go/v1_4"
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -49,23 +48,37 @@ func Load(path string) (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	var doc openrpc.OpenrpcDocument
-	if err := json.Unmarshal(spec, &doc); err != nil {
-		return nil, err
-	}
-	return New(path, &doc)
+	return parse(path, spec)
 }
 
 // LoadString reads OpenRPC spec JSON from a string.
 func LoadString(fileName, specSource string) (*Spec, error) {
-	var doc openrpc.OpenrpcDocument
-	if err := json.NewDecoder(strings.NewReader(specSource)).Decode(&doc); err != nil {
-		return nil, err
-	}
-	return New(fileName, &doc)
+	return parse(fileName, []byte(specSource))
 }
 
-// New indexes the methods and errors in the given OpenRPC spec.
+// parse indexes the spec and validates against the document as written. The
+// generated OpenRPC types rewrite tuple `items` when marshaled back to JSON.
+func parse(fileName string, data []byte) (*Spec, error) {
+	var doc openrpc.OpenrpcDocument
+	if err := json.Unmarshal(data, &doc); err != nil {
+		return nil, err
+	}
+	s, err := New(fileName, &doc)
+	if err != nil {
+		return nil, err
+	}
+	// Keep numbers exact, so bounds such as the uint64 maximum are enforced.
+	cdoc, err := jsonschema.UnmarshalJSON(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	s.cdoc, s.jdoc = cdoc, bytes.Clone(data)
+	return s, nil
+}
+
+// New indexes the methods and errors in the given OpenRPC spec. It validates
+// against the document marshaled from the generated OpenRPC types, which rewrite
+// tuple `items`; Load and LoadString validate against the document as written.
 func New(fileName string, doc *openrpc.OpenrpcDocument) (*Spec, error) {
 	if doc.Methods == nil {
 		return nil, errors.New(`missing "methods" in spec`)

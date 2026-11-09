@@ -1,0 +1,3 @@
+// traces a signed value transfer at the head without submitting it
+>> {"jsonrpc":"2.0","id":1,"method":"trace_rawTransaction","params":["0x02f875870c72dd9d5e883e80843b9aca00843dd0347c825208940c2c51a0990aee1d73c1228de158688341557508843b9aca0080c080a07fc81876ec6de4c00624a598486cae562c7dcbfd73a7afb9777c8b899305f42ba0306f447a57fbda9109e8dde13d126b724721149e136548b73f601572533c43a3",["trace"]]}
+<< {"jsonrpc":"2.0","id":1,"result":{"output":"0x","trace":[{"action":{"callType":"call","from":"0xe7d13f7aa2a838d24c59b40186a0aca1e21cffcc","to":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x0","input":"0x","value":"0x3b9aca00"},"result":{"gasUsed":"0x0","output":"0x"},"subtraces":0,"traceAddress":[],"type":"call"}],"stateDiff":null,"vmTrace":null}}
