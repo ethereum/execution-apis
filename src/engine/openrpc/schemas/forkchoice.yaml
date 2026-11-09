@@ -124,7 +124,12 @@ PayloadAttributesV4:
       $ref: '#/components/schemas/uint64'
     targetGasLimit:
       title: Target gas limit
-      $ref: '#/components/schemas/uint64'
+      description: >-
+        The entire unsigned 64-bit range is valid when decoding this target.
+        A value that cannot be reached in the next block is still processed as
+        a target by the normal gas-limit adjustment rules.
+      allOf:
+        - $ref: '#/components/schemas/uint64'
 PayloadAttributesV5:
   title: Payload attributes object V5
   type: object
