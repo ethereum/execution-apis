@@ -1205,12 +1205,6 @@ var (
 	//   PUSH2 30000 JUMPDEST PUSH1 1 SWAP1 SUB DUP1 PUSH1 3 JUMPI STOP
 	nestedCreationIgnored = common.FromHex("0x6c6175305b600190038060035700600052600d60136000f05000")
 
-	// nestedCreationChecked is nestedCreationIgnored, but reverts when the
-	// child creation fails. Its lowest passing gas limit is the lowest at which
-	// the child creation succeeds:
-	//   ... CREATE PUSH1 31 JUMPI PUSH1 0 DUP1 REVERT JUMPDEST STOP
-	nestedCreationChecked = common.FromHex("0x6c6175305b600190038060035700600052600d60136000f0601f57600080fd5b00")
-
 	// nestedCreationReverting creates a child whose init code always reverts
 	// and ignores the result:
 	//   PUSH4 child PUSH1 0 MSTORE PUSH1 4 PUSH1 28 PUSH1 0 CREATE POP STOP
@@ -1219,8 +1213,12 @@ var (
 )
 
 const (
-	// nestedCreationMinGas is the lowest passing gas limit of
-	// nestedCreationChecked, found by bisecting eth_call.
+	// nestedCreationMinGas is the lowest gas limit at which the child
+	// creation in nestedCreationIgnored succeeds. It is the lowest passing
+	// limit, found by bisecting eth_call, of the same init code ending in
+	// CREATE PUSH1 31 JUMPI PUSH1 0 DUP1 REVERT JUMPDEST STOP, which reverts
+	// when the child creation fails:
+	//   0x6c6175305b600190038060035700600052600d60136000f0601f57600080fd5b00
 	nestedCreationMinGas = 1_196_078
 
 	// nestedCreationBound is far above what nestedCreationReverting needs. An
