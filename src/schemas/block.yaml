@@ -292,3 +292,7 @@ BadBlock:
     rlp:
       title: RLP
       $ref: '#/components/schemas/bytes'
+    blockAccessList:
+      title: EIP-7928 block access list
+      description: RLP encoding of the block access list that the client received with the block. Clients omit it when they did not receive one.
+      $ref: '#/components/schemas/bytes'
