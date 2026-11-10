@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
@@ -2653,7 +2654,156 @@ they serve proofs.`,
 				return nil
 			},
 		},
+		historicalProofTest(
+			"get-account-proof-historical",
+			"at block 2.",
+			func(c *Chain) *types.Block { return c.GetBlock(2) },
+		),
+		historicalProofTest(
+			"get-account-proof-before-prague",
+			"at the last block before Prague.",
+			func(c *Chain) *types.Block {
+				return c.GetBlock(int(c.BlockAtTime(*c.Config().PragueTime).NumberU64()) - 1)
+			},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-32-bytes",
+			"A key of 32 bytes is returned as 32 bytes, with its leading zeros.",
+			[]string{"0x0000000000000000000000000000000000000000000000000000000000000001"},
+			[]string{"0x0000000000000000000000000000000000000000000000000000000000000001"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-63-digits",
+			"A key of 63 hex digits decodes to 32 bytes and is returned as 32 bytes.",
+			[]string{"0x000000000000000000000000000000000000000000000000000000000000001"},
+			[]string{"0x0000000000000000000000000000000000000000000000000000000000000001"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-short",
+			"A key shorter than 32 bytes is returned as a minimal quantity.",
+			[]string{"0x01"},
+			[]string{"0x1"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-empty",
+			"The empty key 0x is slot zero and is returned as 0x0.",
+			[]string{"0x"},
+			[]string{"0x0"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-duplicate-keys",
+			"The result has one entry per requested key, in request order, also for duplicate keys.",
+			[]string{"0x2", "0x1", "0x1"},
+			[]string{"0x2", "0x1", "0x1"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-two-encodings",
+			"Two encodings of the same slot give two entries, and each entry returns its own key.",
+			[]string{"0x1", "0x0000000000000000000000000000000000000000000000000000000000000001"},
+			[]string{"0x1", "0x0000000000000000000000000000000000000000000000000000000000000001"},
+		),
+		{
+			Name: "get-account-proof-missing-account",
+			About: `Requests a proof with one storage key for an account that does not exist.
+codeHash and storageHash are zero, and the storage entry has the value 0x0 and an empty proof.`,
+			Run: func(ctx context.Context, t *T) error {
+				var result struct {
+					CodeHash     common.Hash `json:"codeHash"`
+					StorageHash  common.Hash `json:"storageHash"`
+					StorageProof []struct {
+						Value hexutil.Big     `json:"value"`
+						Proof []hexutil.Bytes `json:"proof"`
+					} `json:"storageProof"`
+				}
+				missing := common.HexToAddress("0x000000000000000000000000000000000000dead")
+				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", missing, []string{"0x0"}, "latest"); err != nil {
+					return err
+				}
+				if result.CodeHash != (common.Hash{}) || result.StorageHash != (common.Hash{}) {
+					return fmt.Errorf("expected zero codeHash and storageHash, got %v and %v", result.CodeHash, result.StorageHash)
+				}
+				if len(result.StorageProof) != 1 || result.StorageProof[0].Value.ToInt().Sign() != 0 || len(result.StorageProof[0].Proof) != 0 {
+					return fmt.Errorf("expected one empty storage entry, got %+v", result.StorageProof)
+				}
+				return nil
+			},
+		},
+		invalidStorageKeyTest(
+			"get-storage-proof-invalid-key",
+			"a storage key that is not hex",
+			"0xzz",
+		),
+		invalidStorageKeyTest(
+			"get-storage-proof-invalid-key-too-long",
+			"a storage key of 33 bytes",
+			"0x"+strings.Repeat("00", 32)+"01",
+		),
 	},
+}
+
+func invalidStorageKeyTest(name, about, key string) Test {
+	return Test{
+		Name:  name,
+		About: "Requests a proof with " + about + ". The request is invalid.",
+		Run: func(ctx context.Context, t *T) error {
+			var result any
+			err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, []string{key}, "latest")
+			var rpcErr rpc.Error
+			if !errors.As(err, &rpcErr) || rpcErr.ErrorCode() != -32602 {
+				return fmt.Errorf("expected error -32602, got %v", err)
+			}
+			return nil
+		},
+	}
+}
+
+func historicalProofTest(name, about string, block func(*Chain) *types.Block) Test {
+	return Test{
+		Name: name,
+		About: "Gets the proof of an account " + about + `
+The first account proof node hashes to the state root of that block.`,
+		Run: func(ctx context.Context, t *T) error {
+			b := block(t.chain)
+			var result struct {
+				AccountProof []hexutil.Bytes `json:"accountProof"`
+			}
+			if err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, []string{"0x0"}, hexutil.Uint64(b.NumberU64())); err != nil {
+				return err
+			}
+			if len(result.AccountProof) == 0 {
+				return fmt.Errorf("empty account proof")
+			}
+			if root := crypto.Keccak256Hash(result.AccountProof[0]); root != b.Root() {
+				return fmt.Errorf("proof root %v does not match state root %v of block %d", root, b.Root(), b.NumberU64())
+			}
+			return nil
+		},
+	}
+}
+
+func storageProofKeysTest(name, about string, keys, wantKeys []string) Test {
+	return Test{
+		Name:  name,
+		About: "Requests storage proofs of the emit contract. " + about,
+		Run: func(ctx context.Context, t *T) error {
+			var result struct {
+				StorageProof []struct {
+					Key string `json:"key"`
+				} `json:"storageProof"`
+			}
+			if err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, keys, "latest"); err != nil {
+				return err
+			}
+			var got []string
+			for _, p := range result.StorageProof {
+				got = append(got, p.Key)
+			}
+			if !slices.Equal(got, wantKeys) {
+				return fmt.Errorf("unexpected keys %v, want %v", got, wantKeys)
+			}
+			return nil
+		},
+	}
 }
 
 var EthGetLogs = MethodTests{
