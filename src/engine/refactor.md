@@ -24,6 +24,7 @@
   - [Payload retrieval](#payload-retrieval)
   - [Historical bodies](#historical-bodies)
   - [Blob pool](#blob-pool)
+  - [Inclusion list](#inclusion-list)
   - [Capabilities & identification](#capabilities--identification)
   - [Examples: every fork](#examples-every-fork)
 - [Error model](#error-model)
@@ -61,8 +62,8 @@ All hot-path endpoints select the fork via the
 
 | Old method | New endpoint | Notes |
 | - | - | - |
-| `engine_newPayloadV{1..5}` | `POST /payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
-| `engine_forkchoiceUpdatedV{1..4}` | `POST /forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
+| `engine_newPayloadV{1..6}` | `POST /payloads` | `parentBeaconBlockRoot`, `executionRequests`, and (Bogota+) `inclusionListTransactions` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
+| `engine_forkchoiceUpdatedV{1..5}` | `POST /forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
 | `engine_getPayloadV{1..6}` | `GET /payloads/{id}` | poll-style, same semantics as today |
 | `engine_getPayloadBodiesByHashV{1,2}` | `POST /bodies/hash` | header selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
 | `engine_getPayloadBodiesByRangeV{1,2}` | `GET /bodies?from=...&count=...` | header selects both the response schema and the era of returned blocks |
@@ -70,6 +71,7 @@ All hot-path endpoints select the fork via the
 | `engine_getBlobsV2` | `POST /blobs/v2` | all-or-nothing cell proofs |
 | `engine_getBlobsV3` | `POST /blobs/v3` | partial-response cell proofs |
 | `engine_getBlobsV4` | `POST /blobs/v4` | cell-range selection |
+| `engine_getInclusionListV1` | `GET /inclusion-list` | Bogota+ |
 | `engine_getClientVersionV1` | `GET /identity` + `X-Engine-Client-Version` request header | unscoped |
 | `engine_exchangeCapabilities` | `GET /capabilities` | unscoped |
 | `engine_exchangeTransitionConfigurationV1` | *removed* | already deprecated since Cancun |
@@ -90,6 +92,7 @@ endpoints ignore it.
 | Bodies | `POST /engine/v1/bodies/hash` | Replaces `engine_getPayloadBodiesByHash`. `Eth-Execution-Version` selects both the response schema *and* the era of returned blocks; out-of-era blocks come back as `available=false`. |
 | Bodies | `GET /engine/v1/bodies?from=N&count=M` | Replaces `engine_getPayloadBodiesByRange`. Same fork scoping as `/bodies/hash`. |
 | Blob pool | `POST /engine/v1/blobs/v{1..4}` | Replaces `engine_getBlobsV{1..4}`. The `vN` segment carries forward the legacy version numbers; `/v4` is the Amsterdam cell-range variant. Independently versioned (not fork-scoped). |
+| Inclusion list | `GET /engine/v1/inclusion-list` | Retrieve an inclusion list built from the EL's mempool. Replaces `engine_getInclusionListV1`. Fork-scoped via `Eth-Execution-Version`; Bogota+. |
 | Capabilities | `GET /engine/v1/capabilities` | Replaces `engine_exchangeCapabilities`. Unscoped; advertises supported forks, `/blobs/vN` revisions, and per-endpoint request-size limits. |
 | Identity | `GET /engine/v1/identity` | Replaces `engine_getClientVersion`. Unscoped. |
 
@@ -103,15 +106,16 @@ Every hot-path body uses SSZ; every metadata endpoint uses JSON.
 
 #### `POST /engine/v1/payloads`
 
-Replaces `engine_newPayloadV{1..5}`.
+Replaces `engine_newPayloadV{1..6}`.
 
 - **Request body:** SSZ-encoded `ExecutionPayloadEnvelope`
 
   ```
   ExecutionPayloadEnvelope {
-      payload:                  ExecutionPayload          # the fork's payload SSZ container
-      parent_beacon_block_root: Root                      # was a separate param since Cancun
-      execution_requests:       List[Bytes, MAX_REQUESTS] # was a separate param since Prague
+      payload:                     ExecutionPayload          # the fork's payload SSZ container
+      parent_beacon_block_root:    Root                      # was a separate param since Cancun
+      execution_requests:          List[Bytes, MAX_REQUESTS] # was a separate param since Prague
+      inclusion_list_transactions: List[Bytes, MAX_TXS]      # Bogota+, was a separate param in engine_newPayloadV6
   }
   ```
 
@@ -125,13 +129,22 @@ Replaces `engine_newPayloadV{1..5}`.
 
   ```
   PayloadStatus {
-      status:           uint8        # VALID=0, INVALID=1, SYNCING=2, ACCEPTED=3
-      latest_valid_hash: Optional[Hash32]
-      validation_error: Optional[String]
+      status:                   uint8        # VALID=0, INVALID=1, SYNCING=2, ACCEPTED=3
+      latest_valid_hash:        Optional[Hash32]
+      validation_error:         Optional[String]
+      inclusion_list_satisfied: Optional[Boolean]  # Bogota+
   }
   ```
 
   `INVALID_BLOCK_HASH` is dropped (already supplanted by `INVALID`).
+
+  From Bogota on, `inclusion_list_satisfied` is present only when `status`
+  is `VALID` and carries whether the payload satisfied the inclusion
+  list constraints of
+  [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805). The EL **MUST**
+  retain `inclusion_list_transactions` for an `ACCEPTED` payload and
+  **MAY** discard them once the payload is no longer the tip of a
+  branch.
 
 - **HTTP status:** `200 OK` for any of the four validation outcomes.
   Validation results are not transport errors.
@@ -140,7 +153,7 @@ Replaces `engine_newPayloadV{1..5}`.
 
 #### `POST /engine/v1/forkchoice`
 
-Replaces `engine_forkchoiceUpdatedV{1..4}`.
+Replaces `engine_forkchoiceUpdatedV{1..5}`.
 
 - **Request body:** SSZ-encoded `ForkchoiceUpdate`:
 
@@ -163,6 +176,13 @@ Replaces `engine_forkchoiceUpdatedV{1..4}`.
   `payload_attributes.target_gas_limit` as the target value for the
   built block's `gas_limit`.
 
+  When building a payload (Bogota+), the EL **MUST** take
+  `payload_attributes.inclusion_list_transactions` into account, and
+  the built payload **MUST** satisfy the inclusion list constraints
+  with respect to them. When validating the head payload, the EL
+  **MUST** use the `inclusion_list_transactions` retained from
+  `POST /payloads`.
+
 - **Response body:** SSZ-encoded `ForkchoiceUpdateResponse`:
 
   ```
@@ -171,6 +191,9 @@ Replaces `engine_forkchoiceUpdatedV{1..4}`.
       payload_id:     Optional[Bytes8]           # server-assigned opaque token; set iff a build was started
   }
   ```
+
+  From Bogota on, `payload_status` carries `inclusion_list_satisfied`
+  with the same semantics as on `POST /payloads`.
 
   The `payload_id` is an **opaque server-assigned token**. The EL
   chooses how to mint it (counter, random, hash-tree-root over the
@@ -416,6 +439,25 @@ Replaces `engine_getBlobsV4` (Amsterdam, cell-range selection).
   (per-cell `blob_cells` and `proofs` arrays, with `Optional[T]` =
   `[]` at indices where individual cells are unavailable).
 
+### Inclusion list
+
+#### `GET /engine/v1/inclusion-list`
+
+Replaces `engine_getInclusionListV1`. Fork-scoped; a request with an
+`Eth-Execution-Version` before `bogota` returns
+`400 /engine-api/errors/unsupported-fork`.
+
+- **Request body:** none.
+- **Response body:** SSZ-encoded `InclusionListResponse` (a
+  single-field container wrapping
+  `transactions: List[Bytes, MAX_TXS]`; see
+  [refactor-ssz.md](./refactor-ssz.md#get-inclusion-list)).
+- Built from the EL's local view of the mempool. Every transaction
+  **MUST** be at least 1 byte and **MUST NOT** be a blob transaction,
+  and the total byte length of `transactions` **MUST NOT** exceed
+  `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`. The selection strategy
+  is implementation dependent.
+
 ### Capabilities & identification
 
 #### `GET /engine/v1/capabilities`
@@ -426,8 +468,8 @@ the server is willing to serve in one request:
 
 ```json
 {
-  "supported_forks":          ["paris", "shanghai", "cancun", "prague", "osaka", "amsterdam"],
-  "fork_scoped_endpoints":    ["payloads", "forkchoice", "bodies"],
+  "supported_forks":          ["paris", "shanghai", "cancun", "prague", "osaka", "amsterdam", "bogota"],
+  "fork_scoped_endpoints":    ["payloads", "forkchoice", "bodies", "inclusion-list"],
   "independently_versioned":  { "blobs": ["v1", "v2", "v3", "v4"] },
   "unscoped_endpoints":       ["capabilities", "identity"],
   "limits": {
@@ -573,9 +615,18 @@ ExecutionPayloadEnvelopeAmsterdam {
     parent_beacon_block_root: <Root>
     execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
 }
+
+# Eth-Execution-Version: bogota
+ExecutionPayloadEnvelopeBogota {
+    payload:                     <ExecutionPayloadBogota>   # == Amsterdam payload shape
+    parent_beacon_block_root:    <Root>
+    execution_requests:          <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
+    inclusion_list_transactions: <List[Bytes, MAX_TXS_PER_PAYLOAD]>  # NEW: was a side param in engine_newPayloadV6
+}
 ```
 
-The response for **all** forks is `PayloadStatus` (fork-invariant).
+The response is `PayloadStatus` for Paris through Amsterdam and
+`PayloadStatusBogota` (`+ inclusion_list_satisfied`) from Bogota on.
 
 #### `GET /payloads/{id}` response body (`BuiltPayload{Fork}`)
 
@@ -626,6 +677,15 @@ BuiltPayloadAmsterdam {
     execution_requests:      <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
     should_override_builder: <Boolean>
 }
+
+# Eth-Execution-Version: bogota — identical shape to Amsterdam
+BuiltPayloadBogota {
+    payload:                 <ExecutionPayloadBogota>
+    block_value:             <Uint256>
+    blobs_bundle:            <BlobsBundleV2>
+    execution_requests:      <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
+    should_override_builder: <Boolean>
+}
 ```
 
 #### `POST /forkchoice` request body (`ForkchoiceUpdate{Fork}`)
@@ -646,12 +706,21 @@ ForkchoiceUpdateAmsterdam {
     payload_attributes: Optional[<PayloadAttributesAmsterdam>]   # + slot_number, target_gas_limit
     custody_columns:    Optional[Bitvector[CELLS_PER_EXT_BLOB]]  # NEW in Amsterdam
 }
+
+# Bogota
+ForkchoiceUpdateBogota {
+    forkchoice_state:   <ForkchoiceState>
+    payload_attributes: Optional[<PayloadAttributesBogota>]      # + inclusion_list_transactions
+    custody_columns:    Optional[Bitvector[CELLS_PER_EXT_BLOB]]
+}
 ```
 
 where the per-fork `payload_attributes` adds `withdrawals` at Shanghai,
-`parent_beacon_block_root` at Cancun, and
-`slot_number`/`target_gas_limit` at Amsterdam. The response
-(`ForkchoiceUpdateResponse`) is fork-invariant.
+`parent_beacon_block_root` at Cancun,
+`slot_number`/`target_gas_limit` at Amsterdam, and
+`inclusion_list_transactions` at Bogota. The response
+(`ForkchoiceUpdateResponse`) is fixed from Paris through Amsterdam;
+from Bogota on its `payload_status` carries `inclusion_list_satisfied`.
 
 For the `/bodies` and `/blobs/vN` per-fork / per-revision bodies, see
 the [container catalogue](./refactor-ssz.md#per-fork-container-catalogue);
@@ -733,10 +802,11 @@ Three layers:
    something else).
 2. **Per-fork body schema** — selected via the
    `Eth-Execution-Version: <fork>` request header on hot-path
-   endpoints (`/payloads`, `/forkchoice`, `/bodies`). Tracks
-   consensus-protocol changes that ride along with fork activations.
-   Accepted values span **Paris through Amsterdam** (`paris`,
-   `shanghai`, `cancun`, `prague`, `osaka`, `amsterdam`); Paris is
+   endpoints (`/payloads`, `/forkchoice`, `/bodies`,
+   `/inclusion-list`). Tracks consensus-protocol changes that ride
+   along with fork activations. Accepted values span **Paris through
+   Bogota** (`paris`, `shanghai`, `cancun`, `prague`, `osaka`,
+   `amsterdam`, `bogota`); Paris is
    the earliest fork with an Engine API and therefore the lowest
    value an EL accepts. A request with a header value below the EL's
    earliest supported fork, one it doesn't recognise, or a missing
@@ -855,7 +925,7 @@ Unchanged in spirit: JWT (HS256, 256-bit shared secret). Differences:
   changes). The fork-scoped body schema is selected by the
   `Eth-Execution-Version: <fork>` request header rather than a URL
   segment (`paris`, `shanghai`, `cancun`, `prague`, `osaka`,
-  `amsterdam`, …). Adding a fork = adding one accepted header value
+  `amsterdam`, `bogota`, …). Adding a fork = adding one accepted header value
   and one set of SSZ schemas. See [Versioning](#versioning-model).
 - **Fork header:** every hot-path request MUST carry
   `Eth-Execution-Version: <fork>`. Missing or unknown header on a
@@ -1227,7 +1297,8 @@ the summary exists for quick scanning.
 
 #### Versioning
 
-- **Fork-scoped endpoints:** `/payloads`, `/forkchoice`, `/bodies`.
+- **Fork-scoped endpoints:** `/payloads`, `/forkchoice`, `/bodies`,
+  `/inclusion-list`.
   Fork in the `Eth-Execution-Version` request header.
 - **Independently versioned endpoints:** `/blobs/vN`. Legacy
   `engine_getBlobsVN` numbers carry forward onto the URL. ELs MUST
