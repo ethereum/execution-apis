@@ -31,6 +31,16 @@ Currently, only below methods import all the error groups via `$ref` and may inc
 | TxPool errors | $1000$ to $1199$ | `txpool-errors.yaml` |
 | ZK execution errors | $2000$ to $2199$ | `zk-execution-errors.yaml` |
 
+## Error data
+The `data` field of an error is machine-readable, so the spec defines its content.
+- A server MUST NOT include `data` unless the spec declares a `data` schema for that error. This also applies to the standard codes such as `-32602` and `-32000`. A `data` field with the value `null` counts as present.
+- When the spec declares a `data` schema for the error, the server MUST include `data`, and the value MUST match the schema.
+- Put human-readable detail in `message`.
+
+For example, the `3` (execution reverted) error of `eth_call` and `eth_estimateGas` carries the raw revert bytes in `data`. The same applies to a code `3` error in `eth_simulateV1` call results. Empty revert output is `"0x"`.
+
+The Engine API defines its own error data in [common.md](../engine/common.md#errors).
+
 ## Extending the catalog
 1. Add or update a group file in `src/error-groups/` with `category`, `range`, and `errors`.
 2. Keep codes within that group's declared range.

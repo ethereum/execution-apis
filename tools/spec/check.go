@@ -19,9 +19,9 @@ type jsonrpcMessage struct {
 }
 
 type jsonrpcError struct {
-	Code    int64  `json:"code"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
+	Code    int64           `json:"code"`
+	Message string          `json:"message"`
+	Data    json.RawMessage `json:"data,omitempty"`
 }
 
 // Checker processes RPC messages and validates them against the spec.
@@ -140,24 +140,31 @@ func (c *Checker) checkArguments(m *methodSchema, arguments []any) error {
 // It also checks the error data against the schema.
 func (c *Checker) checkError(m *methodSchema, err *jsonrpcError) error {
 	errSchema := m.errors[err.Code]
-	if errSchema == nil {
-		if isStandardError(err.Code) {
-			return nil
-		}
+	if errSchema == nil && !isStandardError(err.Code) {
 		return fmt.Errorf("response uses undefined error code %d for method %s", err.Code, m.name)
 	}
-	if !errSchema.hasDataSchema {
+	// The Engine API defines its own error data: null, or an "err" object
+	// for -32000 (src/engine/common.md).
+	if strings.HasPrefix(m.name, "engine_") {
+		if errSchema == nil || string(err.Data) == "null" {
+			return nil
+		}
+	}
+	if errSchema == nil || !errSchema.hasDataSchema {
 		if err.Data != nil {
 			return errors.New("unexpected error.data field in response")
 		}
-	} else {
-		if err.Data == nil {
-			return errors.New("missing error.data field in response")
-		}
-		url := fmt.Sprintf("#/methods/%d/errors/%d/data", m.index, errSchema.index)
-		return c.spec.Validate(url, err.Data)
+		return nil
 	}
-	return nil
+	if err.Data == nil {
+		return errors.New("missing error.data field in response")
+	}
+	var data any
+	if e := json.Unmarshal(err.Data, &data); e != nil {
+		return fmt.Errorf("invalid error.data: %v", e)
+	}
+	url := fmt.Sprintf("#/methods/%d/errors/%d/data", m.index, errSchema.index)
+	return c.spec.Validate(url, data)
 }
 
 // isStandardError says if `code' is an error code defined by the JSON-RPC 2.0 spec.
