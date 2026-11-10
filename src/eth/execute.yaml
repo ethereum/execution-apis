@@ -90,6 +90,12 @@
     client MAY select implementation-defined fee values for the simulation. The request MUST NOT
     fail solely because the sender cannot afford the gas fees implied by those client-selected
     defaults. This does not waive balance requirements for a non-zero transaction `value`.
+
+    The `accessList` result does not contain the sender, the recipient (or the created contract), or
+    a precompile, unless the transaction accesses a storage key of that address. The client MUST NOT
+    remove any other address or storage key that the transaction accesses because the transaction
+    uses less gas without it. The `gasUsed` result is the gas that the transaction uses with the
+    returned `accessList`.
   params:
     - name: Transaction
       required: true
