@@ -1186,6 +1186,119 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 				return nil
 			},
 		},
+		{
+			Name: "call-state-override-code",
+			About: `Calls an address with no code on chain, after a state override gives it code that
+returns 0x2a. The override must apply.`,
+			Run: func(ctx context.Context, t *T) error {
+				overrides := StateOverride{overrideProbe: {Code: hex2Bytes("602a5f5260205ff3")}}
+				var result hexutil.Bytes
+				if err := callBeforeAmsterdam(ctx, t, overrides, &result); err != nil {
+					return err
+				}
+				if want := common.LeftPadBytes([]byte{0x2a}, 32); !bytes.Equal(result, want) {
+					return fmt.Errorf("unexpected return data: %x", result)
+				}
+				return nil
+			},
+		},
+		{
+			Name: "call-move-precompile",
+			About: `Moves the identity precompile (0x04) to 0x1000, then calls 0x1000 and 0x04 with the
+word 0x2a and returns both outputs. Identity must run at 0x1000, and 0x04 must have no code.`,
+			Run: func(ctx context.Context, t *T) error {
+				overrides := moveIdentityOverrides("602a5f526020602060205f6110005afa506020604060205f60045afa5060406020f3")
+				var result hexutil.Bytes
+				if err := callBeforeAmsterdam(ctx, t, overrides, &result); err != nil {
+					return err
+				}
+				want := append(common.LeftPadBytes([]byte{0x2a}, 32), make([]byte, 32)...)
+				if !bytes.Equal(result, want) {
+					return fmt.Errorf("unexpected return data: %x", result)
+				}
+				return nil
+			},
+		},
+		{
+			Name: "call-move-precompile-destination-cold",
+			About: `Moves the identity precompile (0x04) to 0x1000 and returns the gas that a STATICCALL
+to 0x1000 costs. The move does not make 0x1000 warm, so the call pays the cold account access
+cost (2600) and the identity cost (15).`,
+			Run: func(ctx context.Context, t *T) error {
+				return checkCallGas(ctx, t, moveIdentityOverrides(gasProbeCode("611000")), 2600+15)
+			},
+		},
+		{
+			Name: "call-move-precompile-source-warm",
+			About: `Moves the identity precompile (0x04) to 0x1000 and returns the gas that a STATICCALL
+to 0x04 costs. 0x04 stays warm and has no code, so the call pays only the warm access cost (100).`,
+			Run: func(ctx context.Context, t *T) error {
+				return checkCallGas(ctx, t, moveIdentityOverrides(gasProbeCode("6004")), 100)
+			},
+		},
+		{
+			Name: "call-precompile-gas-control",
+			About: `Returns the gas that a STATICCALL to the identity precompile (0x04) costs, with no
+move. The call pays the warm access cost (100) and the identity cost (15).`,
+			Run: func(ctx context.Context, t *T) error {
+				overrides := StateOverride{overrideProbe: {Code: hex2Bytes(gasProbeCode("6004"))}}
+				return checkCallGas(ctx, t, overrides, 100+15)
+			},
+		},
+		{
+			Name: "call-move-two-precompiles-to-same",
+			About: `Moves ecMul (0x07) and identity (0x04) to 0x1000, with the 0x07 entry first in the
+request, then calls 0x1000 with 96 zero bytes and returns the size of the output. The precompile of
+the account with the higher address (ecMul, 64 bytes of output) must be at 0x1000, whatever the
+order of the entries; identity would return 96 bytes.`,
+			Run: func(ctx context.Context, t *T) error {
+				overrides := json.RawMessage(`{` +
+					`"0x00000000000000000000000000000000000c0de1":{"code":"0x5f5f60605f6110005afa503d5f5260205ff3"},` +
+					`"0x0000000000000000000000000000000000000007":{"movePrecompileToAddress":"0x0000000000000000000000000000000000001000"},` +
+					`"0x0000000000000000000000000000000000000004":{"movePrecompileToAddress":"0x0000000000000000000000000000000000001000"}}`)
+				var result hexutil.Bytes
+				if err := callBeforeAmsterdam(ctx, t, overrides, &result); err != nil {
+					return err
+				}
+				if got := new(big.Int).SetBytes(result).Uint64(); got != 64 {
+					return fmt.Errorf("unexpected output size %d, want 64 from ecMul", got)
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-move-precompile-not-precompile",
+			About: "Moves an address that is not a precompile. The request must be rejected with error code -32000.",
+			Run: func(ctx context.Context, t *T) error {
+				overrides := StateOverride{
+					overrideProbe:                 {Code: hex2Bytes("00")},
+					common.HexToAddress("0x5555"): {MovePrecompileToAddress: &movedIdentity},
+				}
+				return checkCallRejected(ctx, t, overrides)
+			},
+		},
+		{
+			Name:  "call-move-precompile-to-itself",
+			About: "Moves the identity precompile (0x04) to its own address. The request must be rejected with error code -32000.",
+			Run: func(ctx context.Context, t *T) error {
+				identity := common.BytesToAddress([]byte{0x04})
+				overrides := StateOverride{
+					overrideProbe: {Code: hex2Bytes("00")},
+					identity:      {MovePrecompileToAddress: &identity},
+				}
+				return checkCallRejected(ctx, t, overrides)
+			},
+		},
+		{
+			Name: "call-move-precompile-onto-overridden",
+			About: `Moves the identity precompile (0x04) to 0x1000 while 0x1000 has its own override entry.
+The request must be rejected with error code -32000.`,
+			Run: func(ctx context.Context, t *T) error {
+				overrides := moveIdentityOverrides("00")
+				overrides[movedIdentity] = OverrideAccount{Balance: newRPCBalance(1)}
+				return checkCallRejected(ctx, t, overrides)
+			},
+		},
 	},
 }
 
@@ -5573,25 +5686,39 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
-			Name:  "ethSimulate-move-two-accounts-to-same-38023",
-			About: "Move two accounts to the same destination (-38023)",
+			Name: "ethSimulate-move-two-accounts-to-same",
+			About: `Moves identity (0x04) and ecMul (0x07) to the same destination and calls it with 96
+zero bytes. The precompile of the account with the higher address (ecMul, 64 bytes of output) must
+be at the destination; identity would return 96 bytes. The request lists 0x04 first, so it does not
+tell this rule from "the last entry wins"; eth_call/call-move-two-precompiles-to-same does.`,
 			Run: func(ctx context.Context, t *T) error {
-				ecRecoverAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000001"))
-				keccakAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				identityAddress := common.BytesToAddress([]byte{0x04})
+				ecMulAddress := common.BytesToAddress([]byte{0x07})
+				input := hexutil.Bytes(make([]byte, 96))
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
 						StateOverrides: &StateOverride{
-							ecRecoverAddress: OverrideAccount{
-								MovePrecompileToAddress: &common.Address{0xc2},
-							},
-							keccakAddress: OverrideAccount{
-								MovePrecompileToAddress: &common.Address{0xc2},
-							},
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000000000000)},
+							identityAddress:      OverrideAccount{MovePrecompileToAddress: &common.Address{0xc2}},
+							ecMulAddress:         OverrideAccount{MovePrecompileToAddress: &common.Address{0xc2}},
 						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &common.Address{0xc2},
+							Input: &input,
+						}},
 					}},
 				}
 				res := make([]blockResult, 0)
-				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != 1 || len(res[0].Calls) != 1 {
+					return fmt.Errorf("unexpected result: %v", res)
+				}
+				if call := res[0].Calls[0]; call.Status != 1 || len(call.ReturnData) != 64 {
+					return fmt.Errorf("unexpected call result: status %d, %d bytes of output, want 64 from ecMul", call.Status, len(call.ReturnData))
+				}
 				return nil
 			},
 		},
@@ -7809,6 +7936,58 @@ type transfer struct {
 	From  common.Address `json:"from"`
 	To    common.Address `json:"to"`
 	Value *big.Int       `json:"value"`
+}
+
+var (
+	overrideProbe = common.HexToAddress("0xc0de1")
+	movedIdentity = common.HexToAddress("0x1000")
+)
+
+// callBeforeAmsterdam calls overrideProbe at the last block before Amsterdam, so that the
+// Amsterdam gas changes do not apply.
+func callBeforeAmsterdam(ctx context.Context, t *T, overrides any, result any) error {
+	block := t.chain.BlockAtTime(*t.chain.Config().AmsterdamTime).NumberU64() - 1
+	msg := map[string]any{"to": overrideProbe}
+	return t.rpc.CallContext(ctx, result, "eth_call", msg, hexutil.Uint64(block), overrides)
+}
+
+// moveIdentityOverrides gives overrideProbe the code and moves identity (0x04) to movedIdentity.
+func moveIdentityOverrides(code string) StateOverride {
+	return StateOverride{
+		overrideProbe:                       {Code: hex2Bytes(code)},
+		common.BytesToAddress([]byte{0x04}): {MovePrecompileToAddress: &movedIdentity},
+	}
+}
+
+// gasProbeCode returns code that STATICCALLs the address pushed by push and returns the gas
+// used between the two GAS opcodes around the call.
+func gasProbeCode(push string) string {
+	return "5a5f5f5f5f" + push + "5afa505a90035f5260205ff3"
+}
+
+// gasProbeOverhead is the gas of the opcodes in gasProbeCode other than the call's access and
+// execution cost.
+const gasProbeOverhead = 17
+
+func checkCallGas(ctx context.Context, t *T, overrides StateOverride, want uint64) error {
+	var result hexutil.Bytes
+	if err := callBeforeAmsterdam(ctx, t, overrides, &result); err != nil {
+		return err
+	}
+	if got := new(big.Int).SetBytes(result).Uint64(); got != want+gasProbeOverhead {
+		return fmt.Errorf("unexpected call gas: %d, want %d", got, want+gasProbeOverhead)
+	}
+	return nil
+}
+
+func checkCallRejected(ctx context.Context, t *T, overrides StateOverride) error {
+	var result hexutil.Bytes
+	err := callBeforeAmsterdam(ctx, t, overrides, &result)
+	var rpcErr rpc.Error
+	if !errors.As(err, &rpcErr) || rpcErr.ErrorCode() != -32000 {
+		return fmt.Errorf("expected error code -32000, got %v", err)
+	}
+	return nil
 }
 
 func newRPCBalance(balance int) **hexutil.Big {
