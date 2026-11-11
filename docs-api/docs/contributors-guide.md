@@ -9,7 +9,7 @@ The Ethereum JSON-RPC API is the canonical interface between users and the
 Ethereum network. Each execution layer client implements the API as defined by
 the spec.
 
-As the main source of chain information, anything that is not provided over via
+As the main source of chain information, anything that is not provided via the
 API will not be easily accessible to users.
 
 Clients may choose to include additional APIs; however, anything defined in this
@@ -24,7 +24,7 @@ principles in mind.
 
 The most common path to a newly standardized method is necessity. As the
 protocol changes over time, new types of data become available. EIP-2930
-necessitated the introduction of `eth_accessList` and EIP-1559 necessitated
+necessitated the introduction of `eth_createAccessList` and EIP-1559 necessitated
 `eth_feeHistory`.
 
 Therefore, a good question to ask before making a new API proposal is whether
@@ -189,7 +189,7 @@ clients via the [rpc-compat][rpc-compat] simulator. How it works:
 
 For release pipeline, Pages deploy, and PR CI details (including Mermaid diagrams), see the [workflows README on GitHub][workflows-readme].
 
-The release github actions drives three kinds of automation: the **release pipeline** (tag → build → Pages → GitHub Release → stamped spec branch), **continuous deploy from `main`** (rolling docs site and unstamped spec branch), and **PR gating** (spec tests, docs smoke-build, spellcheck).
+The release GitHub Actions workflows drive three kinds of automation: the **release pipeline** (tag → build → Pages → GitHub Release → stamped spec branch), **continuous deploy from `main`** (rolling docs site and unstamped spec branch), and **PR gating** (spec tests, docs smoke-build, spellcheck).
 
 [exec-apis]: https://github.com/ethereum/execution-apis
 [pm]: https://github.com/ethereum/pm

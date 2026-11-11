@@ -55,7 +55,7 @@ JSON-Schema of the corresponding request method.
 ### Test Script
 
 Test files can optionally contain a 'validation script' section at the end. Test scripts
-are intended for `speconly` tests files, since literal matching of responses gives the
+are intended for `speconly` test files, since literal matching of responses gives the
 strongest possible testing guarantees.
 
 The script section is introduced by a line containing `--` and nothing else. All remaining
@@ -118,7 +118,7 @@ against which tests will be executed. Second is executing the actual tests and r
 their round-trip.
 
 Although the `io` format is agnostic to the generation tool, it is preferred
-test contributors use [`rpctestgen`][rpctestgen], which takes care of both
+that test contributors use [`rpctestgen`][rpctestgen], which takes care of both
 chain generation and test execution. See the [Tools README][tools-readme] for
 usage and CI requirements.
 
@@ -134,8 +134,8 @@ must be aware of.
 
 Generally, test authors should ingest `genesis.json` and `chain.rlp` and
 generate tests against the head of that chain. If a test requires a certain
-condition exist in the chain that does not currently exist, then the author may
-append a block to head of the chain and regenerate all tests against the new
+condition to exist in the chain that does not currently exist, then the author may
+append a block to the head of the chain and regenerate all tests against the new
 `chain.rlp`.
 
 ### Test Generation
@@ -147,7 +147,7 @@ precludes subscription methods from being tested.
 
 It is also recommended that test authors test their tests. Each interaction
 should be validated against the expected values. Due to the number of fixtures
-generated, it is easy accept incorrect responses.
+generated, it is easy to accept incorrect responses.
 
 A good final verification of tests is to run them in the hive simulator
 [`rpc-compat`][rpc-compat]. More information on how to run custom tests in the

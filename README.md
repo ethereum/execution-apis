@@ -15,8 +15,8 @@ Please see
 [CONTRIBUTING.md](https://github.com/ethereum/execution-apis/blob/main/CONTRIBUTING.md)
 for a concise workflow overview, and the [contributors guide][contributors-guide]
 for the full process of standardizing new API methods and making changes to
-existing ones. Information on test generation can be found in
-[test-gen][test-gen].
+existing ones. Information on test generation can be found in the
+[tests documentation][test-gen].
 
 The specification itself is written in [OpenRPC][openrpc]. Refer to the OpenRPC
 specification and the JSON schema [specification][json-schema] to get started.
