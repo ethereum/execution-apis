@@ -1247,20 +1247,21 @@ move. The call pays the warm access cost (100) and the identity cost (15).`,
 		},
 		{
 			Name: "call-move-two-precompiles-to-same",
-			About: `Moves identity (0x04) and SHA-256 (0x02) to 0x1000, with the 0x04 entry first in the
-request, and calls 0x1000 with the word 0x2a. The precompile of the account with the higher address
-(identity) must be at 0x1000, whatever the order of the entries.`,
+			About: `Moves ecMul (0x07) and identity (0x04) to 0x1000, with the 0x07 entry first in the
+request, then calls 0x1000 with 96 zero bytes and returns the size of the output. The precompile of
+the account with the higher address (ecMul, 64 bytes of output) must be at 0x1000, whatever the
+order of the entries; identity would return 96 bytes.`,
 			Run: func(ctx context.Context, t *T) error {
 				overrides := json.RawMessage(`{` +
-					`"0x00000000000000000000000000000000000c0de1":{"code":"0x602a5f526020602060205f6110005afa5060206020f3"},` +
-					`"0x0000000000000000000000000000000000000004":{"movePrecompileToAddress":"0x0000000000000000000000000000000000001000"},` +
-					`"0x0000000000000000000000000000000000000002":{"movePrecompileToAddress":"0x0000000000000000000000000000000000001000"}}`)
+					`"0x00000000000000000000000000000000000c0de1":{"code":"0x5f5f60605f6110005afa503d5f5260205ff3"},` +
+					`"0x0000000000000000000000000000000000000007":{"movePrecompileToAddress":"0x0000000000000000000000000000000000001000"},` +
+					`"0x0000000000000000000000000000000000000004":{"movePrecompileToAddress":"0x0000000000000000000000000000000000001000"}}`)
 				var result hexutil.Bytes
 				if err := callBeforeAmsterdam(ctx, t, overrides, &result); err != nil {
 					return err
 				}
-				if want := common.LeftPadBytes([]byte{0x2a}, 32); !bytes.Equal(result, want) {
-					return fmt.Errorf("unexpected return data %x, want the identity output %x", result, want)
+				if got := new(big.Int).SetBytes(result).Uint64(); got != 64 {
+					return fmt.Errorf("unexpected output size %d, want 64 from ecMul", got)
 				}
 				return nil
 			},
@@ -5686,25 +5687,25 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name: "ethSimulate-move-two-accounts-to-same",
-			About: `Moves SHA-256 (0x02) and identity (0x04) to the same destination and calls it. The
-precompile of the account with the higher address (identity) must be at the destination. The
-request lists 0x02 first, so it does not tell this rule from "the last entry wins";
-eth_call/call-move-two-precompiles-to-same does.`,
+			About: `Moves identity (0x04) and ecMul (0x07) to the same destination and calls it with 96
+zero bytes. The precompile of the account with the higher address (ecMul, 64 bytes of output) must
+be at the destination; identity would return 96 bytes. The request lists 0x04 first, so it does not
+tell this rule from "the last entry wins"; eth_call/call-move-two-precompiles-to-same does.`,
 			Run: func(ctx context.Context, t *T) error {
-				sha256Address := common.BytesToAddress([]byte{0x02})
 				identityAddress := common.BytesToAddress([]byte{0x04})
-				input := hex2Bytes("deadbeef")
+				ecMulAddress := common.BytesToAddress([]byte{0x07})
+				input := hexutil.Bytes(make([]byte, 96))
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
 						StateOverrides: &StateOverride{
 							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(1000000000000)},
-							sha256Address:        OverrideAccount{MovePrecompileToAddress: &common.Address{0xc2}},
 							identityAddress:      OverrideAccount{MovePrecompileToAddress: &common.Address{0xc2}},
+							ecMulAddress:         OverrideAccount{MovePrecompileToAddress: &common.Address{0xc2}},
 						},
 						Calls: []TransactionArgs{{
 							From:  &common.Address{0xc0},
 							To:    &common.Address{0xc2},
-							Input: input,
+							Input: &input,
 						}},
 					}},
 				}
@@ -5715,8 +5716,8 @@ eth_call/call-move-two-precompiles-to-same does.`,
 				if len(res) != 1 || len(res[0].Calls) != 1 {
 					return fmt.Errorf("unexpected result: %v", res)
 				}
-				if got := res[0].Calls[0].ReturnData; res[0].Calls[0].Status != 1 || !bytes.Equal(got, *input) {
-					return fmt.Errorf("unexpected return data %x, want the identity output %x", got, *input)
+				if call := res[0].Calls[0]; call.Status != 1 || len(call.ReturnData) != 64 {
+					return fmt.Errorf("unexpected call result: status %d, %d bytes of output, want 64 from ecMul", call.Status, len(call.ReturnData))
 				}
 				return nil
 			},
