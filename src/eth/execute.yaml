@@ -31,6 +31,13 @@
       description: "default: 'latest'. The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+    - name: State overrides
+      required: false
+      description: |-
+        Account changes applied to the state selected by Block before the call runs: balance, nonce, code, storage and precompile moves. The changes apply only to this request. To send this parameter, the caller MUST also send Block.
+        An invalid precompile move (see AccountOverride) MUST be rejected with error code -32000.
+      schema:
+        $ref: '#/components/schemas/StateOverrides'
   result:
     name: Return data
     schema:
@@ -87,6 +94,13 @@
       description: "The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+    - name: State overrides
+      required: false
+      description: |-
+        Account changes applied to the state selected by Block before the call runs: balance, nonce, code, storage and precompile moves. The changes apply only to this request. To send this parameter, the caller MUST also send Block.
+        An invalid precompile move (see AccountOverride) MUST be rejected with error code -32000.
+      schema:
+        $ref: '#/components/schemas/StateOverrides'
   result:
     name: Gas used
     schema:
@@ -150,6 +164,13 @@
       description: "The state is the one after the block has been executed."
       schema:
         $ref: '#/components/schemas/BlockNumberOrTagOrHash'
+    - name: State overrides
+      required: false
+      description: |-
+        Account changes applied to the state selected by Block before the call runs: balance, nonce, code, storage and precompile moves. The changes apply only to this request. To send this parameter, the caller MUST also send Block.
+        An invalid precompile move (see AccountOverride) MUST be rejected with error code -32000.
+      schema:
+        $ref: '#/components/schemas/StateOverrides'
   result:
     name: Gas used
     schema:
