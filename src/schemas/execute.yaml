@@ -80,15 +80,15 @@ AccountOverride:
       $ref: '#/components/schemas/bytes'
     movePrecompileToAddress:
       title: MovePrecompileToAddress
-      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. Can only move precompiles. The move does not change the EIP-2929 set of addresses that are warm at the start of each call. That set keeps the precompile addresses of the active fork, and the destination address is not warm because of the move.
+      description: Moves addresses precompile into the specified address. This move is done before the 'code' override is set. A request MUST be rejected if the source address is not a precompile, if the destination is the source address, or if the destination has its own entry in the state overrides. The method defines the error code. If two accounts move their precompiles to the same destination, the precompile of the account with the higher address is at the destination. The move does not change the EIP-2929 set of addresses that are warm at the start of each call. That set keeps the precompile addresses of the active fork, and the destination address is not warm because of the move.
       $ref: '#/components/schemas/address'
     state:
       title: Storage
-      description: Key-value mapping to override all slots in the account storage before executing the call. This functions similar to eth_call's state parameter.
+      description: Key-value mapping to override all slots in the account storage before executing the call.
       $ref: '#/components/schemas/AccountStorage'
     stateDiff:
       title: Storage difference
-      description: Key-value mapping to override individual slots in the account storage before executing the call. This functions similar to eth_call's state parameter.
+      description: Key-value mapping to override individual slots in the account storage before executing the call.
       $ref: '#/components/schemas/AccountStorage'
 AccountStorage:
   title: Storage slots for an account
