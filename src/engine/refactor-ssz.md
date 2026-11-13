@@ -91,7 +91,7 @@
 | `MAX_BLOBS_REQUEST` | `MAX_VERSIONED_HASHES_PER_REQUEST` (128) | derived |
 | `MAX_BODIES_REQUEST` | `2**5` (32) | [Shanghai](./shanghai.md#engine_getpayloadbodiesbyhashv1) |
 | `MAX_REQUEST_BODY_SIZE` | `2**26` (67,108,864) | this spec (64 MiB; advertised as `limits.payload.max_bytes`) |
-| `MAX_WITNESS_ITEMS` | `2**20` (1,048,576) | this spec (max items in each of `ExecutionWitness.state` and `ExecutionWitness.codes`) |
+| `MAX_WITNESS_ITEMS` | `2**20` (1,048,576) | this spec (placeholder; max items in each of `ExecutionWitness.state` and `ExecutionWitness.codes`, which execution-specs defines as progressive lists with no item limit) |
 | `MAX_BYTES_PER_WITNESS_NODE` | `2**10` (1,024) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
 | `MAX_BYTES_PER_CODE` | `2**16` (65,536) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
 | `MAX_BYTES_PER_HEADER` | `2**10` (1,024) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
@@ -1046,3 +1046,13 @@ the *extended*-blob cell count, halving the true cell size.
 5. **Naming convention.** The legacy spec used `camelCase`; this
    sketch uses `snake_case` to match consensus-specs. Worth
    confirming once before publication.
+6. **`MAX_WITNESS_ITEMS`.** execution-specs defines
+   `ExecutionWitness.state` and `ExecutionWitness.codes` as
+   `ProgressiveList`s with no item limit. This sketch doesn't use
+   progressive types yet, so both fields are
+   `List[..., MAX_WITNESS_ITEMS]` with `2**20` as a placeholder.
+   Should `state` and `codes` use `ProgressiveList` to match
+   execution-specs? Both forms serialize to the same bytes. Only the
+   `List` length check and the hash tree root differ, and this API
+   doesn't use the root. Until this is decided, the placeholder must
+   stay above the item count of any real witness.

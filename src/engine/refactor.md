@@ -204,6 +204,9 @@ doesn't find it there falls back to the `/payloads` +
   [refactor-ssz.md § `ExecutionWitness`](./refactor-ssz.md#executionwitness)
   for the container and its `MAX_*` bounds.
 
+  A witness for a real block can exceed 64 MiB. CLs MUST NOT reject
+  this response only because its size exceeds `MAX_REQUEST_BODY_SIZE`.
+
 - **HTTP status:** `200 OK` for all validation outcomes, exactly as
   `/payloads`. Validation results are response data, not transport
   errors; the [error model](#error-model) is otherwise identical to
@@ -521,6 +524,9 @@ inherited from Shanghai's `engine_getPayloadBodiesByHashV1`) and
 The advertised numbers are an upper bound the server is willing to
 serve; operators MAY advertise lower values, but MUST NOT advertise
 higher than the corresponding `MAX_*` constant.
+
+`limits.*` and `MAX_REQUEST_BODY_SIZE` apply to requests only. This
+spec does not define a response size limit.
 
 The `independently_versioned` map advertises endpoints whose URL
 carries an explicit `/vN` revision. ELs MAY support multiple
