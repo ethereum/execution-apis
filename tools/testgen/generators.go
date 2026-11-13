@@ -115,6 +115,7 @@ var AllMethods = []MethodTests{
 	DebugTraceTransaction,
 	DebugTraceBlockByNumber,
 	DebugTraceBlockByHash,
+	DebugTraceCall,
 	EthBaseFee,
 	EthBlobBaseFee,
 	EthConfig,
