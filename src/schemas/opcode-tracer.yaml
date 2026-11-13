@@ -169,20 +169,19 @@ StructLog:
         or refilled within child frames, refills applied when a child frame
         reverts or halts, the code-deposit charge, and pre-execution charges
         (EIP-2780), so the sum over all steps does not in general equal the
-        transaction's stateGasUsed. Clients MAY include this field; when
-        included it MUST be present at every step where it is non-zero and
-        SHOULD be omitted where it is zero. MUST be omitted before the
-        Amsterdam fork.
+        transaction's stateGasUsed. From the Amsterdam fork it MUST be present
+        at every step where it is non-zero and MUST be omitted where it is
+        zero. MUST be omitted before the Amsterdam fork.
       type: integer
     stateGasReservoir:
       title: state-gas reservoir
       description: >-
         EIP-8037 (Amsterdam and later). The state-gas reservoir remaining
-        before executing this opcode. Clients MAY include this field, and
-        SHOULD include it when they include stateGasCost, since together with
-        gas it distinguishes state gas drawn from gas_left from state gas
-        funded by the reservoir. MAY be omitted when zero. MUST be omitted
-        before the Amsterdam fork.
+        before executing this opcode. Together with gas it distinguishes state
+        gas drawn from gas_left from state gas funded by the reservoir. From
+        the Amsterdam fork it MUST be present at every step where it is
+        non-zero and MUST be omitted where it is zero. MUST be omitted before
+        the Amsterdam fork.
       type: integer
       minimum: 0
     depth:

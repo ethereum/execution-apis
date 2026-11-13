@@ -370,6 +370,7 @@
           regularGasUsed: '0x5208'
           stateGasUsed: '0x2cd30'
           gasRefund: '0x0'
+          stateGasReservoir: '0x0'
           input: '0x'
     - name: debug_traceTransaction example (callTracer, Amsterdam, calldata floor binding the execution dimension)
       params:
@@ -390,6 +391,7 @@
           regularGasUsed: '0x6208'
           stateGasUsed: '0x2cd30'
           gasRefund: '0x0'
+          stateGasReservoir: '0x0'
           input: '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
 - name: debug_traceCall
