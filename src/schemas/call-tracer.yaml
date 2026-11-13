@@ -20,7 +20,8 @@ CallFrame:
     gas. The exception is a frame that fails the call depth limit or the
     balance check before execution starts: it consumes none of its gas, so its
     gasUsed MUST be 0x0. SELFDESTRUCT frames MUST report gas and gasUsed as
-    0x0; the opcode's cost is part of the parent frame.
+    0x0, and from the Amsterdam fork stateGasReservoir as 0x0; the opcode's
+    cost is part of the parent frame.
 
     Frame presence: a frame is reported for each call or create that the
     parent opcode makes, including one that then fails the call depth limit

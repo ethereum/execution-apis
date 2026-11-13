@@ -167,9 +167,12 @@ StructLog:
         CREATE or CREATE2 to a non-existent address, and a SELFDESTRUCT whose
         balance transfer creates its beneficiary. It excludes state gas charged
         or refilled within child frames, refills applied when a child frame
-        reverts or halts, the code-deposit charge, and pre-execution charges
-        (EIP-2780), so the sum over all steps does not in general equal the
-        transaction's stateGasUsed. From the Amsterdam fork it MUST be present
+        reverts or halts or when a call fails before its frame is entered, the
+        code-deposit charge, and pre-execution charges (EIP-2780), so the sum
+        over all steps does not in general equal the transaction's
+        stateGasUsed. It is zero at a step that fails before its gas is
+        charged, for example on a stack error or when the gas left cannot
+        cover the step's cost. From the Amsterdam fork it MUST be present
         at every step where it is non-zero and MUST be omitted where it is
         zero. MUST be omitted before the Amsterdam fork.
       type: integer
