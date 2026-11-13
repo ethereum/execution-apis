@@ -148,7 +148,6 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV1`](./p
 * method: `engine_getPayloadV2`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 

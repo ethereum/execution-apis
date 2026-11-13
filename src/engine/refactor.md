@@ -444,7 +444,7 @@ inherited from Shanghai's `engine_getPayloadBodiesByHashV1`) and
 `blobs.max_versioned_hashes` by `MAX_VERSIONED_HASHES_PER_REQUEST`
 (`128`). `payload.max_bytes` is bounded by `MAX_REQUEST_BODY_SIZE`
 (`2**26` = `67108864`, 64 MiB); see
-[refactor-ssz.md § `MAX_*` constants](./refactor-ssz.md#max-constants).
+[refactor-ssz.md § `MAX_*` constants](./refactor-ssz.md#max_-constants).
 The advertised numbers are an upper bound the server is willing to
 serve; operators MAY advertise lower values, but MUST NOT advertise
 higher than the corresponding `MAX_*` constant.

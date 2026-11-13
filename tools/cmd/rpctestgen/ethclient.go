@@ -3,18 +3,18 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"strings"
 
+	"github.com/ethereum/execution-apis/tools/iofile"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type ethclientHandler struct {
 	rpc       *rpc.Client
-	logFile   *os.File
+	testFile  *os.File
+	testW     *iofile.Writer
 	transport *loggingRoundTrip
 }
 
@@ -28,16 +28,12 @@ func newEthclientHandler(addr string) (*ethclientHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ethclientHandler{
-		rpc:       rpcClient,
-		logFile:   nil,
-		transport: rt,
-	}, nil
+	return &ethclientHandler{rpc: rpcClient, transport: rt}, nil
 }
 
-func (l *ethclientHandler) RotateLog(filename string) error {
-	if l.logFile != nil {
-		if err := l.logFile.Close(); err != nil {
+func (l *ethclientHandler) NewTest(filename string) error {
+	if l.testFile != nil {
+		if err := l.testFile.Close(); err != nil {
 			return err
 		}
 	}
@@ -45,36 +41,31 @@ func (l *ethclientHandler) RotateLog(filename string) error {
 	if err != nil {
 		return err
 	}
-	l.logFile = f
-	l.transport.w = f
+	l.testFile = f
+	l.testW = iofile.NewWriter(f)
+	l.transport.w = l.testW
 	return nil
 }
 
-// WriteComment adds the given text as a comment to the current log file.
+// WriteValidationScript appends a script section to the test file.
+func (l *ethclientHandler) WriteValidationScript(text string) error {
+	return l.testW.Script(text)
+}
+
+// WriteComment adds the given text as a comment to the test file.
 func (l *ethclientHandler) WriteComment(text string) error {
-	var b strings.Builder
-	for line := range strings.Lines(text) {
-		b.WriteString("//")
-		line = strings.TrimSpace(line)
-		if len(line) > 0 {
-			b.WriteString(" ")
-			b.WriteString(line)
-		}
-		b.WriteString("\n")
-	}
-	_, err := l.logFile.WriteString(b.String())
-	return err
+	return l.testW.Comment(text)
 }
 
 func (l *ethclientHandler) Close() {
-	if l.logFile != nil {
-		l.logFile.Close()
+	if l.testFile != nil {
+		l.testFile.Close()
 	}
 }
 
 // loggingRoundTrip writes requests and responses to the test log.
 type loggingRoundTrip struct {
-	w     io.Writer
+	w     *iofile.Writer
 	inner http.RoundTripper
 }
 
@@ -85,7 +76,7 @@ func (rt *loggingRoundTrip) RoundTrip(req *http.Request) (*http.Response, error)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(rt.w, ">> %s\n", bytes.TrimSpace(reqBytes))
+	rt.w.Send(string(reqBytes))
 	reqCopy := *req
 	reqCopy.Body = io.NopCloser(bytes.NewReader(reqBytes))
 
@@ -103,6 +94,6 @@ func (rt *loggingRoundTrip) RoundTrip(req *http.Request) (*http.Response, error)
 	}
 	respCopy := *resp
 	respCopy.Body = io.NopCloser(bytes.NewReader(respBytes))
-	fmt.Fprintf(rt.w, "<< %s\n", bytes.TrimSpace(respBytes))
+	rt.w.Receive(string(respBytes))
 	return &respCopy, nil
 }

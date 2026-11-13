@@ -134,7 +134,6 @@ This method is updated to return the new `ExecutionPayloadV4` structure.
 * method: `engine_getPayloadV6`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 
