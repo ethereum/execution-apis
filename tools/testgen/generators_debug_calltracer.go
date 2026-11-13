@@ -61,7 +61,8 @@ type callTracerOpts struct {
 //   - calls MUST be absent when empty or when onlyTopCall is set
 //   - logs MUST be absent without withLog, and on failed frames and their
 //     descendants
-//   - regularGasUsed and gasRefund MUST only be present on the root frame
+//   - regularGasUsed, stateGasUsed and gasRefund MUST only be present on the
+//     root frame
 func validateCallFrame(frame map[string]interface{}, opts callTracerOpts) error {
 	var me multiError
 	validateCallFrameAt("", frame, opts, false, &me)
@@ -97,7 +98,7 @@ func validateCallFrameAt(path string, frame map[string]interface{}, opts callTra
 	checkFieldPattern(me, prefix, frame, "input", bytesPattern)
 	checkFieldPattern(me, prefix, frame, "output", bytesPattern)
 	checkFieldPattern(me, prefix, frame, "regularGasUsed", uint256Pattern)
-	checkFieldPattern(me, prefix, frame, "stateGasUsed", intPattern)
+	checkFieldPattern(me, prefix, frame, "stateGasUsed", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "gasRefund", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "stateGasReservoir", uint256Pattern)
 
@@ -417,6 +418,55 @@ var DebugTraceCall = MethodTests{
 				}
 				if result["output"] != "0xffee" {
 					return fmt.Errorf("expected overridden code output 0xffee, got %v", result["output"])
+				}
+				return nil
+			},
+		},
+		{
+			Name:             "calltracer-nested-state-gas-spill",
+			About:            "traces a call whose child allocates a storage slot with a gas limit below the EIP-7825 cap; the child's gasUsed includes the state gas drawn from gas_left",
+			SpecOnly:         true,
+			ValidationScript: callFrameCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				if !t.chain.Config().IsAmsterdam(t.chain.Head().Number(), t.chain.Head().Time()) {
+					return fmt.Errorf("head block is not at or after Amsterdam")
+				}
+				sender, _ := t.chain.GetSender(0)
+				const (
+					parent = "0x00000000000000000000000000000000000000c1"
+					child  = "0x00000000000000000000000000000000000000c2"
+				)
+				// The gas limit is below the EIP-7825 cap, so the state-gas
+				// reservoir is empty and the child's SSTORE draws its state gas
+				// from gas_left.
+				call := map[string]interface{}{
+					"from": sender,
+					"to":   parent,
+					"gas":  "0x100000",
+				}
+				cfg := map[string]interface{}{
+					"tracer": "callTracer",
+					"stateOverrides": map[string]interface{}{
+						// CALL(gas, child, 0, 0, 0, 0, 0) POP STOP
+						parent: map[string]interface{}{"code": "0x5f5f5f5f5f60c25af15000", "state": map[string]interface{}{}},
+						// SSTORE(1, 1) STOP
+						child: map[string]interface{}{"code": "0x600160015500", "state": map[string]interface{}{}},
+					},
+				}
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, "latest", cfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
+					return err
+				}
+				calls, _ := result["calls"].([]interface{})
+				if len(calls) != 1 {
+					return fmt.Errorf("expected one nested call, got %d", len(calls))
+				}
+				sub := calls[0].(map[string]interface{})
+				if _, failed := sub["error"]; failed {
+					return fmt.Errorf("nested call failed: %v", sub["error"])
 				}
 				return nil
 			},

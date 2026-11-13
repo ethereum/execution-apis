@@ -3,19 +3,15 @@ package testgen
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
-
-// intPattern matches the signed hex integer base type.
-var intPattern = regexp.MustCompile(`^(0x0|-?0x[1-9a-f][0-9a-f]*)$`)
 
 // gasDimensionFields are the EIP-8037 settlement fields of a transaction trace.
 var gasDimensionFields = []string{"regularGasUsed", "stateGasUsed", "gasRefund"}
 
 // rootOnlyFrameFields are CallFrame fields that MUST NOT appear on nested frames.
-var rootOnlyFrameFields = []string{"regularGasUsed", "gasRefund"}
+var rootOnlyFrameFields = []string{"regularGasUsed", "stateGasUsed", "gasRefund"}
 
 // isAmsterdamBlock reports whether the given block of the test chain is at or
 // after the Amsterdam fork.
