@@ -278,10 +278,15 @@ Replaces `engine_forkchoiceUpdatedV{1..4}`.
 
   If `payload_attributes` is present, the `Eth-Execution-Version`
   header MUST match the fork that the new payload would belong to
-  (i.e. the fork determined by `payload_attributes.timestamp`).
-  Mismatch returns `400 unsupported-fork`. Building a payload is
-  the only operation where the header fork is load-bearing on shape,
-  so it's the only one we strictly police.
+  (i.e. the fork determined by `payload_attributes.timestamp`),
+  whether the header fork is older or newer than the timestamp's
+  fork. If the header fork does not match the fork determined by
+  `payload_attributes.timestamp`, the EL MUST return
+  `400 unsupported-fork` before processing `forkchoice_state`,
+  starting a payload build, or updating `custody_columns`,
+  regardless of whether the referenced `head` is known. Building a
+  payload is the only operation where the header fork is
+  load-bearing on shape, so it's the only one we strictly police.
 
 - **Custody-set semantics** (Amsterdam+): the custody update runs
   independently of the forkchoice processing flow. An execution-time 
@@ -811,7 +816,7 @@ Error codes:
 | 400 Bad Request | `/engine-api/errors/parse-error` | -32700 | Body is not valid JSON / SSZ |
 | 400 Bad Request | `/engine-api/errors/invalid-request` | -32600 | Request shape is wrong (missing required field, etc.) |
 | 400 Bad Request | `/engine-api/errors/ssz-decode-error` | (new) | SSZ decode failed; canned error, no `detail` |
-| 400 Bad Request | `/engine-api/errors/unsupported-fork` | -38005 | `Eth-Execution-Version` value missing, unknown, or unsupported by this EL |
+| 400 Bad Request | `/engine-api/errors/unsupported-fork` | -38005 | `Eth-Execution-Version` value missing, unknown, unsupported by this EL, or does not match `payload_attributes.timestamp` on `POST /forkchoice` |
 | 404 Not Found | `/engine-api/errors/method-not-found` | -32601 | URL does not match any endpoint |
 | 404 Not Found | `/engine-api/errors/unknown-payload` | -38001 | `payloadId` does not exist |
 | 409 Conflict | `/engine-api/errors/invalid-forkchoice` | -38002 | Forkchoice state is inconsistent (e.g. finalized not ancestor of head) |
@@ -1421,7 +1426,9 @@ the summary exists for quick scanning.
 - **Stale-fork header** is allowed when `payload_attributes` is
   absent; with `payload_attributes` present,
   `Eth-Execution-Version` MUST match the timestamp's fork
-  (otherwise `400 unsupported-fork`).
+  (otherwise `400 unsupported-fork` before processing
+  `forkchoice_state`, starting a build, or updating
+  `custody_columns`).
 - **No HTTP-layer body cap** beyond SSZ `MAX_*` constants.
 - **Custody-set updates** run independently of the forkchoice flow;
   custody errors do not affect `payload_status`.
