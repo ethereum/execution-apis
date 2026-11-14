@@ -96,6 +96,8 @@ All the other fields are computed automatically (e.g. `stateRoot` and `gasUsed`)
 
 A client rejects a key in `blockOverrides` or in a `stateOverrides` account object that it does not support, with error code `-32602`. A client can treat a key that differs from a spec key only in case, such as `Code`, as the spec key. It then applies the key, and rejects two keys that differ only in case and name the same spec key, with error code `-32602`. A client can support other keys that the spec does not define. After the merge, a simulated block always has difficulty `0`, and a client rejects a `difficulty` override for such a block with error code `-32602`.
 
+Account state changes in `stateOverrides` (`nonce`, `balance`, `code`, `state`, `stateDiff`) are written to the simulation state and persist into subsequent blocks unless overridden or modified again. By contrast, each simulated block initializes its active precompile set from the fork rules for that block before applying that block's `stateOverrides`. Precompile overrides (`movePrecompileToAddress`, and replacing a precompile with `code`) are therefore scoped to the block in which they are specified: in later blocks, calls to a precompile address execute the precompile again, and a moved precompile is no longer active at its destination address, even though any `code` written to an account remains in the state trie.
+
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
 ## ETH transfer logs
