@@ -33,7 +33,7 @@
   - [`ExecutionPayloadBody` per fork](#executionpayloadbody-per-fork)
   - [`BlobsBundle` per revision](#blobsbundle-per-revision)
   - [`BuiltPayload` per fork](#builtpayload-per-fork)
-  - [`ExecutionPayloadEnvelope` per fork](#executionpayloadenvelope-per-fork)
+  - [`SubmittedPayload` per fork](#submittedpayload-per-fork)
   - [`ForkchoiceUpdate` per fork](#forkchoiceupdate-per-fork)
   - [`BlobAndProof` per revision](#blobandproof-per-revision)
   - [Identification & capabilities](#identification--capabilities)
@@ -286,7 +286,7 @@ containers; etc. This section catalogues every fork-scoped variant.
 ### `ExecutionPayload` per fork
 
 Used by `POST /payloads` (the inner `payload` field of
-`ExecutionPayloadEnvelope`) and `GET /payloads/{payloadId}`
+`SubmittedPayload`) and `GET /payloads/{payloadId}`
 (the inner `payload` field of `BuiltPayload`).
 
 ```
@@ -321,7 +321,7 @@ ExecutionPayloadCancun {
     excess_blob_gas:    Uint64
 }
 
-# Prague = Cancun (no payload-shape change; execution_requests is at the envelope level)
+# Prague = Cancun (no payload-shape change; execution_requests is in `SubmittedPayload`)
 ExecutionPayloadPrague = ExecutionPayloadCancun
 
 # Osaka = Prague (no payload-shape change; blobs bundle moved to BlobsBundleV2)
@@ -523,7 +523,7 @@ BuiltPayloadAmsterdam {
 The Amsterdam variant is the one shown in the
 [endpoint section below](#get-payloadspayloadid).
 
-### `ExecutionPayloadEnvelope` per fork
+### `SubmittedPayload` per fork
 
 The request body of `POST /payloads`. `parent_beacon_block_root`
 exists from Cancun on (it was a separate `engine_newPayload` parameter
@@ -531,22 +531,22 @@ since Cancun); `execution_requests` from Prague on. Field order is
 normative.
 
 ```
-# Paris / Shanghai — bare payload, no envelope fields
-ExecutionPayloadEnvelopeParis {
+# Paris / Shanghai — bare payload, no extra fields
+SubmittedPayloadParis {
     payload: ExecutionPayloadParis
 }
-ExecutionPayloadEnvelopeShanghai {
+SubmittedPayloadShanghai {
     payload: ExecutionPayloadShanghai
 }
 
 # Cancun — + parent_beacon_block_root
-ExecutionPayloadEnvelopeCancun {
+SubmittedPayloadCancun {
     payload:                  ExecutionPayloadCancun
     parent_beacon_block_root: Root
 }
 
 # Prague — Cancun + execution_requests
-ExecutionPayloadEnvelopePrague {
+SubmittedPayloadPrague {
     payload:                  ExecutionPayloadPrague
     parent_beacon_block_root: Root
     execution_requests:       List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
@@ -637,14 +637,14 @@ onward**; substitute the matching entry from the
 [per-fork container catalogue](#per-fork-container-catalogue) for the
 value of the `Eth-Execution-Version` request header. For instance
 `POST /payloads` with `Eth-Execution-Version: cancun` takes an
-`ExecutionPayloadEnvelopeCancun` wrapping an `ExecutionPayloadCancun`,
+`SubmittedPayloadCancun` wrapping an `ExecutionPayloadCancun`,
 and `GET /payloads/{id}` with `Eth-Execution-Version: shanghai`
 returns a `BuiltPayloadShanghai`.
 
 > **Fork-invariant containers.** `PayloadStatus`, `ForkchoiceState`,
 > `ForkchoiceUpdateResponse`, and `Withdrawal` have the **same shape
 > across all forks** — only the fork-scoped payload/attributes/body
-> containers and the `BuiltPayload` / `ExecutionPayloadEnvelope` /
+> containers and the `BuiltPayload` / `SubmittedPayload` /
 > `ForkchoiceUpdate` wrappers that embed them vary by fork.
 
 > **Implementation note (monolithic vs. per-fork types).** This
@@ -664,14 +664,14 @@ returns a `BuiltPayloadShanghai`.
 ### `POST /payloads`
 
 Replaces `engine_newPayloadV{1..5}` (Amsterdam shown; `engine_newPayloadV5`).
-Each fork uses its `ExecutionPayloadEnvelope{Fork}` from the catalogue
+Each fork uses its `SubmittedPayload{Fork}` from the catalogue
 above — Paris/Shanghai carry the bare payload, Cancun+ add
 `parent_beacon_block_root`, Prague+ add `execution_requests`.
 
 #### Request (Amsterdam)
 
 ```
-ExecutionPayloadEnvelopeAmsterdam {
+SubmittedPayloadAmsterdam {
     payload:                  ExecutionPayloadAmsterdam
     parent_beacon_block_root: Root
     execution_requests:       List[ByteList[MAX_BYTES_PER_EXECUTION_REQUEST], MAX_EXECUTION_REQUESTS_PER_PAYLOAD]
