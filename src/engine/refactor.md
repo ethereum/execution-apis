@@ -61,7 +61,7 @@ All hot-path endpoints select the fork via the
 
 | Old method | New endpoint | Notes |
 | - | - | - |
-| `engine_newPayloadV{1..5}` | `POST /payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ envelope; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
+| `engine_newPayloadV{1..5}` | `POST /payloads` | `parentBeaconBlockRoot` and `executionRequests` folded into the SSZ `SubmittedPayload`; `expectedBlobVersionedHashes` removed; `INVALID_BLOCK_HASH` removed from the status enum |
 | `engine_forkchoiceUpdatedV{1..4}` | `POST /forkchoice` | one atomic call; carries forkchoice state, optional `payload_attributes`, and (Amsterdam+) optional `custody_columns` |
 | `engine_getPayloadV{1..6}` | `GET /payloads/{id}` | poll-style, same semantics as today |
 | `engine_getPayloadBodiesByHashV{1,2}` | `POST /bodies/hash` | header selects both the response schema and the era of returned blocks; `POST` because hash lists are too large for URLs |
@@ -105,10 +105,10 @@ Every hot-path body uses SSZ; every metadata endpoint uses JSON.
 
 Replaces `engine_newPayloadV{1..5}`.
 
-- **Request body:** SSZ-encoded `ExecutionPayloadEnvelope`
+- **Request body:** SSZ-encoded `SubmittedPayload`
 
   ```
-  ExecutionPayloadEnvelope {
+  SubmittedPayload {
       payload:                  ExecutionPayload          # the fork's payload SSZ container
       parent_beacon_block_root: Root                      # was a separate param since Cancun
       execution_requests:       List[Bytes, MAX_REQUESTS] # was a separate param since Prague
@@ -484,7 +484,7 @@ Eth-Execution-Version: amsterdam
 Content-Type: application/octet-stream
 Content-Length: 584
 
-<584 bytes: SSZ(ExecutionPayloadEnvelope)>
+<584 bytes: SSZ(SubmittedPayload)>
 ```
 
 Successful response (`status = VALID`):
@@ -534,41 +534,41 @@ along with the body schema. Field names follow the
 `<…>` denotes nested SSZ. Only the fields that change per fork are
 called out; every fork from Paris on is a valid header value.
 
-#### `POST /payloads` request body (`ExecutionPayloadEnvelope{Fork}`)
+#### `POST /payloads` request body (`SubmittedPayload{Fork}`)
 
 ```
 # Eth-Execution-Version: paris
-ExecutionPayloadEnvelopeParis {
+SubmittedPayloadParis {
     payload: <ExecutionPayloadParis>            # base fields only (no withdrawals/blob-gas/BAL)
 }
 
 # Eth-Execution-Version: shanghai
-ExecutionPayloadEnvelopeShanghai {
+SubmittedPayloadShanghai {
     payload: <ExecutionPayloadShanghai>         # + withdrawals
 }
 
 # Eth-Execution-Version: cancun
-ExecutionPayloadEnvelopeCancun {
+SubmittedPayloadCancun {
     payload:                  <ExecutionPayloadCancun>   # + blob_gas_used, excess_blob_gas
     parent_beacon_block_root: <Root>                     # NEW: was a side param since Cancun
 }
 
 # Eth-Execution-Version: prague
-ExecutionPayloadEnvelopePrague {
+SubmittedPayloadPrague {
     payload:                  <ExecutionPayloadPrague>   # == Cancun payload shape
     parent_beacon_block_root: <Root>
     execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>  # NEW: was a side param since Prague
 }
 
-# Eth-Execution-Version: osaka — identical envelope shape to Prague
-ExecutionPayloadEnvelopeOsaka {
+# Eth-Execution-Version: osaka — identical shape to Prague
+SubmittedPayloadOsaka {
     payload:                  <ExecutionPayloadOsaka>    # == Cancun payload shape
     parent_beacon_block_root: <Root>
     execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
 }
 
 # Eth-Execution-Version: amsterdam
-ExecutionPayloadEnvelopeAmsterdam {
+SubmittedPayloadAmsterdam {
     payload:                  <ExecutionPayloadAmsterdam># + block_access_list, slot_number
     parent_beacon_block_root: <Root>
     execution_requests:       <List[Bytes, MAX_EXECUTION_REQUESTS_PER_PAYLOAD]>
@@ -901,7 +901,7 @@ Eth-Execution-Version: amsterdam
 Content-Type: application/octet-stream
 Authorization: Bearer <JWT>
 
-<SSZ-encoded ExecutionPayloadEnvelope>
+<SSZ-encoded SubmittedPayload>
 ```
 
 The EL routes by header value, parses the body according to that
@@ -1023,7 +1023,7 @@ ordering, so we pin two rules explicitly:
   the same payload submitted twice can return different statuses if
   the EL has acquired more state in between. The new spec preserves
   this: an EL MUST NOT short-circuit a retry by returning the cached
-  status, and a CL MUST NOT assume two responses to the same envelope
+  status, and a CL MUST NOT assume two responses to the same submitted payload
   match. The only invariant is the `VALID ↔ INVALID` boundary.
 
 ---
@@ -1076,7 +1076,7 @@ decision log for quick scanning.
 3. **Self-contained requests.** No more side-channel parameters
    (`expectedBlobVersionedHashes`, `parentBeaconBlockRoot`,
    `executionRequests`) that travel beside the payload — they live
-   inside the payload envelope or are unnecessary.
+   inside `SubmittedPayload` or are unnecessary.
 4. **Idiomatic HTTP.** Use HTTP status codes for transport-level outcomes,
    `Content-Type` for negotiation, and a small problem-detail JSON body
    for errors.
