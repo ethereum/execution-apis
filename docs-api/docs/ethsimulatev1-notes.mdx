@@ -207,6 +207,9 @@ After Amsterdam the protocol emits a transfer log for every non-zero ETH transfe
 
 Unlike the `traceTransfers` logs, the EIP-7708 logs are part of the receipts, so they count in `logsBloom` and `receiptsRoot`.
 
+### Frame transactions
+In an [EIP-8141](https://eips.ethereum.org/EIPS/eip-8141) frame transaction, an ETH log belongs to the frame that made the transfer, and is returned if and only if that frame's logs are. A frame that fails, is skipped, or is rolled back after it ran, such as by a failed atomic batch, issues no ETH logs. The frames that committed keep theirs, even when the frame transaction as a whole fails. Within a frame, a transfer made by a call that reverts issues no log, as for any transaction. Charging the payer is a gas fee, so it issues no ETH log either.
+
 ## Validation Mode
 The `eth_simulate` includes a feature to enable or disable validation using the `Validation` setting. By default, validation is off, and `eth_simulate` behaves similarly to `eth_call`. When validation is enabled, the simulation closely approximates real EVM block creation, except it skips transaction signature checks and allows direct transactions from contracts.
 
