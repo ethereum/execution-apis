@@ -41,13 +41,12 @@ CallFrame:
     root frame additionally reports the transaction's contribution to each
     block gas counter (regularGasUsed, stateGasUsed) and its refund
     (gasRefund), and every frame reports the state-gas reservoir it was
-    entered with (stateGasReservoir). None of these fields are present for transactions before the Amsterdam
-    fork. For debug_traceCall they are computed as if the call were included
-    as a transaction, except that a client that does not apply the EIP-7825
-    transaction gas limit cap to calls splits the call's gas between gas_left
-    and the reservoir differently, so stateGasReservoir, and with it the
-    gas and gasUsed of nested frames, can differ from those of the same
-    transaction.
+    entered with (stateGasReservoir). None of these fields are present for
+    transactions before the Amsterdam fork. For debug_traceCall they are
+    computed as if the call were included as a transaction, except that
+    debug_traceCall does not apply the EIP-7825 transaction gas limit cap, as
+    eth_call does not: all gas after the intrinsic gas is gas_left, and the
+    initial stateGasReservoir of the root frame is zero.
 
     Root frame invariants (Amsterdam and later): with before_refund the gas
     used by the transaction before refunds, and floor the calldata floor
@@ -185,7 +184,8 @@ CallFrame:
         so on nested frames this is the calling frame's reservoir at the call,
         after any state gas the call itself was charged. The reservoir starts
         non-zero only when the transaction gas limit exceeds the EIP-7825
-        transaction gas limit cap, but refills can add to it. MUST be present
+        transaction gas limit cap (never for debug_traceCall, which does not
+        apply the cap), but refills can add to it. MUST be present
         on every frame of Amsterdam and later transactions, including when it
         is zero, and MUST be omitted before the Amsterdam fork.
       $ref: '#/components/schemas/uint'
