@@ -154,7 +154,6 @@ and proofs corresponding to the `versioned_hashes` included in the blob transact
 * method: `engine_getPayloadV3`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 
