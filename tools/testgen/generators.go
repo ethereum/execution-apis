@@ -4498,7 +4498,7 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name:  "ethSimulate-transfer-over-BlockStateCalls",
-			About: "simulates a transfering value over multiple BlockStateCalls",
+			About: "simulates a transferring value over multiple BlockStateCalls",
 			Run: func(ctx context.Context, t *T) error {
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
@@ -6943,7 +6943,7 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name:  "ethSimulate-extcodehash-override",
-			About: "test extcodehash getting of overriden contract",
+			About: "test extcodehash getting of overridden contract",
 			Run: func(ctx context.Context, t *T) error {
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
