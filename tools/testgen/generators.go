@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/ethclient/gethclient"
@@ -1225,6 +1226,299 @@ See https://github.com/ethereum/hive/tree/master/cmd/hivechain/contracts/callenv
 				P256: params.WarmStorageReadCostEIP2929 + params.P256VerifyGas,
 			},
 		),
+		{
+			Name:  "call-fork-inactive-access-list",
+			About: "calls with an empty access list on a block before Berlin. The request is invalid because EIP-2930 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":       sender,
+					"to":         common.Address{0x01},
+					"accessList": types.AccessList{},
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for access list before Berlin")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-fee-fields-zero",
+			About: "calls with zero maxFeePerGas and maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active, even when the values are zero.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxFeePerGas":         (*hexutil.Big)(common.Big0),
+					"maxPriorityFeePerGas": (*hexutil.Big)(common.Big0),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for EIP-1559 fee fields before London")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-priority-fee",
+			About: "calls with only maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxPriorityFeePerGas before London")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-blob-hashes",
+			About: "calls with blob versioned hashes on a block before Cancun. The request is invalid because EIP-4844 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{{0x01}},
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for blob hashes before Cancun")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-fork-inactive-authorization-list",
+			About: "calls with an authorization list on a block before Prague. The request is invalid because EIP-7702 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":              sender,
+					"to":                common.Address{0x01},
+					"authorizationList": []types.SetCodeAuthorization{{Address: common.Address{0x01}}},
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().PragueTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for authorization list before Prague")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-gas-price-before-london",
+			About: "calls with gasPrice set on a block before London. gasPrice is valid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":     sender,
+					"to":       common.Address{0x01},
+					"gas":      hexutil.Uint64(params.TxGas),
+					"gasPrice": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
+		{
+			Name:  "call-blob-fee-without-hashes-before-cancun",
+			About: "calls with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-blob-fee-without-hashes",
+			About: "calls with maxFeePerBlobGas and no blob hashes. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-empty-blob-hashes",
+			About: "calls with an empty blobVersionedHashes list and no maxFeePerBlobGas. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for empty blobVersionedHashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-blob-fee-empty-blob-hashes",
+			About: "calls with maxFeePerBlobGas and an empty blobVersionedHashes list. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"maxFeePerBlobGas":    (*hexutil.Big)(big.NewInt(1)),
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas with empty blobVersionedHashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "call-type-access-list-before-berlin",
+			About: "calls with type 0x1 and no access list on a block before Berlin. The client ignores type, so the call runs as a legacy call.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.AccessListTxType),
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
+		{
+			Name:  "call-type-blob-before-cancun",
+			About: "calls with type 0x3 and no blob fields on a block before Cancun. The client ignores type, so the call runs without blobs.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.BlobTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
+		{
+			Name:  "call-type-set-code-before-prague",
+			About: "calls with type 0x4 and no authorization list on a block before Prague. The client ignores type, so the call runs without authorizations.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.SetCodeTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().PragueTime).NumberU64() - 1)
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, block)
+			},
+		},
+		{
+			Name:  "call-type-unknown",
+			About: "calls with type 0x7f, which is not a known transaction type. The client ignores type.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(0x7f),
+				}
+				var result hexutil.Bytes
+				return t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest")
+			},
+		},
+		{
+			Name: "call-type-legacy-with-fee-fields",
+			About: `creates a contract that returns GASPRICE, with type 0x0 and the EIP-1559 fee fields.
+The client ignores type, so the fee fields set the gas price to the base fee plus the priority fee.`,
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"type":                 hexutil.Uint64(types.LegacyTxType),
+					"gas":                  hexutil.Uint64(300000),
+					"maxFeePerGas":         (*hexutil.Big)(big.NewInt(2 * params.GWei)),
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+					// GASPRICE PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN
+					"input": hexutil.Bytes(common.FromHex("0x3a60005260206000f3")),
+				}
+				var result hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &result, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				want := new(big.Int).Add(t.chain.Head().BaseFee(), big.NewInt(params.GWei))
+				if got := new(big.Int).SetBytes(result); got.Cmp(want) != 0 {
+					return fmt.Errorf("wrong GASPRICE: got %v, want %v", got, want)
+				}
+				return nil
+			},
+		},
+		{
+			Name: "call-type-legacy-with-access-list",
+			About: `creates a contract that reads the balance of an address and returns the remaining gas, with type 0x0
+and an access list that contains the address. The client ignores type, so the result equals the second call,
+which sends the same request without type.`,
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				target := common.Address{0x01}
+				// PUSH20 target BALANCE POP GAS PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN
+				code := append(append([]byte{0x73}, target.Bytes()...), common.FromHex("0x31505a60005260206000f3")...)
+				msg := map[string]any{
+					"from":       sender,
+					"type":       hexutil.Uint64(types.LegacyTxType),
+					"gas":        hexutil.Uint64(300000),
+					"accessList": types.AccessList{{Address: target, StorageKeys: []common.Hash{}}},
+					"input":      hexutil.Bytes(code),
+				}
+				var withType, withoutType hexutil.Bytes
+				if err := t.rpc.CallContext(ctx, &withType, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				delete(msg, "type")
+				if err := t.rpc.CallContext(ctx, &withoutType, "eth_call", msg, "latest"); err != nil {
+					return err
+				}
+				if !bytes.Equal(withType, withoutType) {
+					return fmt.Errorf("type changed the result: %x != %x", withType, withoutType)
+				}
+				return nil
+			},
+		},
 	},
 }
 
@@ -1512,6 +1806,110 @@ The request must not fail merely because the sender cannot afford the client's f
 				return nil
 			},
 		},
+		{
+			Name:  "estimate-fork-inactive-access-list",
+			About: "estimates a transfer with an empty access list on a block before Berlin. The request is invalid because EIP-2930 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":       sender,
+					"to":         common.Address{0x01},
+					"accessList": types.AccessList{},
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block); err == nil {
+					return fmt.Errorf("expected error for access list before Berlin")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-fork-inactive-fee-fields",
+			About: "estimates a transfer with maxFeePerGas and maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxFeePerGas":         (*hexutil.Big)(big.NewInt(2 * params.GWei)),
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block); err == nil {
+					return fmt.Errorf("expected error for EIP-1559 fee fields before London")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-blob-fee-without-hashes-before-cancun",
+			About: "estimates a transfer with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-blob-fee-without-hashes",
+			About: "estimates a transfer with maxFeePerBlobGas and no blob hashes. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-empty-blob-hashes",
+			About: "estimates a transfer with an empty blobVersionedHashes list and no maxFeePerBlobGas. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for empty blobVersionedHashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "estimate-type-blob-before-cancun",
+			About: "estimates a transfer with type 0x3 and no blob fields on a block before Cancun. The client ignores type.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.BlobTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result hexutil.Uint64
+				return t.rpc.CallContext(ctx, &result, "eth_estimateGas", msg, block)
+			},
+		},
 	},
 }
 
@@ -1581,9 +1979,8 @@ request must not fail merely because the sender cannot afford those defaults.`,
 			},
 		},
 		{
-			Name:     "create-al-contract",
-			About:    "creates an access list for a contract invocation that accesses storage",
-			SpecOnly: true,
+			Name:  "create-al-contract",
+			About: "creates an access list for a contract invocation that accesses storage",
 			Run: func(ctx context.Context, t *T) error {
 				gasprice := t.chain.Head().BaseFee()
 				sender, nonce := t.chain.GetSender(0)
@@ -1591,16 +1988,20 @@ request must not fail merely because the sender cannot afford those defaults.`,
 					"from":     sender,
 					"to":       emitContract,
 					"nonce":    hexutil.Uint64(nonce),
-					"gas":      hexutil.Uint64(60000),
+					"gas":      hexutil.Uint64(200000),
 					"gasPrice": (*hexutil.Big)(gasprice),
 					"input":    "0x010203040506",
 				}
 				var result struct {
 					AccessList types.AccessList
+					Error      string
 				}
 				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
 				if err != nil {
 					return err
+				}
+				if result.Error != "" {
+					return fmt.Errorf("unexpected error: %s", result.Error)
 				}
 				if len(result.AccessList) == 0 {
 					return fmt.Errorf("empty access list")
@@ -1618,7 +2019,6 @@ request must not fail merely because the sender cannot afford those defaults.`,
 			Name: "create-al-contract-eip1559",
 			About: `Creates an access list for a contract invocation that accesses storage.
 This invocation uses EIP-1559 fields to specify the gas price.`,
-			SpecOnly: true,
 			Run: func(ctx context.Context, t *T) error {
 				gasprice := t.chain.Head().BaseFee()
 				sender, nonce := t.chain.GetSender(0)
@@ -1626,17 +2026,21 @@ This invocation uses EIP-1559 fields to specify the gas price.`,
 					"from":                 sender,
 					"to":                   emitContract,
 					"nonce":                hexutil.Uint64(nonce),
-					"gas":                  hexutil.Uint64(60000),
+					"gas":                  hexutil.Uint64(200000),
 					"maxFeePerGas":         (*hexutil.Big)(gasprice),
 					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(3)),
 					"input":                "0x010203040506",
 				}
 				var result struct {
 					AccessList types.AccessList
+					Error      string
 				}
 				err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest")
 				if err != nil {
 					return err
+				}
+				if result.Error != "" {
+					return fmt.Errorf("unexpected error: %s", result.Error)
 				}
 				if len(result.AccessList) == 0 {
 					return fmt.Errorf("empty access list")
@@ -1693,6 +2097,109 @@ in the "error" field.`,
 			func(c *Chain) *types.Block { return c.BlockAtTime(*c.Config().PragueTime) },
 			params.TxGas+1000*params.TxTokenPerNonZeroByte*params.TxCostFloorPerToken,
 		),
+		{
+			Name:  "create-al-fork-inactive",
+			About: "creates an access list for a transfer on a block before Berlin. The request is invalid because EIP-2930 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+				}
+				block := hexutil.Uint64(t.chain.Config().BerlinBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block); err == nil {
+					return fmt.Errorf("expected error for access list before Berlin")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-fork-inactive-fee-fields",
+			About: "creates an access list with maxFeePerGas and maxPriorityFeePerGas on a block before London. The request is invalid because EIP-1559 is not active.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                 sender,
+					"to":                   common.Address{0x01},
+					"maxFeePerGas":         (*hexutil.Big)(big.NewInt(2 * params.GWei)),
+					"maxPriorityFeePerGas": (*hexutil.Big)(big.NewInt(params.GWei)),
+				}
+				block := hexutil.Uint64(t.chain.Config().LondonBlock.Uint64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block); err == nil {
+					return fmt.Errorf("expected error for EIP-1559 fee fields before London")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-blob-fee-without-hashes-before-cancun",
+			About: "creates an access list with maxFeePerBlobGas and no blob hashes on a block before Cancun. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().CancunTime).NumberU64() - 1)
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-blob-fee-without-hashes",
+			About: "creates an access list with maxFeePerBlobGas and no blob hashes. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":             sender,
+					"to":               common.Address{0x01},
+					"maxFeePerBlobGas": (*hexutil.Big)(big.NewInt(1)),
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for maxFeePerBlobGas without blob hashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-empty-blob-hashes",
+			About: "creates an access list with an empty blobVersionedHashes list and no maxFeePerBlobGas. The request is invalid at every fork.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from":                sender,
+					"to":                  common.Address{0x01},
+					"blobVersionedHashes": []common.Hash{},
+				}
+				var result any
+				if err := t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, "latest"); err == nil {
+					return fmt.Errorf("expected error for empty blobVersionedHashes")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "create-al-type-set-code-before-prague",
+			About: "creates an access list for a transfer with type 0x4 and no authorization list on a block before Prague. The client ignores type.",
+			Run: func(ctx context.Context, t *T) error {
+				sender, _ := t.chain.GetSender(0)
+				msg := map[string]any{
+					"from": sender,
+					"to":   common.Address{0x01},
+					"type": hexutil.Uint64(types.SetCodeTxType),
+				}
+				block := hexutil.Uint64(t.chain.BlockAtTime(*t.chain.Config().PragueTime).NumberU64() - 1)
+				var result any
+				return t.rpc.CallContext(ctx, &result, "eth_createAccessList", msg, block)
+			},
+		},
 	},
 }
 
@@ -2815,7 +3322,156 @@ they serve proofs.`,
 				return nil
 			},
 		},
+		historicalProofTest(
+			"get-account-proof-historical",
+			"at block 2.",
+			func(c *Chain) *types.Block { return c.GetBlock(2) },
+		),
+		historicalProofTest(
+			"get-account-proof-before-prague",
+			"at the last block before Prague.",
+			func(c *Chain) *types.Block {
+				return c.GetBlock(int(c.BlockAtTime(*c.Config().PragueTime).NumberU64()) - 1)
+			},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-32-bytes",
+			"A key of 32 bytes is returned as 32 bytes, with its leading zeros.",
+			[]string{"0x0000000000000000000000000000000000000000000000000000000000000001"},
+			[]string{"0x0000000000000000000000000000000000000000000000000000000000000001"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-63-digits",
+			"A key of 63 hex digits decodes to 32 bytes and is returned as 32 bytes.",
+			[]string{"0x000000000000000000000000000000000000000000000000000000000000001"},
+			[]string{"0x0000000000000000000000000000000000000000000000000000000000000001"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-short",
+			"A key shorter than 32 bytes is returned as a minimal quantity.",
+			[]string{"0x01"},
+			[]string{"0x1"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-empty",
+			"The empty key 0x is slot zero and is returned as 0x0.",
+			[]string{"0x"},
+			[]string{"0x0"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-duplicate-keys",
+			"The result has one entry per requested key, in request order, also for duplicate keys.",
+			[]string{"0x2", "0x1", "0x1"},
+			[]string{"0x2", "0x1", "0x1"},
+		),
+		storageProofKeysTest(
+			"get-storage-proof-key-two-encodings",
+			"Two encodings of the same slot give two entries, and each entry returns its own key.",
+			[]string{"0x1", "0x0000000000000000000000000000000000000000000000000000000000000001"},
+			[]string{"0x1", "0x0000000000000000000000000000000000000000000000000000000000000001"},
+		),
+		{
+			Name: "get-account-proof-missing-account",
+			About: `Requests a proof with one storage key for an account that does not exist.
+codeHash and storageHash are zero, and the storage entry has the value 0x0 and an empty proof.`,
+			Run: func(ctx context.Context, t *T) error {
+				var result struct {
+					CodeHash     common.Hash `json:"codeHash"`
+					StorageHash  common.Hash `json:"storageHash"`
+					StorageProof []struct {
+						Value hexutil.Big     `json:"value"`
+						Proof []hexutil.Bytes `json:"proof"`
+					} `json:"storageProof"`
+				}
+				missing := common.HexToAddress("0x000000000000000000000000000000000000dead")
+				if err := t.rpc.CallContext(ctx, &result, "eth_getProof", missing, []string{"0x0"}, "latest"); err != nil {
+					return err
+				}
+				if result.CodeHash != (common.Hash{}) || result.StorageHash != (common.Hash{}) {
+					return fmt.Errorf("expected zero codeHash and storageHash, got %v and %v", result.CodeHash, result.StorageHash)
+				}
+				if len(result.StorageProof) != 1 || result.StorageProof[0].Value.ToInt().Sign() != 0 || len(result.StorageProof[0].Proof) != 0 {
+					return fmt.Errorf("expected one empty storage entry, got %+v", result.StorageProof)
+				}
+				return nil
+			},
+		},
+		invalidStorageKeyTest(
+			"get-storage-proof-invalid-key",
+			"a storage key that is not hex",
+			"0xzz",
+		),
+		invalidStorageKeyTest(
+			"get-storage-proof-invalid-key-too-long",
+			"a storage key of 33 bytes",
+			"0x"+strings.Repeat("00", 32)+"01",
+		),
 	},
+}
+
+func invalidStorageKeyTest(name, about, key string) Test {
+	return Test{
+		Name:  name,
+		About: "Requests a proof with " + about + ". The request is invalid.",
+		Run: func(ctx context.Context, t *T) error {
+			var result any
+			err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, []string{key}, "latest")
+			var rpcErr rpc.Error
+			if !errors.As(err, &rpcErr) || rpcErr.ErrorCode() != -32602 {
+				return fmt.Errorf("expected error -32602, got %v", err)
+			}
+			return nil
+		},
+	}
+}
+
+func historicalProofTest(name, about string, block func(*Chain) *types.Block) Test {
+	return Test{
+		Name: name,
+		About: "Gets the proof of an account " + about + `
+The first account proof node hashes to the state root of that block.`,
+		Run: func(ctx context.Context, t *T) error {
+			b := block(t.chain)
+			var result struct {
+				AccountProof []hexutil.Bytes `json:"accountProof"`
+			}
+			if err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, []string{"0x0"}, hexutil.Uint64(b.NumberU64())); err != nil {
+				return err
+			}
+			if len(result.AccountProof) == 0 {
+				return fmt.Errorf("empty account proof")
+			}
+			if root := crypto.Keccak256Hash(result.AccountProof[0]); root != b.Root() {
+				return fmt.Errorf("proof root %v does not match state root %v of block %d", root, b.Root(), b.NumberU64())
+			}
+			return nil
+		},
+	}
+}
+
+func storageProofKeysTest(name, about string, keys, wantKeys []string) Test {
+	return Test{
+		Name:  name,
+		About: "Requests storage proofs of the emit contract. " + about,
+		Run: func(ctx context.Context, t *T) error {
+			var result struct {
+				StorageProof []struct {
+					Key string `json:"key"`
+				} `json:"storageProof"`
+			}
+			if err := t.rpc.CallContext(ctx, &result, "eth_getProof", emitContract, keys, "latest"); err != nil {
+				return err
+			}
+			var got []string
+			for _, p := range result.StorageProof {
+				got = append(got, p.Key)
+			}
+			if !slices.Equal(got, wantKeys) {
+				return fmt.Errorf("unexpected keys %v, want %v", got, wantKeys)
+			}
+			return nil
+		},
+	}
 }
 
 var EthGetLogs = MethodTests{
@@ -4660,7 +5316,7 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name:  "ethSimulate-transfer-over-BlockStateCalls",
-			About: "simulates a transfering value over multiple BlockStateCalls",
+			About: "simulates a transferring value over multiple BlockStateCalls",
 			Run: func(ctx context.Context, t *T) error {
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
@@ -6356,6 +7012,33 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-override-precompile-code-without-move",
+			About: "override the code of a precompile without moving it; the new code runs instead of the precompile",
+			Run: func(ctx context.Context, t *T) error {
+				identityAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000004"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							identityAddress: OverrideAccount{
+								// PUSH1 0x2a PUSH1 0 MSTORE PUSH1 0x20 PUSH1 0 RETURN
+								Code: hex2Bytes("602a60005260206000f3"),
+							},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &identityAddress,
+							Input: hex2Bytes("1234"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "ethSimulate-override-identity",
 			About: "override identity precompile",
 			Run: func(ctx context.Context, t *T) error {
@@ -6641,6 +7324,37 @@ var EthSimulateV1 = MethodTests{
 				}
 				if res[2].Calls[1].ReturnData.String() != "0x0000000000000000000000000000000000000000000000000000000000000000" {
 					return fmt.Errorf("unexpected call result (res[2].Calls[1]) (have: %s, want: %s)", res[2].Calls[1].ReturnData.String(), "0x0000000000000000000000000000000000000000000000000000000000000000")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-state-clears-existing-storage",
+			About: "override the state of an account whose storage is already set on chain; slots not listed in the override read as zero",
+			Run: func(ctx context.Context, t *T) error {
+				// slots 1, 2 and 3 of this account hold 1, 2 and 3 in the genesis block
+				account := common.HexToAddress("0x8bebc8ba651aee624937e7d897853ac30c95a067")
+				state := map[common.Hash]common.Hash{
+					common.BytesToHash([]byte{0x03}): common.BytesToHash([]byte{0x2a}),
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							account: OverrideAccount{
+								// returns sload(1) followed by sload(3)
+								Code:  hex2Bytes("60015460005260035460205260406000f3"),
+								State: &state,
+							},
+						},
+						Calls: []TransactionArgs{{
+							From: &common.Address{0xc0},
+							To:   &account,
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
 				}
 				return nil
 			},
@@ -7105,7 +7819,7 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name:  "ethSimulate-extcodehash-override",
-			About: "test extcodehash getting of overriden contract",
+			About: "test extcodehash getting of overridden contract",
 			Run: func(ctx context.Context, t *T) error {
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
@@ -7151,6 +7865,137 @@ var EthSimulateV1 = MethodTests{
 					return fmt.Errorf("returndata did not change (have: %s, want: %s)", res[0].Calls[0].ReturnData.String(), res[1].Calls[0].ReturnData.String())
 				}
 				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-code-replaced-by-delegation",
+			About: "a code override is pre-state: an EIP-7702 delegation of the overridden account later in the block replaces it",
+			Run: func(ctx context.Context, t *T) error {
+				authority, auth, err := simulateDelegationAuth(t)
+				if err != nil {
+					return err
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+							common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+							authority:            OverrideAccount{Code: hex2Bytes("")},
+						},
+						Calls: []TransactionArgs{
+							{From: &common.Address{0xc0}, To: &authority},
+							{From: &common.Address{0xc0}, To: &common.Address{0xc0}, AuthorizationList: []types.SetCodeAuthorization{auth}},
+							{From: &common.Address{0xc0}, To: &authority},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, ""); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 2, returnWord(42))
+			},
+		},
+		{
+			Name:  "ethSimulate-override-delegation-replaced-by-redelegation",
+			About: "a code override with an EIP-7702 delegation designator is pre-state: a re-delegation later in the block replaces it",
+			Run: func(ctx context.Context, t *T) error {
+				authority, auth, err := simulateDelegationAuth(t)
+				if err != nil {
+					return err
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+							common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+							common.Address{0xc2}: OverrideAccount{Code: hex2Bytes(returnWordCode(1))},
+							authority:            OverrideAccount{Code: hex2Bytes("ef0100c200000000000000000000000000000000000000")},
+						},
+						Calls: []TransactionArgs{
+							{From: &common.Address{0xc0}, To: &authority},
+							{From: &common.Address{0xc0}, To: &common.Address{0xc0}, AuthorizationList: []types.SetCodeAuthorization{auth}},
+							{From: &common.Address{0xc0}, To: &authority},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, returnWord(1)); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 2, returnWord(42))
+			},
+		},
+		{
+			Name:  "ethSimulate-override-code-replaced-by-create",
+			About: "a code override is pre-state: a contract creation at the overridden address later in the block replaces it",
+			Run: func(ctx context.Context, t *T) error {
+				sender := common.Address{0xc0}
+				created := crypto.CreateAddress(sender, t.chain.state[sender].Nonce)
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							sender:  OverrideAccount{Balance: newRPCBalance(2000000)},
+							created: OverrideAccount{Code: hex2Bytes(""), Balance: newRPCBalance(1)},
+						},
+						Calls: []TransactionArgs{
+							// PUSH10 <runtime> PUSH1 0 MSTORE PUSH1 10 PUSH1 22 RETURN
+							{From: &sender, Input: hex2Bytes("69" + returnWordCode(42) + "600052600a6016f3")},
+							{From: &sender, To: &created},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, returnWordCode(42)); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 1, returnWord(42))
+			},
+		},
+		{
+			Name:  "ethSimulate-missing-authority-not-created-by-later-call",
+			About: "a later call to a missing account does not create it before the block runs: an EIP-7702 authorization from that account pays the new-account state gas",
+			Run: func(ctx context.Context, t *T) error {
+				authority, auth, err := simulateFreshAuthorityAuth(t)
+				if err != nil {
+					return err
+				}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+							common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+						},
+						Calls: []TransactionArgs{
+							{From: &common.Address{0xc0}, To: &common.Address{0xc0}, AuthorizationList: []types.SetCodeAuthorization{auth}},
+							{From: &common.Address{0xc0}, To: &authority},
+						},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, ""); err != nil {
+					return err
+				}
+				if got := res[0].Calls[0].GasUsed; got != 247606 {
+					return fmt.Errorf("call 0: unexpected gas used (have: %d, want: 247606), the authority exists", got)
+				}
+				return checkReturnData(res[0].Calls, 1, returnWord(42))
 			},
 		},
 		{
@@ -7894,6 +8739,9 @@ type TransactionArgs struct {
 	// Introduced by AccessListTxType transaction.
 	AccessList *types.AccessList `json:"accessList,omitempty"`
 	ChainID    *hexutil.Big      `json:"chainId,omitempty"`
+
+	// Introduced by SetCodeTxType transaction.
+	AuthorizationList []types.SetCodeAuthorization `json:"authorizationList,omitempty"`
 }
 
 // BlockOverrides is a set of header fields to override.
@@ -7971,6 +8819,62 @@ type transfer struct {
 	From  common.Address `json:"from"`
 	To    common.Address `json:"to"`
 	Value *big.Int       `json:"value"`
+}
+
+// simulateDelegationAuth signs an EIP-7702 authorization that delegates a pre-funded
+// account with no code to 0xc1, at the account's nonce in the head state.
+func simulateDelegationAuth(t *T) (common.Address, types.SetCodeAuthorization, error) {
+	authority, _ := t.chain.GetSender(3)
+	account := t.chain.state[authority]
+	if len(account.Code) != 0 {
+		return common.Address{}, types.SetCodeAuthorization{}, fmt.Errorf("sender %s has code", authority)
+	}
+	auth, err := t.chain.SignAuth(authority, types.SetCodeAuthorization{
+		ChainID: *uint256.MustFromBig(t.chain.Config().ChainID),
+		Address: common.Address{0xc1},
+		Nonce:   account.Nonce,
+	})
+	return authority, auth, err
+}
+
+// simulateFreshAuthorityAuth signs an EIP-7702 authorization to 0xc1 from a fixed key whose
+// address is not in the head state.
+func simulateFreshAuthorityAuth(t *T) (common.Address, types.SetCodeAuthorization, error) {
+	key, err := crypto.ToECDSA(common.LeftPadBytes([]byte{0x77, 0x02}, 32))
+	if err != nil {
+		return common.Address{}, types.SetCodeAuthorization{}, err
+	}
+	authority := crypto.PubkeyToAddress(key.PublicKey)
+	if _, exists := t.chain.state[authority]; exists {
+		return common.Address{}, types.SetCodeAuthorization{}, fmt.Errorf("authority %s exists in the head state", authority)
+	}
+	auth, err := types.SignSetCode(key, types.SetCodeAuthorization{
+		ChainID: *uint256.MustFromBig(t.chain.Config().ChainID),
+		Address: common.Address{0xc1},
+	})
+	return authority, auth, err
+}
+
+// returnWordCode is runtime code that returns the given value as a 32-byte word:
+// PUSH1 <value> PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN.
+func returnWordCode(value byte) string {
+	return fmt.Sprintf("60%02x60005260206000f3", value)
+}
+
+// returnWord is the hex of a 32-byte word holding the given value.
+func returnWord(value byte) string {
+	return fmt.Sprintf("%064x", value)
+}
+
+// checkReturnData checks that the call at idx succeeded and returned the given hex data.
+func checkReturnData(calls []callResult, idx int, want string) error {
+	if calls[idx].Status != 1 {
+		return fmt.Errorf("call %d: unexpected status (have: %d, want: 1)", idx, calls[idx].Status)
+	}
+	if have := common.Bytes2Hex(calls[idx].ReturnData); have != want {
+		return fmt.Errorf("call %d: unexpected return data (have: %s, want: %s)", idx, have, want)
+	}
+	return nil
 }
 
 func newRPCBalance(balance int) **hexutil.Big {

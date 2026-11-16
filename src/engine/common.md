@@ -129,6 +129,8 @@ Consensus Layer client software **MUST** wait for a specified `timeout` before a
 
 Consensus Layer client software **MAY** wait for response longer than it is specified by the `timeout` parameter.
 
+Methods without a specified `timeout` are expected to be served immediately; Consensus Layer client software **MAY** abort such a call at its own discretion.
+
 ## Encoding
 
 Values of a field of `DATA` type **MUST** be encoded as a hexadecimal string with a `0x` prefix matching the regular expression `^0x(?:[a-fA-F0-9]{2})*$`.

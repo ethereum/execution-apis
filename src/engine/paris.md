@@ -251,7 +251,6 @@ The payload build process is specified as follows:
 * method: `engine_getPayloadV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 
@@ -262,9 +261,11 @@ The payload build process is specified as follows:
 
 1. Given the `payloadId` client software **MUST** return the most recent version of the payload that is available in the corresponding build process at the time of receiving the call.
 
-2. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+2. Client software **MUST** respond to this call immediately and **MUST NOT** delay the response to continue the build process.
 
-3. Client software **MAY** stop the corresponding build process after serving this call.
+3. The call **MUST** return `-38001: Unknown payload` error if the build process identified by the `payloadId` does not exist.
+
+4. Client software **MAY** stop the corresponding build process after serving this call.
 
 ### engine_exchangeTransitionConfigurationV1
 

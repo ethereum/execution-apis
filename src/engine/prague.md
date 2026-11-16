@@ -62,7 +62,6 @@ The response of this method is extended with the `executionRequests` field.
 * method: `engine_getPayloadV4`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 
