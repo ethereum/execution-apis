@@ -18,7 +18,9 @@ PayloadStatusV1:
       $ref: '#/components/schemas/hash32'
     validationError:
       title: Validation error message
-      type: string
+      oneOf:
+        - type: string
+        - type: 'null'
 RestrictedPayloadStatusV1:
   $ref: '#/components/schemas/PayloadStatusV1'
   properties:

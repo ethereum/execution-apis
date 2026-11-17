@@ -18,13 +18,13 @@ type ethclientHandler struct {
 	transport *loggingRoundTrip
 }
 
-func newEthclientHandler(addr string) (*ethclientHandler, error) {
+func newEthclientHandler(addr string, opts ...rpc.ClientOption) (*ethclientHandler, error) {
 	rt := &loggingRoundTrip{
 		inner: http.DefaultTransport,
 	}
 	httpClient := rpc.WithHTTPClient(&http.Client{Transport: rt})
 	ctx := context.Background()
-	rpcClient, err := rpc.DialOptions(ctx, addr, httpClient)
+	rpcClient, err := rpc.DialOptions(ctx, addr, append(opts, httpClient)...)
 	if err != nil {
 		return nil, err
 	}
