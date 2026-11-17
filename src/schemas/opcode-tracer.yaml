@@ -296,7 +296,10 @@ TraceCallConfig:
         blockOverrides:
           title: block overrides
           description: >-
-            Modifications to the block environment the call executes in. The
-            call runs alone, so withdrawals do not apply. A client MAY reject a
-            request that sets withdrawals.
+            Modifications to the block environment the call executes in. A
+            field that is not set keeps the value of the given block. The call
+            runs alone, so the eth_simulateV1 rules for a sequence of blocks do
+            not apply: number and time need not increase, and they have no
+            default increment. Withdrawals do not apply either. A client MAY
+            reject a request that sets withdrawals.
           $ref: '#/components/schemas/BlockOverrides'

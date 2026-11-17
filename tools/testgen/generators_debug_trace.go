@@ -470,7 +470,7 @@ var DebugTraceTransaction = MethodTests{
 		{
 			Name:             "trace-contract-call",
 			About:            "traces a contract call transaction; validates spec compliance of structLogs including stack encoding, error field behavior, and optional storage encoding",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("legacy tx with input data", matchLegacyTxWithInput)
@@ -779,7 +779,7 @@ var DebugTraceBlockByNumber = MethodTests{
 		{
 			Name:             "trace-block-with-transactions",
 			About:            "traces a block containing transactions; validates that each entry has txHash and a spec-compliant result",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
@@ -798,7 +798,7 @@ var DebugTraceBlockByNumber = MethodTests{
 		{
 			Name:             "trace-block-memory-encoding",
 			About:            "traces block 0x1 with memory enabled; memory chunks must be 0x-prefixed bytes32 values",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
@@ -822,7 +822,7 @@ var DebugTraceBlockByNumber = MethodTests{
 		{
 			Name:             "trace-block-storage-encoding",
 			About:            "traces block 0x2 with storage enabled; storage keys and values must be 0x-prefixed bytes32 values",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
@@ -846,7 +846,7 @@ var DebugTraceBlockByNumber = MethodTests{
 		{
 			Name:             "trace-block-storage-snapshot-timing",
 			About:            "traces block 0x2 and validates cumulative storage snapshots across repeated SSTORE operations",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
@@ -876,7 +876,7 @@ var DebugTraceBlockByNumber = MethodTests{
 		{
 			Name:             "trace-block-return-data-behavior",
 			About:            "traces a block with returnData disabled and enabled to validate returnData field gating and encoding",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				blockNum := hexutil.EncodeUint64(1)
@@ -1027,7 +1027,7 @@ var DebugTraceBlockByHash = MethodTests{
 		{
 			Name:             "trace-block-with-transactions",
 			About:            "traces a block containing transactions by hash; validates that each entry has txHash and a spec-compliant result",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
