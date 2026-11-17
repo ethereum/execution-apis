@@ -17,9 +17,10 @@ CallFrame:
     error other than REVERT (e.g. out of gas, an invalid opcode, a
     write-protection violation, a failed precompile or a CREATE/CREATE2
     address collision) consumes all of its gas, so its gasUsed MUST equal its
-    gas. The exception is a frame that fails the call depth limit or the
-    balance check before execution starts: it consumes none of its gas, so its
-    gasUsed MUST be 0x0. SELFDESTRUCT frames MUST report gas and gasUsed as
+    gas. The exception is a frame that fails the call depth limit, the
+    balance check or, for CREATE and CREATE2, the nonce check before
+    execution starts: it consumes none of its gas, so its gasUsed MUST be
+    0x0. SELFDESTRUCT frames MUST report gas and gasUsed as
     0x0; the opcode's cost is part of the parent frame.
 
     Frame presence: a frame is reported for each call or create that the

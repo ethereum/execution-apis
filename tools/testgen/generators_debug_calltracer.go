@@ -257,7 +257,7 @@ var DebugTraceCall = MethodTests{
 		{
 			Name:             "trace-call-opcode-default",
 			About:            "traces a simple call with the default opcode tracer",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
@@ -277,7 +277,7 @@ var DebugTraceCall = MethodTests{
 		{
 			Name:             "trace-call-omitted-block",
 			About:            "traces a call with the block parameter omitted; the trace runs at the latest block",
-			SpecOnly:         true, // refund need not be present when zero.
+			SpecOnly:         true,
 			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
