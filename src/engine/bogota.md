@@ -13,6 +13,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
+  - [PayloadAttributesUpdateV1](#payloadattributesupdatev1)
 - [Routines](#routines)
   - [Payload building](#payload-building)
 - [Methods](#methods)
@@ -28,6 +29,10 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
+  - [engine_updatePayloadV1](#engine_updatepayloadv1)
+    - [Request](#request-3)
+    - [Response](#response-3)
+    - [Specification](#specification-3)
   - [Update the methods of previous forks](#update-the-methods-of-previous-forks)
     - [Amsterdam API](#amsterdam-api)
 
@@ -62,6 +67,12 @@ This structure has the syntax of `PayloadStatusV1` and appends a single field: `
 - `latestValidHash`: `DATA|null`, 32 Bytes - the hash of the most recent *valid* block in the branch defined by payload and its ancestors
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
 - `inclusionListSatisfied`: `BOOLEAN|null` - whether the payload satisfied the inclusion list constraints if it is deemed `VALID`; `null` otherwise.
+
+### PayloadAttributesUpdateV1
+
+This structure contains the subset of [`PayloadAttributesV5`](#payloadattributesv5) fields that can be changed after a payload build process has started. All fields are optional. The remaining fields of `PayloadAttributesV5` are fixed when the build process starts.
+
+- `inclusionListTransactions`: `Array of DATA` - (optional) Array of transaction objects, each object is a byte list (`DATA`). It is the complete current set and replaces the earlier set.
 
 ## Routines
 
@@ -173,6 +184,39 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
     2. Client software **MUST** use the retained `inclusionListTransactions` if it validates the payload and checks whether the payload satisfies the inclusion list constraints while processing the call.
 
     3. Otherwise, `payloadStatus.inclusionListSatisfied` **MUST** be `null`.
+
+### engine_updatePayloadV1
+
+#### Request
+
+* method: `engine_updatePayloadV1`
+* params:
+  1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process to update
+  2. `attributes`: [`PayloadAttributesUpdateV1`](#payloadattributesupdatev1) - The payload attributes to change
+* timeout: 1s
+
+#### Response
+
+* result: `payloadId`: `DATA`, 8 Bytes - identifier of the payload build process, always equal to the `payloadId` of the request
+* error: code and message set in case an exception happens while updating the payload build process.
+
+#### Specification
+
+1. Client software **MUST** return `-38001: Unknown payload` error if the build process identified by `payloadId` does not exist or has expired.
+
+2. Client software **MUST** return `-32602: Invalid params` error if `attributes` contains a field that is not defined in [`PayloadAttributesUpdateV1`](#payloadattributesupdatev1).
+
+3. Client software **MUST** return `-38007: Payload update failed` error if the update can't be processed for any other reason. The error `message` and the optional `data` **SHOULD** give the reason.
+
+4. Client software **MUST** update the build process identified by `payloadId` in place, and **MUST NOT** change its `payloadId`:
+
+    1. Every field present in `attributes` **MUST** replace the corresponding field of the payload attributes of the build process.
+
+    2. Every field omitted from `attributes` **MUST** be left unchanged. An empty array replaces the field with an empty array.
+
+    3. Client software **MUST** apply all fields of `attributes` or none of them. On error, the build process **MUST** be left unchanged.
+
+5. Client software **MUST** continue the build process from its most recent payload and **MUST NOT** restart it from an empty payload. For `inclusionListTransactions`, this means appending the transactions required to satisfy the inclusion list constraints, as described in the [Payload Construction](https://eips.ethereum.org/EIPS/eip-7805#payload-construction) section of EIP-7805.
 
 ### Update the methods of previous forks
 

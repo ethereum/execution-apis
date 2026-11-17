@@ -84,6 +84,7 @@ natively
 npm
 ommers
 openrpc
+PayloadAttributesUpdateV
 params
 pos
 pre
