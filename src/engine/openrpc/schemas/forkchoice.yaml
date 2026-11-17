@@ -157,3 +157,10 @@ PayloadAttributesV5:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+PayloadAttributesUpdateV1:
+  title: Payload attributes update object V1
+  type: object
+  additionalProperties: false
+  properties:
+    inclusionListTransactions:
+      $ref: '#/components/schemas/PayloadAttributesV5/properties/inclusionListTransactions'
