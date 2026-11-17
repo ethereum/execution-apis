@@ -6349,23 +6349,26 @@ var EthSimulateV1 = MethodTests{
 		},
 		{
 			Name:  "ethSimulate-move-to-address-itself-reference-38022",
-			About: "Error: MovePrecompileToAddress referenced itself in replacement (-38022)",
+			About: "Moves the identity precompile (0x04) to its own address. The request must be rejected.",
 			Run: func(ctx context.Context, t *T) error {
+				identityAddress := common.BytesToAddress([]byte{0x04})
 				params := ethSimulateOpts{
 					BlockStateCalls: []CallBatch{{
 						StateOverrides: &StateOverride{
 							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(200000)},
-							common.Address{0xc1}: OverrideAccount{MovePrecompileToAddress: &common.Address{0xc1}},
+							identityAddress:      OverrideAccount{MovePrecompileToAddress: &identityAddress},
 						},
 						Calls: []TransactionArgs{{
 							From:  &common.Address{0xc0},
-							To:    &common.Address{0xc1},
+							To:    &identityAddress,
 							Value: *newRPCBalance(1),
 						}},
 					}},
 				}
 				res := make([]blockResult, 0)
-				t.rpc.Call(&res, "eth_simulateV1", params, "latest")
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err == nil {
+					return fmt.Errorf("expected error when moving a precompile to itself")
+				}
 				return nil
 			},
 		},
