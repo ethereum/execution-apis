@@ -229,8 +229,6 @@
       message: Block number in sequence did not increase
     - code: -38021
       message: Block timestamp in sequence did not increase
-    - code: -38022
-      message: MovePrecompileToAddress referenced itself in replacement
     - code: -38025
       message: Max init code size exceeded
     - code: -38026
