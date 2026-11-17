@@ -89,7 +89,7 @@ import { useState } from 'react';
 
           * **action** `object` *required*
 
-            CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas.
+            CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
             ***
 
@@ -101,7 +101,7 @@ import { useState } from 'react';
 
                 #### `action` fields
 
-                CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas.
+                CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
                 * **callType** `string` *required*
 
@@ -133,6 +133,14 @@ import { useState } from 'react';
 
                   ***
 
+                * **stateGasReservoir** `string`
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
                 * **to** `string` *required*
 
                   hex encoded address
@@ -157,7 +165,7 @@ import { useState } from 'react';
 
           * **result** `object` *required*
 
-            gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. output is the frame's return or revert bytes.
+            gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam gasUsed excludes all state charges, including those paid from the execution budget. stateGasUsed is the signed net state gas charged by the frame and its descendants, zero on revert. Before Amsterdam it is absent. output is the frame's return or revert bytes.
 
             ***
 
@@ -169,7 +177,7 @@ import { useState } from 'react';
 
                 #### `result` fields
 
-                gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. output is the frame's return or revert bytes.
+                gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam gasUsed excludes all state charges, including those paid from the execution budget. stateGasUsed is the signed net state gas charged by the frame and its descendants, zero on revert. Before Amsterdam it is absent. output is the frame's return or revert bytes.
 
                 * **gasUsed** `string` *required*
 
@@ -184,6 +192,12 @@ import { useState } from 'react';
                   Trace byte string
 
                   *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **stateGasUsed** `string`
+
+                  *Match pattern:* `^(0x0|-?0x[1-9a-f][0-9a-f]*)$`
 
                   ***
 
@@ -285,7 +299,7 @@ import { useState } from 'react';
 
           * **action** `object` *required*
 
-            CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas.
+            CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
             ***
 
@@ -297,7 +311,7 @@ import { useState } from 'react';
 
                 #### `action` fields
 
-                CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas.
+                CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
                 * **callType** `string` *required*
 
@@ -326,6 +340,14 @@ import { useState } from 'react';
                   Trace byte string
 
                   *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **stateGasReservoir** `string`
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                   ***
 
@@ -359,7 +381,7 @@ import { useState } from 'react';
 
           * **result** `object` *required*
 
-            gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. output is the frame's return or revert bytes.
+            gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam gasUsed excludes all state charges, including those paid from the execution budget. stateGasUsed is the signed net state gas charged by the frame and its descendants, zero on revert. Before Amsterdam it is absent. output is the frame's return or revert bytes.
 
             ***
 
@@ -371,7 +393,7 @@ import { useState } from 'react';
 
                 #### `result` fields
 
-                gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. output is the frame's return or revert bytes.
+                gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam gasUsed excludes all state charges, including those paid from the execution budget. stateGasUsed is the signed net state gas charged by the frame and its descendants, zero on revert. Before Amsterdam it is absent. output is the frame's return or revert bytes.
 
                 * **gasUsed** `string` *required*
 
@@ -386,6 +408,12 @@ import { useState } from 'react';
                   Trace byte string
 
                   *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **stateGasUsed** `string`
+
+                  *Match pattern:* `^(0x0|-?0x[1-9a-f][0-9a-f]*)$`
 
                   ***
 
@@ -487,7 +515,7 @@ import { useState } from 'react';
 
           * **action** `object` *required*
 
-            CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas.
+            CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
             ***
 
@@ -499,7 +527,7 @@ import { useState } from 'react';
 
                 #### `action` fields
 
-                CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas.
+                CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from is the executing address, to the code address. value is the transferred value; DELEGATECALL reports the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300 stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the caller's remaining gas, before EIP-150 the requested gas. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
                 * **callType** `string` *required*
 
@@ -528,6 +556,14 @@ import { useState } from 'react';
                   Trace byte string
 
                   *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **stateGasReservoir** `string`
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                   ***
 
@@ -653,7 +689,7 @@ import { useState } from 'react';
 
           * **action** `object` *required*
 
-            from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
+            from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
             ***
 
@@ -665,7 +701,7 @@ import { useState } from 'react';
 
                 #### `action` fields
 
-                from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
+                from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
                 * **creationMethod** `string` *required*
 
@@ -697,6 +733,14 @@ import { useState } from 'react';
 
                   ***
 
+                * **stateGasReservoir** `string`
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
                 * **value** `string` *required*
 
                   hex encoded 256 bit unsigned integer
@@ -713,7 +757,7 @@ import { useState } from 'react';
 
           * **result** `object or object` *required*
 
-            Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+            Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
             ***
 
@@ -725,11 +769,11 @@ import { useState } from 'react';
 
                 #### `TraceCreateResult` fields
 
-                Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+                Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
                 **result** `object` *required*
 
-                Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+                Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
                 ***
 
@@ -741,7 +785,7 @@ import { useState } from 'react';
 
                     #### `result` fields
 
-                    Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+                    Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
                     * **address** `string` *required*
 
@@ -764,6 +808,12 @@ import { useState } from 'react';
                       hex encoded 256 bit unsigned integer
 
                       *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                      ***
+
+                    * **stateGasUsed** `string`
+
+                      *Match pattern:* `^(0x0|-?0x[1-9a-f][0-9a-f]*)$`
 
                       ***
 
@@ -783,13 +833,13 @@ import { useState } from 'react';
 
                 #### `TraceRevertedCreateResult` fields
 
-                Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+                Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
-                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
                 **result** `object` *required*
 
-                Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+                Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
                 ***
 
@@ -801,7 +851,7 @@ import { useState } from 'react';
 
                     #### `result` fields
 
-                    Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+                    Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
                     * **address** `string` *required*
 
@@ -824,6 +874,14 @@ import { useState } from 'react';
                       hex encoded 256 bit unsigned integer
 
                       *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                      ***
+
+                    * **stateGasUsed** `string`
+
+                      *Match pattern:* `^(0x0|-?0x[1-9a-f][0-9a-f]*)$`
+
+                      *Must be:* `"0x0"`
 
                       ***
 
@@ -935,7 +993,7 @@ import { useState } from 'react';
 
           * **action** `object` *required*
 
-            from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
+            from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
             ***
 
@@ -947,7 +1005,7 @@ import { useState } from 'react';
 
                 #### `action` fields
 
-                from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
+                from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
                 * **creationMethod** `string` *required*
 
@@ -979,6 +1037,14 @@ import { useState } from 'react';
 
                   ***
 
+                * **stateGasReservoir** `string`
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
+
+                  ***
+
                 * **value** `string` *required*
 
                   hex encoded 256 bit unsigned integer
@@ -1001,7 +1067,7 @@ import { useState } from 'react';
 
           * **result** `object or object` *required*
 
-            A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+            A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
             ***
 
@@ -1013,13 +1079,13 @@ import { useState } from 'react';
 
                 #### `TraceCreateResult` fields
 
-                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
-                Successful creation. gasUsed is execution gas before refunds, including the code deposit; for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+                Successful creation. gasUsed is execution gas before refunds, including the execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623 floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its descendants, including the per-byte code deposit and excluding charges made before entry. Before Amsterdam it is absent. code is the deployed runtime bytecode.
 
                 **result** `object` *required*
 
-                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
                 ***
 
@@ -1031,7 +1097,7 @@ import { useState } from 'react';
 
                     #### `result` fields
 
-                    A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+                    A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
                     * **gasUsed** `string` *required*
 
@@ -1046,6 +1112,14 @@ import { useState } from 'react';
                       Trace byte string
 
                       *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                      ***
+
+                    * **stateGasUsed** `string`
+
+                      *Match pattern:* `^(0x0|-?0x[1-9a-f][0-9a-f]*)$`
+
+                      *Must be:* `"0x0"`
 
                       ***
 
@@ -1081,11 +1155,11 @@ import { useState } from 'react';
 
                 #### `TraceRevertedCreateResult` fields
 
-                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
                 **result** `object` *required*
 
-                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+                A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
                 ***
 
@@ -1097,7 +1171,7 @@ import { useState } from 'react';
 
                     #### `result` fields
 
-                    A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address.
+                    A reverted creation reports its gas and revert bytes, never an address or deployed code, because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero because the frame's state changes were rolled back. Before Amsterdam it is absent.
 
                     * **gasUsed** `string` *required*
 
@@ -1112,6 +1186,12 @@ import { useState } from 'react';
                       Trace byte string
 
                       *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                      ***
+
+                    * **stateGasUsed** `string`
+
+                      *Must be:* `"0x0"`
 
                       ***
 
@@ -1215,7 +1295,7 @@ import { useState } from 'react';
 
           * **action** `object` *required*
 
-            from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
+            from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
             ***
 
@@ -1227,7 +1307,7 @@ import { useState } from 'react';
 
                 #### `action` fields
 
-                from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
+                from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before. creationMethod distinguishes CREATE from CREATE2 and is required on every create action. From Amsterdam gas is the execution budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam stateGasReservoir is absent.
 
                 * **creationMethod** `string` *required*
 
@@ -1256,6 +1336,14 @@ import { useState } from 'react';
                   Trace byte string
 
                   *Match pattern:* `^0x([0-9a-f]{2})*$`
+
+                  ***
+
+                * **stateGasReservoir** `string`
+
+                  hex encoded 256 bit unsigned integer
+
+                  *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
                   ***
 

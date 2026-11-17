@@ -14,8 +14,8 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-// The trace fixtures stay on blocks before Amsterdam, the forks the trace methods are
-// specified and measured against. Only trace_rawTransaction runs at the head.
+// Legacy trace fixtures use pre-Amsterdam blocks. Dedicated Amsterdam fixtures
+// and the head-only trace_rawTransaction run after the fork.
 
 // preAmsterdam returns the last listed transaction mined before Amsterdam.
 func (c *Chain) preAmsterdam(txs []TxInfo) TxInfo {
@@ -322,6 +322,20 @@ var TraceCall = MethodTests{
 				args["input"] = hexutil.Bytes(hexutil.MustDecode("0x60fe60005360016000f3"))
 				args["value"] = (*hexutil.Big)(new(big.Int))
 				_, err := traceCall(ctx, t, "trace_call", args, []string{"trace"}, hexutil.EncodeUint64(uint64(info.Block)-1))
+				return err
+			},
+		},
+		{
+			Name:  "trace-call-amsterdam-state-gas",
+			About: "reports execution gas and state gas separately for an Amsterdam storage write",
+			Run: func(ctx context.Context, t *T) error {
+				args := map[string]any{
+					"to":    common.HexToAddress("0x7dcd17433742f4c0ca53122ab541d0ba67fc27df"),
+					"input": hexutil.Bytes{1},
+					"gas":   hexutil.Uint64(30_000_000),
+				}
+				head := hexutil.EncodeUint64(t.chain.Head().NumberU64())
+				_, err := traceCall(ctx, t, "trace_call", args, []string{"trace", "vmTrace"}, head)
 				return err
 			},
 		},

@@ -360,6 +360,24 @@ frame is emitted. This follows the call tracers of Geth, Erigon, Reth and Besu, 
 rejected attempt. A CREATE address collision emits a create frame with error `Contract address
 collision`.
 
+From Amsterdam (EIP-8037), `action.gas` is the execution budget at entry and
+`action.stateGasReservoir` is the state budget at entry, even when zero. For signed transactions
+the execution budget starts at the smaller of the transaction gas limit and `TX_MAX_GAS_LIMIT`,
+less intrinsic gas. An unsigned call may lift the execution gas cap as in `eth_call`. Pre-frame
+state charges can reduce the execution budget further if they spill out of the reservoir.
+
+`result.gasUsed` measures execution gas only. `result.stateGasUsed` measures signed net state
+gas for the frame and its descendants, including state charges funded by execution gas. The
+signed quantity uses a leading minus sign for net refills. A reverted frame reports zero state
+usage. A successful creation includes the code hash charge in execution gas and the per-byte
+deposit in state gas. The root excludes intrinsic gas, pre-frame charges and the calldata floor.
+
+In `vmTrace`, `cost` is the execution charge including any forwarded gas.
+`stateGasCost` is the signed state charge before any child executes. `ex.used` is the execution
+balance after the step. `ex.stateUsed` is the remaining state reservoir. Omit the state cost and
+remaining reservoir fields when their values are zero. Before Amsterdam all the state gas
+members are absent.
+
 `error` alone determines failure. A REVERT frame has error `Reverted` and requires
 `result: {gasUsed, output}`, for CREATE too, without an address or code. An exceptional halt has
 `result: null`. Erigon and Reth already emit REVERT results; the new part is the failed-CREATE

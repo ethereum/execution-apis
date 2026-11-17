@@ -250,6 +250,7 @@ TraceCallAction:
     from: *id001
     to: *id001
     gas: *id002
+    stateGasReservoir: *id002
     input: *id003
     value: *id002
   description: 'CALL and STATICCALL: from is the caller, to the target. DELEGATECALL and CALLCODE: from
@@ -257,7 +258,9 @@ TraceCallAction:
     the inherited value and STATICCALL 0. Root gas is the transaction gas minus intrinsic gas, including
     access-list and authorization costs. Nested gas is the gas forwarded to the child, plus the 2300
     stipend for a value transfer: from EIP-150 the requested gas capped at all but 1/64 of the
-    caller''s remaining gas, before EIP-150 the requested gas.'
+    caller''s remaining gas, before EIP-150 the requested gas. From Amsterdam gas is the execution
+    budget after any pre-frame state charge, and stateGasReservoir is the starting state-gas
+    reservoir, including zero. Before Amsterdam stateGasReservoir is absent.'
   title: TraceCallAction
 TraceCreateAction:
   type: object
@@ -270,6 +273,7 @@ TraceCreateAction:
   properties:
     from: *id001
     gas: *id002
+    stateGasReservoir: *id002
     init: *id003
     value: *id002
     creationMethod:
@@ -280,6 +284,9 @@ TraceCreateAction:
   description: from is the creator and init the initcode. Root gas is the transaction gas minus intrinsic
     gas; nested gas is all but 1/64 of the caller's remaining gas from EIP-150, and all of it before.
     creationMethod distinguishes CREATE from CREATE2 and is required on every create action.
+    From Amsterdam gas is the execution budget after any pre-frame state charge, and
+    stateGasReservoir is the starting state-gas reservoir, including zero. Before Amsterdam
+    stateGasReservoir is absent.
   title: TraceCreateAction
 TraceSuicideAction:
   type: object
@@ -318,9 +325,15 @@ TraceCallResult:
   - output
   properties:
     gasUsed: *id002
+    stateGasUsed: &signedStateGas
+      type: string
+      pattern: '^(0x0|-?0x[1-9a-f][0-9a-f]*)$'
     output: *id003
   description: gasUsed is the frame's execution gas before refunds; for the root it excludes intrinsic
-    gas and the EIP-7623 floor. output is the frame's return or revert bytes.
+    gas and the EIP-7623 floor. From Amsterdam gasUsed excludes all state charges, including those
+    paid from the execution budget. stateGasUsed is the signed net state gas charged by the frame
+    and its descendants, zero on revert. Before Amsterdam it is absent. output is the frame's
+    return or revert bytes.
   title: TraceCallResult
 TraceCreateResult:
   type: object
@@ -330,23 +343,30 @@ TraceCreateResult:
   - code
   properties:
     gasUsed: *id002
+    stateGasUsed: *signedStateGas
     address: *id001
     code: *id003
-  description: Successful creation. gasUsed is execution gas before refunds, including the code deposit;
-    for the root it excludes intrinsic gas and the EIP-7623 floor. code is the deployed runtime bytecode.
+  description: Successful creation. gasUsed is execution gas before refunds, including the
+    execution portion of the code deposit. For the root it excludes intrinsic gas and the EIP-7623
+    floor. From Amsterdam stateGasUsed is the signed net state gas charged by the frame and its
+    descendants, including the per-byte code deposit and excluding charges made before entry.
+    Before Amsterdam it is absent. code is the deployed runtime bytecode.
   title: TraceCreateResult
 TraceRevertedCreateResult:
   type: object
   required: [gasUsed, output]
   properties:
     gasUsed: *id002
+    stateGasUsed:
+      const: '0x0'
     output: *id003
   not:
     anyOf:
     - required: [address]
     - required: [code]
   description: A reverted creation reports its gas and revert bytes, never an address or deployed code,
-    because no contract exists at the would-be address.
+    because no contract exists at the would-be address. From Amsterdam stateGasUsed is zero
+    because the frame's state changes were rolled back. Before Amsterdam it is absent.
   title: TraceRevertedCreateResult
 TraceFrame:
   title: Flat call trace record
@@ -810,6 +830,8 @@ TraceVm:
         properties:
           pc: *id004
           cost: *id004
+          stateGasCost:
+            type: integer
           ex:
             anyOf:
             - type: object
@@ -820,6 +842,7 @@ TraceVm:
               - store
               properties:
                 used: *id004
+                stateUsed: *id004
                 push:
                   type: array
                   items: &vmQuantity
@@ -871,7 +894,10 @@ TraceVm:
     the child for the CREATE family, as for action gas; this also holds when the call or creation
     fails its balance or depth precheck and the gas is returned immediately. ex records same-step
     effects; ex.used is the caller''s remaining gas after the operation, including unused gas
-    returned by a child. An
+    returned by a child. From Amsterdam cost covers execution gas only. stateGasCost is the
+    signed state gas charged by the operation before entering a child. A refill is negative and a
+    zero cost omits the field. ex.used reports the execution balance after spill and repayment,
+    and ex.stateUsed reports the remaining state-gas reservoir when nonzero. An
     operation that halted exceptionally has ex null and sub null; its cost is an
     implementation-defined non-negative integer. push is the top k stack words after execution,
     deepest first, as minimal quantities, where k is the number of words the opcode leaves in place

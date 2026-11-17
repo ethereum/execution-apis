@@ -87,8 +87,7 @@
                   gas: 68612
                   gasCost: 3
                   depth: 1
-                  stack:
-                    - '0x60'
+                  stack: []
                 - pc: 2
                   op: PUSH1
                   gas: 68609
@@ -96,13 +95,14 @@
                   depth: 1
                   stack:
                     - '0x60'
-                    - '0x40'
                 - pc: 4
                   op: MSTORE
                   gas: 68606
                   gasCost: 12
                   depth: 1
-                  stack: []
+                  stack:
+                    - '0x60'
+                    - '0x40'
               gas: 26916
               failed: false
               returnValue: '0x'
@@ -198,8 +198,7 @@
                   gas: 68612
                   gasCost: 3
                   depth: 1
-                  stack:
-                    - '0x60'
+                  stack: []
                 - pc: 2
                   op: PUSH1
                   gas: 68609
@@ -207,13 +206,14 @@
                   depth: 1
                   stack:
                     - '0x60'
-                    - '0x40'
                 - pc: 4
                   op: MSTORE
                   gas: 68606
                   gasCost: 12
                   depth: 1
-                  stack: []
+                  stack:
+                    - '0x60'
+                    - '0x40'
               gas: 26916
               failed: false
               returnValue: '0x'
@@ -277,8 +277,7 @@
               gas: 68612
               gasCost: 3
               depth: 1
-              stack:
-                - '0x60'
+              stack: []
             - pc: 2
               op: PUSH1
               gas: 68609
@@ -286,13 +285,14 @@
               depth: 1
               stack:
                 - '0x60'
-                - '0x40'
             - pc: 4
               op: MSTORE
               gas: 68606
               gasCost: 12
               depth: 1
-              stack: []
+              stack:
+                - '0x60'
+                - '0x40'
           gas: 26916
           failed: false
           returnValue: '0x'
