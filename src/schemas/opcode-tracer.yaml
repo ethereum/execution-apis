@@ -99,8 +99,9 @@ StructLog:
   title: Opcode execution log entry
   description: >-
     A single step in the EVM execution trace produced by the opcode (struct)
-    logger. One entry is emitted per opcode executed. A step whose opcode
-    halts its frame exceptionally also has exactly one entry. structLogs
+    logger. One entry is emitted per opcode executed, until the limit option
+    stops capture. A step whose opcode halts its frame exceptionally also has
+    exactly one entry. structLogs
     MUST NOT contain any other kind of record, and an entry MUST NOT contain
     fields that this specification does not define.
   type: object
@@ -122,7 +123,8 @@ StructLog:
       description: >-
         The name of the EVM opcode executed at this step (e.g. "PUSH1",
         "SSTORE"), from the opcode set that is active at the fork of the
-        block.
+        block. The name is the mnemonic that the EIP defining the opcode uses
+        (e.g. "KECCAK256", "SELFDESTRUCT").
 
         A byte that is not defined at that fork MUST be named
         "opcode 0x<byte> not defined", with the byte in lowercase hex and
@@ -140,12 +142,15 @@ StructLog:
     gasCost:
       title: gas cost
       description: >-
-        The gas that this opcode charged. Includes dynamic costs such as
-        memory expansion and storage access charges (e.g. cold vs. warm
-        SLOAD/SSTORE). A step that completes MUST report this cost. This
-        includes a REVERT and a CALL whose callee frame is not entered (e.g.
-        because the value is above the balance or the call depth limit is
-        reached).
+        The execution gas that this opcode charged. Includes dynamic costs
+        such as memory expansion and storage access charges (e.g. cold vs.
+        warm SLOAD/SSTORE). For CALL, CALLCODE, DELEGATECALL and STATICCALL,
+        it includes the gas forwarded to the callee and excludes the call
+        stipend. For CREATE and CREATE2, it excludes the gas forwarded to the
+        initcode. A step that completes MUST report this cost. This includes a
+        REVERT that does not itself fail and a CALL whose callee frame is not
+        entered (e.g. because the value is above the balance or the call depth
+        limit is reached).
 
         A step whose opcode halts its frame exceptionally MUST report 0. The
         value 0 means that the trace reports no cost for the step. The halt
@@ -168,8 +173,10 @@ StructLog:
         read out of bounds, and an SSTORE with gas at or below the call
         stipend (EIP-2200). The text is client-defined.
 
-        This field MUST be absent at every other step. A REVERT completes, so
-        this field MUST be absent at a REVERT step. It MUST also be absent
+        This field MUST be absent at every other step. A REVERT that does not
+        itself fail completes, so this field MUST be absent at that step. A
+        REVERT that fails (e.g. out of gas for its memory expansion) halts
+        exceptionally. This field MUST also be absent
         for a failure that is not a halt of the step's own opcode, because
         that step completes: a failed child frame, a failed precompile call,
         an address collision, a code deposit failure, a value above the
@@ -182,8 +189,8 @@ StructLog:
       description: >-
         The accumulated gas refund counter of the transaction before this
         opcode executes. This is the counter of the transaction, not a counter
-        for each call frame. It is read before any refund change that the gas
-        charge of this step makes (e.g. an SSTORE refund). A step that halts
+        for each call frame. It is read before any refund change that this
+        step makes (e.g. an SSTORE refund). A step that halts
         exceptionally also reports the counter before the step, without the
         refund change that the step attempted.
         Clients MUST include this field at every step when it is non-zero and
