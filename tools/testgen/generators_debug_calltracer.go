@@ -7,6 +7,8 @@ import (
 	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // Genesis predeploys created by hivechain for callTracer testing; the callee
@@ -251,6 +253,12 @@ func callTracerCfgWith(tracerConfig map[string]interface{}) map[string]interface
 	return map[string]interface{}{"tracer": "callTracer", "tracerConfig": tracerConfig}
 }
 
+// lastBlockBeforeAmsterdam keeps fixtures off the Amsterdam blocks, whose
+// EIP-8037 tracer fields this spec does not define yet.
+func lastBlockBeforeAmsterdam(c *Chain) *types.Block {
+	return c.GetBlock(int(firstForkBlock(c, "Amsterdam")) - 1)
+}
+
 var DebugTraceCall = MethodTests{
 	"debug_traceCall",
 	[]Test{
@@ -296,18 +304,19 @@ var DebugTraceCall = MethodTests{
 		},
 		{
 			Name:             "calltracer-nested",
-			About:            "traces a call to the calltree contract with the callTracer; the frame tree must contain every call type",
+			About:            "traces a call to the calltree contract with the callTracer at the last block before Amsterdam; the frame tree must contain CALL, STATICCALL, DELEGATECALL, CALLCODE, CREATE and SELFDESTRUCT frames",
 			SpecOnly:         true,
 			ValidationScript: callFrameCompareScript,
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
+				block := hexutil.Uint64(lastBlockBeforeAmsterdam(t.chain).NumberU64())
 				call := map[string]interface{}{
 					"from": sender,
 					"to":   calltreeAddr,
 					"gas":  "0x100000",
 				}
 				var result map[string]interface{}
-				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, "latest", callTracerCfg); err != nil {
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, block, callTracerCfg); err != nil {
 					return err
 				}
 				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
@@ -322,9 +331,10 @@ var DebugTraceCall = MethodTests{
 		},
 		{
 			Name:  "calltracer-revert",
-			About: "traces a call that reverts with Error(string); the revert MUST be reported in the frame, not as a JSON-RPC error",
+			About: "traces a call that reverts with Error(string) at the last block before Amsterdam; the revert MUST be reported in the frame, not as a JSON-RPC error",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
+				block := hexutil.Uint64(lastBlockBeforeAmsterdam(t.chain).NumberU64())
 				call := map[string]interface{}{
 					"from":  sender,
 					"to":    calltreeCallrevertAddr,
@@ -332,7 +342,7 @@ var DebugTraceCall = MethodTests{
 					"gas":   "0x100000",
 				}
 				var result map[string]interface{}
-				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, "latest", callTracerCfg); err != nil {
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, block, callTracerCfg); err != nil {
 					return fmt.Errorf("reverted call must not produce a JSON-RPC error, got: %v", err)
 				}
 				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
@@ -349,9 +359,10 @@ var DebugTraceCall = MethodTests{
 		},
 		{
 			Name:  "calltracer-only-top-call",
-			About: "traces a call to the calltree contract with onlyTopCall; only the root frame is returned",
+			About: "traces a call to the calltree contract with onlyTopCall at the last block before Amsterdam; only the root frame is returned",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
+				block := hexutil.Uint64(lastBlockBeforeAmsterdam(t.chain).NumberU64())
 				call := map[string]interface{}{
 					"from": sender,
 					"to":   calltreeAddr,
@@ -359,7 +370,7 @@ var DebugTraceCall = MethodTests{
 				}
 				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true})
 				var result map[string]interface{}
-				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, "latest", cfg); err != nil {
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, block, cfg); err != nil {
 					return err
 				}
 				opts := callTracerOpts{onlyTopCall: true}
@@ -374,9 +385,10 @@ var DebugTraceCall = MethodTests{
 		},
 		{
 			Name:  "calltracer-state-override",
-			About: "traces a call with stateOverrides replacing the callee code; the trace reflects the overridden code",
+			About: "traces a call with stateOverrides replacing the callee code at the last block before Amsterdam; the trace reflects the overridden code",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
+				block := hexutil.Uint64(lastBlockBeforeAmsterdam(t.chain).NumberU64())
 				overrideTarget := "0x00000000000000000000000000000000000000c0"
 				callmeAccount, ok := t.chain.state[common.HexToAddress(calltreeCallmeAddr)]
 				if !ok || len(callmeAccount.Code) == 0 {
@@ -399,7 +411,7 @@ var DebugTraceCall = MethodTests{
 					},
 				}
 				var result map[string]interface{}
-				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, "latest", cfg); err != nil {
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, block, cfg); err != nil {
 					return err
 				}
 				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
@@ -413,7 +425,7 @@ var DebugTraceCall = MethodTests{
 		},
 		{
 			Name:  "calltracer-block-param-hash",
-			About: "traces a call with the block given by hash",
+			About: "traces a call with the block given by the hash of the last block before Amsterdam",
 			Run: func(ctx context.Context, t *T) error {
 				sender, _ := t.chain.GetSender(0)
 				call := map[string]interface{}{
@@ -423,8 +435,8 @@ var DebugTraceCall = MethodTests{
 					"gas":   "0x100000",
 				}
 				var result map[string]interface{}
-				head := t.chain.Head().Hash()
-				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, head, callTracerCfg); err != nil {
+				hash := lastBlockBeforeAmsterdam(t.chain).Hash()
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceCall", call, hash, callTracerCfg); err != nil {
 					return err
 				}
 				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
