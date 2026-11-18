@@ -64,6 +64,13 @@ AccountOverride:
   title: Details of an account to be overridden
   description: |-
     It is possible to override any kind of address (EOA's, contracts and precompiles). A `code` override on a precompile address replaces the precompile.
+    In this description, a precompile address is the address of a precompile of the active fork, as in EIP-7702.
+    Only a `code` override on a precompile address, or a `movePrecompileToAddress` move away from that address, turns off the precompile there. The override must be in the `stateOverrides` of the block that contains the call. An override that sets only other keys, such as `balance`, `nonce`, `state` or `stateDiff`, MUST NOT turn off the precompile.
+    A native precompile is active at a precompile address whose precompile is not turned off, and at the destination of a move. A call to an address where a native precompile is active MUST run that precompile, also when the address has account code.
+    The next rules apply from the Prague fork, which adds EIP-7702. Before Prague, a delegation designator is ordinary code. The rules apply to the top-level call of a transaction and to the CALL, CALLCODE, DELEGATECALL and STATICCALL opcodes. They apply only to a call to an address where no native precompile is active and whose account code is a delegation designator.
+    If the target of the designator is a precompile address where a native precompile is active, the call MUST run empty code, as EIP-7702 requires. This is also true when the target has account code.
+    In all other cases, the call MUST run the account code of the target, or empty code if the target has no code. This includes a precompile address whose precompile is turned off, and a move destination that is not a precompile address.
+    As in EIP-7702, the call follows the designator only once. If the account code of the target is also a designator, the call runs those 23 bytes as code.
     A client MUST reject a key that it does not support with error code -32602. A client MAY treat a key that differs from a key defined in this schema only in case as that defined key. It MUST then apply the key, and MUST reject two keys that differ only in case and name the same defined key with error code -32602. A client MAY support other keys that this schema does not define.
   type: object
   not:
