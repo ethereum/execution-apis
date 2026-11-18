@@ -84,11 +84,11 @@ AccountOverride:
       $ref: '#/components/schemas/address'
     state:
       title: Storage
-      description: Key-value mapping to override all slots in the account storage before executing the call.
+      description: Key-value mapping to override all slots in the account storage before executing the call. The overrides are part of the state before the call. For the SSTORE gas and refund rules (EIP-2200), the original value of a slot is its value at the start of the transaction, so the original value of an overridden slot is its overridden value. In eth_simulateV1, the overrides of a block apply before the first call of that block, and the original value for each call is the slot value at the start of that call, which includes the overrides and the changes of earlier calls.
       $ref: '#/components/schemas/AccountStorage'
     stateDiff:
       title: Storage difference
-      description: Key-value mapping to override individual slots in the account storage before executing the call.
+      description: Key-value mapping to override individual slots in the account storage before executing the call. The overrides are part of the state before the call. For the SSTORE gas and refund rules (EIP-2200), the original value of a slot is its value at the start of the transaction, so the original value of an overridden slot is its overridden value. In eth_simulateV1, the overrides of a block apply before the first call of that block, and the original value for each call is the slot value at the start of that call, which includes the overrides and the changes of earlier calls.
       $ref: '#/components/schemas/AccountStorage'
 AccountStorage:
   title: Storage slots for an account
