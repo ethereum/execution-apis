@@ -3,6 +3,7 @@ package testgen
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -7036,6 +7037,159 @@ var EthSimulateV1 = MethodTests{
 					return err
 				}
 				return nil
+			},
+		},
+		{
+			Name:  "ethSimulate-override-precompile-balance-only",
+			About: "a balance override on a precompile address does not turn off the precompile; a call to sha256 still returns the hash of its input",
+			Run: func(ctx context.Context, t *T) error {
+				sha256Address := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							sha256Address: OverrideAccount{Balance: newRPCBalance(1)},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &sha256Address,
+							Input: hex2Bytes("1234"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				hash := sha256.Sum256(common.Hex2Bytes("1234"))
+				return checkReturnData(res[0].Calls, 0, common.Bytes2Hex(hash[:]))
+			},
+		},
+		{
+			Name:  "ethSimulate-delegation-to-precompile",
+			About: "a call to an account that delegates to the sha256 precompile address runs empty code, as EIP-7702 requires",
+			Run: func(ctx context.Context, t *T) error {
+				authority := common.Address{0xc3}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							authority: OverrideAccount{Code: hex2Bytes("ef01000000000000000000000000000000000000000002")},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &authority,
+							Input: hex2Bytes("1234"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 0, "")
+			},
+		},
+		{
+			Name:  "ethSimulate-delegation-to-overridden-precompile",
+			About: "a code override turns off the sha256 precompile; a call to an account that delegates to its address runs the override code",
+			Run: func(ctx context.Context, t *T) error {
+				sha256Address := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				authority := common.Address{0xc3}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							sha256Address: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+							authority:     OverrideAccount{Code: hex2Bytes("ef01000000000000000000000000000000000000000002")},
+						},
+						Calls: []TransactionArgs{{
+							From:  &common.Address{0xc0},
+							To:    &authority,
+							Input: hex2Bytes("1234"),
+						}},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return checkReturnData(res[0].Calls, 0, returnWord(42))
+			},
+		},
+		{
+			Name:  "ethSimulate-delegation-to-moved-precompile",
+			About: "sha256 moves without a code override; a direct call to the destination runs sha256, and a call to an account that delegates to the sha256 address returns empty output",
+			Run: func(ctx context.Context, t *T) error {
+				sha256Address := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				sha256MovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				authority := common.Address{0xc3}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							sha256Address: OverrideAccount{MovePrecompileToAddress: &sha256MovedToAddress},
+							authority:     OverrideAccount{Code: hex2Bytes("ef01000000000000000000000000000000000000000002")},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &authority,
+								Input: hex2Bytes("1234"),
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &sha256MovedToAddress,
+								Input: hex2Bytes("1234"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if err := checkReturnData(res[0].Calls, 0, ""); err != nil {
+					return err
+				}
+				hash := sha256.Sum256(common.Hex2Bytes("1234"))
+				return checkReturnData(res[0].Calls, 1, common.Bytes2Hex(hash[:]))
+			},
+		},
+		{
+			Name:  "ethSimulate-delegation-to-move-destination-with-code",
+			About: "sha256 moves onto the callme contract; a direct call to the destination runs sha256, and a call to an account that delegates to the destination runs the callme bytecode",
+			Run: func(ctx context.Context, t *T) error {
+				sha256Address := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000002"))
+				callme := t.chain.txinfo.CallMeContract.Addr
+				authority := common.Address{0xc3}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							sha256Address: OverrideAccount{MovePrecompileToAddress: &callme},
+							authority:     OverrideAccount{Code: hex2Bytes("ef0100" + common.Bytes2Hex(callme.Bytes()))},
+						},
+						Calls: []TransactionArgs{
+							{
+								From:  &common.Address{0xc0},
+								To:    &callme,
+								Input: hex2Bytes("ff01"),
+							},
+							{
+								From:  &common.Address{0xc0},
+								To:    &authority,
+								Input: hex2Bytes("ff01"),
+							},
+						},
+					}},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				hash := sha256.Sum256(common.Hex2Bytes("ff01"))
+				if err := checkReturnData(res[0].Calls, 0, common.Bytes2Hex(hash[:])); err != nil {
+					return err
+				}
+				// callme returns 0xffee for the input 0xff01.
+				// See https://github.com/ethereum/hive/blob/master/cmd/hivechain/contracts/callme.eas
+				return checkReturnData(res[0].Calls, 1, "ffee")
 			},
 		},
 		{
