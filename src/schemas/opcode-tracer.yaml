@@ -81,7 +81,9 @@ TraceConfig:
       description: >-
         Opcode logger only. Maximum number of opcode steps to capture. Zero
         means no limit. When the limit is reached, execution continues but no
-        further StructLog entries are recorded. Ignored when tracer is set.
+        further StructLog entries are recorded. The limit counts StructLog
+        entries. Clients MUST NOT apply it as a limit on the size of the
+        output in bytes. Ignored when tracer is set.
         Default: 0 (unlimited).
       type: integer
       minimum: 0
@@ -97,8 +99,12 @@ StructLog:
   title: Opcode execution log entry
   description: >-
     A single step in the EVM execution trace produced by the opcode (struct)
-    logger. One entry is emitted per opcode executed.
+    logger. One entry is emitted per opcode executed. A step whose opcode
+    halts its frame exceptionally also has exactly one entry. structLogs
+    MUST NOT contain any other kind of record, and an entry MUST NOT contain
+    fields that this specification does not define.
   type: object
+  additionalProperties: false
   required:
     - pc
     - op
@@ -113,7 +119,18 @@ StructLog:
       minimum: 0
     op:
       title: opcode name
-      description: The name of the EVM opcode executed at this step (e.g. "PUSH1", "SSTORE").
+      description: >-
+        The name of the EVM opcode executed at this step (e.g. "PUSH1",
+        "SSTORE"), from the opcode set that is active at the fork of the
+        block.
+
+        A byte that is not defined at that fork MUST be named
+        "opcode 0x<byte> not defined", with the byte in lowercase hex and
+        without leading zeros (e.g. "opcode 0xc not defined"). This includes
+        an opcode that a later fork defines, such as PUSH0 (0x5f) before
+        Shanghai. The byte 0xfe MUST be named "INVALID" (EIP-141). The byte
+        0x44 MUST be named "PREVRANDAO" from the Paris fork (EIP-4399) and
+        "DIFFICULTY" before it.
       type: string
     gas:
       title: remaining gas
@@ -123,10 +140,16 @@ StructLog:
     gasCost:
       title: gas cost
       description: >-
-        The gas cost computed for this opcode step — the amount that will be
-        deducted from the remaining gas assuming successful execution. Includes
-        dynamic costs such as memory expansion and storage access charges
-        (e.g. cold vs. warm SLOAD/SSTORE).
+        The gas that this opcode charged. Includes dynamic costs such as
+        memory expansion and storage access charges (e.g. cold vs. warm
+        SLOAD/SSTORE). A step that completes MUST report this cost. This
+        includes a REVERT and a CALL whose callee frame is not entered (e.g.
+        because the value is above the balance or the call depth limit is
+        reached).
+
+        A step whose opcode halts its frame exceptionally MUST report 0. The
+        value 0 means that the trace reports no cost for the step. The halt
+        still consumes all of the frame's remaining gas.
       type: integer
       minimum: 0
     depth:
@@ -137,15 +160,32 @@ StructLog:
     error:
       title: execution error
       description: >-
-        The error encountered during execution of this opcode, if any.
-        This field MUST be absent when no error occurred. Clients MUST NOT
-        include this field as null or as an empty string when there is no error.
+        The error that halted the frame exceptionally at this step. This
+        field MUST be present, as a non-empty string, at the step whose opcode
+        halts its frame exceptionally. Examples are out of gas, stack
+        underflow or overflow, an invalid jump destination, an undefined or
+        INVALID opcode, a state change in a static context, a return data
+        read out of bounds, and an SSTORE with gas at or below the call
+        stipend (EIP-2200). The text is client-defined.
+
+        This field MUST be absent at every other step. A REVERT completes, so
+        this field MUST be absent at a REVERT step. It MUST also be absent
+        for a failure that is not a halt of the step's own opcode, because
+        that step completes: a failed child frame, a failed precompile call,
+        an address collision, a code deposit failure, a value above the
+        balance, and the call depth limit. Clients MUST NOT include this field
+        as null or as an empty string.
       type: string
+      minLength: 1
     refund:
       title: gas refund counter
       description: >-
         The accumulated gas refund counter of the transaction before this
-        opcode executes.
+        opcode executes. This is the counter of the transaction, not a counter
+        for each call frame. It is read before any refund change that the gas
+        charge of this step makes (e.g. an SSTORE refund). A step that halts
+        exceptionally also reports the counter before the step, without the
+        refund change that the step attempted.
         Clients MUST include this field at every step when it is non-zero and
         MUST omit it when it is zero.
       type: integer
@@ -204,7 +244,10 @@ OpcodeTransactionTrace:
     The result of tracing a single transaction using the opcode (struct) logger.
     This is the result type of debug_traceTransaction and each element's result
     field in the debug_traceBlockByNumber response when no named tracer is used.
+    The object MUST NOT contain fields that this specification does not
+    define.
   type: object
+  additionalProperties: false
   required:
     - gas
     - failed
@@ -223,7 +266,8 @@ OpcodeTransactionTrace:
     returnValue:
       title: return value
       description: >-
-        The data returned by the transaction. 0x-prefixed hex-encoded bytes.
+        The data returned by the transaction. For a transaction that reverts,
+        this is the revert data. 0x-prefixed hex-encoded bytes.
         MUST be "0x" (not an empty string) when no data was returned.
       $ref: '#/components/schemas/bytes'
     structLogs:
