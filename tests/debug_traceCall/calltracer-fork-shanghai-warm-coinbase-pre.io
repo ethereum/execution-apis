@@ -1,0 +1,3 @@
+// traces a call that reads the BALANCE of the COINBASE account with the callTracer, at the last block before Shanghai
+>> {"jsonrpc":"2.0","id":1,"method":"debug_traceCall","params":[{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","to":"0x00000000000000000000000000000000000000c2"},"0x26",{"stateOverrides":{"0x00000000000000000000000000000000000000c2":{"code":"0x41315000"}},"tracer":"callTracer"}]}
+<< {"jsonrpc":"2.0","id":1,"result":{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","gasUsed":"0x5c34","to":"0x00000000000000000000000000000000000000c2","input":"0x","value":"0x0","type":"CALL"}}

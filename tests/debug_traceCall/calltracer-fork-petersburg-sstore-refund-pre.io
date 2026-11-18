@@ -1,0 +1,3 @@
+// traces SSTORE gas and refunds on slots with committed values with the callTracer, at the last block before Petersburg
+>> {"jsonrpc":"2.0","id":1,"method":"debug_traceCall","params":[{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","to":"0x8bebc8ba651aee624937e7d897853ac30c95a067"},"0xe",{"stateOverrides":{"0x8bebc8ba651aee624937e7d897853ac30c95a067":{"code":"0x60006001556002600255600760035560036003556001545000"}},"tracer":"callTracer"}]}
+<< {"jsonrpc":"2.0","id":1,"result":{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","gasUsed":"0x3dc7","to":"0x8bebc8ba651aee624937e7d897853ac30c95a067","input":"0x","value":"0x0","type":"CALL"}}
