@@ -2,12 +2,15 @@ package testgen
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	gethrpc "github.com/ethereum/go-ethereum/rpc"
@@ -360,6 +363,119 @@ func validateStorageSnapshotProgression(logs []interface{}) error {
 	return nil
 }
 
+// structLogTrace holds the fields of an opcode trace that the failing-step
+// cases check at fill time.
+type structLogTrace struct {
+	Failed      bool          `json:"failed"`
+	ReturnValue hexutil.Bytes `json:"returnValue"`
+	StructLogs  []struct {
+		Op      string  `json:"op"`
+		GasCost uint64  `json:"gasCost"`
+		Depth   int     `json:"depth"`
+		Error   *string `json:"error"`
+	} `json:"structLogs"`
+}
+
+// traceFailingSteps traces a mined transaction with the default opcode logger.
+// It checks the result against the opcode tracer schema rules, and it checks
+// that the steps with an error are exactly wantFaults (as "OP@depth"), each
+// with a gasCost of 0.
+func traceFailingSteps(ctx context.Context, t *T, hash common.Hash, wantFaults ...string) (*structLogTrace, error) {
+	var raw json.RawMessage
+	if err := t.rpc.CallContext(ctx, &raw, "debug_traceTransaction", hash); err != nil {
+		return nil, err
+	}
+	var result map[string]interface{}
+	if err := json.Unmarshal(raw, &result); err != nil {
+		return nil, err
+	}
+	if err := validateOpcodeTransactionTrace(result); err != nil {
+		return nil, err
+	}
+	var trace structLogTrace
+	if err := json.Unmarshal(raw, &trace); err != nil {
+		return nil, err
+	}
+	var faults []string
+	for i, log := range trace.StructLogs {
+		if log.Error == nil {
+			continue
+		}
+		faults = append(faults, fmt.Sprintf("%s@%d", log.Op, log.Depth))
+		if log.GasCost != 0 {
+			return nil, fmt.Errorf("structLogs[%d]: failing %s step has gasCost %d, want 0", i, log.Op, log.GasCost)
+		}
+	}
+	if !slices.Equal(faults, wantFaults) {
+		return nil, fmt.Errorf("failing steps %v, want %v", faults, wantFaults)
+	}
+	return &trace, nil
+}
+
+// lastTxIn returns the last record mined in a block that matches.
+func lastTxIn(t *T, txs []CallTreeTxInfo, desc string, match func(*types.Block) bool) (common.Hash, error) {
+	var hash common.Hash
+	for _, tx := range txs {
+		if match(t.chain.GetBlock(int(tx.Block))) {
+			hash = tx.TxHash
+		}
+	}
+	if hash == (common.Hash{}) {
+		return hash, fmt.Errorf("no transaction %s", desc)
+	}
+	return hash, nil
+}
+
+// structLogCompareScript validates against OpcodeTransactionTrace because the
+// method's anyOf result has a named-tracer branch that accepts any value, such
+// as an empty error. It then requires the recorded result, except for the
+// error text of a failing step, which the spec leaves to the client. The text
+// is replaced only when both the fixture and the response have a non-empty
+// string.
+const structLogCompareScript = `
+let method;
+for (const m of messages) {
+	if (m.send) {
+		method = m.send.method;
+		continue;
+	}
+	if (!method.startsWith("debug_trace")) continue;
+	if (m.response.error) throw new Error("unexpected error response: " + JSON.stringify(m.response.error));
+	const result = m.response.result;
+	openrpc.validate("#/components/schemas/OpcodeTransactionTrace", result);
+	const d = diff(m.expected.result, result, "result");
+	if (d) throw new Error("response differs from the fixture at " + d);
+}
+
+function errorText(v) {
+	return typeof v === "string" && v !== "";
+}
+
+function diff(want, got, path) {
+	if (Array.isArray(want) || Array.isArray(got)) {
+		if (!Array.isArray(want) || !Array.isArray(got)) return path + ": got " + JSON.stringify(got);
+		if (want.length !== got.length) return path + ": got " + got.length + " items, want " + want.length;
+		for (let i = 0; i < want.length; i++) {
+			const d = diff(want[i], got[i], path + "[" + i + "]");
+			if (d) return d;
+		}
+		return "";
+	}
+	if (want !== null && got !== null && typeof want === "object" && typeof got === "object") {
+		const step = /\.structLogs\[\d+\]$/.test(path);
+		for (const k of new Set(Object.keys(want).concat(Object.keys(got)))) {
+			if (!(k in got)) return path + "." + k + ": missing";
+			if (!(k in want)) return path + "." + k + ": unexpected field";
+			if (step && k === "error" && errorText(want[k]) && errorText(got[k])) continue;
+			const d = diff(want[k], got[k], path + "." + k);
+			if (d) return d;
+		}
+		return "";
+	}
+	return want === got ? "" : path + ": got " + JSON.stringify(got) + ", want " + JSON.stringify(want);
+}
+`
+
 // DebugTraceTransaction tests the debug_traceTransaction method.
 var DebugTraceTransaction = MethodTests{
 	"debug_traceTransaction",
@@ -402,6 +518,91 @@ var DebugTraceTransaction = MethodTests{
 				logs := result["structLogs"].([]interface{})
 				if len(logs) == 0 {
 					return fmt.Errorf("expected at least one structLog for contract call, got 0")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "trace-revert",
+			About: "traces a transaction whose root frame reverts; the REVERT step completes, so it reports its gas cost and has no error, and returnValue is the revert data",
+			Run: func(ctx context.Context, t *T) error {
+				// Before Amsterdam, the trace has no EIP-8037 state-gas fields.
+				hash, err := lastTxIn(t, t.chain.txinfo.CallRevertTxs, "before Amsterdam", func(b *types.Block) bool {
+					return !t.chain.Config().IsAmsterdam(b.Number(), b.Time())
+				})
+				if err != nil {
+					return err
+				}
+				trace, err := traceFailingSteps(ctx, t, hash)
+				if err != nil {
+					return err
+				}
+				if !trace.Failed {
+					return fmt.Errorf("expected a failed transaction")
+				}
+				if len(trace.ReturnValue) == 0 {
+					return fmt.Errorf("expected the revert data in returnValue")
+				}
+				last := trace.StructLogs[len(trace.StructLogs)-1]
+				if last.Op != "REVERT" || last.Depth != 1 {
+					return fmt.Errorf("last step is %s at depth %d, want REVERT at depth 1", last.Op, last.Depth)
+				}
+				return nil
+			},
+		},
+		{
+			Name:             "trace-nested-revert-and-halt",
+			About:            "traces a calltree contract invocation; a child frame reverts without an error, and another child halts on an SSTORE in a static context with one entry that has an error and a gasCost of 0",
+			SpecOnly:         true,
+			ValidationScript: structLogCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				// The calltree reads opcode 0x44. Before the merge it is DIFFICULTY in
+				// every client; after it the spec names it PREVRANDAO, which geth does
+				// not yet do.
+				hash, err := lastTxIn(t, t.chain.txinfo.CallTreeTxs, "before the merge", func(b *types.Block) bool {
+					return b.Difficulty().Sign() > 0
+				})
+				if err != nil {
+					return err
+				}
+				trace, err := traceFailingSteps(ctx, t, hash, "SSTORE@2")
+				if err != nil {
+					return err
+				}
+				if trace.Failed {
+					return fmt.Errorf("expected a successful transaction")
+				}
+				for _, log := range trace.StructLogs {
+					if log.Op == "REVERT" && log.Depth == 2 {
+						return nil
+					}
+				}
+				return fmt.Errorf("expected a REVERT step at depth 2")
+			},
+		},
+		{
+			Name:             "trace-state-gas-oog",
+			About:            "traces an Amsterdam transaction whose SSTORE runs out of gas on the EIP-8037 state-gas charge; the failing step has one entry with an error and a gasCost of 0",
+			SpecOnly:         true,
+			ValidationScript: structLogCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				var hash common.Hash
+				for _, tx := range t.chain.txinfo.DynamicFeeEmit {
+					block := t.chain.GetBlock(int(tx.Block))
+					if t.chain.Config().IsAmsterdam(block.Number(), block.Time()) {
+						hash = tx.TxHash
+						break
+					}
+				}
+				if hash == (common.Hash{}) {
+					return fmt.Errorf("no emit transaction after the Amsterdam fork")
+				}
+				trace, err := traceFailingSteps(ctx, t, hash, "SSTORE@1")
+				if err != nil {
+					return err
+				}
+				if !trace.Failed {
+					return fmt.Errorf("expected a failed transaction")
 				}
 				return nil
 			},
