@@ -19,6 +19,9 @@
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
+    The array MUST contain exactly one entry for each transaction in the
+    block. System calls (EIP-4788, EIP-2935, EIP-7002, EIP-7251) are not
+    transactions, so clients MUST NOT trace them or add entries for them.
     If a timeout is configured and reached before tracing completes, the
     client MUST return an error; no partial results are returned. Clients
     that do not support execution timeouts MAY ignore the timeout field.
@@ -128,6 +131,9 @@
 
     The response is an array ordered by transaction index within the block.
     Each entry includes the transaction hash paired with its trace result.
+    The array MUST contain exactly one entry for each transaction in the
+    block. System calls (EIP-4788, EIP-2935, EIP-7002, EIP-7251) are not
+    transactions, so clients MUST NOT trace them or add entries for them.
     If a timeout is configured and reached before tracing completes, the
     client MUST return an error; no partial results are returned. Clients
     that do not support execution timeouts MAY ignore the timeout field.
