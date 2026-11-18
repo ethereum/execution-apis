@@ -261,7 +261,7 @@ func lastBlockBeforeAmsterdam(c *Chain) *types.Block {
 
 var DebugTraceCall = MethodTests{
 	"debug_traceCall",
-	[]Test{
+	append([]Test{
 		{
 			Name:             "trace-call-opcode-default",
 			About:            "traces a simple call with the default opcode tracer",
@@ -465,5 +465,5 @@ var DebugTraceCall = MethodTests{
 				return nil
 			},
 		},
-	},
+	}, forkTraceTests()...),
 }
