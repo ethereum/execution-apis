@@ -170,11 +170,14 @@ StructLog:
         reverts or halts or when a call fails before its frame is entered, the
         code-deposit charge, and pre-execution charges (EIP-2780), so the sum
         over all steps does not in general equal the transaction's
-        stateGasUsed. It is zero at a step that fails before its gas is
-        charged, for example on a stack error or when the gas left cannot
-        cover the step's cost. From the Amsterdam fork it MUST be present
-        at every step where it is non-zero and MUST be omitted where it is
-        zero. MUST be omitted before the Amsterdam fork.
+        stateGasUsed.
+
+        A step whose opcode halts its frame exceptionally MUST omit
+        stateGasCost. This also applies when the opcode charged part of its
+        gas, or attempted a state-gas charge, before it failed (e.g. an SSTORE
+        or a CREATE that cannot pay its state gas). From the Amsterdam fork,
+        every other step MUST include it when it is non-zero and MUST omit it
+        when it is zero. MUST be omitted before the Amsterdam fork.
       type: integer
     stateGasReservoir:
       title: state-gas reservoir
