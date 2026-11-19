@@ -2,3 +2,16 @@
 // speconly: client response is only checked for schema validity.
 >> {"jsonrpc":"2.0","id":1,"method":"debug_traceTransaction","params":["0xc1d605c6612a5fe84dc95810030bfe5b1d327652b381bc695e28f50d13b2b09e"]}
 << {"jsonrpc":"2.0","id":1,"result":{"gas":66259,"failed":false,"returnValue":"0x60004381526020014681526020014181526020014881526020014481526020013281526020013481526020016000f3","structLogs":[{"pc":0,"op":"PUSH1","gas":23644,"gasCost":3,"depth":1,"stack":[]},{"pc":2,"op":"CODESIZE","gas":23641,"gasCost":2,"depth":1,"stack":["0xd"]},{"pc":3,"op":"SUB","gas":23639,"gasCost":3,"depth":1,"stack":["0xd","0x3c"]},{"pc":4,"op":"DUP1","gas":23636,"gasCost":3,"depth":1,"stack":["0x2f"]},{"pc":5,"op":"PUSH1","gas":23633,"gasCost":3,"depth":1,"stack":["0x2f","0x2f"]},{"pc":7,"op":"PUSH1","gas":23630,"gasCost":3,"depth":1,"stack":["0x2f","0x2f","0xd"]},{"pc":9,"op":"CODECOPY","gas":23627,"gasCost":15,"depth":1,"stack":["0x2f","0x2f","0xd","0x0"]},{"pc":10,"op":"PUSH1","gas":23612,"gasCost":3,"depth":1,"stack":["0x2f"]},{"pc":12,"op":"RETURN","gas":23609,"gasCost":0,"depth":1,"stack":["0x2f","0x0"]}]}}
+--
+
+let method;
+for (const m of messages) {
+    if (m.send) {
+        method = m.send.method;
+        continue;
+    }
+    if (!method.startsWith("debug_trace")) continue;
+    if (m.response.error) throw new Error("unexpected error response: " + JSON.stringify(m.response.error));
+    const result = m.response.result;
+    openrpc.validate("#/components/schemas/OpcodeTransactionTrace", result);
+}

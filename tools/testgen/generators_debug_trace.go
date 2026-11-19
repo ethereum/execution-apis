@@ -2,14 +2,18 @@ package testgen
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	gethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -18,6 +22,13 @@ var bytes32Pattern = regexp.MustCompile(`^0x[0-9a-f]{64}$`)
 
 // uint256Pattern matches a 0x-prefixed uint256 quantity in canonical form.
 var uint256Pattern = regexp.MustCompile(`^0x(0|[1-9a-f][0-9a-f]{0,63})$`)
+
+// addressPattern matches a 20-byte hex address, mixed case like the spec's
+// address base type.
+var addressPattern = regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
+
+// bytesPattern matches 0x-prefixed hex data of any whole-byte length.
+var bytesPattern = regexp.MustCompile(`^0x([0-9a-f]{2})*$`)
 
 // multiError collects multiple validation errors and formats them as one.
 type multiError struct {
@@ -360,18 +371,89 @@ func validateStorageSnapshotProgression(logs []interface{}) error {
 	return nil
 }
 
+// traceScript validates against the tracer's own schema because the method's
+// anyOf result has a named-tracer branch that accepts any value. compare also
+// requires the recorded result, except for values the spec leaves to clients.
+func traceScript(schema string, block, compare bool) string {
+	pointer := "#/components/schemas/" + schema
+	validate := fmt.Sprintf("openrpc.validate(%q, result);", pointer)
+	if block {
+		validate = fmt.Sprintf("for (const entry of result) openrpc.validate(%q, entry);", pointer)
+	}
+	script := `
+let method;
+for (const m of messages) {
+	if (m.send) {
+		method = m.send.method;
+		continue;
+	}
+	if (!method.startsWith("debug_trace")) continue;
+	if (m.response.error) throw new Error("unexpected error response: " + JSON.stringify(m.response.error));
+	const result = m.response.result;
+	` + validate
+	if !compare {
+		return script + "\n}\n"
+	}
+	return script + `
+	const d = diff(mask(m.expected.result), mask(result), "result");
+	if (d) throw new Error("response differs from the fixture at " + d);
+}
+
+// Clears what the spec leaves to the client: callTracer error text other than
+// REVERT and the text of a Panic revertReason.
+function mask(v) {
+	if (Array.isArray(v)) {
+		v.forEach(mask);
+	} else if (v !== null && typeof v === "object") {
+		if (typeof v.error === "string" && v.error !== "execution reverted") v.error = "*";
+		if (typeof v.revertReason === "string" && /^0x4e487b71/.test(v.output)) v.revertReason = "*";
+		Object.values(v).forEach(mask);
+	}
+	return v;
+}
+
+function diff(want, got, path) {
+	if (Array.isArray(want) || Array.isArray(got)) {
+		if (!Array.isArray(want) || !Array.isArray(got)) return path + ": got " + JSON.stringify(got);
+		if (want.length !== got.length) return path + ": got " + got.length + " items, want " + want.length;
+		for (let i = 0; i < want.length; i++) {
+			const d = diff(want[i], got[i], path + "[" + i + "]");
+			if (d) return d;
+		}
+		return "";
+	}
+	if (want !== null && got !== null && typeof want === "object" && typeof got === "object") {
+		for (const k of new Set(Object.keys(want).concat(Object.keys(got)))) {
+			if (!(k in got)) return path + "." + k + ": missing";
+			if (!(k in want)) return path + "." + k + ": unexpected field";
+			const d = diff(want[k], got[k], path + "." + k);
+			if (d) return d;
+		}
+		return "";
+	}
+	return want === got ? "" : path + ": got " + JSON.stringify(got) + ", want " + JSON.stringify(want);
+}
+`
+}
+
+var (
+	callFrameCompareScript = traceScript("CallFrame", false, true)
+	callBlockCompareScript = traceScript("CallTracerBlockEntry", true, true)
+	opcodeScript           = traceScript("OpcodeTransactionTrace", false, false)
+	opcodeBlockScript      = traceScript("OpcodeBlockTransactionTrace", true, false)
+)
+
 // DebugTraceTransaction tests the debug_traceTransaction method.
 var DebugTraceTransaction = MethodTests{
 	"debug_traceTransaction",
 	[]Test{
 		{
-			Name:     "trace-legacy-transfer",
-			About:    "traces a legacy EOA-to-EOA value transfer; structLogs must be empty since no EVM code runs",
-			SpecOnly: true,
+			Name:  "trace-legacy-transfer",
+			About: "traces a legacy EOA-to-EOA value transfer; structLogs must be empty since no EVM code runs",
 			Run: func(ctx context.Context, t *T) error {
-				tx := t.chain.FindTransaction("legacy value transfer", matchLegacyValueTransfer)
+				tx := t.chain.txinfo.LegacyTransfers[0]
 				var result map[string]interface{}
-				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", tx.Hash()); err != nil {
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", tx.TxHash); err != nil {
 					return err
 				}
 				if err := validateOpcodeTransactionTrace(result); err != nil {
@@ -386,9 +468,10 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-contract-call",
-			About:    "traces a contract call transaction; validates spec compliance of structLogs including stack encoding, error field behavior, and optional storage encoding",
-			SpecOnly: true,
+			Name:             "trace-contract-call",
+			About:            "traces a contract call transaction; validates spec compliance of structLogs including stack encoding, error field behavior, and optional storage encoding",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeScript,
 			Run: func(ctx context.Context, t *T) error {
 				tx := t.chain.FindTransaction("legacy tx with input data", matchLegacyTxWithInput)
 				var result map[string]interface{}
@@ -419,6 +502,278 @@ var DebugTraceTransaction = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "calltracer-simple-transfer",
+			About: "traces a legacy EOA-to-EOA value transfer with the callTracer; a single frame with empty input and no calls or logs",
+			Run: func(ctx context.Context, t *T) error {
+				tx := t.chain.txinfo.LegacyTransfers[0]
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", tx.TxHash, callTracerCfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
+					return err
+				}
+				if result["input"] != "0x" {
+					return fmt.Errorf("transfer frame input must be \"0x\", got %v", result["input"])
+				}
+				if _, ok := result["calls"]; ok {
+					return fmt.Errorf("transfer frame must have no calls")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "calltracer-contract-call",
+			About: "traces a log-emitting contract call with the callTracer default config; logs must be absent without withLog",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.DynamicFeeEmit[0]
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, callTracerCfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
+					return err
+				}
+				if _, hasLogs := result["logs"]; hasLogs {
+					return fmt.Errorf("logs must be absent without withLog")
+				}
+				return nil
+			},
+		},
+		{
+			Name:             "calltracer-nested-calls",
+			About:            "traces a calltree contract invocation covering all call frame types: nested calls, inner revert with reason, staticcall write-protection failure, delegatecall, callcode, precompile call, create and selfdestruct",
+			SpecOnly:         true,
+			ValidationScript: callFrameCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, callTracerCfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
+					return err
+				}
+				got := frameTypes(result)
+				if !slices.Equal(got, expectedCallTreeTypes) {
+					return fmt.Errorf("unexpected subcall types: got %v, want %v", got, expectedCallTreeTypes)
+				}
+				calls := result["calls"].([]interface{})
+				revertFrame := calls[1].(map[string]interface{})
+				if revertFrame["error"] != "execution reverted" {
+					return fmt.Errorf("inner revert frame: expected error \"execution reverted\", got %v", revertFrame["error"])
+				}
+				if revertFrame["revertReason"] != "user error" {
+					return fmt.Errorf("inner revert frame: expected revertReason \"user error\", got %v", revertFrame["revertReason"])
+				}
+				if _, hasOutput := revertFrame["output"]; !hasOutput {
+					return fmt.Errorf("inner revert frame: raw revert data must be present in output")
+				}
+				staticFail := calls[3].(map[string]interface{})
+				if _, hasError := staticFail["error"]; !hasError {
+					return fmt.Errorf("write-protection frame: expected error")
+				}
+				createFrame := calls[7].(map[string]interface{})
+				sub := frameTypes(createFrame)
+				if !slices.Equal(sub, []string{"SELFDESTRUCT"}) {
+					return fmt.Errorf("create frame: expected SELFDESTRUCT child, got %v", sub)
+				}
+				return nil
+			},
+		},
+		{
+			Name:             "calltracer-with-log",
+			About:            "traces a calltree contract invocation with withLog; logs carry address, topics, data and position, and reverted frames have no logs",
+			SpecOnly:         true,
+			ValidationScript: callFrameCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				cfg := callTracerCfgWith(map[string]interface{}{"withLog": true})
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, cfg); err != nil {
+					return err
+				}
+				opts := callTracerOpts{withLog: true}
+				if err := validateCallFrame(result, opts); err != nil {
+					return err
+				}
+				if _, hasLogs := result["logs"]; !hasLogs {
+					return fmt.Errorf("root frame must carry its LOG1 with withLog")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "calltracer-with-log-index",
+			About: "traces a log-emitting transaction preceded by another log-emitting transaction in the same block, with withLog; each log index MUST equal the logIndex in the receipt",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.DynamicFeeEmit[0]
+				cfg := callTracerCfgWith(map[string]interface{}{"withLog": true})
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, cfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{withLog: true}); err != nil {
+					return err
+				}
+				var receipt struct {
+					Logs []struct {
+						LogIndex hexutil.Uint64 `json:"logIndex"`
+					} `json:"logs"`
+				}
+				if err := t.rpc.CallContext(ctx, &receipt, "eth_getTransactionReceipt", info.TxHash); err != nil {
+					return err
+				}
+				logs, _ := result["logs"].([]interface{})
+				if len(logs) == 0 || len(logs) != len(receipt.Logs) {
+					return fmt.Errorf("root frame has %d logs, receipt has %d", len(logs), len(receipt.Logs))
+				}
+				if receipt.Logs[0].LogIndex == 0 {
+					return fmt.Errorf("test transaction must not emit the first log of its block")
+				}
+				for i, l := range logs {
+					got, _ := l.(map[string]interface{})["index"].(string)
+					if want := receipt.Logs[i].LogIndex.String(); got != want {
+						return fmt.Errorf("logs[%d].index = %q, want receipt logIndex %q", i, got, want)
+					}
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "calltracer-only-top-call",
+			About: "traces a calltree contract invocation with onlyTopCall; only the root frame is returned",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true})
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, cfg); err != nil {
+					return err
+				}
+				opts := callTracerOpts{onlyTopCall: true}
+				if err := validateCallFrame(result, opts); err != nil {
+					return err
+				}
+				if _, hasCalls := result["calls"]; hasCalls {
+					return fmt.Errorf("calls must be absent with onlyTopCall")
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "calltracer-only-top-call-with-log",
+			About: "traces a calltree contract invocation with onlyTopCall and withLog; the root log keeps its receipt logIndex although the nested logs that precede it are not reported",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				cfg := callTracerCfgWith(map[string]interface{}{"onlyTopCall": true, "withLog": true})
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, cfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{onlyTopCall: true, withLog: true}); err != nil {
+					return err
+				}
+				logs, _ := result["logs"].([]interface{})
+				if len(logs) != 1 {
+					return fmt.Errorf("root frame has %d logs, want 1", len(logs))
+				}
+				rootLog, _ := logs[0].(map[string]interface{})
+				var receipt struct {
+					Logs []struct {
+						Address  common.Address `json:"address"`
+						Topics   []common.Hash  `json:"topics"`
+						Data     hexutil.Bytes  `json:"data"`
+						LogIndex hexutil.Uint64 `json:"logIndex"`
+					} `json:"logs"`
+				}
+				if err := t.rpc.CallContext(ctx, &receipt, "eth_getTransactionReceipt", info.TxHash); err != nil {
+					return err
+				}
+				for i, l := range receipt.Logs {
+					wantTopics, _ := json.Marshal(l.Topics)
+					gotTopics, _ := json.Marshal(rootLog["topics"])
+					addr, _ := rootLog["address"].(string)
+					if l.Address != common.HexToAddress(addr) || string(wantTopics) != string(gotTopics) || l.Data.String() != rootLog["data"] {
+						continue
+					}
+					if i == 0 {
+						return fmt.Errorf("root log must not be the first log of its transaction")
+					}
+					if got, want := rootLog["index"], l.LogIndex.String(); got != want {
+						return fmt.Errorf("root log index = %v, want receipt logIndex %s", got, want)
+					}
+					return nil
+				}
+				return fmt.Errorf("root log not found in receipt")
+			},
+		},
+		{
+			Name:  "calltracer-revert-reason",
+			About: "traces a whole-transaction revert; the root frame carries error, raw revert output and the decoded revertReason",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallRevertTxs[0]
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", info.TxHash, callTracerCfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
+					return err
+				}
+				if result["error"] != "execution reverted" {
+					return fmt.Errorf("expected error \"execution reverted\", got %v", result["error"])
+				}
+				if result["revertReason"] != "user error" {
+					return fmt.Errorf("expected revertReason \"user error\", got %v", result["revertReason"])
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "calltracer-create",
+			About: "traces a contract deployment transaction; the root frame is CREATE with the initcode as input and the deployed code as output",
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallMeContract
+				block := t.chain.GetBlock(int(info.Block))
+				signer := types.MakeSigner(t.chain.Config(), block.Number(), block.Time())
+				var deployTx *types.Transaction
+				for _, tx := range block.Transactions() {
+					if tx.To() != nil {
+						continue
+					}
+					sender, err := types.Sender(signer, tx)
+					if err != nil {
+						return err
+					}
+					if crypto.CreateAddress(sender, tx.Nonce()) == info.Addr {
+						deployTx = tx
+						break
+					}
+				}
+				if deployTx == nil {
+					return fmt.Errorf("no deployment tx for %s in block %d", info.Addr.Hex(), info.Block)
+				}
+				var result map[string]interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceTransaction", deployTx.Hash(), callTracerCfg); err != nil {
+					return err
+				}
+				if err := validateCallFrame(result, callTracerOpts{}); err != nil {
+					return err
+				}
+				if result["type"] != "CREATE" {
+					return fmt.Errorf("expected root frame type CREATE, got %v", result["type"])
+				}
+				if result["to"] != strings.ToLower(info.Addr.Hex()) {
+					return fmt.Errorf("expected to = deployed address %s, got %v", info.Addr.Hex(), result["to"])
+				}
+				return nil
+			},
+		},
+		{
+			Name:  "calltracer-gas-dimensions-pre-amsterdam",
+			About: "traces a transfer from before Amsterdam with the callTracer; the EIP-8037 gas fields MUST be omitted",
+			Run:   traceCallTracerNoGasDimensions,
+		},
 	},
 }
 
@@ -427,9 +782,10 @@ var DebugTraceBlockByNumber = MethodTests{
 	"debug_traceBlockByNumber",
 	[]Test{
 		{
-			Name:     "trace-block-with-transactions",
-			About:    "traces a block containing transactions; validates that each entry has txHash and a spec-compliant result",
-			SpecOnly: true,
+			Name:             "trace-block-with-transactions",
+			About:            "traces a block containing transactions; validates that each entry has txHash and a spec-compliant result",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				blockNum := hexutil.EncodeUint64(block.NumberU64())
@@ -445,9 +801,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-memory-encoding",
-			About:    "traces block 0x1 with memory enabled; memory chunks must be 0x-prefixed bytes32 values",
-			SpecOnly: true,
+			Name:             "trace-block-memory-encoding",
+			About:            "traces block 0x1 with memory enabled; memory chunks must be 0x-prefixed bytes32 values",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
 					"disableStack":     false,
@@ -468,9 +825,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-storage-encoding",
-			About:    "traces block 0x2 with storage enabled; storage keys and values must be 0x-prefixed bytes32 values",
-			SpecOnly: true,
+			Name:             "trace-block-storage-encoding",
+			About:            "traces block 0x2 with storage enabled; storage keys and values must be 0x-prefixed bytes32 values",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
 					"disableStack":     false,
@@ -491,9 +849,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-storage-snapshot-timing",
-			About:    "traces block 0x2 and validates cumulative storage snapshots across repeated SSTORE operations",
-			SpecOnly: true,
+			Name:             "trace-block-storage-snapshot-timing",
+			About:            "traces block 0x2 and validates cumulative storage snapshots across repeated SSTORE operations",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				traceCfg := map[string]interface{}{
 					"disableStack":     false,
@@ -520,9 +879,10 @@ var DebugTraceBlockByNumber = MethodTests{
 			},
 		},
 		{
-			Name:     "trace-block-return-data-behavior",
-			About:    "traces a block with returnData disabled and enabled to validate returnData field gating and encoding",
-			SpecOnly: true,
+			Name:             "trace-block-return-data-behavior",
+			About:            "traces a block with returnData disabled and enabled to validate returnData field gating and encoding",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				blockNum := hexutil.EncodeUint64(1)
 
@@ -596,6 +956,72 @@ var DebugTraceBlockByNumber = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:             "calltracer-block-with-transactions",
+			About:            "traces the block containing a calltree invocation with the callTracer; every entry pairs txHash with a CallFrame result",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				blockNum := hexutil.Uint64(info.Block).String()
+				var result []interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceBlockByNumber", blockNum, callTracerCfg); err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("expected at least one trace entry")
+				}
+				return validateCallTracerBlockEntries(result, callTracerOpts{})
+			},
+		},
+		{
+			Name:             "calltracer-block-with-log",
+			About:            "traces a block with the callTracer and withLog; log objects carry position and the reverted transactions carry no logs",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				blockNum := hexutil.Uint64(info.Block).String()
+				cfg := callTracerCfgWith(map[string]interface{}{"withLog": true})
+				var result []interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceBlockByNumber", blockNum, cfg); err != nil {
+					return err
+				}
+				return validateCallTracerBlockEntries(result, callTracerOpts{withLog: true})
+			},
+		},
+		{
+			Name:             "calltracer-block-with-reverted-tx",
+			About:            "traces the block containing a reverted transaction with the callTracer; the reverted entry carries error and revertReason",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallRevertTxs[0]
+				blockNum := hexutil.Uint64(info.Block).String()
+				var result []interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceBlockByNumber", blockNum, callTracerCfg); err != nil {
+					return err
+				}
+				if err := validateCallTracerBlockEntries(result, callTracerOpts{}); err != nil {
+					return err
+				}
+				for _, e := range result {
+					entry, ok := e.(map[string]interface{})
+					if !ok || entry["txHash"] != info.TxHash.Hex() {
+						continue
+					}
+					frame, ok := entry["result"].(map[string]interface{})
+					if !ok {
+						return fmt.Errorf("reverted entry: expected a result frame, got error %v", entry["error"])
+					}
+					if frame["revertReason"] != "user error" {
+						return fmt.Errorf("reverted entry: expected revertReason \"user error\", got %v", frame["revertReason"])
+					}
+					return nil
+				}
+				return fmt.Errorf("reverted tx %s not found in block trace", info.TxHash.Hex())
+			},
+		},
 	},
 }
 
@@ -604,9 +1030,10 @@ var DebugTraceBlockByHash = MethodTests{
 	"debug_traceBlockByHash",
 	[]Test{
 		{
-			Name:     "trace-block-with-transactions",
-			About:    "traces a block containing transactions by hash; validates that each entry has txHash and a spec-compliant result",
-			SpecOnly: true,
+			Name:             "trace-block-with-transactions",
+			About:            "traces a block containing transactions by hash; validates that each entry has txHash and a spec-compliant result",
+			SpecOnly:         true, // refund need not be present when zero.
+			ValidationScript: opcodeBlockScript,
 			Run: func(ctx context.Context, t *T) error {
 				block := t.chain.BlockWithTransactions("", nil)
 				var result []map[string]interface{}
@@ -641,6 +1068,24 @@ var DebugTraceBlockByHash = MethodTests{
 					return fmt.Errorf("expected error for unknown block hash, got success")
 				}
 				return nil
+			},
+		},
+		{
+			Name:             "calltracer-block-with-transactions",
+			About:            "traces the block containing a calltree invocation by hash with the callTracer",
+			SpecOnly:         true,
+			ValidationScript: callBlockCompareScript,
+			Run: func(ctx context.Context, t *T) error {
+				info := t.chain.txinfo.CallTreeTxs[0]
+				block := t.chain.GetBlock(int(info.Block))
+				var result []interface{}
+				if err := t.rpc.CallContext(ctx, &result, "debug_traceBlockByHash", block.Hash(), callTracerCfg); err != nil {
+					return err
+				}
+				if len(result) == 0 {
+					return fmt.Errorf("expected at least one trace entry")
+				}
+				return validateCallTracerBlockEntries(result, callTracerOpts{})
 			},
 		},
 	},
