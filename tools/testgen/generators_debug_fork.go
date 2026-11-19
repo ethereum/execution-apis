@@ -107,6 +107,12 @@ type forkTraceCase struct {
 	opcodeConfig map[string]interface{}
 	callTracer   []forkSide
 	structLog    []forkSide
+	// atFork moves the "at" side to the first block of a later fork. The test
+	// chain can activate Constantinople before Petersburg. No live
+	// network has blocks between the two forks, and the execution specs define
+	// one Constantinople fork without EIP-1283, so clients may run those blocks
+	// under other rules. Do not target a block between the two forks.
+	atFork string
 }
 
 var forkTraceCases = func() []forkTraceCase {
@@ -177,13 +183,13 @@ var forkTraceCases = func() []forkTraceCase {
 			callTracer:   newOpcode, structLog: []forkSide{forkAt},
 		},
 		{
-			fork: "Constantinople", name: "create2", about: "a CREATE2 that deploys one byte",
+			fork: "Constantinople", atFork: "Petersburg", name: "create2", about: "a CREATE2 that deploys one byte",
 			to: wrapper, overrides: map[string]interface{}{wrapper: codeOverride(program.New().MstoreSmall(init2a, 0).
 				Push(1).Push(len(init2a)).Push(32-len(init2a)).Push(0).Op(vm.CREATE2, vm.POP, vm.STOP))},
 			callTracer: newOpcode, structLog: []forkSide{forkAt},
 		},
 		{
-			fork: "Constantinople", name: "shift-extcodehash", about: "SHL, SHR, SAR and EXTCODEHASH, each in its own child call",
+			fork: "Constantinople", atFork: "Petersburg", name: "shift-extcodehash", about: "SHL, SHR, SAR and EXTCODEHASH, each in its own child call",
 			to: wrapper, overrides: forkChildren(
 				program.New().Push(1).Push(1).Op(vm.SHL, vm.POP, vm.STOP),
 				program.New().Push(1).Push(1).Op(vm.SHR, vm.POP, vm.STOP),
@@ -192,7 +198,6 @@ var forkTraceCases = func() []forkTraceCase {
 			),
 			callTracer: newOpcode, structLog: []forkSide{forkAt},
 		},
-		sstore("Petersburg"),
 		sstore("Istanbul"),
 		sstore("London"),
 		{
@@ -327,9 +332,13 @@ func (fc forkTraceCase) test(callTracer bool, side forkSide) Test {
 	if callTracer {
 		prefix, tracerName = "calltracer", "the callTracer"
 	}
+	atFork := fc.fork
+	if fc.atFork != "" {
+		atFork = fc.atFork
+	}
 	sideName, where := "pre", "the last block before "+fc.fork
 	if side.at {
-		sideName, where = "at", "the first "+fc.fork+" block"
+		sideName, where = "at", "the first "+atFork+" block"
 	}
 	test := Test{
 		Name:     fmt.Sprintf("%s-fork-%s-%s-%s", prefix, strings.ToLower(fc.fork), fc.name, sideName),
@@ -341,9 +350,11 @@ func (fc forkTraceCase) test(callTracer bool, side forkSide) Test {
 	}
 	test.Run = func(ctx context.Context, t *T) error {
 		sender, _ := t.chain.GetSender(0)
-		block := firstForkBlock(t.chain, fc.fork)
-		if !side.at {
-			block--
+		var block uint64
+		if side.at {
+			block = firstForkBlock(t.chain, atFork)
+		} else {
+			block = firstForkBlock(t.chain, fc.fork) - 1
 		}
 		call := map[string]interface{}{"from": sender, "gas": "0x100000"}
 		if fc.to != "" {
