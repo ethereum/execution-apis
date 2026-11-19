@@ -108,10 +108,10 @@ type forkTraceCase struct {
 	callTracer   []forkSide
 	structLog    []forkSide
 	// atFork moves the "at" side to the first block of a later fork. The test
-	// chain can activate Constantinople before Petersburg. No live
-	// network has blocks between the two forks, and the execution specs define
-	// one Constantinople fork without EIP-1283, so clients may run those blocks
-	// under other rules. Do not target a block between the two forks.
+	// chain can activate Constantinople before Petersburg. Mainnet activated
+	// both at one block, and the execution specs model only that schedule,
+	// without EIP-1283, so clients differ on the blocks between the two forks.
+	// Do not target a block between the two forks.
 	atFork string
 }
 
