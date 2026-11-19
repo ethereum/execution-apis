@@ -43,7 +43,7 @@ BlockStateCalls:
         title: State overrides
         description: |-
           State overrides can be used to replace existing blockchain state with new state.
-          Account state changes (nonce, balance, code, state, stateDiff) persist into subsequent blocks of the simulation. Precompile table changes (movePrecompileToAddress, and replacing a precompile with code) apply only to the block in which they are specified; each simulated block starts with the active precompiles of its fork before applying its own stateOverrides.
+          Account state changes (nonce, balance, code, state, stateDiff) persist into subsequent blocks of the simulation. Precompile table changes (movePrecompileToAddress, and replacing a precompile with code) apply only to the block in which they are specified; each simulated block starts with the active precompiles of its fork before applying its own stateOverrides. In a later block, an EIP-7702 delegation to that precompile address runs empty code, although the code stays in the state.
           Default: no state overrides
         $ref: '#/components/schemas/StateOverrides'
       calls:
