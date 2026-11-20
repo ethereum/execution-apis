@@ -186,6 +186,19 @@
 
 - name: eth_simulateV1
   summary: Executes a sequence of message calls building on each other's state without creating transactions on the block chain, optionally overriding block and state data
+  description: |
+    The client MUST ignore the `type` field of a call. The other fields and the fork of the simulated
+    block decide the type of the transaction that the block records. The first match applies:
+    `authorizationList` gives type `0x4`; `blobVersionedHashes` gives type `0x3`; `gasPrice`, or a
+    simulated block before London (EIP-1559), gives type `0x1` with `accessList` and type `0x0`
+    without; every other call has type `0x2`. A field is present when the call object of the request
+    contains it with a value other than `null`, also with a zero value or an empty list.
+
+    In a type `0x3` or `0x4` transaction, the value of `gasPrice` is the `maxFeePerGas` and the
+    `maxPriorityFeePerGas`. The client MUST reject a call that no transaction can hold: `gasPrice`
+    together with `maxFeePerGas` or `maxPriorityFeePerGas`; `authorizationList` together with
+    `blobVersionedHashes`; an empty `authorizationList` or `blobVersionedHashes`; either list without
+    `to`; and a field whose EIP is not active at the simulated block.
   params:
     - name: Payload
       required: true
