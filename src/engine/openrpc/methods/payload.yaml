@@ -70,7 +70,7 @@
     - name: Execution payload
       required: true
       schema:
-        oneOf:
+        anyOf:
           - $ref: '#/components/schemas/ExecutionPayloadV1'
           - $ref: '#/components/schemas/ExecutionPayloadV2'
   result:
@@ -335,7 +335,7 @@
       properties:
         executionPayload:
           title: Execution payload
-          oneOf:
+          anyOf:
             - $ref: '#/components/schemas/ExecutionPayloadV1'
             - $ref: '#/components/schemas/ExecutionPayloadV2'
         blockValue:
