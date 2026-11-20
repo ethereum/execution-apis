@@ -350,7 +350,7 @@
     - name: engine_getPayloadV2 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -423,7 +423,7 @@
     - name: engine_getPayloadV3 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -512,7 +512,7 @@
     - name: engine_getPayloadV4 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -605,7 +605,7 @@
     - name: engine_getPayloadV5 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -1157,7 +1157,7 @@
     - name: engine_getPayloadV6 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
