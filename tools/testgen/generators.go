@@ -7999,6 +7999,103 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-type-ignored",
+			About: "the client ignores type: calls with type 0x0 and with an unknown type are recorded as type 0x2",
+			Run: func(ctx context.Context, t *T) error {
+				calls := []map[string]any{
+					{"from": common.Address{0xc0}, "to": common.Address{0xc1}, "type": hexutil.Uint64(types.LegacyTxType)},
+					{"from": common.Address{0xc0}, "to": common.Address{0xc1}, "type": hexutil.Uint64(0x7f)},
+				}
+				return simulateTxTypes(ctx, t, "latest", nil, calls, types.DynamicFeeTxType, types.DynamicFeeTxType)
+			},
+		},
+		{
+			Name:  "ethSimulate-type-authorization-list",
+			About: "a call with authorizationList is recorded as type 0x4, also when the request has type 0x2",
+			Run: func(ctx context.Context, t *T) error {
+				_, auth, err := simulateDelegationAuth(t)
+				if err != nil {
+					return err
+				}
+				calls := []map[string]any{{
+					"from":              common.Address{0xc0},
+					"to":                common.Address{0xc1},
+					"type":              hexutil.Uint64(types.DynamicFeeTxType),
+					"authorizationList": []types.SetCodeAuthorization{auth},
+				}}
+				return simulateTxTypes(ctx, t, "latest", nil, calls, types.SetCodeTxType)
+			},
+		},
+		{
+			Name:  "ethSimulate-type-access-list",
+			About: "a call with accessList and without gasPrice is recorded as type 0x2",
+			Run: func(ctx context.Context, t *T) error {
+				calls := []map[string]any{{
+					"from":       common.Address{0xc0},
+					"to":         common.Address{0xc1},
+					"accessList": types.AccessList{{Address: common.Address{0xc1}, StorageKeys: []common.Hash{}}},
+				}}
+				return simulateTxTypes(ctx, t, "latest", nil, calls, types.DynamicFeeTxType)
+			},
+		},
+		{
+			Name:  "ethSimulate-type-gas-price-access-list",
+			About: "a call with gasPrice and accessList is recorded as type 0x1",
+			Run: func(ctx context.Context, t *T) error {
+				calls := []map[string]any{{
+					"from":       common.Address{0xc0},
+					"to":         common.Address{0xc1},
+					"gasPrice":   (*hexutil.Big)(big.NewInt(1)),
+					"accessList": types.AccessList{{Address: common.Address{0xc1}, StorageKeys: []common.Hash{}}},
+				}}
+				return simulateTxTypes(ctx, t, "latest", nil, calls, types.AccessListTxType)
+			},
+		},
+		{
+			Name:  "ethSimulate-type-gas-price-authorization-list",
+			About: "a call with gasPrice and authorizationList is recorded as type 0x4, with gasPrice as both fee caps",
+			Run: func(ctx context.Context, t *T) error {
+				_, auth, err := simulateDelegationAuth(t)
+				if err != nil {
+					return err
+				}
+				calls := []map[string]any{{
+					"from":              common.Address{0xc0},
+					"to":                common.Address{0xc1},
+					"gasPrice":          (*hexutil.Big)(big.NewInt(1)),
+					"authorizationList": []types.SetCodeAuthorization{auth},
+				}}
+				return simulateTxTypes(ctx, t, "latest", nil, calls, types.SetCodeTxType)
+			},
+		},
+		{
+			Name:  "ethSimulate-type-gas-price-blob-hashes",
+			About: "a call with gasPrice and blobVersionedHashes is recorded as type 0x3, with gasPrice as both fee caps. The blob base fee is zero.",
+			Run: func(ctx context.Context, t *T) error {
+				calls := []map[string]any{{
+					"from":                common.Address{0xc0},
+					"to":                  common.Address{0xc1},
+					"gasPrice":            (*hexutil.Big)(big.NewInt(1)),
+					"maxFeePerBlobGas":    (*hexutil.Big)(big.NewInt(1)),
+					"blobVersionedHashes": []common.Hash{{0x01}},
+				}}
+				return simulateTxTypes(ctx, t, "latest", &BlockOverrides{BlobBaseFee: (*hexutil.Big)(big.NewInt(0))}, calls, types.BlobTxType)
+			},
+		},
+		{
+			Name:  "ethSimulate-type-before-london-access-list",
+			About: "a call with accessList in a block before London is recorded as type 0x1",
+			Run: func(ctx context.Context, t *T) error {
+				base := rpc.BlockNumber(t.chain.Config().LondonBlock.Uint64() - 2)
+				calls := []map[string]any{{
+					"from":       common.Address{0xc0},
+					"to":         common.Address{0xc1},
+					"accessList": types.AccessList{{Address: common.Address{0xc1}, StorageKeys: []common.Hash{}}},
+				}}
+				return simulateTxTypes(ctx, t, base, nil, calls, types.AccessListTxType)
+			},
+		},
+		{
 			Name:  "ethSimulate-extcodehash-existing-contract",
 			About: "test extcodehash getting of existing contract and then overriding it",
 			Run: func(ctx context.Context, t *T) error {
@@ -8853,6 +8950,41 @@ func simulateFreshAuthorityAuth(t *T) (common.Address, types.SetCodeAuthorizatio
 		Address: common.Address{0xc1},
 	})
 	return authority, auth, err
+}
+
+// simulateTxTypes simulates one block with the given calls on top of base, with a funded
+// sender 0xc0, and checks the type of each recorded transaction in order.
+func simulateTxTypes(ctx context.Context, t *T, base any, blockOverrides *BlockOverrides, calls []map[string]any, want ...uint8) error {
+	block := map[string]any{
+		"stateOverrides": StateOverride{
+			common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(params.Ether)},
+		},
+		"calls": calls,
+	}
+	if blockOverrides != nil {
+		block["blockOverrides"] = blockOverrides
+	}
+	payload := map[string]any{"blockStateCalls": []map[string]any{block}, "returnFullTransactions": true}
+	var res []struct {
+		Calls        []callResult `json:"calls"`
+		Transactions []struct {
+			Type hexutil.Uint64 `json:"type"`
+		} `json:"transactions"`
+	}
+	if err := t.rpc.CallContext(ctx, &res, "eth_simulateV1", payload, base); err != nil {
+		return err
+	}
+	var have []uint8
+	for i, tx := range res[0].Transactions {
+		if res[0].Calls[i].Status != 1 {
+			return fmt.Errorf("call %d: unexpected status (have: %d, want: 1)", i, res[0].Calls[i].Status)
+		}
+		have = append(have, uint8(tx.Type))
+	}
+	if !bytes.Equal(have, want) {
+		return fmt.Errorf("unexpected transaction types (have: %v, want: %v)", have, want)
+	}
+	return nil
 }
 
 // returnWordCode is runtime code that returns the given value as a 32-byte word:

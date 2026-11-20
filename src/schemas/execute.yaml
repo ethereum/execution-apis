@@ -235,7 +235,7 @@ GenericCallTransaction:
       title: type
       $ref: '#/components/schemas/byte'
       description: |-
-        Default: 0x2
+        The client ignores this field. The other fields decide the transaction type.
     nonce:
       title: nonce
       description: |-
@@ -245,7 +245,7 @@ GenericCallTransaction:
       title: to address
       $ref: '#/components/schemas/address'
       description: |-
-        Default: 0x0
+        Default: null (contract creation)
     from:
       title: from address
       $ref: '#/components/schemas/address'
@@ -300,7 +300,11 @@ GenericCallTransaction:
       title: Blob versioned hashes
       description: |-
         EIP-4844 versioned hashes
-        Default: []
       type: array
       items:
         $ref: '#/components/schemas/hash32'
+    authorizationList:
+      title: authorizationList
+      description: |-
+        EIP-7702 authorization list
+      $ref: '#/components/schemas/AuthorizationList'
