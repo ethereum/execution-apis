@@ -160,6 +160,9 @@ a validation **MUST** be added:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the Osaka fork has been activated.
 
+For the [`engine_forkchoiceUpdatedV3`](./cancun.md#engine_forkchoiceupdatedv3) the following modification **MUST** be made:
+1. Return `-38005: Unsupported fork` if `payloadAttributes.timestamp` doesn't fall within the time frame of the Cancun, Prague *or Osaka* forks.
+
 #### Prague API
 
 This section defines how Osaka payload should be handled by the ['Prague API'](./prague.md).
@@ -171,3 +174,6 @@ For the following methods:
 a validation **MUST** be added:
 
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of payload is greater than or equal to the Osaka activation timestamp.
+
+For the [`engine_newPayloadV4`](./prague.md#engine_newpayloadv4) the following modification **MUST** be made:
+1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Prague *or Osaka* forks.
