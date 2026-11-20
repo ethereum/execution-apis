@@ -71,6 +71,7 @@ ipc
 js
 json
 JWT
+KECCAK
 KiB
 kzg
 mempool

@@ -127,7 +127,7 @@ StructLog:
         (e.g. "KECCAK256", "SELFDESTRUCT").
 
         A byte that is not defined at that fork MUST be named
-        "opcode 0x<byte> not defined", with the byte in lowercase hex and
+        `opcode 0x<byte> not defined`, with the byte in lowercase hex and
         without leading zeros (e.g. "opcode 0xc not defined"). This includes
         an opcode that a later fork defines, such as PUSH0 (0x5f) before
         Shanghai. The byte 0xfe MUST be named "INVALID" (EIP-141). The byte
