@@ -92,7 +92,7 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 
 ### BlobCellsAndProofsV1
 
-- `blob_cells`: `Array of DATA|null` - a sequence of byte arrays (`DATA`) representing the partial matrix of the requested blobs, with `null` entries for missing cells.
+- `blob_cells`: `Array of DATA|null` - a sequence of byte arrays (`DATA`) representing the partial matrix of the requested blobs, with `null` entries for missing cells. Each cell is `FIELD_ELEMENTS_PER_CELL * BYTES_PER_FIELD_ELEMENT = 64 * 32 = 2048` bytes, representing a SSZ-encoded `Cell` as defined in the [Fulu consensus specs](https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/das-core.md#cell).
 - `proofs`: `Array of DATA|null` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`). Entries corresponding to `null` cells **MUST** also be `null`.
 
 ## Methods
