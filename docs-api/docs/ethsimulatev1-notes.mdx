@@ -202,6 +202,8 @@ The `traceTransfers` logs are not part of the calculation for logs bloom filter.
 ### Log index
 The `logIndex` of a log is its position among all logs that the calls of the same block return, starting at `0`. A log is not returned, and does not use an index, when the call that emitted it failed or reverted, or when the inner call frame that emitted it reverted. The `traceTransfers` logs are numbered together with the other logs, in execution order. Without `traceTransfers` logs, this is the numbering that receipts use.
 
+Calls are not signed, so two calls can have the same transaction hash, in one block or in different blocks. The receipt of each call, and the `logs` of its call result, contain only the logs of that call.
+
 ### EIP-7708
 After Amsterdam the protocol emits a transfer log for every non-zero ETH transfer (EIP-7708). The log has the same topics and data as the `traceTransfers` log, but the emitting address is `0xfffffffffffffffffffffffffffffffffffffffe`. In blocks where EIP-7708 is active, `traceTransfers` adds no logs from `0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`, and the flag has no effect. Blocks before Amsterdam in the same simulation still get the `0xeeee...` logs. A consumer that wants all ETH transfers filters on the `Transfer(address,address,uint256)` topic and accepts both emitting addresses.
 
