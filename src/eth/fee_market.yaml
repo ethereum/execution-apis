@@ -27,7 +27,7 @@
         name: Base fee
         value: '0x3b9aca00'
 - name: eth_blobBaseFee
-  summary: Returns the base fee per blob gas in wei.
+  summary: Returns the base fee per blob gas of the next block in wei.
   params: []
   result:
     name: Blob gas base fee
