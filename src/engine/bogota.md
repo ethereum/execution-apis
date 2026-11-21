@@ -202,13 +202,9 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 #### Specification
 
-1. Client software **MUST** return `-38001: Unknown payload` error if the build process identified by `payloadId` does not exist or has expired.
+1. Client software **MUST** return `-38001: Unknown payload` error if the build process identified by `payloadId` does not exist, has expired, or has stopped.
 
-2. Client software **MUST** return `-32602: Invalid params` error if `attributes` contains a field that is not defined in [`PayloadUpdateV1`](#payloadupdatev1).
-
-3. Client software **MUST** return `-38007: Payload update failed` error if the update can't be processed for any other reason. The error `message` and the optional `data` **SHOULD** give the reason.
-
-4. Client software **MUST** update the build process identified by `payloadId` in place, and **MUST NOT** change its `payloadId`:
+2. Client software **MUST** update the build process identified by `payloadId` in place, and **MUST NOT** change its `payloadId`:
 
     1. Every field present in `attributes` **MUST** replace the corresponding build input of the build process.
 
@@ -216,7 +212,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     3. Client software **MUST** apply all fields of `attributes` or none of them. On error, the build process **MUST** be left unchanged.
 
-5. Client software **MUST** continue the build process from its most recent payload and **MUST NOT** restart it from an empty payload. For `inclusionListTransactions`, this means appending the transactions required to satisfy the inclusion list constraints, as described in the [Payload Construction](https://eips.ethereum.org/EIPS/eip-7805#payload-construction) section of EIP-7805.
+3. Client software **MUST** continue the build process from its most recent payload and **MUST NOT** restart it from an empty payload. For `inclusionListTransactions`, this means appending the transactions required to satisfy the inclusion list constraints, as described in the [Payload Construction](https://eips.ethereum.org/EIPS/eip-7805#payload-construction) section of EIP-7805.
 
 ### Update the methods of previous forks
 

@@ -1232,10 +1232,6 @@
   errors:
     - code: -38001
       message: Unknown payload
-    - code: -32602
-      message: Invalid params
-    - code: -38007
-      message: Payload update failed
   examples:
     - name: engine_updatePayloadBuildV1 example
       params:

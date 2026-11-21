@@ -423,7 +423,6 @@ BlobsBundleV2:
 PayloadUpdateV1:
   title: Payload update object V1
   type: object
-  additionalProperties: false
   properties:
     inclusionListTransactions:
       title: Inclusion list transactions
