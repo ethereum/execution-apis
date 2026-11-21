@@ -1,9 +1,11 @@
 - name: eth_getTransactionByHash
   summary: Returns the information about a transaction requested by transaction hash.
   description: >-
-    The transaction is looked up in the blocks of the canonical chain only,
-    so the result never names a block that is not canonical, such as a block
-    dropped by a chain reorganization.
+    If a block of the canonical chain includes the transaction, the result
+    names that block. Otherwise, if the transaction pool holds the
+    transaction, the result is that pending transaction. Otherwise, the
+    result is null. The result never names a block that is not canonical,
+    such as a block dropped by a chain reorganization.
   params:
     - name: Transaction hash
       required: true
@@ -131,9 +133,11 @@
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
   description: >-
-    The receipt is looked up in the blocks of the canonical chain only, so it
-    never names a block that is not canonical, such as a block dropped by a
-    chain reorganization.
+    If a block of the canonical chain includes the transaction, the result
+    is its receipt in that block. Otherwise, the result is null, also when
+    the transaction pool holds the transaction. The result never names a
+    block that is not canonical, such as a block dropped by a chain
+    reorganization.
   params:
     - name: Transaction hash
       required: true
