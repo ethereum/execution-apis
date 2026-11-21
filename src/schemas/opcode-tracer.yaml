@@ -144,35 +144,41 @@ StructLog:
     refund:
       title: gas refund counter
       description: >-
-        The accumulated gas refund counter at this execution step.
-        Clients MUST include this field at every step when it is non-zero.
-        Clients SHOULD include this field at every step even when zero.
+        The accumulated gas refund counter of the transaction before this
+        opcode executes.
+        Clients MUST include this field at every step when it is non-zero and
+        MUST omit it when it is zero.
       type: integer
       minimum: 0
     stack:
       title: EVM stack
       description: >-
-        The contents of the EVM stack at this step, ordered from bottom (index 0)
-        to top (last element). Each value is a 0x-prefixed uint256 quantity.
-        This field is absent when disableStack is true.
+        The contents of the EVM stack before this opcode executes, ordered from
+        bottom (index 0) to top (last element). Each value is a 0x-prefixed
+        uint256 quantity. This field MUST be omitted when disableStack is
+        true. Otherwise it MUST be present, as an empty array when the stack
+        is empty.
       type: array
       items:
         $ref: '#/components/schemas/uint256'
     memory:
       title: EVM memory
       description: >-
-        The contents of EVM memory at this step, divided into 32-byte chunks.
-        Each element is a 0x-prefixed, zero-padded 32-byte hex word representing
-        a consecutive 32-byte memory slot starting at offset (index * 32).
-        This field is absent (not null) when enableMemory is false.
+        The contents of EVM memory before this opcode executes, divided into
+        32-byte chunks. Each element is a 0x-prefixed, zero-padded 32-byte hex
+        word representing a consecutive 32-byte memory slot starting at offset
+        (index * 32). This field MUST be omitted (not null and not an empty
+        array) when enableMemory is false or memory is empty.
       type: array
       items:
         $ref: '#/components/schemas/bytes32'
     returnData:
       title: return data
       description: >-
-        The return data from the most recent call at this step.
-        This field is absent when enableReturnData is false.
+        The contents of the return data buffer (the data RETURNDATASIZE and
+        RETURNDATACOPY read) before this opcode executes. This field MUST be
+        omitted (not null and not "0x") when enableReturnData is false or the
+        buffer is empty.
       $ref: '#/components/schemas/bytes'
     storage:
       title: contract storage
@@ -185,6 +191,9 @@ StructLog:
 
         This field is only populated at SLOAD and SSTORE opcodes.
         At all other opcodes, this field MUST be absent (not an empty object).
+        An SLOAD or SSTORE step that halts with an error does not execute the
+        opcode, so this field MUST be absent at that step, and the step MUST
+        NOT add or update the slot in the snapshot of later steps.
         This field is absent when disableStorage is true.
       type: object
       additionalProperties:
