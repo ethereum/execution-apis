@@ -5740,6 +5740,18 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-empty-on-genesis",
+			About: "simulates an empty block on top of the genesis block, whose extraData is not empty",
+			Run: func(ctx context.Context, t *T) error {
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{}},
+				}
+				res := make([]blockResult, 0)
+				t.rpc.Call(&res, "eth_simulateV1", params, (*hexutil.Big)(big.NewInt(0)))
+				return nil
+			},
+		},
+		{
 			Name:  "ethSimulate-empty-with-block-num-set-minusone",
 			About: "set block number otherwise empty with latest - 1",
 			Run: func(ctx context.Context, t *T) error {
