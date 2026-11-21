@@ -6562,7 +6562,7 @@ var EthSimulateV1 = MethodTests{
 					BlockStateCalls: []CallBatch{{
 						BlockOverrides: &BlockOverrides{
 							Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
-							Time:          getUint64Ptr(latestBlockTime + 10),
+							Time:          getUint64Ptr(latestBlockTime + 121),
 							GasLimit:      getUint64Ptr(1004),
 							FeeRecipient:  &feeRecipient,
 							PrevRandao:    &randDao,
@@ -7370,19 +7370,19 @@ var EthSimulateV1 = MethodTests{
 						{
 							BlockOverrides: &BlockOverrides{
 								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 5)),
-								Time:   getUint64Ptr(latestBlockTime + 10),
+								Time:   getUint64Ptr(latestBlockTime + 61),
 							},
 						},
 						{
 							BlockOverrides: &BlockOverrides{
 								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
-								Time:   getUint64Ptr(latestBlockTime + 20),
+								Time:   getUint64Ptr(latestBlockTime + 122),
 							},
 						},
 						{
 							BlockOverrides: &BlockOverrides{
 								Number: (*hexutil.Big)(big.NewInt(latestBlockNumber + 20)),
-								Time:   getUint64Ptr(latestBlockTime + 30),
+								Time:   getUint64Ptr(latestBlockTime + 243),
 							},
 						},
 					},
@@ -7428,9 +7428,9 @@ var EthSimulateV1 = MethodTests{
 			Name:  "ethSimulate-block-override-reflected-in-contract",
 			About: "Checks that block overrides are true in contract",
 			Run: func(ctx context.Context, t *T) error {
-				prevRandDao1 := common.BytesToHash(*hex2Bytes("123"))
+				prevRandDao1 := common.BytesToHash(*hex2Bytes("0123"))
 				prevRandDao2 := common.BytesToHash(*hex2Bytes("1234"))
-				prevRandDao3 := common.BytesToHash(*hex2Bytes("12345"))
+				prevRandDao3 := common.BytesToHash(*hex2Bytes("012345"))
 				latestBlockTime := hexutil.Uint64(t.chain.Head().Time())
 				latestBlockNumber := t.chain.Head().Number().Int64()
 				params := ethSimulateOpts{
@@ -7443,7 +7443,7 @@ var EthSimulateV1 = MethodTests{
 							},
 							BlockOverrides: &BlockOverrides{
 								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 5)),
-								Time:          getUint64Ptr(latestBlockTime + 10),
+								Time:          getUint64Ptr(latestBlockTime + 61),
 								GasLimit:      getUint64Ptr(190000),
 								FeeRecipient:  &common.Address{0xc0},
 								PrevRandao:    &prevRandDao1,
@@ -7460,7 +7460,7 @@ var EthSimulateV1 = MethodTests{
 						{
 							BlockOverrides: &BlockOverrides{
 								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 10)),
-								Time:          getUint64Ptr(latestBlockTime + 10),
+								Time:          getUint64Ptr(latestBlockTime + 122),
 								GasLimit:      getUint64Ptr(300000),
 								FeeRecipient:  &common.Address{0xc1},
 								PrevRandao:    &prevRandDao2,
@@ -7477,7 +7477,7 @@ var EthSimulateV1 = MethodTests{
 						{
 							BlockOverrides: &BlockOverrides{
 								Number:        (*hexutil.Big)(big.NewInt(latestBlockNumber + 15)),
-								Time:          getUint64Ptr(latestBlockTime + 20),
+								Time:          getUint64Ptr(latestBlockTime + 183),
 								GasLimit:      getUint64Ptr(190002),
 								FeeRecipient:  &common.Address{0xc2},
 								PrevRandao:    &prevRandDao3,
