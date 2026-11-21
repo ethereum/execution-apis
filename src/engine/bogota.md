@@ -13,7 +13,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 - [Structures](#structures)
   - [PayloadAttributesV5](#payloadattributesv5)
   - [PayloadStatusV2](#payloadstatusv2)
-  - [PayloadAttributesUpdateV1](#payloadattributesupdatev1)
+  - [PayloadUpdateV1](#payloadupdatev1)
 - [Routines](#routines)
   - [Payload building](#payload-building)
 - [Methods](#methods)
@@ -29,7 +29,7 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
     - [Request](#request-2)
     - [Response](#response-2)
     - [Specification](#specification-2)
-  - [engine_updatePayloadV1](#engine_updatepayloadv1)
+  - [engine_updatePayloadBuildV1](#engine_updatepayloadbuildv1)
     - [Request](#request-3)
     - [Response](#response-3)
     - [Specification](#specification-3)
@@ -68,9 +68,9 @@ This structure has the syntax of `PayloadStatusV1` and appends a single field: `
 - `validationError`: `String|null` - a message providing additional details on the validation error if the payload is classified as `INVALID`.
 - `inclusionListSatisfied`: `BOOLEAN|null` - whether the payload satisfied the inclusion list constraints if it is deemed `VALID`; `null` otherwise.
 
-### PayloadAttributesUpdateV1
+### PayloadUpdateV1
 
-This structure contains the subset of [`PayloadAttributesV5`](#payloadattributesv5) fields that can be changed after a payload build process has started. All fields are optional. The remaining fields of `PayloadAttributesV5` are fixed when the build process starts.
+This structure contains the build inputs that can be changed after a payload build process has started. All fields are optional.
 
 - `inclusionListTransactions`: `Array of DATA` - (optional) Array of transaction objects, each object is a byte list (`DATA`). It is the complete current set and replaces the earlier set.
 
@@ -185,14 +185,14 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     3. Otherwise, `payloadStatus.inclusionListSatisfied` **MUST** be `null`.
 
-### engine_updatePayloadV1
+### engine_updatePayloadBuildV1
 
 #### Request
 
-* method: `engine_updatePayloadV1`
+* method: `engine_updatePayloadBuildV1`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process to update
-  2. `attributes`: [`PayloadAttributesUpdateV1`](#payloadattributesupdatev1) - The payload attributes to change
+  2. `attributes`: [`PayloadUpdateV1`](#payloadupdatev1) - The build inputs to change
 * timeout: 1s
 
 #### Response
@@ -204,13 +204,13 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
 1. Client software **MUST** return `-38001: Unknown payload` error if the build process identified by `payloadId` does not exist or has expired.
 
-2. Client software **MUST** return `-32602: Invalid params` error if `attributes` contains a field that is not defined in [`PayloadAttributesUpdateV1`](#payloadattributesupdatev1).
+2. Client software **MUST** return `-32602: Invalid params` error if `attributes` contains a field that is not defined in [`PayloadUpdateV1`](#payloadupdatev1).
 
 3. Client software **MUST** return `-38007: Payload update failed` error if the update can't be processed for any other reason. The error `message` and the optional `data` **SHOULD** give the reason.
 
 4. Client software **MUST** update the build process identified by `payloadId` in place, and **MUST NOT** change its `payloadId`:
 
-    1. Every field present in `attributes` **MUST** replace the corresponding field of the payload attributes of the build process.
+    1. Every field present in `attributes` **MUST** replace the corresponding build input of the build process.
 
     2. Every field omitted from `attributes` **MUST** be left unchanged. An empty array replaces the field with an empty array.
 
