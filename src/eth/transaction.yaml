@@ -1,5 +1,9 @@
 - name: eth_getTransactionByHash
   summary: Returns the information about a transaction requested by transaction hash.
+  description: >-
+    The transaction is looked up in the blocks of the canonical chain only,
+    so the result never names a block that is not canonical, such as a block
+    dropped by a chain reorganization.
   params:
     - name: Transaction hash
       required: true
@@ -126,6 +130,10 @@
           s: '0x5e863be3829812c81439f0ae9d8ecb832b531d651fb234c848d1bf45e62be8b9'
 - name: eth_getTransactionReceipt
   summary: Returns the receipt of a transaction by transaction hash.
+  description: >-
+    The receipt is looked up in the blocks of the canonical chain only, so it
+    never names a block that is not canonical, such as a block dropped by a
+    chain reorganization.
   params:
     - name: Transaction hash
       required: true
