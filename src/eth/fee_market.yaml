@@ -28,6 +28,12 @@
         value: '0x3b9aca00'
 - name: eth_blobBaseFee
   summary: Returns the base fee per blob gas of the next block in wei.
+  description: >-
+    The next block is the child of the latest block. Its excess blob gas and
+    its base fee per blob gas use the blob parameters in force at the
+    timestamp of the latest block, also when a fork activates before the next
+    block. The result equals the last entry of `baseFeePerBlobGas` in the
+    result of `eth_feeHistory` with `newestBlock` set to `latest`.
   params: []
   result:
     name: Blob gas base fee
@@ -103,7 +109,7 @@
             $ref: '#/components/schemas/uint'
         baseFeePerBlobGas:
           title: baseFeePerBlobGasArray
-          description: An array of block base fees per blob gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. Zeroes are returned for pre-EIP-4844 blocks.
+          description: An array of block base fees per blob gas. This includes the next block after the newest of the returned range, because this value can be derived from the newest block. The entry of the next block uses the blob parameters in force at the timestamp of the newest block. Zeroes are returned for pre-EIP-4844 blocks.
           type: array
           items:
             $ref: '#/components/schemas/uint'
