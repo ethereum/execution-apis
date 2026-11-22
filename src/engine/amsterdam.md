@@ -48,7 +48,7 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
 
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `blockAccessList`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends two new fields: `blockAccessList` and `slotNumber`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
