@@ -7999,6 +7999,140 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name:  "ethSimulate-override-empty-account-not-created",
+			About: "an override that leaves a missing account with nonce 0, balance 0 and no code does not create it: an EIP-7702 authorization from that account gets no existing-account refund",
+			Run: func(ctx context.Context, t *T) error {
+				return simulateEmptiedAuthority(t, emptiedMissing, OverrideAccount{Code: hex2Bytes("")}, false)
+			},
+		},
+		{
+			Name:  "ethSimulate-override-empty-storage-not-created",
+			About: "an override with an empty `state` does not create a missing account, because the account has no storage",
+			Run: func(ctx context.Context, t *T) error {
+				return simulateEmptiedAuthority(t, emptiedMissing, OverrideAccount{State: &map[common.Hash]common.Hash{}}, false)
+			},
+		},
+		{
+			Name:  "ethSimulate-override-zero-slot-not-created",
+			About: "an override that only writes zero to a storage slot does not create a missing account, because a zero slot is not stored",
+			Run: func(ctx context.Context, t *T) error {
+				return simulateEmptiedAuthority(t, emptiedMissing, OverrideAccount{StateDiff: &map[common.Hash]common.Hash{{31: 1}: {}}}, false)
+			},
+		},
+		{
+			Name:  "ethSimulate-override-emptied-account-removed",
+			About: "an override that leaves an existing account with nonce 0, balance 0 and no code removes it: an EIP-7702 authorization from that account gets no existing-account refund",
+			Run: func(ctx context.Context, t *T) error {
+				return simulateEmptiedAuthority(t, emptiedFunded, OverrideAccount{Balance: newRPCBalance(0)}, false)
+			},
+		},
+		{
+			Name:  "ethSimulate-override-emptied-account-storage-removed",
+			About: "an override that leaves an account with storage with nonce 0, balance 0 and no code removes it with its storage, so code set by a later override reads zero",
+			Run: func(ctx context.Context, t *T) error {
+				return simulateEmptiedAuthority(t, emptiedWithStorage, OverrideAccount{Code: hex2Bytes(""), Balance: newRPCBalance(0)}, true)
+			},
+		},
+		{
+			Name:  "ethSimulate-override-emptied-account-storage-kept",
+			About: "an override that leaves an existing account with nonce 0, balance 0 and no code, and sets a non-zero storage slot, keeps the account with that slot, so code set by a later override reads it",
+			Run: func(ctx context.Context, t *T) error {
+				account := common.Address{0xc2}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+						},
+						Calls: []TransactionArgs{{From: &common.Address{0xc0}, To: &account, Value: (*hexutil.Big)(common.Big1)}},
+					}, {
+						StateOverrides: &StateOverride{
+							account: OverrideAccount{Balance: newRPCBalance(0), StateDiff: &map[common.Hash]common.Hash{{31: 1}: {31: 1}}},
+						},
+					}, {
+						StateOverrides: &StateOverride{
+							account: OverrideAccount{Code: hex2Bytes(readSlotOneCode)},
+						},
+						Calls: []TransactionArgs{{From: &common.Address{0xc0}, To: &account}},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return checkReturnData(res[2].Calls, 0, returnWord(1))
+			},
+		},
+		{
+			Name:  "ethSimulate-override-storage-keeps-empty-account",
+			About: "an override that sets a non-zero storage slot on a missing account keeps the account with that slot, so code set by a later override reads it",
+			Run: func(ctx context.Context, t *T) error {
+				account := common.Address{0xc2}
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{{
+						StateOverrides: &StateOverride{
+							common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+							account:              OverrideAccount{StateDiff: &map[common.Hash]common.Hash{{31: 1}: {31: 1}}},
+						},
+					}, {
+						StateOverrides: &StateOverride{
+							account: OverrideAccount{Code: hex2Bytes(readSlotOneCode)},
+						},
+						Calls: []TransactionArgs{{From: &common.Address{0xc0}, To: &account}},
+					}},
+					Validation: false,
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				return checkReturnData(res[1].Calls, 0, returnWord(1))
+			},
+		},
+		{
+			Name:  "ethSimulate-override-empty-account-created-before-spurious-dragon",
+			About: "before EIP-161, an override that leaves a missing account empty creates it: a CALL with value to it pays no new-account gas",
+			Run: func(ctx context.Context, t *T) error {
+				target := common.Address{0xc3}
+				// PUSH1 0 (x4) PUSH1 1 PUSH20 target PUSH2 0xffff CALL STOP
+				caller := "6000600060006000600173" + common.Bytes2Hex(target.Bytes()) + "61fffff100"
+				base := hexutil.EncodeUint64(t.chain.Config().EIP158Block.Uint64() - 2)
+				gasUsed := func(withOverride bool) (uint64, error) {
+					overrides := StateOverride{
+						common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+						common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(caller), Balance: newRPCBalance(1)},
+					}
+					if withOverride {
+						overrides[target] = OverrideAccount{Balance: newRPCBalance(0)}
+					}
+					opts := ethSimulateOpts{
+						BlockStateCalls: []CallBatch{{
+							StateOverrides: &overrides,
+							Calls:          []TransactionArgs{{From: &common.Address{0xc0}, To: &common.Address{0xc1}}},
+						}},
+						Validation: false,
+					}
+					res := make([]blockResult, 0)
+					if err := t.rpc.Call(&res, "eth_simulateV1", opts, base); err != nil {
+						return 0, err
+					}
+					return uint64(res[0].Calls[0].GasUsed), nil
+				}
+				missing, err := gasUsed(false)
+				if err != nil {
+					return err
+				}
+				created, err := gasUsed(true)
+				if err != nil {
+					return err
+				}
+				if missing-created != params.CallNewAccountGas {
+					return fmt.Errorf("unexpected gas used (missing: %d, with override: %d), want a difference of %d", missing, created, params.CallNewAccountGas)
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "ethSimulate-extcodehash-existing-contract",
 			About: "test extcodehash getting of existing contract and then overriding it",
 			Run: func(ctx context.Context, t *T) error {
@@ -8853,6 +8987,89 @@ func simulateFreshAuthorityAuth(t *T) (common.Address, types.SetCodeAuthorizatio
 		Address: common.Address{0xc1},
 	})
 	return authority, auth, err
+}
+
+type emptiedSetup int
+
+const (
+	emptiedMissing emptiedSetup = iota
+	emptiedFunded
+	emptiedWithStorage
+)
+
+// PUSH1 1 SLOAD PUSH1 0 MSTORE PUSH1 32 PUSH1 0 RETURN
+const readSlotOneCode = "60015460005260206000f3"
+
+// simulateEmptiedAuthority sets up the authority in block 1, applies override to it in
+// block 2 before an EIP-7702 authorization from it, and expects the authority not to
+// exist: the authorization gets no existing-account refund. With readSlot, block 3 reads
+// slot 1 of the authority and expects zero. The blocks run before Amsterdam, where the
+// refund shows whether the authority exists.
+func simulateEmptiedAuthority(t *T, setup emptiedSetup, override OverrideAccount, readSlot bool) error {
+	authority, auth, err := simulateFreshAuthorityAuth(t)
+	if err != nil {
+		return err
+	}
+	blocks := uint64(2)
+	if readSlot {
+		blocks = 3
+	}
+	base, err := simulateBaseBefore(t, *t.chain.Config().AmsterdamTime, blocks)
+	if err != nil {
+		return err
+	}
+	first := CallBatch{
+		StateOverrides: &StateOverride{
+			common.Address{0xc0}: OverrideAccount{Balance: newRPCBalance(2000000)},
+			common.Address{0xc1}: OverrideAccount{Code: hex2Bytes(returnWordCode(42))},
+		},
+	}
+	switch setup {
+	case emptiedFunded:
+		first.Calls = []TransactionArgs{{From: &common.Address{0xc0}, To: &authority, Value: (*hexutil.Big)(common.Big1)}}
+	case emptiedWithStorage:
+		// PUSH1 1 PUSH1 1 SSTORE STOP
+		(*first.StateOverrides)[authority] = OverrideAccount{Code: hex2Bytes("6001600155"), Balance: newRPCBalance(1)}
+		first.Calls = []TransactionArgs{{From: &common.Address{0xc0}, To: &authority}}
+	}
+	batches := []CallBatch{first, {
+		StateOverrides: &StateOverride{authority: override},
+		Calls: []TransactionArgs{
+			{From: &common.Address{0xc0}, To: &common.Address{0xc0}, AuthorizationList: []types.SetCodeAuthorization{auth}},
+			{From: &common.Address{0xc0}, To: &authority},
+		},
+	}}
+	if readSlot {
+		batches = append(batches, CallBatch{
+			StateOverrides: &StateOverride{authority: OverrideAccount{Code: hex2Bytes(readSlotOneCode)}},
+			Calls:          []TransactionArgs{{From: &common.Address{0xc0}, To: &authority}},
+		})
+	}
+	res := make([]blockResult, 0)
+	if err := t.rpc.Call(&res, "eth_simulateV1", ethSimulateOpts{BlockStateCalls: batches, Validation: false}, base); err != nil {
+		return err
+	}
+	if got := res[1].Calls[0].GasUsed; got != 46000 {
+		return fmt.Errorf("block 2 call 0: unexpected gas used (have: %d, want: 46000), the authority exists", got)
+	}
+	if err := checkReturnData(res[1].Calls, 1, returnWord(42)); err != nil {
+		return err
+	}
+	if readSlot {
+		return checkReturnData(res[2].Calls, 0, returnWord(0))
+	}
+	return nil
+}
+
+// simulateBaseBefore returns the latest block whose simulated children, 12 seconds
+// apart, all have a timestamp before fork.
+func simulateBaseBefore(t *T, fork uint64, blocks uint64) (string, error) {
+	for n := int(t.chain.Head().NumberU64()); n >= 0; n-- {
+		if b := t.chain.GetBlock(n); b.Time()+12*blocks < fork {
+			return hexutil.EncodeUint64(b.NumberU64()), nil
+		}
+	}
+	return "", fmt.Errorf("no block before the fork")
 }
 
 // returnWordCode is runtime code that returns the given value as a 32-byte word:

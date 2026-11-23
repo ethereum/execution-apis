@@ -96,6 +96,8 @@ All the other fields are computed automatically (e.g. `stateRoot` and `gasUsed`)
 
 A client rejects a key in `blockOverrides` or in a `stateOverrides` account object that it does not support, with error code `-32602`. A client can treat a key that differs from a spec key only in case, such as `Code`, as the spec key. It then applies the key, and rejects two keys that differ only in case and name the same spec key, with error code `-32602`. A client can support other keys that the spec does not define. After the merge, a simulated block always has difficulty `0`, and a client rejects a `difficulty` override for such a block with error code `-32602`.
 
+From Spurious Dragon (EIP-161), an account that an override in `stateOverrides` writes, and that the overrides of the block leave with nonce 0, balance 0 and no code, does not exist after the overrides and has no storage. The exception is an account whose override sets a non-zero storage slot. An entry that only moves a precompile does not write the account. See `AccountOverride`.
+
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
 ## ETH transfer logs

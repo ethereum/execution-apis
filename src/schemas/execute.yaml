@@ -64,6 +64,8 @@ AccountOverride:
   title: Details of an account to be overridden
   description: |-
     It is possible to override any kind of address (EOA's, contracts and precompiles). A `code` override on a precompile address replaces the precompile.
+    The overrides are applied to the state before the call or the simulated block runs. An override writes the account if it sets `nonce`, `balance`, `code` or `state`, or a `stateDiff` with at least one slot. It changes only what it sets: the fields it names, the slots in `stateDiff`, or the whole storage with `state`. Except as stated below, the rest of the account keeps its values. An entry that only sets `movePrecompileToAddress` does not write the account.
+    Where EIP-161 is active at the block that the call or the simulated block runs in, an account that an override writes, and that the overrides leave with nonce 0, balance 0 and no code, does not exist after the overrides are applied and has no storage. This applies to an account that existed before the overrides and to one that did not. The exception is an account whose override sets a non-zero value in a storage slot with `state` or `stateDiff`: it exists, with its storage. A slot with the value zero is not stored, so it does not count.
     A client MUST reject a key that it does not support with error code -32602. A client MAY treat a key that differs from a key defined in this schema only in case as that defined key. It MUST then apply the key, and MUST reject two keys that differ only in case and name the same defined key with error code -32602. A client MAY support other keys that this schema does not define.
   type: object
   not:
