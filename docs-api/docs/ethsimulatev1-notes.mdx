@@ -49,23 +49,47 @@ As eth_simulate is an extension to `eth_call` we want to enable the nice user ex
 
 | parameter name | description |
 -----------------|-----------------------
-| type | `0x2` |
+| type | Selected from the other fields, see [Transaction type](#transaction-type) |
 | nonce | Take the correct nonce for the account prior eth_simulate and increment by one for each transaction by the account |
 | to | `null` |
 | from | `0x0000000000000000000000000000000000000000` |
 | gasLimit | blockGasLimit - soFarUsedGasInBlock. After Amsterdam, see [Gas after Amsterdam](#gas-after-amsterdam) |
 | value | `0x0` |
 | input | no data |
-| gasPrice | `0x0` |
-| maxPriorityFeePerGas | `0x0` |
-| maxFeePerGas | `0x0` |
+| gasPrice | `0x0` in a type `0x0` or `0x1` transaction |
+| maxPriorityFeePerGas | `0x0` in a type `0x2`, `0x3` or `0x4` transaction |
+| maxFeePerGas | `0x0` in a type `0x2`, `0x3` or `0x4` transaction |
 | accessList | empty array |
-| blobVersionedHashes | empty array |
+| blobVersionedHashes | none |
+| maxFeePerBlobGas | `0x0` in a type `0x3` transaction |
+| authorizationList | none |
 | chainId | The chain id of the current chain |
 | r | `0x0` |
 | s | `0x0` |
 | yParity | even |
 | v | `0x0` |
+
+### Transaction type
+The client MUST ignore the `type` field of a call. The other fields and the fork of the simulated block decide the type of the transaction that the block records. The type is the first match in this list:
+
+1. `authorizationList` is present: `0x4`.
+2. `blobVersionedHashes` is present: `0x3`.
+3. `gasPrice` is present, or EIP-1559 is not active at the simulated block: `0x1` when `accessList` is present, otherwise `0x0`.
+4. Otherwise: `0x2`.
+
+A field is present when the call object of the request contains it with a value other than `null`, before the defaults apply. A field with a zero value or an empty list is present.
+
+A type `0x3` or `0x4` transaction has no `gasPrice` field. When `gasPrice` is present in such a call, its value is the `maxFeePerGas` and the `maxPriorityFeePerGas` of the transaction.
+
+The client MUST reject a call that no transaction can hold:
+
+- `gasPrice` together with `maxFeePerGas` or `maxPriorityFeePerGas`.
+- `authorizationList` together with `blobVersionedHashes`.
+- An empty `authorizationList` (EIP-7702) or an empty `blobVersionedHashes` (EIP-4844).
+- `authorizationList` or `blobVersionedHashes` without `to`.
+- A field whose EIP is not active at the simulated block: `accessList` before Berlin (EIP-2930), `maxFeePerGas` and `maxPriorityFeePerGas` before London (EIP-1559), `blobVersionedHashes` before Cancun (EIP-4844) and `authorizationList` before Prague (EIP-7702).
+
+`maxFeePerBlobGas` does not select a type. When EIP-4844 is active at the simulated block, `maxFeePerBlobGas` without `blobVersionedHashes` has no effect. This differs from `eth_call`, which rejects such a request.
 
 ### Gas after Amsterdam
 After Amsterdam (EIP-8037) a block counts execution gas and state gas separately. EIP-8037 defines the gas that a block has used as the larger of its cumulative execution gas and its cumulative state gas. Both amounts count gas before refunds, and calls that revert or fail during execution still count. The gas used after the earlier calls equals the `gasUsed` header field of a block that ends after those calls. It is not the `cumulativeGasUsed` of the previous receipt, and it is not the sum of the `gasUsed` values of the earlier call results.
@@ -80,7 +104,7 @@ The EIP-8037 cap of `TX_MAX_TOTAL_GAS_LIMIT` (`2^32 - 1`) on the `gasLimit` of a
 EIP-2681 limits an account nonce to `2^64 - 1`. Whether or not `validation` is enabled, a call from a sender whose nonce is `2^64 - 1` ends the simulation, and eth_simulateV1 returns an error (see [Failures](#failures)). The nonce does not wrap to zero. Disabled validation skips the check that the transaction nonce equals the account nonce, not this limit.
 
 ## Overriding default values
-The default values of blocks and transactions can be overridden. For Transactions we allow overriding of variables `type`, `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `accessList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobBaseFee`:
+The default values of blocks and transactions can be overridden. For Transactions we allow overriding of variables `nonce`, `to`, `from`, `gas limit`, `value`, `input`, `gasPrice`, `maxPriorityFeePerGas`, `maxFeePerGas`, `maxFeePerBlobGas`, `accessList`, `blobVersionedHashes`, `authorizationList`, and for blocks we allow modifications of `number`, `time`, `gasLimit`, `feeRecipient`, `prevRandao`, `baseFeePerGas` and `blobBaseFee`:
 ```json
 "blockOverrides": {
 	"number": "0x14",
