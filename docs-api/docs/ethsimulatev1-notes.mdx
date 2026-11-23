@@ -12,7 +12,7 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | nonce | `0x0` |
 | extraData | `0x` (empty) |
 | difficulty | Before the merge, the same as the base block defined as the second parameter in the call. After the merge, `0` |
-| gasLimit | The same as the base block defined as the second parameter in the call |
+| gasLimit | The previous block's gas limit. For the first simulated block, the gas limit of the base block defined as the second parameter in the call |
 | hash | Calculated normally |
 | parentHash | Previous blocks hash |
 | timestamp | The timestamp of previous block + `network block time` (12s on Ethereum Mainnet) |
