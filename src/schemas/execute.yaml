@@ -122,7 +122,7 @@ BlockOverrides:
       $ref: '#/components/schemas/uint64'
     feeRecipient:
       title: Fee recipient
-      description: Address set by the proposer/builder to receive priority fees. Often matches the block header `feeRecipient` field but is not the COINBASE EVM opcode.
+      description: Coinbase of the simulated block. The block's `miner` field and the COINBASE opcode return it, and it receives the priority fees. It can differ from the fee recipient that a validator registers outside the protocol.
       $ref: '#/components/schemas/address'
     baseFeePerGas:
       title: Base fee per unit of gas
