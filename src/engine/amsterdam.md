@@ -223,7 +223,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
 
     1. `payloadAttributes` matches the [`PayloadAttributesV4`](#payloadattributesv4) structure, return `-38003: Invalid payload attributes` on failure.
 
-    2. `payloadAttributes.timestamp` does not fall within the time frame of the Amsterdam fork, return `-38005: Unsupported fork` on failure.
+    2. `payloadAttributes.timestamp` falls within the time frame of the Amsterdam fork, return `-38005: Unsupported fork` on failure.
 
 2. Client software **MUST** use the target gas limit supplied in `payloadAttributes.targetGasLimit` when constructing a payload.
 
