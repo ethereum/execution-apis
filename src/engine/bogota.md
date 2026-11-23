@@ -71,7 +71,7 @@ This routine follows the same specification as [Payload building](./paris.md#pay
 
 1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload` **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
-2. Client software **MUST NOT** reject a payload solely because `inclusionlistTransactions` contains a malformed transaction
+2. Client software **MUST NOT** reject a payload solely because `inclusionListTransactions` contains a malformed transaction
 (e.g., an arbitrary byte string). Such transactions must be tolerated in accordance with [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
 ## Methods
@@ -164,7 +164,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure, return `-38003: Invalid payload attributes` on failure.
 
-    2. `payloadAttributes.timestamp` does not fall within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
+    2. `payloadAttributes.timestamp` falls within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
 
 2. Extend point (9) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining `payloadStatus.inclusionListSatisfied`:
 
