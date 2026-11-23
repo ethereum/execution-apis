@@ -17,6 +17,7 @@
       oneOf:
         - $ref: '#/components/schemas/notFound'
         - $ref: '#/components/schemas/TransactionInfo'
+        - $ref: '#/components/schemas/PendingTransactionInfo'
   examples:
     - name: eth_getTransactionByHash example
       params:
