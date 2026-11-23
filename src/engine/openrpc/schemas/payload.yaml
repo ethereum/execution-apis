@@ -361,7 +361,7 @@ ExecutionPayloadV5:
     - excessBlobGas
     - blockAccessList
     - slotNumber
-    - starkProof
+    - dependencyProof
   properties:
     parentHash:
       $ref: '#/components/schemas/ExecutionPayloadV4/properties/parentHash'
@@ -401,9 +401,9 @@ ExecutionPayloadV5:
       $ref: '#/components/schemas/ExecutionPayloadV4/properties/blockAccessList'
     slotNumber:
       $ref: '#/components/schemas/ExecutionPayloadV4/properties/slotNumber'
-    starkProof:
-      title: STARK proof
-      description: The EIP-8288 block body stark_proof, empty if the payload has no dependencies
+    dependencyProof:
+      title: Dependency proof
+      description: The EIP-8288 dependency proof, at most MAX_DEPENDENCY_PROOF_BYTES; empty if the payload has no dependencies
       $ref: '#/components/schemas/bytes'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
@@ -453,9 +453,9 @@ ExecutionPayloadBodyV3:
       $ref: '#/components/schemas/ExecutionPayloadBodyV2/properties/withdrawals'
     blockAccessList:
       $ref: '#/components/schemas/ExecutionPayloadBodyV2/properties/blockAccessList'
-    starkProof:
-      title: STARK proof
-      description: The EIP-8288 block body stark_proof, or null for blocks before the EIP-8288 fork
+    dependencyProof:
+      title: Dependency proof
+      description: The EIP-8288 dependency proof, or null for blocks before the EIP-8288 fork or if it has been pruned
       oneOf:
         - $ref: '#/components/schemas/bytes'
         - type: 'null'

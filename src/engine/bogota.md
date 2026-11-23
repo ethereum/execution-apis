@@ -70,8 +70,9 @@ This specification is based on and extends [Engine API - Amsterdam](./amsterdam.
 | - | - |
 | `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST` |  `uint64(8192) = 2**13` |
 | `MAX_IL_PROOF_BYTES` | `uint64(1310720) = 5 * 2**18` |
+| `MAX_DEPENDENCY_PROOF_BYTES` | `uint64(1048576) = 2**20` |
 
-`MAX_IL_PROOF_BYTES` is the [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288) constant of the same name and is provisional there. The *EIP-8288 fork* is the fork activating EIP-8288.
+`MAX_IL_PROOF_BYTES` and `MAX_DEPENDENCY_PROOF_BYTES` are the [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288) constants of the same names; `MAX_IL_PROOF_BYTES` is provisional there. The *EIP-8288 fork* is the fork activating EIP-8288.
 
 ## Structures
 
@@ -128,7 +129,7 @@ This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloada
 
 ### ExecutionPayloadV5
 
-This structure has the syntax of [`ExecutionPayloadV4`](./amsterdam.md#executionpayloadv4) and appends a single field: `starkProof`.
+This structure has the syntax of [`ExecutionPayloadV4`](./amsterdam.md#executionpayloadv4) and appends a single field: `dependencyProof`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -149,18 +150,18 @@ This structure has the syntax of [`ExecutionPayloadV4`](./amsterdam.md#execution
 - `excessBlobGas`: `QUANTITY`, 64 Bits
 - `blockAccessList`: `DATA` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928)
 - `slotNumber`: `QUANTITY`, 64 Bits
-- `starkProof`: `DATA` - the block body's `stark_proof` as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288), `"0x"` if the payload has no dependencies
+- `dependencyProof`: `DATA` - the dependency proof as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288), at most `MAX_DEPENDENCY_PROOF_BYTES` bytes, `"0x"` if the payload has no dependencies
 
-The header fields `stark_proof_hash` and `block_deps_hash` of EIP-8288 are not sent. Client software derives `stark_proof_hash` as `keccak256(starkProof)` and `block_deps_hash` as `get_deps_hash(dependencies(block))` from `transactions`, and includes both when it computes `blockHash`.
+The dependency proof is part of neither the block header nor the block body. The header fields `dependency_proof_hash` and `block_deps_hash` of EIP-8288 are not sent. Client software derives `dependency_proof_hash` as `keccak256(dependencyProof)` and `block_deps_hash` as `get_deps_hash(dependencies(block))` from `transactions`, and includes both when it computes `blockHash`. A `dependencyProof` that does not match the header the block was built with therefore makes `blockHash` mismatch.
 
 ### ExecutionPayloadBodyV3
 
-This structure has the syntax of [`ExecutionPayloadBodyV2`](./amsterdam.md#executionpayloadbodyv2) and appends a single field: `starkProof`.
+This structure has the syntax of [`ExecutionPayloadBodyV2`](./amsterdam.md#executionpayloadbodyv2) and appends a single field: `dependencyProof`.
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
 - `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
 - `blockAccessList`: `DATA|null` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928). Value is `null` for blocks produced before Amsterdam or if the data has been pruned.
-- `starkProof`: `DATA|null` - the block body's `stark_proof` as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288). Value is `null` for blocks produced before the EIP-8288 fork.
+- `dependencyProof`: `DATA|null` - the dependency proof as defined in [EIP-8288](https://eips.ethereum.org/EIPS/eip-8288). Value is `null` for blocks produced before the EIP-8288 fork or if the proof has been pruned.
 
 ## Routines
 
@@ -311,7 +312,9 @@ This method follows the same specification as [`engine_newPayloadV6`](#engine_ne
 
 4. Client software **MUST** retain `inclusionLists` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
 
-5. Client software **MUST** return `-32602: Invalid params` error if the `starkProof` field is missing. A `starkProof` longer than the EIP-8288 `MAX_STARK_PROOF_BYTES` makes the payload `INVALID`.
+5. Client software **MUST** return `-32602: Invalid params` error if the `dependencyProof` field is missing. A `dependencyProof` longer than `MAX_DEPENDENCY_PROOF_BYTES` makes the payload `INVALID`; client software **SHOULD** reject it before hashing it.
+
+6. Client software **MUST** validate `dependencyProof` against the block validity rules of EIP-8288 and return `INVALID` if it is non-empty for a payload without dependencies, malformed, or does not verify against `block_deps_hash` and `AGGREGATED_VK`. Client software **MUST NOT** return `INVALID` because it could not run the verifier, and returns `SYNCING` or an error instead. Verifying the proof does not depend on executing the payload, so client software **MAY** run the two in parallel.
 
 ### engine_getInclusionListV2
 
@@ -410,7 +413,7 @@ This method follows the same specification as [`engine_getPayloadV6`](./amsterda
 
 This method follows the same specification as [`engine_getPayloadBodiesByHashV2`](./amsterdam.md#engine_getpayloadbodiesbyhashv2) with the following addition:
 
-1. Client software **MUST** set the `starkProof` field to `null` for blocks that predate the EIP-8288 fork activation.
+1. Client software **MUST** set the `dependencyProof` field to `null` for blocks that predate the EIP-8288 fork activation, and **MAY** set it to `null` for a block whose proof it has pruned. Client software **MUST** retain the dependency proofs of the weak subjectivity period.
 
 ### engine_getPayloadBodiesByRangeV3
 
@@ -431,7 +434,7 @@ This method follows the same specification as [`engine_getPayloadBodiesByHashV2`
 
 This method follows the same specification as [`engine_getPayloadBodiesByRangeV2`](./amsterdam.md#engine_getpayloadbodiesbyrangev2) with the following addition:
 
-1. Client software **MUST** set the `starkProof` field to `null` for blocks that predate the EIP-8288 fork activation.
+1. Client software **MUST** set the `dependencyProof` field to `null` for blocks that predate the EIP-8288 fork activation, and **MAY** set it to `null` for a block whose proof it has pruned. Client software **MUST** retain the dependency proofs of the weak subjectivity period.
 
 ### Update the methods of previous forks
 

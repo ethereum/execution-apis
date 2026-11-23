@@ -116,6 +116,14 @@ Block:
     slotNumber:
       title: EIP-7843 slot number
       $ref: '#/components/schemas/uint64'
+    dependencyProofHash:
+      title: EIP-8288 dependency proof hash
+      description: Keccak-256 hash of the block's dependency proof, which the block itself does not carry
+      $ref: '#/components/schemas/hash32'
+    blockDepsHash:
+      title: EIP-8288 block dependencies hash
+      description: Digest of the dependencies the block's transactions declare, the dependency proof's public statement
+      $ref: '#/components/schemas/hash32'
 BlockTag:
   title: Block tag
   type: string
