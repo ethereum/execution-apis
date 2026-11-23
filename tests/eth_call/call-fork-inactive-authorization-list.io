@@ -1,0 +1,3 @@
+// calls with an authorization list on a block before Prague. The request is invalid because EIP-7702 is not active.
+>> {"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"authorizationList":[{"chainId":"0x0","address":"0x0100000000000000000000000000000000000000","nonce":"0x0","yParity":"0x0","r":"0x0","s":"0x0"}],"from":"0x0c2c51a0990aee1d73c1228de158688341557508","to":"0x0100000000000000000000000000000000000000"},"0x2c"]}
+<< {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"err: transaction type not supported: setcode tx (sender 0x0c2c51a0990AeE1d73C1228de158688341557508) (supplied gas 50000000)"}}

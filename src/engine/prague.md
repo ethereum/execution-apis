@@ -35,7 +35,7 @@ Method parameter list is extended with `executionRequests`.
   1. `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3).
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
-  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list. If the list has no elements, the expected array MUST be `[]`. If any element is out of order, has a length of 1-byte or shorter, or more than one element has the same type byte, or the param is `null`, client software **MUST** return `-32602: Invalid params` error.
+  4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list. If the list has no elements, the expected array MUST be `[]`.
 * timeout: 8s
 
 #### Response
@@ -53,6 +53,8 @@ and incorporate it into the `blockHash` validation process.
 That is, if the computed commitment does not match the corresponding commitment in the execution layer block header,
 the call **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}`.
 
+3. Client software **MUST** return `-32602: Invalid params` error if any element of `executionRequests` is out of order, has a length of 1-byte or shorter, or more than one element has the same type byte, or if `executionRequests` is `null`.
+
 ### engine_getPayloadV4
 
 The response of this method is extended with the `executionRequests` field.
@@ -62,14 +64,13 @@ The response of this method is extended with the `executionRequests` field.
 * method: `engine_getPayloadV4`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 
 * result: `object`
   - `executionPayload`: [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3)
   - `blockValue` : `QUANTITY`, 256 Bits - The expected value to be received by the `feeRecipient` in wei
-  - `blobsBundle`: [`BlobsBundleV1`](#BlobsBundleV1) - Bundle with data corresponding to blob transactions included into `executionPayload`
+  - `blobsBundle`: [`BlobsBundleV1`](./cancun.md#blobsbundlev1) - Bundle with data corresponding to blob transactions included into `executionPayload`
   - `shouldOverrideBuilder` : `BOOLEAN` - Suggestion from the execution layer to use this `executionPayload` instead of an externally provided one
   - `executionRequests`: `Array of DATA` - Execution layer triggered requests obtained from the `executionPayload` transaction execution.
 * error: code and message set in case an exception happens while getting the payload.

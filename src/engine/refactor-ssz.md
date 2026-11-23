@@ -20,13 +20,14 @@
 ## Table of contents
 
 - [Primitive aliases](#primitive-aliases)
-- [`MAX_*` constants](#max-constants)
+- [`MAX_*` constants](#max_-constants)
 - [Shared structures](#shared-structures)
   - [`Withdrawal`](#withdrawal)
   - [`ExecutionPayload` (Amsterdam)](#executionpayload-amsterdam)
   - [`PayloadAttributes` (Amsterdam)](#payloadattributes-amsterdam)
   - [`ForkchoiceState`](#forkchoicestate)
   - [`PayloadStatus`](#payloadstatus)
+  - [`ExecutionWitness`](#executionwitness)
 - [Per-fork container catalogue](#per-fork-container-catalogue)
   - [`ExecutionPayload` per fork](#executionpayload-per-fork)
   - [`PayloadAttributes` per fork](#payloadattributes-per-fork)
@@ -39,6 +40,7 @@
   - [Identification & capabilities](#identification--capabilities)
 - [Endpoint containers](#endpoint-containers)
   - [`POST /payloads`](#post-payloads)
+  - [`POST /payloads/witness`](#post-payloadswitness)
   - [`POST /forkchoice`](#post-forkchoice)
   - [`GET /payloads/{payloadId}`](#get-payloadspayloadid)
   - [`POST /bodies/hash` and `GET /bodies?...`](#post-bodieshash-and-get-bodies)
@@ -71,11 +73,11 @@
 | Constant | Value | Source |
 | - | - | - |
 | `MAX_BYTES_PER_TX` | `2**30` (1,073,741,824) | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
-| `MAX_TXS_PER_PAYLOAD` | `2**20` (1,048,576) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
-| `MAX_WITHDRAWALS_PER_PAYLOAD` | `2**4` (16) | [Capella](https://github.com/ethereum/consensus-specs/blob/dev/specs/capella/beacon-chain.md) |
-| `BYTES_PER_LOGS_BLOOM` | `256` | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
-| `MAX_EXTRA_DATA_BYTES` | `2**5` (32) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/dev/specs/bellatrix/beacon-chain.md) |
-| `MAX_BLOB_COMMITMENTS_PER_BLOCK` | `2**12` (4,096) | [Deneb](https://github.com/ethereum/consensus-specs/blob/dev/specs/deneb/beacon-chain.md) |
+| `MAX_TXS_PER_PAYLOAD` | `2**20` (1,048,576) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md) |
+| `MAX_WITHDRAWALS_PER_PAYLOAD` | `2**4` (16) | [Capella](https://github.com/ethereum/consensus-specs/blob/master/specs/capella/beacon-chain.md) |
+| `BYTES_PER_LOGS_BLOOM` | `256` | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md) |
+| `MAX_EXTRA_DATA_BYTES` | `2**5` (32) | [Bellatrix](https://github.com/ethereum/consensus-specs/blob/master/specs/bellatrix/beacon-chain.md) |
+| `MAX_BLOB_COMMITMENTS_PER_BLOCK` | `2**12` (4,096) | [Deneb](https://github.com/ethereum/consensus-specs/blob/master/specs/deneb/beacon-chain.md) |
 | `FIELD_ELEMENTS_PER_BLOB` | `4096` | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
 | `BYTES_PER_FIELD_ELEMENT` | `32` | [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) |
 | `BYTES_PER_BLOB` | `FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT` (131,072) | derived |
@@ -89,6 +91,11 @@
 | `MAX_BLOBS_REQUEST` | `MAX_VERSIONED_HASHES_PER_REQUEST` (128) | derived |
 | `MAX_BODIES_REQUEST` | `2**5` (32) | [Shanghai](./shanghai.md#engine_getpayloadbodiesbyhashv1) |
 | `MAX_REQUEST_BODY_SIZE` | `2**26` (67,108,864) | this spec (64 MiB; advertised as `limits.payload.max_bytes`) |
+| `MAX_WITNESS_ITEMS` | `2**20` (1,048,576) | this spec (placeholder; max items in each of `ExecutionWitness.state` and `ExecutionWitness.codes`, which execution-specs defines as progressive lists with no item limit) |
+| `MAX_BYTES_PER_WITNESS_NODE` | `2**10` (1,024) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
+| `MAX_BYTES_PER_CODE` | `2**16` (65,536) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
+| `MAX_BYTES_PER_HEADER` | `2**10` (1,024) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
+| `MAX_WITNESS_HEADERS` | `2**8` (256) | [stateless spec](https://github.com/ethereum/execution-specs/blob/tests-zkevm%40v0.8.4/src/ethereum/forks/amsterdam/stateless.py) |
 | `MAX_ERROR_BYTES` | `1024` | this spec |
 | `MAX_CLIENT_CODE_LENGTH` | `2` | this spec |
 | `MAX_CLIENT_NAME_LENGTH` | `64` | this spec |
@@ -271,6 +278,27 @@ emitted) pointing at the start of the 14-byte text. Total =
 precedes the text whenever the error is present — this is exactly the
 byte that a plain `List[byte, 1024]` implementation omits, and the
 source of the divergence.
+
+### `ExecutionWitness`
+
+Used by `PayloadStatusWithWitness`, the response of
+[`POST /payloads/witness`](#post-payloadswitness).
+The container is **fork-invariant in shape** (like `PayloadStatus`);
+only the endpoint that returns it is fork-scoped.
+
+```
+ExecutionWitness {
+    state:   List[ByteList[MAX_BYTES_PER_WITNESS_NODE], MAX_WITNESS_ITEMS]
+    codes:   List[ByteList[MAX_BYTES_PER_CODE], MAX_WITNESS_ITEMS]
+    headers: List[ByteList[MAX_BYTES_PER_HEADER], MAX_WITNESS_HEADERS]
+}
+```
+
+Each item is opaque bytes; the EL does **not** re-encode them as
+structured SSZ — they travel as `ByteList`s, the same way `transactions`
+and `block_access_list` do. Field contents and completeness requirements
+are defined in
+[refactor.md § Payload submission with witness](./refactor.md#payload-submission-with-witness).
 
 ---
 
@@ -521,7 +549,7 @@ BuiltPayloadAmsterdam {
 ```
 
 The Amsterdam variant is the one shown in the
-[endpoint section below](#get-forkpayloadspayloadid).
+[endpoint section below](#get-payloadspayloadid).
 
 ### `ExecutionPayloadEnvelope` per fork
 
@@ -684,6 +712,30 @@ from `payload.transactions`).
 #### Response
 
 `PayloadStatus` (full enum, `0`/`1`/`2`/`3`).
+
+### `POST /payloads/witness`
+
+See
+[refactor.md § Payload submission with witness](./refactor.md#payload-submission-with-witness)
+for endpoint availability and witness requirements.
+
+#### Request (Amsterdam)
+
+`ExecutionPayloadEnvelopeAmsterdam`, as defined for
+[`POST /payloads`](#post-payloads).
+
+#### Response
+
+```
+PayloadStatusWithWitness {
+    payload_status: PayloadStatus
+    witness:        Optional[ExecutionWitness]
+}
+```
+
+Both fields are variable-size, so `PayloadStatusWithWitness` has two
+4-byte offsets (`payload_status`, then `witness`), making an 8-byte
+fixed section.
 
 ### `POST /forkchoice`
 
@@ -994,3 +1046,13 @@ the *extended*-blob cell count, halving the true cell size.
 5. **Naming convention.** The legacy spec used `camelCase`; this
    sketch uses `snake_case` to match consensus-specs. Worth
    confirming once before publication.
+6. **`MAX_WITNESS_ITEMS`.** execution-specs defines
+   `ExecutionWitness.state` and `ExecutionWitness.codes` as
+   `ProgressiveList`s with no item limit. This sketch doesn't use
+   progressive types yet, so both fields are
+   `List[..., MAX_WITNESS_ITEMS]` with `2**20` as a placeholder.
+   Should `state` and `codes` use `ProgressiveList` to match
+   execution-specs? Both forms serialize to the same bytes. Only the
+   `List` length check and the hash tree root differ, and this API
+   doesn't use the root. Until this is decided, the placeholder must
+   stay above the item count of any real witness.

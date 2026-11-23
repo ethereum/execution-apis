@@ -11,7 +11,9 @@
     - name: Payload attributes
       required: false
       schema:
-        $ref: '#/components/schemas/PayloadAttributesV1'
+        oneOf:
+          - $ref: '#/components/schemas/PayloadAttributesV1'
+          - type: 'null'
   result:
     name: Response object
     schema:
@@ -57,7 +59,9 @@
     - name: Payload attributes
       required: false
       schema:
-        $ref: '#/components/schemas/PayloadAttributesV2'
+        oneOf:
+          - $ref: '#/components/schemas/PayloadAttributesV2'
+          - type: 'null'
   result:
     name: Response object
     schema:
@@ -114,7 +118,9 @@
     - name: Payload attributes
       required: false
       schema:
-        $ref: '#/components/schemas/PayloadAttributesV3'
+        oneOf:
+          - $ref: '#/components/schemas/PayloadAttributesV3'
+          - type: 'null'
   result:
     name: Response object
     schema:
@@ -174,7 +180,9 @@
     - name: Payload attributes
       required: false
       schema:
-        $ref: '#/components/schemas/PayloadAttributesV4'
+        oneOf:
+          - $ref: '#/components/schemas/PayloadAttributesV4'
+          - type: 'null'
     - name: Custody columns
       required: false
       schema:
@@ -209,7 +217,9 @@
     - name: Payload attributes
       required: false
       schema:
-        $ref: '#/components/schemas/PayloadAttributesV5'
+        oneOf:
+          - $ref: '#/components/schemas/PayloadAttributesV5'
+          - type: 'null'
     - name: Custody columns
       required: false
       schema:

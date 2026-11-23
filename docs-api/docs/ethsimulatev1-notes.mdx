@@ -7,12 +7,12 @@ Unlike `eth_call`, `eth_simulateV1`'s calls are conducted inside blocks. We don'
 | parameter name | default value |
 -----------------|-----------------------
 | prevRandao | `0x0000000000000000000000000000000000000000000000000000000000000000` |
-| feeRecipient | `0x0000000000000000000000000000000000000000` |
+| feeRecipient | The previous block's fee recipient. For the first simulated block, the fee recipient of the base block defined as the second parameter in the call |
 | mixHash | `0x0000000000000000000000000000000000000000000000000000000000000000` |
 | nonce | `0x0` |
-| extraData | `0x0000000000000000000000000000000000000000000000000000000000000000` |
-| difficulty | The same as the base block defined as the second parameter in the call |
-| gasLimit | The same as the base block defined as the second parameter in the call |
+| extraData | `0x` (empty) |
+| difficulty | Before the merge, the same as the base block defined as the second parameter in the call. After the merge, `0` |
+| gasLimit | The previous block's gas limit. For the first simulated block, the gas limit of the base block defined as the second parameter in the call |
 | hash | Calculated normally |
 | parentHash | Previous blocks hash |
 | timestamp | The timestamp of previous block + `network block time` (12s on Ethereum Mainnet) |
@@ -93,6 +93,8 @@ The default values of blocks and transactions can be overridden. For Transaction
 },
 ```
 All the other fields are computed automatically (e.g. `stateRoot` and `gasUsed`) or kept as their default values (e.g. `uncles` or `withdrawals`). When overriding `number` and `time` variables for blocks, we automatically check that the block numbers and time fields are strictly increasing (we don't allow decreasing, or duplicated block numbers or times). If the block number is increased more than `1` compared to the previous block, new empty blocks are generated in between.
+
+A client rejects a key in `blockOverrides` or in a `stateOverrides` account object that it does not support, with error code `-32602`. A client can treat a key that differs from a spec key only in case, such as `Code`, as the spec key. It then applies the key, and rejects two keys that differ only in case and name the same spec key, with error code `-32602`. A client can support other keys that the spec does not define. After the merge, a simulated block always has difficulty `0`, and a client rejects a `difficulty` override for such a block with error code `-32602`.
 
 An interesting note here is that an user can specify block numbers and times of some blocks, but not for others. When block numbers of times are left unspecified, the default values will be used. After the blocks have been constructed, and default values are calculated, the blocks are checked that their block numbers and times are still valid.
 
@@ -187,8 +189,8 @@ Here the interesting part is:
 In the observed event, the sender address is denoted as the `0xee...` address. The first topic (`0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef`) aligns with the event signature `Transfer(address,address,uint256)`, while the second topic (`0x000000000000000000000000c000000000000000000000000000000000000000`) corresponds to the sending address, and the third topic (`0x000000000000000000000000c100000000000000000000000000000000000000`) represents the receiving address. The quantity of ETH transacted is stored in the data field.
 
 The ETH logs will contain following types of ETH transfers:
- - Transfering ETH from EOA
- - Transfering ETH via contract
+ - Transferring ETH from EOA
+ - Transferring ETH via contract
  - Selfdestructing contract sending ETH
 
 But not following ones:

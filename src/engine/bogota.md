@@ -87,7 +87,7 @@ This structure has the syntax of [`PayloadAttributesV4`](./amsterdam.md#payloada
 - `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
 - `slotNumber`: `QUANTITY`, 64 Bits - value for the `slotNumber` field of the new payload
 - `targetGasLimit`: `QUANTITY`, 64 Bits - target value for the `gasLimit` field of the new payload
-- `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+- `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`).
 
 ### PayloadStatusV2
 
@@ -171,7 +171,10 @@ This routine follows the same specification as [Payload building](./paris.md#pay
 
 1. Client software **MUST** take `inclusionListTransactions` into account during the payload build process. The built `ExecutionPayload` **MUST** satisfy the inclusion list constraints with respect to `inclusionListTransactions` as defined in [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
 
-2. With [`PayloadAttributesV6`](#payloadattributesv6), the constraints apply to the transactions that `inclusionLists` obligate, as defined in [Inclusion list proof obligations](#inclusion-list-proof-obligations). Client software **MAY** aggregate the proofs that verify there into the payload's recursive STARK, discarding the dependencies absent from the payload.
+2. Client software **MUST NOT** reject a payload solely because `inclusionListTransactions` contains a malformed transaction
+(e.g., an arbitrary byte string). Such transactions must be tolerated in accordance with [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+
+3. With [`PayloadAttributesV6`](#payloadattributesv6), the constraints apply to the transactions that `inclusionLists` obligate, as defined in [Inclusion list proof obligations](#inclusion-list-proof-obligations). Client software **MAY** aggregate the proofs that verify there into the payload's recursive STARK, discarding the dependencies absent from the payload.
 
 ### Inclusion list proof obligations
 
@@ -197,7 +200,7 @@ Method parameter list is extended with `inclusionListTransactions`.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests. Each list element is a `requests` byte array as defined by [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685). The first byte of each element is the `request_type` and the remaining bytes are the `request_data`. Elements of the list **MUST** be ordered by `request_type` in ascending order. Elements with empty `request_data` **MUST** be excluded from the list.
-  5. `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718).
+  5. `inclusionListTransactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`).
 * timeout: 6s
 
 #### Response
@@ -219,6 +222,9 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
 3. Client software **MUST** retain `inclusionListTransactions` for a payload with `ACCEPTED` status. Client software **MAY** discard them once the payload is no longer the tip of a branch.
 
+4. Client software **MUST NOT** reject a payload solely because `inclusionListTransactions` contains a malformed transaction
+(e.g., an arbitrary byte string). Such transactions must be tolerated in accordance with [EIP-7805](https://eips.ethereum.org/EIPS/eip-7805).
+
 ### engine_getInclusionListV1
 
 #### Request
@@ -238,7 +244,7 @@ This method follows the same specification as [`engine_newPayloadV5`](./amsterda
 
     1. Every transaction **MUST** have non-zero length (at least 1 byte).
 
-    2. The transaction list **MUST NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction).
+    2. The transaction list **SHOULD NOT** include any [blob transaction](https://eips.ethereum.org/EIPS/eip-4844#blob-transaction).
 
     3. The total byte length of the transaction list **MUST NOT** exceed `MAX_TRANSACTIONS_BYTES_PER_INCLUSION_LIST`.
 
@@ -270,7 +276,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV4`](./a
 
     1. `payloadAttributes` matches the [`PayloadAttributesV5`](#payloadattributesv5) structure, return `-38003: Invalid payload attributes` on failure.
 
-    2. `payloadAttributes.timestamp` does not fall within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
+    2. `payloadAttributes.timestamp` falls within the time frame of the Bogota fork, return `-38005: Unsupported fork` on failure.
 
 2. Extend point (9) of the `engine_forkchoiceUpdatedV1` [specification](./paris.md#specification-1) by defining `payloadStatus.inclusionListSatisfied`:
 

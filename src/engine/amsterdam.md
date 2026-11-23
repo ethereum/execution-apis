@@ -48,7 +48,7 @@ This specification is based on and extends [Engine API - Osaka](./osaka.md) spec
 
 ### ExecutionPayloadV4
 
-This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends the new field: `blockAccessList`.
+This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpayloadv3) and appends two new fields: `blockAccessList` and `slotNumber`.
 
 - `parentHash`: `DATA`, 32 Bytes
 - `feeRecipient`:  `DATA`, 20 Bytes
@@ -92,7 +92,7 @@ This structure has the syntax of [`PayloadAttributesV3`](./cancun.md#payloadattr
 
 ### BlobCellsAndProofsV1
 
-- `blob_cells`: `Array of DATA|null` - a sequence of byte arrays (`DATA`) representing the partial matrix of the requested blobs, with `null` entries for missing cells.
+- `blob_cells`: `Array of DATA|null` - a sequence of byte arrays (`DATA`) representing the partial matrix of the requested blobs, with `null` entries for missing cells. Each cell is `FIELD_ELEMENTS_PER_CELL * BYTES_PER_FIELD_ELEMENT = 64 * 32 = 2048` bytes, representing a SSZ-encoded `Cell` as defined in the [Fulu consensus specs](https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/das-core.md#cell).
 - `proofs`: `Array of DATA|null` - Array of `KZGProof` as defined in [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844), 48 bytes each (`DATA`). Entries corresponding to `null` cells **MUST** also be `null`.
 
 ## Methods
@@ -134,7 +134,6 @@ This method is updated to return the new `ExecutionPayloadV4` structure.
 * method: `engine_getPayloadV6`
 * params:
   1. `payloadId`: `DATA`, 8 Bytes - Identifier of the payload build process
-* timeout: 1s
 
 #### Response
 
@@ -224,7 +223,7 @@ This method follows the same specification as [`engine_forkchoiceUpdatedV3`](./c
 
     1. `payloadAttributes` matches the [`PayloadAttributesV4`](#payloadattributesv4) structure, return `-38003: Invalid payload attributes` on failure.
 
-    2. `payloadAttributes.timestamp` does not fall within the time frame of the Amsterdam fork, return `-38005: Unsupported fork` on failure.
+    2. `payloadAttributes.timestamp` falls within the time frame of the Amsterdam fork, return `-38005: Unsupported fork` on failure.
 
 2. Client software **MUST** use the target gas limit supplied in `payloadAttributes.targetGasLimit` when constructing a payload.
 
