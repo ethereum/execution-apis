@@ -8,10 +8,10 @@ import (
 )
 
 // dereference recursively expands all '$ref' entries in schema, resolving each
-// reference against repository. Every '$ref' value must have the form
-// "#/components/schemas/<Name>".
+// reference against repository. Component references use
+// "#/components/schemas/<Name>"; a local "#" under an explicit $id is preserved.
 //
-// The input schema is not modified; a fully dereferenced deep copy is returned.
+// The input schema is not modified; an expanded deep copy is returned.
 // Cycles are detected and reported as errors.
 func dereference(schema object, repository schemaRepository) (object, error) {
 	d := &dereferencer{
@@ -25,6 +25,7 @@ func dereference(schema object, repository schemaRepository) (object, error) {
 type dereferencer struct {
 	repository schemaRepository
 	visiting   map[string]bool
+	resourceID string
 }
 
 func (d *dereferencer) value(v any) (any, error) {
@@ -58,6 +59,11 @@ func (d *dereferencer) slice(arr []any) ([]any, error) {
 // local overrides.
 func (d *dereferencer) object(obj object) (object, error) {
 	ref, hasRef := obj["$ref"].(string)
+	previousID := d.resourceID
+	if id, ok := obj["$id"].(string); ok && id != "" {
+		d.resourceID = id
+	}
+	defer func() { d.resourceID = previousID }()
 
 	// Expand all non-$ref values.
 	out := make(object, len(obj))
@@ -72,6 +78,12 @@ func (d *dereferencer) object(obj object) (object, error) {
 		out[k] = expanded
 	}
 
+	if hasRef && ref == "#" && d.resourceID != "" {
+		// A self-reference is finite when preserved within its own schema resource.
+		// Expanding it would either recurse forever or weaken nested validation.
+		out["$ref"] = ref
+		return out, nil
+	}
 	if hasRef {
 		// Resolve the reference and use it as the base, letting local siblings
 		// (already in out) take precedence over the resolved fields.

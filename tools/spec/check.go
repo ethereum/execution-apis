@@ -1,9 +1,11 @@
 package spec
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"maps"
 	"slices"
 	"strings"
@@ -48,7 +50,7 @@ func (c *Checker) SetCheckArgs(on bool) {
 // Request checks a request message (sent by the client) against the spec.
 func (c *Checker) Request(rawmsg json.RawMessage) error {
 	var msg jsonrpcMessage
-	if err := json.Unmarshal(rawmsg, &msg); err != nil {
+	if err := decodeJSON(rawmsg, &msg); err != nil {
 		return fmt.Errorf("invalid call message: %v", err)
 	}
 	if msg.Method == "" {
@@ -59,7 +61,7 @@ func (c *Checker) Request(rawmsg json.RawMessage) error {
 	}
 	var arguments []any
 	if len(msg.Params) > 0 {
-		if err := json.Unmarshal(msg.Params, &arguments); err != nil {
+		if err := decodeJSON(msg.Params, &arguments); err != nil {
 			return fmt.Errorf(`invalid "params" in call message: %v`, err)
 		}
 	}
@@ -89,7 +91,7 @@ func (c *Checker) Request(rawmsg json.RawMessage) error {
 // Note Response doesn't support batch requests yet.
 func (c *Checker) Response(rawmsg json.RawMessage) error {
 	var msg jsonrpcMessage
-	err := json.Unmarshal(rawmsg, &msg)
+	err := decodeJSON(rawmsg, &msg)
 	if err != nil {
 		return fmt.Errorf("invalid response message: %v", err)
 	}
@@ -178,4 +180,18 @@ func isStandardError(code int64) bool {
 	default:
 		return false
 	}
+}
+
+// decodeJSON decodes one JSON value with numbers as json.Number, so values
+// validate exactly. Like json.Unmarshal, it rejects trailing data.
+func decodeJSON(data []byte, v any) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return errors.New("invalid JSON: trailing data after value")
+	}
+	return nil
 }
