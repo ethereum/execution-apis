@@ -86,7 +86,7 @@ This method follows the same specification as [`engine_getPayloadV4`](./prague.m
    2. `assert len(blobsBundle.proofs) == len(blobsBundle.blobs) * CELLS_PER_EXT_BLOB` and
    3. `assert verify_cell_kzg_proof_batch(commitments, cell_indices, cells, blobsBundle.proofs)` (see [EIP-7594 consensus-specs](https://github.com/ethereum/consensus-specs/blob/v1.6.1/specs/fulu/polynomial-commitments-sampling.md#verify_cell_kzg_proof_batch))
       1. `commitments` should list each commitment `CELLS_PER_EXT_BLOB` times, repeating it for every cell. In python, `[blobsBundle.commitments[i] for i in range(len(blobsBundle.blobs)) for _ in range(CELLS_PER_EXT_BLOB)]`
-      2. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB, 0, ..., CELLS_PER_EXT_BLOB, ...]`. In python, `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
+      2. `cell_indices` should be `[0, ..., CELLS_PER_EXT_BLOB - 1, 0, ..., CELLS_PER_EXT_BLOB - 1, ...]`. In python, `list(range(CELLS_PER_EXT_BLOB)) * len(blobsBundle.blobs)`
       3. `cells` is the list of cells for an extended blob. In python, `[cell for blob in blobsBundle.blobs for cell in compute_cells(blob)]` (see [compute_cells](https://github.com/ethereum/consensus-specs/blob/v1.6.1/specs/fulu/polynomial-commitments-sampling.md#compute_cells) in consensus-specs)
       4. All of the inputs to `verify_cell_kzg_proof_batch` have the same length, `CELLS_PER_EXT_BLOB * len(blobsBundle.blobs)`
 
