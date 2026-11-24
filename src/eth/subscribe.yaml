@@ -40,7 +40,7 @@
       required: false
       schema:
         title: Kind-specific argument
-        oneOf:
+        anyOf:
           - title: Logs filter (for `logs`)
             $ref: '#/components/schemas/Filter'
           - title: Full-transaction flag (for `newPendingTransactions`)
