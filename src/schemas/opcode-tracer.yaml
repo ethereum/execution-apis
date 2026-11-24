@@ -300,6 +300,8 @@ TraceCallConfig:
             field that is not set keeps the value of the given block. The call
             runs alone, so the eth_simulateV1 rules for a sequence of blocks do
             not apply: number and time need not increase, and they have no
-            default increment. Withdrawals do not apply either. A client MAY
-            reject a request that sets withdrawals.
+            default increment. A block processes its withdrawals after its
+            transactions, so withdrawals cannot affect the call. A client MUST
+            reject a request that sets withdrawals, including an empty list,
+            with error code -32602.
           $ref: '#/components/schemas/BlockOverrides'
