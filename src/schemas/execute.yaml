@@ -183,6 +183,11 @@ CallResultFailure:
     maxUsedGas:
       title: Maximum gas used during execution before refunds
       $ref: '#/components/schemas/uint64'
+    logs:
+      title: Return logs
+      description: A call that fails or reverts emits no logs, so the array is empty.
+      type: array
+      maxItems: 0
     error:
       oneOf:
       - type: object
