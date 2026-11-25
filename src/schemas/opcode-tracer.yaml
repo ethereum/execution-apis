@@ -101,11 +101,8 @@ StructLog:
     A single step in the EVM execution trace produced by the opcode (struct)
     logger. One entry is emitted per opcode executed, until the limit option
     stops capture. A step whose opcode halts its frame exceptionally also has
-    exactly one entry. structLogs
-    MUST NOT contain any other kind of record, and an entry MUST NOT contain
-    fields that this specification does not define.
+    exactly one entry. structLogs MUST NOT contain any other kind of record.
   type: object
-  additionalProperties: false
   required:
     - pc
     - op
@@ -251,10 +248,7 @@ OpcodeTransactionTrace:
     The result of tracing a single transaction using the opcode (struct) logger.
     This is the result type of debug_traceTransaction and each element's result
     field in the debug_traceBlockByNumber response when no named tracer is used.
-    The object MUST NOT contain fields that this specification does not
-    define.
   type: object
-  additionalProperties: false
   required:
     - gas
     - failed

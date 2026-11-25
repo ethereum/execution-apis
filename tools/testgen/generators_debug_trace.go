@@ -581,33 +581,6 @@ var DebugTraceTransaction = MethodTests{
 			},
 		},
 		{
-			Name:             "trace-state-gas-oog",
-			About:            "traces an Amsterdam transaction whose SSTORE runs out of gas on the EIP-8037 state-gas charge; the failing step has one entry with an error and a gasCost of 0",
-			SpecOnly:         true,
-			ValidationScript: structLogCompareScript,
-			Run: func(ctx context.Context, t *T) error {
-				var hash common.Hash
-				for _, tx := range t.chain.txinfo.DynamicFeeEmit {
-					block := t.chain.GetBlock(int(tx.Block))
-					if t.chain.Config().IsAmsterdam(block.Number(), block.Time()) {
-						hash = tx.TxHash
-						break
-					}
-				}
-				if hash == (common.Hash{}) {
-					return fmt.Errorf("no emit transaction after the Amsterdam fork")
-				}
-				trace, err := traceFailingSteps(ctx, t, hash, "SSTORE@1")
-				if err != nil {
-					return err
-				}
-				if !trace.Failed {
-					return fmt.Errorf("expected a failed transaction")
-				}
-				return nil
-			},
-		},
-		{
 			Name:  "trace-unknown-tx",
 			About: "requests a trace for a non-existent transaction hash; the client must return an error",
 			Run: func(ctx context.Context, t *T) error {

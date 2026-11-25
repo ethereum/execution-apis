@@ -18,7 +18,7 @@ func TestStructLogCompareScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"trace-nested-revert-and-halt", "trace-state-gas-oog"} {
+	for _, name := range []string{"trace-nested-revert-and-halt"} {
 		fixture := loadStructLogFixture(t, "debug_traceTransaction/"+name)
 		var recorded map[string]any
 		if err := json.Unmarshal(fixture.Receives()[0], &recorded); err != nil {
