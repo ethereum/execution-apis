@@ -1,7 +1,7 @@
 // traces a call whose child allocates a storage slot with a gas limit below the EIP-7825 cap; the child's gasUsed includes the state gas drawn from gas_left
 // speconly: client response is only checked for schema validity.
 >> {"jsonrpc":"2.0","id":1,"method":"debug_traceCall","params":[{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","to":"0x00000000000000000000000000000000000000c1"},"latest",{"stateOverrides":{"0x00000000000000000000000000000000000000c1":{"code":"0x5f5f5f5f5f60c25af15000","state":{}},"0x00000000000000000000000000000000000000c2":{"code":"0x600160015500","state":{}}},"tracer":"callTracer"}]}
-<< {"jsonrpc":"2.0","id":1,"result":{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","gasUsed":"0x1f42b","to":"0x00000000000000000000000000000000000000c1","input":"0x","calls":[{"from":"0x00000000000000000000000000000000000000c1","gas":"0xf7abb","gasUsed":"0x1adca","to":"0x00000000000000000000000000000000000000c2","input":"0x","value":"0x0","type":"CALL"}],"value":"0x0","type":"CALL"}}
+<< {"jsonrpc":"2.0","id":1,"result":{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","gasUsed":"0x1f42b","to":"0x00000000000000000000000000000000000000c1","input":"0x","calls":[{"from":"0x00000000000000000000000000000000000000c1","gas":"0xf7abb","gasUsed":"0x1adca","to":"0x00000000000000000000000000000000000000c2","input":"0x","value":"0x0","stateGasReservoir":"0x0","type":"CALL"}],"value":"0x0","stateGasReservoir":"0x0","type":"CALL"}}
 --
 
 let method;
