@@ -5567,6 +5567,28 @@ var EthSimulateV1 = MethodTests{
 			},
 		},
 		{
+			Name: "ethSimulate-receipts-equal-hash",
+			About: `two calls in one block that differ only in the sender have the same transaction hash. The receipt of each
+call, and the logs of its call result, hold only the logs of that call. The second request changes the gas limit of
+the second call, so the hashes differ, and gives the same receiptsRoot and logsBloom.`,
+			Run: func(ctx context.Context, t *T) error {
+				return simulateReceiptsEqualHash(ctx, t, func(first, last TransactionArgs) []CallBatch {
+					return []CallBatch{{Calls: []TransactionArgs{first, last}}}
+				})
+			},
+		},
+		{
+			Name: "ethSimulate-receipts-equal-hash-two-blocks",
+			About: `two calls in two blocks that differ only in the sender have the same transaction hash. The receipt of each
+call, and the logs of its call result, hold only the logs of that call. The second request changes the gas limit of
+the second call, so the hashes differ, and gives the same receiptsRoot and logsBloom in each block.`,
+			Run: func(ctx context.Context, t *T) error {
+				return simulateReceiptsEqualHash(ctx, t, func(first, last TransactionArgs) []CallBatch {
+					return []CallBatch{{Calls: []TransactionArgs{first}}, {Calls: []TransactionArgs{last}}}
+				})
+			},
+		},
+		{
 			Name:  "ethSimulate-logs",
 			About: "simulates calls with logs",
 			Run: func(ctx context.Context, t *T) error {
@@ -8853,6 +8875,70 @@ func simulateFreshAuthorityAuth(t *T) (common.Address, types.SetCodeAuthorizatio
 		Address: common.Address{0xc1},
 	})
 	return authority, auth, err
+}
+
+// simulateReceiptsEqualHash simulates two calls to a contract that logs its caller, from
+// 0xc0 and from 0xc2, in the blocks that batches returns. It sends the request twice: with
+// equal gas limits, so the two transaction hashes are equal, and with a different gas limit
+// in the last call. Both responses must have the same receipts.
+func simulateReceiptsEqualHash(ctx context.Context, t *T, batches func(first, last TransactionArgs) []CallBatch) error {
+	type result struct {
+		ReceiptsRoot common.Hash    `json:"receiptsRoot"`
+		LogsBloom    types.Bloom    `json:"logsBloom"`
+		GasUsed      hexutil.Uint64 `json:"gasUsed"`
+		Transactions []common.Hash  `json:"transactions"`
+		Calls        []callResult   `json:"calls"`
+	}
+	run := func(lastGas hexutil.Uint64) ([]result, error) {
+		var (
+			gas     = hexutil.Uint64(100000)
+			emitter = common.Address{0xc1}
+			first   = TransactionArgs{From: &common.Address{0xc0}, To: &emitter, Gas: &gas}
+			last    = TransactionArgs{From: &common.Address{0xc2}, To: &emitter, Gas: &lastGas}
+			blocks  = batches(first, last)
+			res     []result
+		)
+		blocks[0].StateOverrides = &StateOverride{
+			// CALLER PUSH0 PUSH0 LOG1 STOP
+			emitter: OverrideAccount{Code: hex2Bytes("335f5fa100")},
+		}
+		err := t.rpc.CallContext(ctx, &res, "eth_simulateV1", ethSimulateOpts{BlockStateCalls: blocks}, "latest")
+		return res, err
+	}
+	equal, err := run(100000)
+	if err != nil {
+		return err
+	}
+	control, err := run(100001)
+	if err != nil {
+		return err
+	}
+	if len(equal) != len(control) {
+		return fmt.Errorf("unexpected number of results (have: %d, want: %d)", len(equal), len(control))
+	}
+	var equalHashes, controlHashes []common.Hash
+	for i := range equal {
+		for j, call := range equal[i].Calls {
+			if call.Status != 1 || len(call.Logs) != 1 {
+				return fmt.Errorf("block %d call %d: unexpected result (status: %d, logs: %d)", i, j, call.Status, len(call.Logs))
+			}
+		}
+		equalHashes = append(equalHashes, equal[i].Transactions...)
+		controlHashes = append(controlHashes, control[i].Transactions...)
+		if equal[i].ReceiptsRoot != control[i].ReceiptsRoot {
+			return fmt.Errorf("block %d: receiptsRoot differs from the control (have: %s, want: %s)", i, equal[i].ReceiptsRoot, control[i].ReceiptsRoot)
+		}
+		if equal[i].LogsBloom != control[i].LogsBloom || equal[i].GasUsed != control[i].GasUsed {
+			return fmt.Errorf("block %d: logsBloom or gasUsed differs from the control", i)
+		}
+	}
+	if len(equalHashes) != 2 || equalHashes[0] != equalHashes[1] {
+		return fmt.Errorf("expected two equal transaction hashes, have %v", equalHashes)
+	}
+	if len(controlHashes) != 2 || controlHashes[0] == controlHashes[1] {
+		return fmt.Errorf("expected two different transaction hashes in the control, have %v", controlHashes)
+	}
+	return nil
 }
 
 // returnWordCode is runtime code that returns the given value as a 32-byte word:

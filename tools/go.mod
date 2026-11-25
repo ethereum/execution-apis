@@ -7,7 +7,7 @@ require (
 	github.com/cespare/cp v1.1.1
 	github.com/dop251/goja v0.0.0-20260911104922-fabc3b8078ad
 	github.com/dop251/goja_nodejs v0.0.0-20260212111938-1f56ff5bcf14
-	github.com/ethereum/go-ethereum v1.17.11-0.20261120120112-2b7829ea6aed
+	github.com/ethereum/go-ethereum v1.17.11-0.20261125134423-bbafd66b66f5
 	github.com/holiman/uint256 v1.3.2
 	github.com/mattn/go-jsonpointer v0.0.1
 	github.com/open-rpc/spec-types/generated/packages/go v0.1.1
@@ -17,6 +17,7 @@ require (
 )
 
 require (
+	github.com/0xPolygonHermez/zisk/ziskasm/lang/go v0.0.0-20261103142117-f557332704da // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
