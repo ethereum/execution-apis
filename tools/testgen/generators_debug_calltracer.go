@@ -2,6 +2,7 @@ package testgen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -9,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // Genesis predeploys created by hivechain for callTracer testing; the callee
@@ -465,5 +467,41 @@ var DebugTraceCall = MethodTests{
 				return nil
 			},
 		},
+		{
+			Name:  "trace-call-block-override-withdrawals-32602",
+			About: "traces a call with a withdrawals block override; the client rejects it with -32602",
+			Run: func(ctx context.Context, t *T) error {
+				return traceCallRejectsBlockOverride(ctx, t, map[string]interface{}{
+					"withdrawals": []map[string]interface{}{{"index": "0x0", "validatorIndex": "0x0", "address": calltreeCallmeAddr, "amount": "0x1"}},
+				})
+			},
+		},
+		{
+			Name:  "trace-call-block-override-empty-withdrawals-32602",
+			About: "traces a call with an empty withdrawals block override; the client rejects it with -32602",
+			Run: func(ctx context.Context, t *T) error {
+				return traceCallRejectsBlockOverride(ctx, t, map[string]interface{}{"withdrawals": []interface{}{}})
+			},
+		},
 	}, forkTraceTests()...),
+}
+
+// traceCallRejectsBlockOverride fails the fill unless the reference client
+// answers with -32602, so a stale geth pin cannot record -32000.
+func traceCallRejectsBlockOverride(ctx context.Context, t *T, overrides map[string]interface{}) error {
+	sender, _ := t.chain.GetSender(0)
+	call := map[string]interface{}{
+		"from":  sender,
+		"to":    calltreeCallmeAddr,
+		"input": "0xff01",
+		"gas":   "0x100000",
+	}
+	cfg := map[string]interface{}{"tracer": "callTracer", "blockOverrides": overrides}
+	hash := lastBlockBeforeAmsterdam(t.chain).Hash()
+	err := t.rpc.CallContext(ctx, nil, "debug_traceCall", call, hash, cfg)
+	var rpcErr rpc.Error
+	if !errors.As(err, &rpcErr) || rpcErr.ErrorCode() != -32602 {
+		return fmt.Errorf("expected error -32602, got %v", err)
+	}
+	return nil
 }
