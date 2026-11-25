@@ -151,7 +151,9 @@ StructLog:
 
         A step whose opcode halts its frame exceptionally MUST report 0. The
         value 0 means that the trace reports no cost for the step. The halt
-        still consumes all of the frame's remaining gas.
+        still consumes all of the frame's remaining gas. From the Amsterdam
+        fork (EIP-8037), it consumes only the execution gas that is left, and
+        the frame's state gas is not consumed.
       type: integer
       minimum: 0
     depth:
