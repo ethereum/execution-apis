@@ -74,7 +74,7 @@ This structure has the syntax of `ExecutionPayloadV1` and appends a single field
 ### ExecutionPayloadBodyV1
 This structure contains a body of an execution payload. The fields are encoded as follows:
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure.
+- `withdrawals`: `Array of WithdrawalV1|null` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
 
 ### PayloadAttributesV2
 

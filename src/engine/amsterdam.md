@@ -75,7 +75,7 @@ This structure has the syntax of [`ExecutionPayloadV3`](./cancun.md#executionpay
 This structure has the syntax of [`ExecutionPayloadBodyV1`](./shanghai.md#executionpayloadbodyv1) and appends the new field: `blockAccessList`.
 
 - `transactions`: `Array of DATA` - Array of transaction objects, each object is a byte list (`DATA`) representing `TransactionType || TransactionPayload` or `LegacyTransaction` as defined in [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718)
-- `withdrawals`: `Array of WithdrawalV1` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
+- `withdrawals`: `Array of WithdrawalV1|null` - Array of withdrawals, each object is an `OBJECT` containing the fields of a `WithdrawalV1` structure. Value is `null` for blocks produced before Shanghai.
 - `blockAccessList`: `DATA|null` - RLP-encoded block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928). Value is `null` for blocks produced before Amsterdam or if the data has been pruned.
 
 ### PayloadAttributesV4
