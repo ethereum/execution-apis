@@ -42,6 +42,7 @@ This enum defines a standard for specifying a client with just two letters. Clie
  - `NM`: nethermind
  - `NB`: nimbus CL
  - `NE`: nimbus EL
+ - `SV`: silver
  - `TE`: trin-execution
  - `TK`: teku
  - `PM`: prysm
