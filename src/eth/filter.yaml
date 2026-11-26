@@ -175,32 +175,23 @@
       params:
         - name: Filter
           value:
-            fromBlock: '0x137d3c2'
-            toBlock: '0x137d3c3'
-            address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
-            topics: []
+            fromBlock: '0x3'
+            toBlock: '0x6'
+            topics:
+              - - '0x00000000000000000000000000000000000000000000000000000000656d6974'
+              - - '0x95b7276947f6331672b0c63eca28c1d39f25286d5e2793d6a487837ff1475ba0'
       result:
         name: Log objects
         value:
-          - logIndex: '0x0'
-            removed: false
-            blockNumber: '0x233'
-            blockTimestamp: '0x11'
-            blockHash: '0xfc139f5e2edee9e9c888d8df9a2d2226133a9bd87c88ccbd9c930d3d4c9f9ef5'
-            transactionHash: '0x66e7a140c8fa27fe98fde923defea7562c3ca2d6bb89798aabec65782c08f63d'
-            transactionIndex: '0x0'
-            address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
-            data: '0x0000000000000000000000000000000000000000000000000000000000000004'
+          - address: '0x7dcd17433742f4c0ca53122ab541d0ba67fc27df'
             topics:
-              - '0x04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3'
-          - logIndex: '0x0'
+              - '0x00000000000000000000000000000000000000000000000000000000656d6974'
+              - '0x95b7276947f6331672b0c63eca28c1d39f25286d5e2793d6a487837ff1475ba0'
+            data: '0x0000000000000000000000000000000000000000000000000000000000000001'
+            blockNumber: '0x4'
+            transactionHash: '0xd48ebacfb769b85602310e2e0cf322e19f8cce25ac69cfd52f2d8622e3bbc3c9'
+            transactionIndex: '0x1'
+            blockHash: '0x6500d67609fa59445104e2bd635aaef50ab0276c829bda33bc54c3dc18cd29ef'
+            blockTimestamp: '0x28'
+            logIndex: '0x0'
             removed: false
-            blockNumber: '0x238'
-            blockTimestamp: '0x22'
-            blockHash: '0x98b0ec0f9fea0018a644959accbe69cd046a8582e89402e1ab0ada91cad644ed'
-            transactionHash: '0xdb17aa1c2ce609132f599155d384c0bc5334c988a6c368056d7e167e23eee058'
-            transactionIndex: '0x0'
-            address: '0x42699a7612a82f1d9c36148af9c77354759b210b'
-            data: '0x0000000000000000000000000000000000000000000000000000000000000007'
-            topics:
-              - '0x04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3'
