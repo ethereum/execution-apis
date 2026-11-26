@@ -231,7 +231,7 @@ import { useState } from 'react';
 
               Chain ID on which this transaction is valid
 
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,63})$`
 
               ***
 
@@ -239,7 +239,7 @@ import { useState } from 'react';
 
               nonce
 
-              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]*)$`
+              *Match pattern:* `^0x(0|[1-9a-f][0-9a-f]{0,15})$`
 
               ***
 
