@@ -43,6 +43,7 @@
   - [`POST /payloads/witness`](#post-payloadswitness)
   - [`POST /forkchoice`](#post-forkchoice)
   - [`GET /payloads/{payloadId}`](#get-payloadspayloadid)
+  - [`GET /payloads/{payloadId}/witness`](#get-payloadspayloadidwitness)
   - [`POST /bodies/hash` and `GET /bodies?...`](#post-bodieshash-and-get-bodies)
   - [`POST /blobs/v1`](#post-blobsv1)
   - [`POST /blobs/v2`](#post-blobsv2)
@@ -282,9 +283,11 @@ source of the divergence.
 ### `ExecutionWitness`
 
 Used by `PayloadStatusWithWitness`, the response of
-[`POST /payloads/witness`](#post-payloadswitness).
+[`POST /payloads/witness`](#post-payloadswitness), and by
+`BuiltPayloadWithWitness`, the response of
+[`GET /payloads/{payloadId}/witness`](#get-payloadspayloadidwitness).
 The container is **fork-invariant in shape** (like `PayloadStatus`);
-only the endpoint that returns it is fork-scoped.
+only the endpoints that return it are fork-scoped.
 
 ```
 ExecutionWitness {
@@ -791,6 +794,30 @@ BlobsBundleV2 {
 `commitments` and `blobs` MUST have equal length; `proofs` MUST
 have length `len(blobs) * CELLS_PER_EXT_BLOB` (mirrors the
 `engine_getPayloadV5` rule from osaka.md).
+
+### `GET /payloads/{payloadId}/witness`
+
+See
+[refactor.md § Payload retrieval with witness](./refactor.md#payload-retrieval-with-witness)
+for endpoint availability and witness requirements.
+
+#### Response (Amsterdam)
+
+```
+BuiltPayloadWithWitness {
+    built_payload: BuiltPayloadAmsterdam
+    witness:       ExecutionWitness
+}
+```
+
+`built_payload` is the `BuiltPayloadAmsterdam` defined for
+[`GET /payloads/{payloadId}`](#get-payloadspayloadid). Unlike in
+`PayloadStatusWithWitness`, `witness` is not `Optional`: every
+successful response carries it.
+
+Both fields are variable-size, so `BuiltPayloadWithWitness` has two
+4-byte offsets (`built_payload`, then `witness`), making an 8-byte
+fixed section.
 
 ### `POST /bodies/hash` and `GET /bodies?...`
 
