@@ -133,8 +133,8 @@ StructLog:
       title: remaining gas
       description: >-
         The amount of gas remaining before executing this opcode. From the
-        Amsterdam fork (EIP-8037) this is gas_left only, the value the GAS
-        opcode returns; the state-gas reservoir is reported separately in
+        Amsterdam fork (EIP-8037) this is the gas_left counter, without the
+        state-gas reservoir, which is reported separately in
         stateGasReservoir.
       type: integer
       minimum: 0
