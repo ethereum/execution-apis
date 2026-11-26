@@ -304,3 +304,44 @@ func (s *Generator) JSON() ([]byte, error) {
 	}
 	return json.MarshalIndent(doc, "", "  ")
 }
+
+// LocalizeIDRefs replaces each $ref to a component's $id with a fragment ref to
+// that component, and drops the $id. An embedded $id changes the base URI, so
+// the fragment refs inside it would no longer resolve in a spec that keeps refs.
+// Dereference needs the $id instead, to expand recursive schemas.
+func (s *Generator) LocalizeIDRefs() {
+	names := make(map[string]string)
+	for name, schema := range s.types {
+		if id, ok := schema["$id"].(string); ok {
+			names[id] = name
+			delete(schema, "$id")
+		}
+	}
+	if len(names) == 0 {
+		return
+	}
+	var walk func(v any)
+	walk = func(v any) {
+		switch val := v.(type) {
+		case object:
+			if ref, ok := val["$ref"].(string); ok {
+				if name, ok := names[ref]; ok {
+					val["$ref"] = "#/components/schemas/" + name
+				}
+			}
+			for _, item := range val {
+				walk(item)
+			}
+		case []any:
+			for _, item := range val {
+				walk(item)
+			}
+		}
+	}
+	for _, schema := range s.types {
+		walk(schema)
+	}
+	for _, method := range s.methods {
+		walk(method)
+	}
+}
