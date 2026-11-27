@@ -424,3 +424,12 @@ BlobsBundleV2:
       type: array
       items:
         $ref: '#/components/schemas/bytes'
+PayloadUpdateV1:
+  title: Payload update object V1
+  type: object
+  properties:
+    inclusionListTransactions:
+      title: Inclusion list transactions
+      type: array
+      items:
+        $ref: '#/components/schemas/bytes'
