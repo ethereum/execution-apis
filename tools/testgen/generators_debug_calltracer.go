@@ -49,6 +49,7 @@ func checkFieldPattern(me *multiError, prefix string, obj map[string]interface{}
 type callTracerOpts struct {
 	onlyTopCall bool
 	withLog     bool
+	amsterdam   bool // set by validateRootFrameAt from the root frame
 }
 
 // validateCallFrame validates a CallFrame tree against the callTracer spec.
@@ -67,10 +68,20 @@ type callTracerOpts struct {
 //     descendants
 //   - regularGasUsed, stateGasUsed and gasRefund MUST only be present on the
 //     root frame
+//   - stateGasReservoir MUST be present on every frame from Amsterdam and
+//     omitted before
 func validateCallFrame(frame map[string]interface{}, opts callTracerOpts) error {
 	var me multiError
-	validateCallFrameAt("", frame, opts, false, &me)
+	validateRootFrameAt("", frame, opts, &me)
 	return me.err()
+}
+
+// validateRootFrameAt validates a root frame and its subcalls. The root frame
+// has regularGasUsed exactly from Amsterdam on, so it also tells whether every
+// frame needs stateGasReservoir.
+func validateRootFrameAt(path string, frame map[string]interface{}, opts callTracerOpts, me *multiError) {
+	_, opts.amsterdam = frame["regularGasUsed"]
+	validateCallFrameAt(path, frame, opts, false, me)
 }
 
 func validateCallFrameAt(path string, frame map[string]interface{}, opts callTracerOpts, parentFailed bool, me *multiError) {
@@ -105,6 +116,13 @@ func validateCallFrameAt(path string, frame map[string]interface{}, opts callTra
 	checkFieldPattern(me, prefix, frame, "stateGasUsed", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "gasRefund", uint256Pattern)
 	checkFieldPattern(me, prefix, frame, "stateGasReservoir", uint256Pattern)
+	if _, ok := frame["stateGasReservoir"]; ok != opts.amsterdam {
+		if opts.amsterdam {
+			me.add("%s: \"stateGasReservoir\" MUST be present on every frame from Amsterdam", prefix)
+		} else {
+			me.add("%s: \"stateGasReservoir\" MUST be omitted before Amsterdam", prefix)
+		}
+	}
 
 	errVal, hasError := frame["error"]
 	if hasError {
@@ -241,7 +259,7 @@ func validateCallTracerBlockEntries(result []interface{}, opts callTracerOpts) e
 				me.add("%s: \"result\" must be an object, got %T", prefix, resVal)
 				continue
 			}
-			validateCallFrameAt(prefix+".result", frame, opts, false, &me)
+			validateRootFrameAt(prefix+".result", frame, opts, &me)
 		}
 	}
 	return me.err()
