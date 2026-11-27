@@ -3,7 +3,8 @@
   description: |
     Returns an object containing the count of transactions currently pending for
     inclusion in the next block(s), as well as ones that are scheduled for future
-    execution (transactions with nonce gaps).
+    execution (transactions with nonce gaps). The counts include blob (EIP-4844
+    type-3) transactions.
   params: []
   result:
     name: Transaction pool status
@@ -25,6 +26,9 @@
     grouped by origin address and sorted by nonce. Pending transactions are ready
     for inclusion in the next block(s). Queued transactions have nonce gaps and
     are scheduled for future execution.
+
+    This result includes every transaction counted by txpool_status, including
+    blob (EIP-4844 type-3) transactions.
   params: []
   result:
     name: Transaction pool content
@@ -70,6 +74,9 @@
   description: |
     Returns an object containing pending and queued transactions from the specified
     address, grouped by nonce. This is a filtered version of txpool_content.
+
+    This result includes every transaction from the specified address that
+    txpool_content would return, including blob (EIP-4844 type-3) transactions.
   params:
     - name: address
       required: true
@@ -101,4 +108,3 @@
               transactionIndex: null
               value: '0x19a99f0cf456000'
           queued: {}
-
