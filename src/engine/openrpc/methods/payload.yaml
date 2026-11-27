@@ -70,7 +70,7 @@
     - name: Execution payload
       required: true
       schema:
-        oneOf:
+        anyOf:
           - $ref: '#/components/schemas/ExecutionPayloadV1'
           - $ref: '#/components/schemas/ExecutionPayloadV2'
   result:
@@ -335,7 +335,7 @@
       properties:
         executionPayload:
           title: Execution payload
-          oneOf:
+          anyOf:
             - $ref: '#/components/schemas/ExecutionPayloadV1'
             - $ref: '#/components/schemas/ExecutionPayloadV2'
         blockValue:
@@ -350,7 +350,7 @@
     - name: engine_getPayloadV2 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -423,7 +423,7 @@
     - name: engine_getPayloadV3 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -512,7 +512,7 @@
     - name: engine_getPayloadV4 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -605,7 +605,7 @@
     - name: engine_getPayloadV5 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -1059,6 +1059,7 @@
             blobGasUsed: '0x20000'
             excessBlobGas: '0x0'
             blockAccessList: '0xf90244f90241f8f79400000000000000000000000000000000000001f8e8f843a00000000000000000000000000000000000000000000000000000000000000000f838c22080a00000000000000000000000000000000000000000000000000000000000000000c22180a00000000000000000000000000000000000000000000000000000000000000001f843a00000000000000000000000000000000000000000000000000000000000000001f838c22080a00000000000000000000000000000000000000000000000000000000000000100c22180a00000000000000000000000000000000000000000000000000000000000000200c780c22180c680c221890056bc75e2d63100000c080c22180f90145f90142f8f794a94f5374fce5edbc8e2a8697c15331677e6ebf0bf8e8f843a00000000000000000000000000000000000000000000000000000000000000000f838c22080a00000000000000000000000000000000000000000000000000000000000000000c22180a00000000000000000000000000000000000000000000000000000000000000100f843a00000000000000000000000000000000000000000000000000000000000000001f838c22080a00000000000000000000000000000000000000000000000000000000000000200c22180a00000000000000000000000000000000000000000000000000000000000000300c780c22180c680c2218901152d02c7e14af680c080c22180'
+            slotNumber: '0x1'
         - name: Expected blob versioned hashes
           value:
             - '0x000657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014'
@@ -1157,7 +1158,7 @@
     - name: engine_getPayloadV6 example
       params:
         - name: Payload id
-          value: '0x0000000038fa5dd'
+          value: '0x00000000038fa5dd'
       result:
         name: Response object
         value:
@@ -1199,6 +1200,7 @@
             blobGasUsed: '0x60000'
             excessBlobGas: '0x0'
             blockAccessList: '0xc0'
+            slotNumber: '0x1'
           blockValue: '0x10a741a46278014d'
           blobsBundle:
             commitments:

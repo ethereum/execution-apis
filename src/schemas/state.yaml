@@ -24,12 +24,14 @@ AccountProof:
       $ref: '#/components/schemas/uint256'
     codeHash:
       title: codeHash
+      description: Zero if the account does not exist.
       $ref: '#/components/schemas/hash32'
     nonce:
       title: nonce
       $ref: '#/components/schemas/uint64'
     storageHash:
       title: storageHash
+      description: Zero if the account does not exist.
       $ref: '#/components/schemas/hash32'
     storageProof:
       title: Storage proofs
@@ -47,7 +49,10 @@ StorageProof:
   properties:
     key:
       title: key
-      $ref: '#/components/schemas/bytesMax32'
+      description: The requested storage key, as 32 bytes or as a minimal quantity.
+      anyOf:
+        - $ref: '#/components/schemas/bytes32'
+        - $ref: '#/components/schemas/uint256'
     value:
       title: value
       $ref: '#/components/schemas/uint256'
