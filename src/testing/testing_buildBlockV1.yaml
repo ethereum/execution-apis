@@ -10,6 +10,7 @@
     - If the `transactions` parameter is JSON `null`, the client MAY build a block from its local transaction pool (mempool).
     - If the `transactions` parameter is a non-empty array, the client MUST include all transactions from the array on the block's transaction list, in the order they were provided, and MUST NOT include any transactions from its local transaction pool.
     - If `extraData` is provided, the client MUST set the `extraData` field of the resulting payload to this value.
+    - If the block cannot be built (for example, an unapplicable transaction), the client MUST return a JSON-RPC error. It MUST NOT build the block without that transaction instead. The error's message SHOULD give the reason, such as the transaction's validation error.
     - This method MUST NOT modify the client's canonical chain or head block. It is a read-only method for payload generation.
 
     **Security Considerations:**
@@ -53,7 +54,7 @@
         An array of raw, signed transactions (hex-encoded) to include in the generated block, or null.
         - If an empty array `[]`: The client MUST build an empty block (no transactions).
         - If `null`: The client MAY build a block from its local transaction pool (mempool).
-        - If a non-empty array: The client MUST include ALL transactions from this array in the resulting block, in the order provided, and MUST NOT include any transactions from its local mempool.
+        - If a non-empty array: The client MUST include ALL transactions from this array in the resulting block, in the order provided, and MUST NOT include any transactions from its local mempool. If any of them cannot be included, the client MUST return an error instead.
       schema:
         title: Transactions
         oneOf:
