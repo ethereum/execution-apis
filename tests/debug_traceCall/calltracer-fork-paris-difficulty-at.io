@@ -1,0 +1,3 @@
+// traces a call that returns the DIFFICULTY (PREVRANDAO) value with the callTracer, at the first Paris block
+>> {"jsonrpc":"2.0","id":1,"method":"debug_traceCall","params":[{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","to":"0x00000000000000000000000000000000000000c2"},"0x24",{"stateOverrides":{"0x00000000000000000000000000000000000000c2":{"code":"0x4460005260206000f3"}},"tracer":"callTracer"}]}
+<< {"jsonrpc":"2.0","id":1,"result":{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","gasUsed":"0x5219","to":"0x00000000000000000000000000000000000000c2","input":"0x","output":"0x0000000000000000000000000000000000000000000000000000000000000000","value":"0x0","type":"CALL"}}
