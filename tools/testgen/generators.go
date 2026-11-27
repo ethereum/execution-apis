@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -1522,21 +1523,21 @@ which sends the same request without type.`,
 	},
 }
 
-// calldataFloor is the EIP-7623 minimum for n zero bytes on the active fork.
-func calldataFloor(t *T, n int) uint64 {
+// calldataFloor is the EIP-7623 floor of a transfer at the head block.
+func calldataFloor(t *T, from, to common.Address, value uint64, input []byte) (uint64, error) {
 	head := t.chain.Head()
-	if t.chain.Config().IsAmsterdam(head.Number(), head.Time()) {
-		return params.TxBaseCost2780 + uint64(n)*params.TxTokenPerNonZeroByte*params.TxCostFloorPerToken7976
-	}
-	return params.TxGas + uint64(n)*params.TxCostFloorPerToken
+	rules := t.chain.Config().Rules(head.Number(), true, head.Time())
+	return core.FloorDataGas(rules, from, &to, uint256.NewInt(value), input, nil)
 }
 
 // estimateValueTransfer builds a 1-wei transfer. withAuth attaches one dummy EIP-7702 authorization.
+// The recipient already exists, so the transfer pays no account creation and the calldata floor binds.
 func estimateValueTransfer(t *T, input hexutil.Bytes, withAuth bool) map[string]any {
 	sender, nonce := t.chain.GetSender(0)
+	recipient, _ := t.chain.GetSender(1)
 	msg := map[string]any{
 		"from":  sender,
-		"to":    common.Address{0x01},
+		"to":    recipient,
 		"value": hexutil.Uint64(1),
 		"nonce": hexutil.Uint64(nonce),
 		"input": input,
@@ -1641,6 +1642,22 @@ if (BigInt(messages[1].response.result) <= 5000) {
     throw new Error("invalid gas estimation result");
 }
 `
+
+// calldataFloorGas is the EIP-7623 floor of the transfer in
+// estimate-eip7623-calldata-floor on the test chain. The fill checks it
+// against the floor that go-ethereum computes.
+const calldataFloorGas = 23048
+
+// calldataFloorScript accepts an estimate at or up to 10% above the floor,
+// because clients stop their search within different tolerances.
+var calldataFloorScript = fmt.Sprintf(`
+const floor = BigInt(%d);
+const plain = BigInt(messages[1].response.result);
+const auth = BigInt(messages[3].response.result);
+if (plain < floor) throw new Error("estimate " + plain + " is below the calldata floor " + floor);
+if (plain > floor * 11n / 10n) throw new Error("estimate " + plain + " is more than 10%% above the calldata floor " + floor);
+if (auth <= plain) throw new Error("estimate with an authorization " + auth + " is not above " + plain);
+`, calldataFloorGas)
 
 // EthEstimateGas stores a list of all tests against the method.
 var EthEstimateGas = MethodTests{
@@ -1812,9 +1829,10 @@ The request must not fail merely because the sender cannot afford the client's f
 			},
 		},
 		{
-			Name:     "estimate-eip7623-calldata-floor",
-			About:    "32 zero-byte calldata meets the EIP-7623 floor, and an authorization costs more",
-			SpecOnly: true,
+			Name:             "estimate-eip7623-calldata-floor",
+			About:            "a 1-wei transfer with 32 zero bytes of calldata to an existing account runs no code, so the EIP-7623 calldata floor binds and the estimate is at least the floor; an authorization costs more",
+			SpecOnly:         true,
+			ValidationScript: calldataFloorScript,
 			Run: func(ctx context.Context, t *T) error {
 				input := hexutil.Bytes(make([]byte, 32))
 				var floorGas, authGas hexutil.Uint64
@@ -1824,8 +1842,17 @@ The request must not fail merely because the sender cannot afford the client's f
 				if err := t.rpc.CallContext(ctx, &authGas, "eth_estimateGas", estimateValueTransfer(t, input, true)); err != nil {
 					return fmt.Errorf("authorization estimation failed: %v", err)
 				}
-				if floor := calldataFloor(t, len(input)); uint64(floorGas) < floor {
-					return fmt.Errorf("expected estimate at or above the calldata floor (got: %d, floor: %d)", floorGas, floor)
+				sender, _ := t.chain.GetSender(0)
+				recipient, _ := t.chain.GetSender(1)
+				floor, err := calldataFloor(t, sender, recipient, 1, input)
+				if err != nil {
+					return err
+				}
+				if floor != calldataFloorGas {
+					return fmt.Errorf("the calldata floor is %d, update calldataFloorGas (%d)", floor, calldataFloorGas)
+				}
+				if uint64(floorGas) < floor || uint64(floorGas) > floor*11/10 {
+					return fmt.Errorf("expected an estimate from the calldata floor up to 10%% above it (got: %d, floor: %d)", floorGas, floor)
 				}
 				if authGas <= floorGas {
 					return fmt.Errorf("expected authorization above the calldata floor (got: %d, floor: %d)", authGas, floorGas)
