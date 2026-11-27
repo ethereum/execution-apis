@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/cespare/cp"
@@ -61,7 +62,14 @@ func runGenerator(ctx context.Context) error {
 
 			// Connect ethclient to Ethereum client. This happens
 			// every test to force the json-rpc id to always be 0.
-			handler, err := newEthclientHandler(client.HttpAddr())
+			endpoint := client.HttpAddr()
+			var opts []rpc.ClientOption
+			if strings.HasPrefix(methodTest.Name, "engine_") {
+				var auth rpc.HTTPAuth
+				endpoint, auth = client.EngineEndpoint()
+				opts = append(opts, rpc.WithHTTPAuth(auth))
+			}
+			handler, err := newEthclientHandler(endpoint, opts...)
 			if err != nil {
 				return err
 			}

@@ -83,6 +83,7 @@ type Test struct {
 
 // AllMethods is a slice of all JSON-RPC methods with tests.
 var AllMethods = []MethodTests{
+	EngineForkchoiceUpdatedV4,
 	EthBlockNumber,
 	EthGetBlockByNumber,
 	EthGetBlockByHash,

@@ -25,6 +25,9 @@ type Client interface {
 	// HttpAddr returns the address where the client is serving JSON-RPC.
 	HttpAddr() string
 
+	// EngineEndpoint returns the authenticated Engine API endpoint and signer.
+	EngineEndpoint() (string, rpc.HTTPAuth)
+
 	// Close closes the client.
 	Close() error
 }
@@ -145,6 +148,10 @@ func (g *gethClient) AfterStart(ctx context.Context) error {
 // HttpAddr returns the address where the client is servering its JSON-RPC.
 func (g *gethClient) HttpAddr() string {
 	return fmt.Sprintf("http://%s:%s", HOST, PORT)
+}
+
+func (g *gethClient) EngineEndpoint() (string, rpc.HTTPAuth) {
+	return fmt.Sprintf("http://%s:%s", HOST, AUTHPORT), node.NewJWTAuth(common.BytesToHash(g.jwt))
 }
 
 // Close closes the client.
