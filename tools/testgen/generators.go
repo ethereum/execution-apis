@@ -8258,6 +8258,102 @@ the second call, so the hashes differ, and gives the same receiptsRoot and logsB
 			},
 		},
 		{
+			Name:  "ethSimulate-precompile-override-block-scope",
+			About: "precompile overrides (code and movePrecompileToAddress) apply only to the block in which they are specified, while account code overrides on ordinary addresses persist into later blocks",
+			Run: func(ctx context.Context, t *T) error {
+				identityAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000000004"))
+				identityMovedToAddress := common.BytesToAddress(*hex2Bytes("0000000000000000000000000000000000123456"))
+				ordinaryAddress := common.Address{0xc2}
+				// PUSH1 0x2a PUSH1 0 MSTORE PUSH1 0x20 PUSH1 0 RETURN
+				return42Code := hex2Bytes("602a60005260206000f3")
+				want42 := common.LeftPadBytes([]byte{0x2a}, 32)
+				wantEcho := common.Hex2Bytes("1234")
+
+				params := ethSimulateOpts{
+					BlockStateCalls: []CallBatch{
+						{
+							StateOverrides: &StateOverride{
+								identityAddress: OverrideAccount{
+									Code:                    return42Code,
+									MovePrecompileToAddress: &identityMovedToAddress,
+								},
+								ordinaryAddress: OverrideAccount{
+									Code: return42Code,
+								},
+							},
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &identityAddress,
+									Input: hex2Bytes("1234"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &identityMovedToAddress,
+									Input: hex2Bytes("1234"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &ordinaryAddress,
+									Input: hex2Bytes("1234"),
+								},
+							},
+						},
+						{
+							Calls: []TransactionArgs{
+								{
+									From:  &common.Address{0xc0},
+									To:    &identityAddress,
+									Input: hex2Bytes("1234"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &identityMovedToAddress,
+									Input: hex2Bytes("1234"),
+								},
+								{
+									From:  &common.Address{0xc0},
+									To:    &ordinaryAddress,
+									Input: hex2Bytes("1234"),
+								},
+							},
+						},
+					},
+				}
+				res := make([]blockResult, 0)
+				if err := t.rpc.Call(&res, "eth_simulateV1", params, "latest"); err != nil {
+					return err
+				}
+				if len(res) != 2 {
+					return fmt.Errorf("unexpected number of block results (have: %d, want: 2)", len(res))
+				}
+				if len(res[0].Calls) != 3 || len(res[1].Calls) != 3 {
+					return fmt.Errorf("unexpected number of call results (block 0: %d, block 1: %d, want: 3)", len(res[0].Calls), len(res[1].Calls))
+				}
+				// Block 1: 0x04 runs overridden code (0x2a), 0x123456 runs moved identity (0x1234), 0xc2 runs overridden code (0x2a).
+				if !bytes.Equal(res[0].Calls[0].ReturnData, want42) {
+					return fmt.Errorf("block 0 call 0 (0x04): unexpected return data (have: %x, want: %x)", res[0].Calls[0].ReturnData, want42)
+				}
+				if !bytes.Equal(res[0].Calls[1].ReturnData, wantEcho) {
+					return fmt.Errorf("block 0 call 1 (moved identity): unexpected return data (have: %x, want: %x)", res[0].Calls[1].ReturnData, wantEcho)
+				}
+				if !bytes.Equal(res[0].Calls[2].ReturnData, want42) {
+					return fmt.Errorf("block 0 call 2 (ordinary): unexpected return data (have: %x, want: %x)", res[0].Calls[2].ReturnData, want42)
+				}
+				// Block 2: precompile table resets, so 0x04 runs identity again (0x1234), 0x123456 has no precompile (empty return), while 0xc2 keeps its code override (0x2a).
+				if !bytes.Equal(res[1].Calls[0].ReturnData, wantEcho) {
+					return fmt.Errorf("block 1 call 0 (0x04 restored): unexpected return data (have: %x, want: %x)", res[1].Calls[0].ReturnData, wantEcho)
+				}
+				if len(res[1].Calls[1].ReturnData) != 0 {
+					return fmt.Errorf("block 1 call 1 (moved destination cleared): unexpected return data (have: %x, want empty)", res[1].Calls[1].ReturnData)
+				}
+				if !bytes.Equal(res[1].Calls[2].ReturnData, want42) {
+					return fmt.Errorf("block 1 call 2 (ordinary persists): unexpected return data (have: %x, want: %x)", res[1].Calls[2].ReturnData, want42)
+				}
+				return nil
+			},
+		},
+		{
 			Name:  "ethSimulate-use-as-many-features-as-possible",
 			About: "try using all eth simulates features at once",
 			Run: func(ctx context.Context, t *T) error {
