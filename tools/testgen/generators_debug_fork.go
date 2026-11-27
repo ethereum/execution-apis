@@ -158,11 +158,11 @@ var forkTraceCases = func() []forkTraceCase {
 		{
 			fork: "Byzantium", name: "revert", about: "a child call that executes REVERT with Error(string) data",
 			to: wrapper, overrides: map[string]interface{}{wrapper: codeOverride(callTarget), target: codeOverride(revert)},
-			callTracer: newOpcode,
+			callTracer: newOpcode, structLog: []forkSide{forkAt},
 		},
 		{
 			fork: "Byzantium", name: "revert-root", about: "a call that executes REVERT with Error(string) data",
-			to: target, overrides: map[string]interface{}{target: codeOverride(revert)}, callTracer: newOpcode,
+			to: target, overrides: map[string]interface{}{target: codeOverride(revert)}, callTracer: newOpcode, structLog: []forkSide{forkAt},
 		},
 		{
 			fork: "Byzantium", name: "staticcall", about: "a STATICCALL to a contract that returns one word",
@@ -223,12 +223,12 @@ var forkTraceCases = func() []forkTraceCase {
 			fork: "London", name: "ef-code-create", about: "a CREATE whose initcode returns code that starts with 0xef",
 			to: wrapper, overrides: map[string]interface{}{wrapper: codeOverride(program.New().MstoreSmall(initEF, 0).
 				Push(len(initEF)).Push(32-len(initEF)).Push(0).Op(vm.CREATE, vm.POP, vm.STOP))},
-			callTracer: []forkSide{forkPre, forkAtMasked}, structLog: []forkSide{forkPre},
+			callTracer: []forkSide{forkPre, forkAtMasked}, structLog: []forkSide{forkPre, forkAt},
 		},
 		{
 			fork: "London", name: "ef-code-create-root", about: "a contract creation whose initcode returns code that starts with 0xef",
 			input:      hexutil.Encode(initEF),
-			callTracer: []forkSide{forkPre, forkAtMasked}, structLog: []forkSide{forkPre},
+			callTracer: []forkSide{forkPre, forkAtMasked}, structLog: []forkSide{forkPre, forkAt},
 		},
 		{
 			fork: "London", name: "selfdestruct-refund", about: "a child call that executes SELFDESTRUCT",
@@ -251,7 +251,7 @@ var forkTraceCases = func() []forkTraceCase {
 				wrapper: codeOverride(callNoData(program.New(), 0x20000, 0xc2).Op(vm.POP, vm.STOP)),
 				target:  codeOverride(program.New().Push(params.MaxInitCodeSize+1).Push(0).Push(0).Op(vm.CREATE, vm.POP, vm.STOP)),
 			},
-			callTracer: []forkSide{forkPre, forkAtMasked}, structLog: []forkSide{forkPre},
+			callTracer: []forkSide{forkPre, forkAtMasked}, structLog: []forkSide{forkPre, forkAtMasked},
 		},
 		{
 			fork: "Shanghai", name: "warm-coinbase", about: "a call that reads the BALANCE of the COINBASE account",
@@ -277,13 +277,13 @@ var forkTraceCases = func() []forkTraceCase {
 				delegate:  codeOverride(delegateCode),
 			},
 			withLog:    true,
-			callTracer: newOpcode, structLog: []forkSide{forkAt},
+			callTracer: newOpcode, structLog: []forkSide{forkPreMasked, forkAt},
 		},
 		{
 			fork: "Prague", name: "delegation-root", about: "a call to an account with an EIP-7702 delegation designator",
 			to: delegator, overrides: map[string]interface{}{delegator: delegation, delegate: codeOverride(delegateCode)},
 			withLog:    true,
-			callTracer: newOpcode, structLog: []forkSide{forkAt},
+			callTracer: newOpcode, structLog: []forkSide{forkPreMasked, forkAt},
 		},
 		{
 			fork: "Prague", name: "bls12-g1add", about: "a call to the BLS12_G1ADD precompile address",
@@ -347,6 +347,9 @@ func (fc forkTraceCase) test(callTracer bool, side forkSide) Test {
 	}
 	if side.masked {
 		test.ValidationScript = callFrameCompareScript
+		if !callTracer {
+			test.ValidationScript = structLogCompareScript
+		}
 	}
 	test.Run = func(ctx context.Context, t *T) error {
 		sender, _ := t.chain.GetSender(0)

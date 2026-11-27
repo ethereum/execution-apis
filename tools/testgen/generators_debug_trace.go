@@ -456,15 +456,20 @@ type structLogTrace struct {
 	} `json:"structLogs"`
 }
 
-// traceFailingSteps traces a mined transaction with the default opcode logger.
-// It checks the result against the opcode tracer schema rules, and it checks
-// that the steps with an error are exactly wantFaults (as "OP@depth"), each
-// with a gasCost of 0.
+// traceFailingSteps traces a mined transaction with the default opcode logger
+// and checks the result with checkFailingSteps.
 func traceFailingSteps(ctx context.Context, t *T, hash common.Hash, wantFaults ...string) (*structLogTrace, error) {
 	var raw json.RawMessage
 	if err := t.rpc.CallContext(ctx, &raw, "debug_traceTransaction", hash); err != nil {
 		return nil, err
 	}
+	return checkFailingSteps(raw, wantFaults...)
+}
+
+// checkFailingSteps checks an opcode trace against the opcode tracer schema
+// rules, and it checks that the steps with an error are exactly wantFaults (as
+// "OP@depth"), each with a gasCost of 0.
+func checkFailingSteps(raw json.RawMessage, wantFaults ...string) (*structLogTrace, error) {
 	var result map[string]interface{}
 	if err := json.Unmarshal(raw, &result); err != nil {
 		return nil, err

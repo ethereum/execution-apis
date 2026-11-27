@@ -483,7 +483,7 @@ var DebugTraceCall = MethodTests{
 				return traceCallRejectsBlockOverride(ctx, t, map[string]interface{}{"withdrawals": []interface{}{}})
 			},
 		},
-	}, forkTraceTests()...),
+	}, append(forkTraceTests(), haltTraceTests()...)...),
 }
 
 // traceCallRejectsBlockOverride fails the fill unless the reference client
