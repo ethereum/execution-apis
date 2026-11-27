@@ -342,6 +342,73 @@ ExecutionPayloadV4:
     slotNumber:
       title: Slot number
       $ref: '#/components/schemas/uint64'
+ExecutionPayloadV5:
+  title: Execution payload object V5
+  type: object
+  required:
+    - parentHash
+    - feeRecipient
+    - stateRoot
+    - receiptsRoot
+    - logsBloom
+    - prevRandao
+    - blockNumber
+    - gasLimit
+    - gasUsed
+    - timestamp
+    - extraData
+    - baseFeePerGas
+    - blockHash
+    - transactions
+    - withdrawals
+    - blobGasUsed
+    - excessBlobGas
+    - blockAccessList
+    - slotNumber
+    - dependencyProof
+  properties:
+    parentHash:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/parentHash'
+    feeRecipient:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/feeRecipient'
+    stateRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/stateRoot'
+    receiptsRoot:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/receiptsRoot'
+    logsBloom:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/logsBloom'
+    prevRandao:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/prevRandao'
+    blockNumber:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blockNumber'
+    gasLimit:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/gasLimit'
+    gasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/gasUsed'
+    timestamp:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/timestamp'
+    extraData:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/extraData'
+    baseFeePerGas:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/baseFeePerGas'
+    blockHash:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blockHash'
+    transactions:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/transactions'
+    withdrawals:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/withdrawals'
+    blobGasUsed:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blobGasUsed'
+    excessBlobGas:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/excessBlobGas'
+    blockAccessList:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/blockAccessList'
+    slotNumber:
+      $ref: '#/components/schemas/ExecutionPayloadV4/properties/slotNumber'
+    dependencyProof:
+      title: Dependency proof
+      description: The EIP-8141 block dependency proof, at most MAX_DEPENDENCY_PROOF_BYTES; empty if the payload has no dependencies
+      $ref: '#/components/schemas/bytes'
 ExecutionPayloadBodyV1:
   title: Execution payload body object V1
   type: object

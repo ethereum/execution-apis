@@ -116,6 +116,10 @@ Block:
     slotNumber:
       title: EIP-7843 slot number
       $ref: '#/components/schemas/uint64'
+    dependencyProofHash:
+      title: EIP-8141 dependency proof hash
+      description: Hash of the block's dependency proof, which the block itself does not carry
+      $ref: '#/components/schemas/hash32'
 Header:
   title: Header object
   type: object
@@ -210,6 +214,10 @@ Header:
     slotNumber:
       title: EIP-7843 slot number
       $ref: '#/components/schemas/uint64'
+    dependencyProofHash:
+      title: EIP-8141 dependency proof hash
+      description: Hash of the block's dependency proof, which the block itself does not carry
+      $ref: '#/components/schemas/hash32'
 BlockTag:
   title: Block tag
   type: string
