@@ -192,7 +192,11 @@ CallResultFailure:
           message:
             type: string
             pattern: "^execution reverted.*"
-        required: [code, message]
+          data:
+            title: Raw EVM revert data
+            $ref: '#/components/schemas/bytes'
+        required: [code, message, data]
+        additionalProperties: false
       - type: object
         properties:
           code:
@@ -200,6 +204,7 @@ CallResultFailure:
           message:
             type: string
         required: [code, message]
+        additionalProperties: false
 CallResultSuccess:
   title: Result of call success
   type: object
