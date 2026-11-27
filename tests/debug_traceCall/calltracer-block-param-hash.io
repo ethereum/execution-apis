@@ -1,0 +1,3 @@
+// traces a call with the block given by the hash of the last block before Amsterdam
+>> {"jsonrpc":"2.0","id":1,"method":"debug_traceCall","params":[{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","input":"0xff01","to":"0x9dcd17433742f4c0ca53122ab541d0ba67fc27d1"},"0xbdb683cb54c75b2851727aca9197d84a4c72bfaf6586b1afbd95c3bc82ab770e",{"tracer":"callTracer"}]}
+<< {"jsonrpc":"2.0","id":1,"result":{"from":"0x0c2c51a0990aee1d73c1228de158688341557508","gas":"0x100000","gasUsed":"0x5270","to":"0x9dcd17433742f4c0ca53122ab541d0ba67fc27d1","input":"0xff01","output":"0xffee","value":"0x0","type":"CALL"}}
