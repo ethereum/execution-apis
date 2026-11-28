@@ -47,6 +47,7 @@ This enum defines a standard for specifying a client with just two letters. Clie
  - `TK`: teku
  - `PM`: prysm
  - `RH`: reth
+ - `XO`: xOneRS
 
 ### ClientVersionV1
 
